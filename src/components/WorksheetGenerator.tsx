@@ -98,10 +98,10 @@ export default function WorksheetGenerator() {
   }, [numQuestions, standard]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'white', color: 'black', borderBottom: '1px solid #e0e0e0', boxShadow: 'none' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#121416' }}>
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#121416', color: '#66d9cc', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: 'none' }}>
         <Toolbar>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold', color: '#1976D2' }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold', color: '#66d9cc' }}>
             MathViz AI
           </Typography>
         </Toolbar>
@@ -114,7 +114,7 @@ export default function WorksheetGenerator() {
           sx={{
             width: drawerWidth,
             flexShrink: 0,
-            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', pt: '64px', backgroundColor: '#f3f4f5' },
+            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', pt: '64px', backgroundColor: 'rgba(40, 42, 44, 0.6)', backdropFilter: 'blur(10px)', borderRight: '1px solid rgba(255, 255, 255, 0.05)' },
           }}
         >
           <Box sx={{ p: 3, overflowY: 'auto' }}>
@@ -136,7 +136,7 @@ export default function WorksheetGenerator() {
                     onChange={(e) => setGrade(e.target.value)}
                     fullWidth
                     size="small"
-                    sx={{ mb: 2, backgroundColor: 'white', borderRadius: 2 }}
+                    sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
                 >
                     <MenuItem value="Grade 10 - Geometry">Grade 10 - Geometry</MenuItem>
                     <MenuItem value="Grade 12 - Advanced Math">Grade 12 - Advanced Math</MenuItem>
@@ -146,7 +146,7 @@ export default function WorksheetGenerator() {
                     onChange={(e) => setStandard(e.target.value)}
                     fullWidth
                     size="small"
-                    sx={{ backgroundColor: 'white', borderRadius: 2 }}
+                    sx={{ backgroundColor: '#282a2c', borderRadius: 2 }}
                 >
                     <MenuItem value="Circle Theorems (G.12(A) TEKS)">Circle Theorems (G.12(A) TEKS)</MenuItem>
                     <MenuItem value="Surface Area & Volume">Surface Area & Volume</MenuItem>
@@ -164,7 +164,7 @@ export default function WorksheetGenerator() {
                     size="small"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    sx={{ mb: 2, backgroundColor: 'white', borderRadius: 2 }}
+                    sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
                 />
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <Box sx={{ flex: 1 }}>
@@ -175,7 +175,7 @@ export default function WorksheetGenerator() {
                             fullWidth
                             value={numQuestions}
                             onChange={(e) => setNumQuestions(Number(e.target.value))}
-                            sx={{ backgroundColor: 'white', borderRadius: 2 }}
+                            sx={{ backgroundColor: '#282a2c', borderRadius: 2 }}
                         />
                     </Box>
                     <Box sx={{ flex: 2 }}>
@@ -193,9 +193,9 @@ export default function WorksheetGenerator() {
         </Drawer>
 
         {/* Main Content Area - Preview */}
-        <Box component="main" sx={{ flexGrow: 1, p: 4, bgcolor: '#e7e8e9', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto' }}>
+        <Box component="main" sx={{ flexGrow: 1, p: 4, bgcolor: '#1a1c1e', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto' }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%', maxWidth: '8.5in', mb: 2, gap: 2 }}>
-                <Button variant="outlined" startIcon={<Save />} sx={{ borderRadius: 8, bgcolor: 'white' }}>Save Draft</Button>
+                <Button variant="outlined" startIcon={<Save />} sx={{ borderRadius: 8, borderColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}>Save Draft</Button>
                 {mounted && (
                     <PDFDownloadLink
                         document={<PdfDocument title={title} questions={questions} />}
@@ -208,8 +208,8 @@ export default function WorksheetGenerator() {
                     </PDFDownloadLink>
                 )}
             </Box>
-            <Paper elevation={3} sx={{ width: '8.5in', minHeight: '11in', p: '0.5in', bgcolor: 'white' }}>
-                <Typography variant="h4" align="center" gutterBottom fontWeight="bold" sx={{ fontFamily: 'Manrope, sans-serif' }}>{title}</Typography>
+            <Paper elevation={3} sx={{ width: '8.5in', minHeight: '11in', p: '0.5in', bgcolor: 'white', color: 'black' }}>
+                <Typography variant="h4" align="center" gutterBottom fontWeight="bold" sx={{ fontFamily: 'Lexend, sans-serif' }}>{title}</Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, borderBottom: '1px solid #ccc', pb: 2 }}>
                     <Typography variant="subtitle1">Name: ______________________</Typography>
                     <Typography variant="subtitle1">Date: ________</Typography>

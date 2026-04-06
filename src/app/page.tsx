@@ -5,15 +5,25 @@ import WorksheetGenerator from "../components/WorksheetGenerator";
 
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: "#1976D2",
+      main: "#66d9cc",
+      contrastText: "#003733",
+    },
+    secondary: {
+      main: "#4fd8eb",
     },
     background: {
-      default: "#f8f9fa",
+      default: "#121416",
+      paper: "#282a2c",
     },
+    text: {
+      primary: "#e1e3e4",
+      secondary: "#c4c7c8",
+    }
   },
   typography: {
-    fontFamily: "Inter, sans-serif",
+    fontFamily: "Lexend, Inter, sans-serif",
   },
 });
 
