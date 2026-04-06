@@ -20,6 +20,40 @@ import PdfDocument from './PdfDocument';
 
 const drawerWidth = 320;
 
+
+const WebDiagram = ({ type }: { type: string }) => {
+  if (type === 'circle') {
+    return (
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" stroke="black" strokeWidth="2" fill="none" />
+        <line x1="50" y1="50" x2="90" y2="50" stroke="black" strokeWidth="2" />
+        <circle cx="50" cy="50" r="2" fill="black" />
+        <text x="70" y="45" fontSize="10">r</text>
+      </svg>
+    );
+  }
+  if (type === 'surface-area') {
+    return (
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="20" rx="30" ry="10" stroke="black" strokeWidth="2" fill="none" />
+        <ellipse cx="50" cy="80" rx="30" ry="10" stroke="black" strokeWidth="2" fill="none" />
+        <line x1="20" y1="20" x2="20" y2="80" stroke="black" strokeWidth="2" />
+        <line x1="80" y1="20" x2="80" y2="80" stroke="black" strokeWidth="2" />
+      </svg>
+    );
+  }
+  if (type === 'angle') {
+    return (
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <line x1="10" y1="30" x2="90" y2="30" stroke="black" strokeWidth="2" />
+        <line x1="10" y1="70" x2="90" y2="70" stroke="black" strokeWidth="2" />
+        <line x1="30" y1="10" x2="70" y2="90" stroke="black" strokeWidth="2" />
+      </svg>
+    );
+  }
+  return null;
+};
+
 export default function WorksheetGenerator() {
   const [grade, setGrade] = useState('Grade 10 - Geometry');
   const [standard, setStandard] = useState('Circle Theorems (G.12(A) TEKS)');
@@ -29,23 +63,39 @@ export default function WorksheetGenerator() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
-  const generateQuestions = () => {
-    const questions = [];
+  const questions = React.useMemo(() => {
+    const qs = [];
     for (let i = 0; i < numQuestions; i++) {
-        questions.push({
+        let text = '';
+        let diagramType = '';
+
+        if (standard.includes('Circle Theorems')) {
+            text = `In circle O, m∠ABC = ${Math.floor(Math.abs(Math.sin(i * 12345)) * 40) + 30}°. Find m∠AOC.`;
+            diagramType = 'circle';
+        } else if (standard.includes('Surface Area')) {
+            text = `Find the surface area of a cylinder with radius ${Math.floor(Math.abs(Math.sin(i * 12345)) * 8) + 2} cm and height ${Math.floor(Math.abs(Math.sin(i * 12345)) * 10) + 5} cm.`;
+            diagramType = 'surface-area';
+        } else if (standard.includes('Angle Relationships')) {
+            text = `Lines L1 and L2 are parallel. If m∠1 = ${Math.floor(Math.abs(Math.sin(i * 12345)) * 60) + 40}°, find the measure of the alternate interior angle.`;
+            diagramType = 'angle';
+        } else {
+            text = `Find the value of x in problem #${i + 1}.`;
+            diagramType = 'unknown';
+        }
+
+        qs.push({
             id: i + 1,
-            text: `Find the value of x in the given circle theorem problem #${i + 1}.`,
-            points: 10
+            text,
+            points: 10,
+            diagramType
         });
     }
-    return questions;
-  };
-
-  const questions = generateQuestions();
+    return qs;
+  }, [numQuestions, standard]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -100,6 +150,7 @@ export default function WorksheetGenerator() {
                 >
                     <MenuItem value="Circle Theorems (G.12(A) TEKS)">Circle Theorems (G.12(A) TEKS)</MenuItem>
                     <MenuItem value="Surface Area & Volume">Surface Area & Volume</MenuItem>
+                                    <MenuItem value="Angle Relationships (G.6(A) TEKS)">Angle Relationships (G.6(A) TEKS)</MenuItem>
                 </Select>
             </Box>
 
@@ -170,8 +221,8 @@ export default function WorksheetGenerator() {
                             <Typography variant="body1" fontWeight="bold">{q.id}.</Typography>
                             <Box sx={{ flexGrow: 1 }}>
                                 <Typography variant="body1">{q.text}</Typography>
-                                <Box sx={{ mt: 2, height: '100px', border: '1px dashed #ccc', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Typography variant="caption" color="text.secondary">[ Diagram Placeholder ]</Typography>
+                                <Box sx={{ mt: 2, height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <WebDiagram type={q.diagramType || ''} />
                                 </Box>
                             </Box>
                         </Box>
