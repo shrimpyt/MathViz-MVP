@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Drawer,
@@ -12,14 +12,17 @@ import {
   Slider,
   Paper,
   AppBar,
-  Toolbar
+  Toolbar,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
-import { Save, PictureAsPdf } from '@mui/icons-material';
+import { Save, PictureAsPdf, MenuBook, Assignment } from '@mui/icons-material';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import PdfDocument from './PdfDocument';
+import { geometryCurriculum } from '../data/geometryCurriculum';
+import { DocumentType } from '../core/types';
 
 const drawerWidth = 320;
-
 
 const WebDiagram = ({ type }: { type: string }) => {
   if (type === 'circle') {
@@ -55,47 +58,40 @@ const WebDiagram = ({ type }: { type: string }) => {
 };
 
 export default function WorksheetGenerator() {
-  const [grade, setGrade] = useState('Grade 10 - Geometry');
-  const [standard, setStandard] = useState('Circle Theorems (G.12(A) TEKS)');
-  const [title, setTitle] = useState('Circle Theorems 1');
-  const [numQuestions, setNumQuestions] = useState(10);
+  const [docType, setDocType] = useState<DocumentType>('worksheet');
+  const [selectedStoryModuleId, setSelectedStoryModuleId] = useState(geometryCurriculum.modules[0].id);
+  const [selectedLessonId, setSelectedLessonId] = useState(geometryCurriculum.modules[0].lessons[0].id);
+  const [title, setTitle] = useState('Geometry Practice');
+  const [numQuestions, setNumQuestions] = useState(5);
   const [difficulty, setDifficulty] = useState(40);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-  }, []);
-
-  const questions = React.useMemo(() => {
-    const qs = [];
-    for (let i = 0; i < numQuestions; i++) {
-        let text = '';
-        let diagramType = '';
-
-        if (standard.includes('Circle Theorems')) {
-            text = `In circle O, m∠ABC = ${Math.floor(Math.abs(Math.sin(i * 12345)) * 40) + 30}°. Find m∠AOC.`;
-            diagramType = 'circle';
-        } else if (standard.includes('Surface Area')) {
-            text = `Find the surface area of a cylinder with radius ${Math.floor(Math.abs(Math.sin(i * 12345)) * 8) + 2} cm and height ${Math.floor(Math.abs(Math.sin(i * 12345)) * 10) + 5} cm.`;
-            diagramType = 'surface-area';
-        } else if (standard.includes('Angle Relationships')) {
-            text = `Lines L1 and L2 are parallel. If m∠1 = ${Math.floor(Math.abs(Math.sin(i * 12345)) * 60) + 40}°, find the measure of the alternate interior angle.`;
-            diagramType = 'angle';
-        } else {
-            text = `Find the value of x in problem #${i + 1}.`;
-            diagramType = 'unknown';
-        }
-
-        qs.push({
-            id: i + 1,
-            text,
-            points: 10,
-            diagramType
-        });
+    // Sync title based on topic selection when it changes if we want, or just let user set it.
+    const activeStoryModule = geometryCurriculum.modules.find(m => m.id === selectedStoryModuleId);
+    const activeLesson = activeStoryModule?.lessons.find(t => t.id === selectedLessonId);
+    if (activeLesson) {
+        setTitle(`${activeLesson.title} ${docType === 'guided-notes' ? 'Notes' : 'Practice'}`);
     }
-    return qs;
-  }, [numQuestions, standard]);
+  }, [selectedStoryModuleId, selectedLessonId, docType]);
+
+  const activeStoryModule = useMemo(() => geometryCurriculum.modules.find(m => m.id === selectedStoryModuleId), [selectedStoryModuleId]);
+
+  const handleStoryModuleChange = (newStoryModuleId: string) => {
+    setSelectedStoryModuleId(newStoryModuleId);
+    const mod = geometryCurriculum.modules.find(m => m.id === newStoryModuleId);
+    if (mod && mod.lessons.length > 0) {
+        setSelectedLessonId(mod.lessons[0].id);
+    }
+  };
+
+  const questions = useMemo(() => {
+    const topic = activeStoryModule?.lessons.find(t => t.id === selectedLessonId);
+    if (!topic) return [];
+    return topic.generateQuestions(numQuestions, docType);
+  }, [activeStoryModule, selectedLessonId, numQuestions, docType]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#121416' }}>
@@ -122,43 +118,65 @@ export default function WorksheetGenerator() {
                 <Typography variant="h6" fontWeight="bold" color="primary">
                   Control Panel
                 </Typography>
-                <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, color: 'text.secondary', fontWeight: 'bold' }}>
-                  Configure Worksheet
-                </Typography>
             </Box>
 
             <Box mb={4}>
                 <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, color: 'text.secondary', fontWeight: 'bold' }} gutterBottom>
-                    Academic Standards
+                    Document Mode
                 </Typography>
+                <ToggleButtonGroup
+                    value={docType}
+                    exclusive
+                    onChange={(e, val) => val && setDocType(val as DocumentType)}
+                    fullWidth
+                    size="small"
+                    sx={{ mt: 1, mb: 2 }}
+                >
+                    <ToggleButton value="worksheet" sx={{ color: 'text.secondary', '&.Mui-selected': { color: 'primary.main', bgcolor: 'rgba(102, 217, 204, 0.1)' } }}>
+                        <Assignment fontSize="small" sx={{ mr: 1 }}/> Worksheet
+                    </ToggleButton>
+                    <ToggleButton value="guided-notes" sx={{ color: 'text.secondary', '&.Mui-selected': { color: 'primary.main', bgcolor: 'rgba(102, 217, 204, 0.1)' } }}>
+                        <MenuBook fontSize="small" sx={{ mr: 1 }}/> Guided Notes
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+
+            <Box mb={4}>
+                <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, color: 'text.secondary', fontWeight: 'bold' }} gutterBottom>
+                    Curriculum Selection
+                </Typography>
+                <Typography variant="caption" display="block" sx={{ mt: 1, mb: 0.5, color: 'text.secondary' }}>StoryModule</Typography>
                 <Select
-                    value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
+                    value={selectedStoryModuleId}
+                    onChange={(e) => handleStoryModuleChange(e.target.value)}
                     fullWidth
                     size="small"
                     sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
                 >
-                    <MenuItem value="Grade 10 - Geometry">Grade 10 - Geometry</MenuItem>
-                    <MenuItem value="Grade 12 - Advanced Math">Grade 12 - Advanced Math</MenuItem>
+                    {geometryCurriculum.modules.map(mod => (
+                        <MenuItem key={mod.id} value={mod.id}>{mod.title}</MenuItem>
+                    ))}
                 </Select>
+
+                <Typography variant="caption" display="block" sx={{ mb: 0.5, color: 'text.secondary' }}>Lesson & Standard</Typography>
                 <Select
-                    value={standard}
-                    onChange={(e) => setStandard(e.target.value)}
+                    value={selectedLessonId}
+                    onChange={(e) => setSelectedLessonId(e.target.value)}
                     fullWidth
                     size="small"
                     sx={{ backgroundColor: '#282a2c', borderRadius: 2 }}
                 >
-                    <MenuItem value="Circle Theorems (G.12(A) TEKS)">Circle Theorems (G.12(A) TEKS)</MenuItem>
-                    <MenuItem value="Surface Area & Volume">Surface Area & Volume</MenuItem>
-                                    <MenuItem value="Angle Relationships (G.6(A) TEKS)">Angle Relationships (G.6(A) TEKS)</MenuItem>
+                    {activeStoryModule?.lessons.map(topic => (
+                        <MenuItem key={topic.id} value={topic.id}>{topic.title} ({topic.standard})</MenuItem>
+                    ))}
                 </Select>
             </Box>
 
             <Box mb={4}>
                 <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, color: 'text.secondary', fontWeight: 'bold' }} gutterBottom>
-                    Worksheet Parameters
+                    Parameters
                 </Typography>
-                <Typography variant="caption" display="block" sx={{ mt: 1, mb: 0.5, color: 'text.secondary' }}>Worksheet Title</Typography>
+                <Typography variant="caption" display="block" sx={{ mt: 1, mb: 0.5, color: 'text.secondary' }}>Document Title</Typography>
                 <TextField
                     fullWidth
                     size="small"
@@ -220,10 +238,28 @@ export default function WorksheetGenerator() {
                         <Box key={q.id} sx={{ display: 'flex', gap: 2, breakInside: 'avoid' }}>
                             <Typography variant="body1" fontWeight="bold">{q.id}.</Typography>
                             <Box sx={{ flexGrow: 1 }}>
-                                <Typography variant="body1">{q.text}</Typography>
+                                <Typography variant="body1" sx={{ mb: 1 }}>{q.text}</Typography>
+
+                                {q.scaffolding && (
+                                    <Box sx={{ ml: 2, mt: 2, p: 2, bgcolor: '#f8f9fa', borderLeft: '3px solid #66d9cc', borderRadius: 1 }}>
+                                        {q.scaffolding.map((step, idx) => (
+                                            <Typography key={idx} variant="body2" sx={{ mb: 1.5, color: '#333' }}>
+                                                {step.text}
+                                                {step.blankLength && (
+                                                    <span style={{ display: 'inline-block', width: `${step.blankLength * 10}px`, borderBottom: '1px solid black', marginLeft: '4px' }}></span>
+                                                )}
+                                            </Typography>
+                                        ))}
+                                    </Box>
+                                )}
+
                                 <Box sx={{ mt: 2, height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <WebDiagram type={q.diagramType || ''} />
                                 </Box>
+
+                                {!q.scaffolding && (
+                                    <Box sx={{ mt: 2, height: '100px' }} /> // Empty space for work in worksheet mode
+                                )}
                             </Box>
                         </Box>
                     ))}
