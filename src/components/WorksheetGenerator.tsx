@@ -28,7 +28,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import PdfDocument from './PdfDocument';
 import { MathVizEngine } from './MathVizEngine';
 import { geometryCurriculum } from '../data/geometryCurriculum';
-import { DocumentType } from '../core/types';
+import { DocumentType, DiagramData } from '../core/types';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -44,33 +44,48 @@ function toOutputMode(docType: DocumentType): OutputMode {
 
 // ── Basic diagram for the fallback preview ────────────────────────────────────
 
-const WebDiagram = ({ type }: { type: string }) => {
+const WebDiagram = ({ type, data }: { type: string; data?: DiagramData }) => {
   if (type === 'circle') {
     return (
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="40" stroke="#334155" strokeWidth="2" fill="none" />
-        <line x1="50" y1="50" x2="90" y2="50" stroke="#334155" strokeWidth="2" />
-        <circle cx="50" cy="50" r="2" fill="#334155" />
-        <text x="70" y="45" fontSize="10" fontFamily="Georgia,serif" fill="#334155">r</text>
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <circle cx="75" cy="75" r="50" stroke="black" strokeWidth="2" fill="none" />
+        <circle cx="75" cy="75" r="2" fill="black" />
+        <text x="70" y="90" fontSize="12" fontWeight="bold">O</text>
+        <line x1="75" y1="75" x2="25" y2="75" stroke="black" strokeWidth="1" />
+        <line x1="75" y1="75" x2="110" y2="40" stroke="black" strokeWidth="1" />
+        <line x1="25" y1="75" x2="110" y2="40" stroke="black" strokeWidth="1" />
+        <line x1="25" y1="75" x2="110" y2="110" stroke="black" strokeWidth="1" />
+        <line x1="110" y1="40" x2="110" y2="110" stroke="black" strokeWidth="1" />
+        <text x="15" y="80" fontSize="12">B</text>
+        <text x="115" y="35" fontSize="12">A</text>
+        <text x="115" y="120" fontSize="12">C</text>
+        {data?.angle && <text x="35" y="70" fontSize="10">{data.angle}°</text>}
       </svg>
     );
   }
   if (type === 'surface-area') {
     return (
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <ellipse cx="50" cy="20" rx="30" ry="10" stroke="#334155" strokeWidth="2" fill="none" />
-        <ellipse cx="50" cy="80" rx="30" ry="10" stroke="#334155" strokeWidth="2" fill="none" />
-        <line x1="20" y1="20" x2="20" y2="80" stroke="#334155" strokeWidth="2" />
-        <line x1="80" y1="20" x2="80" y2="80" stroke="#334155" strokeWidth="2" />
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <ellipse cx="75" cy="30" rx="40" ry="15" stroke="black" strokeWidth="2" fill="none" />
+        <ellipse cx="75" cy="120" rx="40" ry="15" stroke="black" strokeWidth="2" fill="none" />
+        <line x1="35" y1="30" x2="35" y2="120" stroke="black" strokeWidth="2" />
+        <line x1="115" y1="30" x2="115" y2="120" stroke="black" strokeWidth="2" />
+        <line x1="75" y1="30" x2="115" y2="30" stroke="black" strokeWidth="1" strokeDasharray="4" />
+        {data?.radius && <text x="85" y="25" fontSize="12">r={data.radius}</text>}
+        {data?.height && <text x="125" y="75" fontSize="12">h={data.height}</text>}
       </svg>
     );
   }
   if (type === 'angle') {
     return (
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <line x1="10" y1="30" x2="90" y2="30" stroke="#334155" strokeWidth="2" />
-        <line x1="10" y1="70" x2="90" y2="70" stroke="#334155" strokeWidth="2" />
-        <line x1="30" y1="10" x2="70" y2="90" stroke="#334155" strokeWidth="2" />
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <line x1="20" y1="50" x2="130" y2="50" stroke="black" strokeWidth="2" />
+        <line x1="20" y1="100" x2="130" y2="100" stroke="black" strokeWidth="2" />
+        <line x1="40" y1="20" x2="110" y2="130" stroke="black" strokeWidth="2" />
+        <text x="10" y="45" fontSize="12">L1</text>
+        <text x="10" y="95" fontSize="12">L2</text>
+        <text x="60" y="45" fontSize="12">1</text>
+        {data?.angleValue && <text x="75" y="45" fontSize="10">{data.angleValue}°</text>}
       </svg>
     );
   }
@@ -371,7 +386,6 @@ export default function WorksheetGenerator() {
                 sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
               />
 
-              {/* Show seed control for advanced modules */}
               {useAdvancedPreview && (
                 <>
                   <Typography
@@ -379,7 +393,7 @@ export default function WorksheetGenerator() {
                     display="block"
                     sx={{ mb: 0.5, color: 'text.secondary' }}
                   >
-                    Problem Set Seed (for reproducibility)
+                    Problem Set Seed (reproducibility)
                   </Typography>
                   <TextField
                     type="number"
@@ -392,7 +406,6 @@ export default function WorksheetGenerator() {
                 </>
               )}
 
-              {/* Show question count for basic modules */}
               {!useAdvancedPreview && (
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Box sx={{ flex: 1 }}>
@@ -664,13 +677,12 @@ export default function WorksheetGenerator() {
                       <Box
                         sx={{
                           mt: 2,
-                          height: '100px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <WebDiagram type={q.diagramType || ''} />
+                        <WebDiagram type={q.diagramType || ''} data={q.diagramData} />
                       </Box>
                     </Box>
                   </Box>

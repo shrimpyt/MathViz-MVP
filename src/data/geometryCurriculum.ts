@@ -77,6 +77,7 @@ export const geometryCurriculum: Curriculum = {
                 text: `Lines L1 and L2 are parallel. If m∠1 = ${angle}°, find the measure of the alternate interior angle.`,
                 points: 10,
                 diagramType: 'angle',
+                diagramData: { angleValue: angle },
               };
 
               if (docType === 'guided-notes') {
@@ -111,6 +112,7 @@ export const geometryCurriculum: Curriculum = {
                 text: `In circle O, m∠ABC = ${inscribed}°. Find m∠AOC.`,
                 points: 10,
                 diagramType: 'circle',
+                diagramData: { angle: inscribed },
               };
 
               if (docType === 'guided-notes') {
@@ -148,6 +150,7 @@ export const geometryCurriculum: Curriculum = {
                 text: `Find the surface area of a cylinder with radius ${radius} cm and height ${height} cm.`,
                 points: 10,
                 diagramType: 'surface-area',
+                diagramData: { radius, height },
               };
 
               if (docType === 'guided-notes') {
