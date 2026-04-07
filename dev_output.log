@@ -1,0 +1,277 @@
+
+> mathviz-mvp@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 531ms
+
+○ Compiling / ...
+ GET / 200 in 10.3s (next.js: 8.3s, application-code: 2.1s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <Styled(div) as="div" ref={null} className="MuiBox-root" theme={{...}} sx={{p:3, ...}}>
+      <Insertion>
+      <div className="MuiBox-roo...">
+        <Box>
+        <Box>
+        <Box mb={4}>
+          <Styled(div) as="div" ref={null} className="MuiBox-root" theme={{...}} sx={{mb:4}}>
+            <Insertion>
+            <div className="MuiBox-roo...">
+              <Typography>
+              <Typography>
+              <Select value="mod-1" onChange={function onChange} fullWidth={true} size="small" sx={{mb:2, ...}}>
+                <MuiSelect-root label={undefined} ownerState={{value:"mod-1", ...}} inputComponent={{...}} ...>
+                  <Insertion>
+                  <OutlinedInput label={undefined} inputComponent={{...}} inputProps={{children:[...], ...}} ...>
+                    <InputBase slots={{root:{...}, ...}} slotProps={{}} renderSuffix={function renderSuffix} ...>
+                      <GlobalStylesWrapper>
+                      <MuiOutlinedInput-root ref={null} onClick={function handleClick} classes={{root:"MuiO...", ...}} ...>
+                        <Insertion>
+                        <div onClick={function handleClick} className="MuiInputBa...">
+                          <MuiOutlinedInput-input aria-invalid={undefined} aria-describedby={undefined} ...>
+                            <Insertion>
+                            <SelectInput aria-invalid={undefined} aria-describedby={undefined} autoComplete={undefined} ...>
+                              <MuiSelect-select>
+                              <MuiSelect-nativeInput aria-invalid={false} value="mod-1" name={undefined} ...>
+                                <Insertion>
+                                <input
+                                  aria-invalid={false}
+                                  value="mod-1"
+                                  name={undefined}
+                                  aria-hidden={true}
+                                  onChange={function handleChange}
+                                  tabIndex={-1}
+                                  disabled={undefined}
+                                  className="MuiSelect-nativeInput css-j0riat-MuiSelect-nativeInput"
+                                  autoFocus={undefined}
+                                  required={undefined}
+                                  autoComplete={undefined}
+                                  id={undefined}
+                                  onAnimationStart={function handleAutoFill}
+                                  placeholder={undefined}
+                                  rows={undefined}
+                                  onKeyUp={undefined}
+                                  ref={{current:null}}
+-                                 style={{caret-color:"transparent"}}
+                                >
+                              ...
+                          ...
+              <Typography>
+              <Select value="topic-1-1" onChange={function onChange} fullWidth={true} size="small" sx={{...}}>
+                <MuiSelect-root label={undefined} ownerState={{value:"top...", ...}} inputComponent={{...}} ...>
+                  <Insertion>
+                  <OutlinedInput label={undefined} inputComponent={{...}} inputProps={{children:[...], ...}} ...>
+                    <InputBase slots={{root:{...}, ...}} slotProps={{}} renderSuffix={function renderSuffix} ...>
+                      <GlobalStylesWrapper>
+                      <MuiOutlinedInput-root ref={null} onClick={function handleClick} classes={{root:"MuiO...", ...}} ...>
+                        <Insertion>
+                        <div onClick={function handleClick} className="MuiInputBa...">
+                          <MuiOutlinedInput-input aria-invalid={undefined} aria-describedby={undefined} ...>
+                            <Insertion>
+                            <SelectInput aria-invalid={undefined} aria-describedby={undefined} autoComplete={undefined} ...>
+                              <MuiSelect-select>
+                              <MuiSelect-nativeInput aria-invalid={false} value="topic-1-1" name={undefined} ...>
+                                <Insertion>
+                                <input
+                                  aria-invalid={false}
+                                  value="topic-1-1"
+                                  name={undefined}
+                                  aria-hidden={true}
+                                  onChange={function handleChange}
+                                  tabIndex={-1}
+                                  disabled={undefined}
+                                  className="MuiSelect-nativeInput css-j0riat-MuiSelect-nativeInput"
+                                  autoFocus={undefined}
+                                  required={undefined}
+                                  autoComplete={undefined}
+                                  id={undefined}
+                                  onAnimationStart={function handleAutoFill}
+                                  placeholder={undefined}
+                                  rows={undefined}
+                                  onKeyUp={undefined}
+                                  ref={{current:null}}
+-                                 style={{caret-color:"transparent"}}
+                                >
+                              ...
+                          ...
+        ...
+          <div className="MuiBox-roo...">
+            <Typography>
+            <Typography>
+            ...
+              <FormControl disabled={false} error={false} fullWidth={true} required={false} color="primary" ...>
+                <MuiFormControl-root as="div" ownerState={{disabled:false, ...}} className="MuiFormCon..." ref={null}>
+                  <Insertion>
+                  <div className="MuiFormCon...">
+                    <OutlinedInput aria-describedby={undefined} autoComplete={undefined} autoFocus={false} ...>
+                      <InputBase slots={{root:{...}, ...}} slotProps={{}} renderSuffix={function renderSuffix} ...>
+                        <GlobalStylesWrapper>
+                        <MuiOutlinedInput-root ref={null} onClick={function handleClick} ownerState={{slots:{...}, ...}} ...>
+                          <Insertion>
+                          <div onClick={function handleClick} className="MuiInputBa...">
+                            <MuiOutlinedInput-input aria-invalid={false} aria-describedby={undefined} ...>
+                              <Insertion>
+                              <input
+                                aria-invalid={false}
+                                aria-describedby={undefined}
+                                autoComplete={undefined}
+                                autoFocus={false}
+                                defaultValue={undefined}
+                                disabled={false}
+                                id="_R_79ajalclrlb_"
+                                onAnimationStart={function handleAutoFill}
+                                name={undefined}
+                                placeholder={undefined}
+                                readOnly={undefined}
+                                required={false}
+                                rows={undefined}
+                                value="Geometry Practice"
+                                onKeyDown={undefined}
+                                onKeyUp={undefined}
+                                type="text"
+                                className="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-1..."
+                                onBlur={function handleBlur}
+                                onChange={function handleChange}
+                                onFocus={function handleFocus}
+                                ref={function useForkRef.useMemo}
+-                               style={{caret-color:"transparent"}}
+                              >
+                            ...
+            ...
+              <div className="MuiBox-roo...">
+                ...
+                  <MuiFormControl-root as="div" ownerState={{disabled:false, ...}} className="MuiFormCon..." ref={null}>
+                    <Insertion>
+                    <div className="MuiFormCon...">
+                      <OutlinedInput aria-describedby={undefined} autoComplete={undefined} autoFocus={false} ...>
+                        <InputBase slots={{root:{...}, ...}} slotProps={{}} renderSuffix={function renderSuffix} ...>
+                          <GlobalStylesWrapper>
+                          <MuiOutlinedInput-root ref={null} onClick={function handleClick} ...>
+                            <Insertion>
+                            <div onClick={function handleClick} className="MuiInputBa...">
+                              <MuiOutlinedInput-input aria-invalid={false} aria-describedby={undefined} ...>
+                                <Insertion>
+                                <input
+                                  aria-invalid={false}
+                                  aria-describedby={undefined}
+                                  autoComplete={undefined}
+                                  autoFocus={false}
+                                  defaultValue={undefined}
+                                  disabled={false}
+                                  id="_R_2j99ajalclrlb_"
+                                  onAnimationStart={function handleAutoFill}
+                                  name={undefined}
+                                  placeholder={undefined}
+                                  readOnly={undefined}
+                                  required={false}
+                                  rows={undefined}
+                                  value={5}
+                                  onKeyDown={undefined}
+                                  onKeyUp={undefined}
+                                  type="number"
+                                  className="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css..."
+                                  onBlur={function handleBlur}
+                                  onChange={function handleChange}
+                                  onFocus={function handleFocus}
+                                  ref={function useForkRef.useMemo}
+-                                 style={{caret-color:"transparent"}}
+                                >
+                              ...
+                ...
+                  <div className="MuiBox-roo...">
+                    <Typography>
+                    <Slider value={40} onChange={function onChange} size="small">
+                      <MuiSlider-root ref={function useForkRef.useMemo} onMouseDown={function} as="span" ...>
+                        <Insertion>
+                        <span onMouseDown={function} className="MuiSlider-..." ref={function useForkRef.useMemo}>
+                          <MuiSlider-rail>
+                          <MuiSlider-track>
+                          <Forward valueLabelFormat={function Identity} valueLabelDisplay="off" value={40} index={0} ...>
+                            <MuiSlider-thumb data-index={0} onMouseOver={function} onMouseLeave={function} ...>
+                              <Insertion>
+                              <span data-index={0} onMouseOver={function} onMouseLeave={function} ...>
+                                <input
+                                  data-index={0}
+                                  aria-label={undefined}
+                                  aria-valuenow={40}
+                                  aria-labelledby={undefined}
+                                  aria-valuetext={undefined}
+                                  value={40}
+                                  tabIndex={undefined}
+                                  aria-orientation="horizontal"
+                                  aria-valuemax={100}
+                                  aria-valuemin={0}
+                                  name={undefined}
+                                  type="range"
+                                  min={0}
+                                  max={100}
+                                  step={1}
+                                  disabled={false}
+                                  onChange={function}
+                                  onFocus={function}
+                                  onBlur={function}
+                                  onKeyDown={function}
+                                  style={{
++                                   border: 0
++                                   clip: "rect(0 0 0 0)"
+-                                   clip: "rect(0px, 0px, 0px, 0px)"
++                                   height: "100%"
+-                                   height: "100%"
++                                   margin: "-1px"
++                                   overflow: "hidden"
++                                   padding: 0
++                                   position: "absolute"
+-                                   position: "absolute"
++                                   whiteSpace: "nowrap"
++                                   width: "100%"
+-                                   width: "100%"
++                                   direction: "ltr"
+-                                   direction: "ltr"
++                                   writingMode: undefined
+-                                   border-top-width: "0px"
+-                                   border-right-width: "0px"
+-                                   border-bottom-width: "0px"
+-                                   border-left-width: "0px"
+-                                   border-top-style: "initial"
+-                                   border-right-style: "initial"
+-                                   border-bottom-style: "initial"
+-                                   border-left-style: "initial"
+-                                   border-top-color: "initial"
+-                                   border-right-color: "initial"
+-                                   border-bottom-color: "initial"
+-                                   border-left-color: "initial"
+-                                   border-image-source: "initial"
+-                                   border-image-slice: "initial"
+-                                   border-image-width: "initial"
+-                                   border-image-outset: "initial"
+-                                   border-image-repeat: "initial"
+-                                   margin-top: "-1px"
+-                                   margin-right: "-1px"
+-                                   margin-bottom: "-1px"
+-                                   margin-left: "-1px"
+-                                   overflow-x: "hidden"
+-                                   overflow-y: "hidden"
+-                                   padding-top: "0px"
+-                                   padding-right: "0px"
+-                                   padding-bottom: "0px"
+-                                   padding-left: "0px"
+-                                   white-space-collapse: "collapse"
+-                                   text-wrap-mode: "nowrap"
+-                                   caret-color: "transparent"
+                                  }}
+                                  ref={null}
+                                >
