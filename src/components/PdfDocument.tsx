@@ -20,6 +20,9 @@ import {
   Ellipse,
 } from '@react-pdf/renderer';
 import { Question } from '../core/types';
+import { PdfGeometrySVG } from "./PdfGeometrySVG";
+import { MathProblem } from "@/lib/ProblemFactory";
+
 
 // ── StyleSheet ────────────────────────────────────────────────────────────────
 
@@ -294,19 +297,12 @@ const PdfDiagram = ({ type, data }: { type: string; data?: import('../core/types
 
 // ── Section divider component ─────────────────────────────────────────────────
 
-const SectionDivider = ({ label }: { label: string }) => (
-  <View style={styles.sectionDivider}>
-    <View style={styles.sectionRule} />
-    <Text style={styles.sectionLabel}>{label}</Text>
-    <View style={styles.sectionRule} />
-  </View>
-);
-
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 export interface PdfDocumentProps {
   title: string;
   questions: Question[];
+  advancedProblems?: MathProblem[];
   /** 'worksheet' | 'guided-notes' | 'review' | 'test' */
   docType?: string;
   /** Standard(s) covered, shown in footer */
@@ -318,6 +314,7 @@ export interface PdfDocumentProps {
 export default function PdfDocument({
   title,
   questions,
+  advancedProblems,
   docType = 'worksheet',
   standard = 'Texas TEKS Geometry',
 }: PdfDocumentProps) {
@@ -429,7 +426,11 @@ export default function PdfDocument({
                   {/* Diagram */}
                   {q.diagramType && (
                     <View style={styles.diagramBox}>
-                      <PdfDiagram type={q.diagramType} data={q.diagramData} />
+                      {advancedProblems && advancedProblems[q.id - 1] ? (
+                        <PdfGeometrySVG params={advancedProblems[q.id - 1].svgParams} />
+                      ) : (
+                        <PdfDiagram type={q.diagramType} data={q.diagramData} />
+                      )}
                     </View>
                   )}
                 </View>
