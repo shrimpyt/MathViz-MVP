@@ -443,6 +443,7 @@ export default function WorksheetGenerator() {
                   <PdfDocument
                     title={title}
                     questions={questions}
+                    advancedProblems={advancedProblems}
                     docType={docType}
                     standard={activeModule?.teks ?? 'Texas TEKS Geometry'}
                   />
