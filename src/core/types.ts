@@ -48,3 +48,44 @@ export interface StoryModule {
 export interface Curriculum {
   modules: StoryModule[];
 }
+
+export function problemToQuestion(p: MathProblem, idx: number): Question {
+  if (p.type === 'G.12A') {
+    const entries = Object.entries(p.given);
+    const givenStr = entries.map(([k, v]) => `${k} = ${v}°`).join(', ');
+    return {
+      id: idx + 1,
+      text: `Given ${givenStr}. Find the ${p.find}.`,
+      points: 10,
+      diagramType: 'circle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  if (p.type === 'G.13B') {
+    return {
+      id: idx + 1,
+      text:
+        p.subtype === 'ConcentricCircles'
+          ? `A dart lands randomly on a target. Outer radius R = ${p.outerR}, inner radius r = ${p.innerR}. Find P(inner circle).`
+          : `A spinner has a shaded sector of ${p.sectorAngle}°. Find P(shaded).`,
+      points: 10,
+      diagramType: 'circle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  // G.6B
+  if (p.type === 'G.6B') {
+    return {
+      id: idx + 1,
+      text: `Given: ${p.given.join('; ')}. ${p.find}.`,
+      points: 10,
+      diagramType: 'angle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  return {
+    id: idx + 1,
+    text: `Problem`,
+    points: 10
+  }
+}
