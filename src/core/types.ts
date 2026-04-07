@@ -5,13 +5,23 @@ export interface ScaffoldingStep {
   blankLength?: number;
 }
 
+
+export type DiagramData = {
+  angle?: number;
+  radius?: number;
+  height?: number;
+  angleValue?: number;
+};
+
 export interface Question {
   id: number;
   text: string;
   points: number;
   diagramType?: string;
+  diagramData?: DiagramData;
   scaffolding?: ScaffoldingStep[];
 }
+
 
 export interface Lesson {
   id: string;
