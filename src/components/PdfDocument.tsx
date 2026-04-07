@@ -1,6 +1,7 @@
 import React from 'react';
-import { DiagramData } from './WorksheetGenerator';
+
 import { Page, Text, View, Document, StyleSheet, Svg, Circle, Line, Ellipse } from '@react-pdf/renderer';
+import { Question } from '../core/types';
 
 const styles = StyleSheet.create({
   page: {
@@ -33,53 +34,54 @@ const styles = StyleSheet.create({
   },
   questionRow: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 25,
   },
   questionNumber: {
     fontSize: 12,
     fontWeight: 'bold',
-    width: 20,
+    width: 25,
   },
   questionContent: {
     flex: 1,
   },
   questionText: {
     fontSize: 12,
+    marginBottom: 8,
   },
-  diagramPlaceholder: {
+  scaffoldBox: {
     marginTop: 10,
-    height: 100,
-    borderWidth: 1,
-    borderColor: '#cccccc',
-    borderStyle: 'dashed',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginLeft: 10,
+    padding: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: '#66d9cc',
+    backgroundColor: '#f8f9fa',
   },
-  placeholderText: {
-    fontSize: 10,
-    color: '#666666',
+  scaffoldStep: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    alignItems: 'baseline',
+  },
+  scaffoldText: {
+    fontSize: 11,
+    color: '#333333',
+  },
+  blankLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#000000',
+    marginLeft: 5,
+    marginTop: 10,
+  },
+  workSpace: {
+    height: 100,
   }
 });
-
-
-interface Question {
-  id: number;
-  text: string;
-  points: number;
-  diagramType?: string;
-  diagramData?: DiagramData;
-}
-
 
 interface PdfDocumentProps {
   title: string;
   questions: Question[];
 }
 
-
-
-const PdfDiagram = ({ type, data }: { type: string, data?: DiagramData }) => {
+const PdfDiagram = ({ type, data }: { type: string, data?: import('../core/types').DiagramData }) => {
   if (type === 'circle') {
     return (
       <Svg width="150" height="150" viewBox="0 0 150 150">
@@ -148,9 +150,27 @@ export default function PdfDocument({ title, questions }: PdfDocumentProps) {
               <Text style={styles.questionNumber}>{q.id}.</Text>
               <View style={styles.questionContent}>
                 <Text style={styles.questionText}>{q.text}</Text>
+
+                {q.scaffolding && (
+                    <View style={styles.scaffoldBox}>
+                        {q.scaffolding.map((step, idx) => (
+                            <View key={idx} style={styles.scaffoldStep}>
+                                <Text style={styles.scaffoldText}>{step.text}</Text>
+                                {step.blankLength && (
+                                    <View style={[styles.blankLine, { width: step.blankLength * 5 }]} />
+                                )}
+                            </View>
+                        ))}
+                    </View>
+                )}
+
                 <View style={{ marginTop: 10, height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <PdfDiagram type={q.diagramType || ''} data={q.diagramData} />
                 </View>
+
+                {!q.scaffolding && (
+                    <View style={styles.workSpace} />
+                )}
               </View>
             </View>
           ))}
