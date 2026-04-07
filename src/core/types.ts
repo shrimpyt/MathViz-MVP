@@ -1,4 +1,7 @@
-export type DocumentType = 'worksheet' | 'guided-notes';
+import type { MathProblem, OutputMode } from '@/lib/ProblemFactory';
+
+/** Basic document type for the simple Question-based preview */
+export type DocumentType = 'worksheet' | 'guided-notes' | 'review' | 'test';
 
 export interface ScaffoldingStep {
   text: string;
@@ -18,6 +21,11 @@ export interface Lesson {
   title: string;
   standard: string;
   generateQuestions: (count: number, docType: DocumentType) => Question[];
+  /**
+   * Advanced generator: returns MathProblem[] for use with MathVizEngine.
+   * When present, the WorksheetGenerator uses MathVizEngine for the preview.
+   */
+  generateProblems?: (mode: OutputMode, seed: number) => MathProblem[];
 }
 
 export interface StoryModule {

@@ -1,10 +1,61 @@
 import { Curriculum, DocumentType, Question } from '../core/types';
+import { AnatomyOfACircle } from '../modules/anatomy-of-a-circle';
+import { TargetZone } from '../modules/target-zone';
+import { LogicOfCongruence } from '../modules/logic-of-congruence';
+import type { MathProblem, OutputMode } from '@/lib/ProblemFactory';
+
+// Seeded PRNG used by the module generators
+function mulberry32(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 // Helper for consistent pseudo-random generation to avoid React hydration issues
 const pseudoRandom = (seed: number) => {
   const x = Math.sin(seed++) * 10000;
   return x - Math.floor(x);
 };
+
+// ── Helper: convert a CircleProblem/ProbabilityProblem to the basic Question type
+// so MathVizEngine-backed lessons can still serve the basic preview fallback.
+function problemToQuestion(p: MathProblem, idx: number): Question {
+  if (p.type === 'G.12A') {
+    const entries = Object.entries(p.given);
+    const givenStr = entries.map(([k, v]) => `${k} = ${v}°`).join(', ');
+    return {
+      id: idx + 1,
+      text: `Given ${givenStr}. Find the ${p.find}.`,
+      points: 10,
+      diagramType: 'circle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  if (p.type === 'G.13B') {
+    return {
+      id: idx + 1,
+      text:
+        p.subtype === 'ConcentricCircles'
+          ? `A dart lands randomly on a target. Outer radius R = ${p.outerR}, inner radius r = ${p.innerR}. Find P(inner circle).`
+          : `A spinner has a shaded sector of ${p.sectorAngle}°. Find P(shaded).`,
+      points: 10,
+      diagramType: 'circle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  // G.6B
+  return {
+    id: idx + 1,
+    text: `Given: ${p.given.join('; ')}. ${p.find}.`,
+    points: 10,
+    diagramType: 'angle',
+    scaffolding: p.steps.map(s => ({ text: s.instruction })),
+  };
+}
 
 export const geometryCurriculum: Curriculum = {
   modules: [
@@ -114,6 +165,80 @@ export const geometryCurriculum: Curriculum = {
           }
         }
       ]
-    }
+    },
+    // ── Story: Anatomy of a Circle ──────────────────────────────────────────
+    {
+      id: 'mod-circle-theorems',
+      title: 'Anatomy of a Circle',
+      description:
+        'Master inscribed angles, central angles, tangent-chord angles, intersecting chords, and two-secant angles.',
+      lessons: [
+        {
+          id: 'lesson-g12a',
+          title: 'Circle Theorems — Full Survey',
+          standard: 'G.12(A) TEKS',
+          generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
+            const rng = mulberry32(seed);
+            const count = mode === 'Review' ? 9 : 3;
+            return AnatomyOfACircle.generateMany(count, rng);
+          },
+          generateQuestions: (count: number, docType: DocumentType): Question[] => {
+            const rng = mulberry32(1234);
+            const problems = AnatomyOfACircle.generateMany(count, rng);
+            return problems.map((p, i) => problemToQuestion(p, i));
+          },
+        },
+      ],
+    },
+
+    // ── Story: Target Zone ──────────────────────────────────────────────────
+    {
+      id: 'mod-target-zone',
+      title: 'Target Zone',
+      description:
+        'Calculate the probability a dart hits the bullseye — or a spinner lands on the shaded region.',
+      lessons: [
+        {
+          id: 'lesson-g13b',
+          title: 'Area-Based Probability',
+          standard: 'G.13(B) TEKS',
+          generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
+            const rng = mulberry32(seed);
+            const count = mode === 'Review' ? 6 : 2;
+            return TargetZone.generateMany(count, rng);
+          },
+          generateQuestions: (count: number, docType: DocumentType): Question[] => {
+            const rng = mulberry32(5678);
+            const problems = TargetZone.generateMany(count, rng);
+            return problems.map((p, i) => problemToQuestion(p, i));
+          },
+        },
+      ],
+    },
+
+    // ── Story: Logic of Congruence ──────────────────────────────────────────
+    {
+      id: 'mod-congruence',
+      title: 'Logic of Congruence',
+      description:
+        'Prove two triangles are congruent using SSS, SAS, ASA, AAS, or HL in structured two-column proofs.',
+      lessons: [
+        {
+          id: 'lesson-g6b',
+          title: 'Triangle Congruence Proofs',
+          standard: 'G.6(B) TEKS',
+          generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
+            const rng = mulberry32(seed);
+            const count = mode === 'Review' ? 6 : 2;
+            return LogicOfCongruence.generateMany(count, rng);
+          },
+          generateQuestions: (count: number, docType: DocumentType): Question[] => {
+            const rng = mulberry32(9012);
+            const problems = LogicOfCongruence.generateMany(count, rng);
+            return problems.map((p, i) => problemToQuestion(p, i));
+          },
+        },
+      ],
+    },
   ]
 };
