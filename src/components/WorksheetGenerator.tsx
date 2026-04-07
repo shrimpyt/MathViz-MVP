@@ -6,8 +6,6 @@ import {
   Drawer,
   Typography,
   Button,
-  Select,
-  MenuItem,
   TextField,
   Slider,
   AppBar,
@@ -27,8 +25,9 @@ import {
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import PdfDocument from './PdfDocument';
 import { MathVizEngine } from './MathVizEngine';
-import { geometryCurriculum } from '../data/geometryCurriculum';
-import { DocumentType, DiagramData } from '../core/types';
+import { CURRICULUM_REGISTRY } from '../modules/CurriculumRegistry';
+import { Autocomplete } from '@mui/material';
+import { DocumentType, DiagramData, problemToQuestion } from '../core/types';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -96,71 +95,51 @@ const WebDiagram = ({ type, data }: { type: string; data?: DiagramData }) => {
 
 export default function WorksheetGenerator() {
   const [docType, setDocType] = useState<DocumentType>('guided-notes');
-  const [selectedStoryModuleId, setSelectedStoryModuleId] = useState(
-    geometryCurriculum.modules[0].id
-  );
-  const [selectedLessonId, setSelectedLessonId] = useState(
-    geometryCurriculum.modules[0].lessons[0].id
-  );
-  const [title, setTitle] = useState('Geometry Practice');
+  const [selectedTopicId, setSelectedTopicId] = useState(CURRICULUM_REGISTRY[0].id);
+
+  const [customTitle, setCustomTitle] = useState('');
+  const activeModule = useMemo(() => CURRICULUM_REGISTRY.find(t => t.id === selectedTopicId), [selectedTopicId]);
+  const defaultTitle = useMemo(() => {
+    if (!activeModule) return 'Geometry Practice';
+    const modeWord = docType === 'guided-notes' ? 'Notes' : docType === 'test' ? 'Assessment' : docType === 'review' ? 'Review' : 'Practice';
+    return `${activeModule.title} — ${modeWord}`;
+  }, [activeModule, docType]);
+  const title = customTitle || defaultTitle;
+  const handleTitleChange = (val: string) => setCustomTitle(val);
   const [numQuestions, setNumQuestions] = useState(5);
   const [difficulty, setDifficulty] = useState(40);
   const [seed, setSeed] = useState(42);
   const [mounted, setMounted] = useState(false);
 
+
   useEffect(() => {
-    setMounted(true);
-    const activeStoryModule = geometryCurriculum.modules.find(
-      (m) => m.id === selectedStoryModuleId
-    );
-    const activeLesson = activeStoryModule?.lessons.find(
-      (t) => t.id === selectedLessonId
-    );
-    if (activeLesson) {
-      const modeWord =
-        docType === 'guided-notes'
-          ? 'Notes'
-          : docType === 'test'
-          ? 'Assessment'
-          : docType === 'review'
-          ? 'Review'
-          : 'Practice';
-      setTitle(`${activeLesson.title} — ${modeWord}`);
-    }
-  }, [selectedStoryModuleId, selectedLessonId, docType]);
+    // Defer setMounted
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const activeStoryModule = useMemo(
-    () => geometryCurriculum.modules.find((m) => m.id === selectedStoryModuleId),
-    [selectedStoryModuleId]
-  );
+  // Moved title logic out of useEffect to avoid set-state-in-effect
 
-  const activeLesson = useMemo(
-    () => activeStoryModule?.lessons.find((t) => t.id === selectedLessonId),
-    [activeStoryModule, selectedLessonId]
-  );
 
-  const handleStoryModuleChange = (newId: string) => {
-    setSelectedStoryModuleId(newId);
-    const mod = geometryCurriculum.modules.find((m) => m.id === newId);
-    if (mod?.lessons.length) {
-      setSelectedLessonId(mod.lessons[0].id);
-    }
-  };
+
+
+
 
   // Advanced problems for MathVizEngine (null if lesson doesn't support it)
-  const advancedProblems = useMemo<MathProblem[] | null>(() => {
-    if (!activeLesson?.generateProblems) return null;
-    return activeLesson.generateProblems(toOutputMode(docType), seed);
-  }, [activeLesson, docType, seed]);
+
+  const advancedProblems = useMemo<MathProblem[]>(() => {
+    if (!activeModule) return [];
+    return activeModule.generate(toOutputMode(docType), seed);
+  }, [activeModule, docType, seed]);
 
   // Basic questions for the fallback preview and PDF
+
   const questions = useMemo(() => {
-    if (!activeLesson) return [];
-    return activeLesson.generateQuestions(numQuestions, docType);
-  }, [activeLesson, numQuestions, docType]);
+    return advancedProblems.map((p, i) => problemToQuestion(p, i)).slice(0, numQuestions);
+  }, [advancedProblems, numQuestions]);
 
   // Whether to use MathVizEngine preview
-  const useAdvancedPreview = advancedProblems !== null;
+  const useAdvancedPreview = true;
 
   return (
     <Box
@@ -318,42 +297,19 @@ export default function WorksheetGenerator() {
                 display="block"
                 sx={{ mt: 1, mb: 0.5, color: 'text.secondary' }}
               >
-                Story Module
+                Topic
               </Typography>
-              <Select
-                value={selectedStoryModuleId}
-                onChange={(e) => handleStoryModuleChange(e.target.value)}
-                fullWidth
-                size="small"
-                sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
-              >
-                {geometryCurriculum.modules.map((mod) => (
-                  <MenuItem key={mod.id} value={mod.id}>
-                    {mod.title}
-                  </MenuItem>
-                ))}
-              </Select>
-
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 0.5, color: 'text.secondary' }}
-              >
-                Lesson &amp; Standard
-              </Typography>
-              <Select
-                value={selectedLessonId}
-                onChange={(e) => setSelectedLessonId(e.target.value)}
-                fullWidth
-                size="small"
-                sx={{ backgroundColor: '#282a2c', borderRadius: 2 }}
-              >
-                {activeStoryModule?.lessons.map((lesson) => (
-                  <MenuItem key={lesson.id} value={lesson.id}>
-                    {lesson.title} ({lesson.standard})
-                  </MenuItem>
-                ))}
-              </Select>
+              <Autocomplete
+                options={CURRICULUM_REGISTRY}
+                getOptionLabel={(option) => option.title}
+                value={CURRICULUM_REGISTRY.find(t => t.id === selectedTopicId) || CURRICULUM_REGISTRY[0]}
+                onChange={(_, newValue) => {
+                  if (newValue) setSelectedTopicId(newValue.id);
+                }}
+                renderInput={(params) => <TextField {...params} size="small" />}
+                sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2, '.MuiOutlinedInput-root': { padding: '3px' } }}
+                disableClearable
+              />
             </Box>
 
             {/* ── Parameters ── */}
@@ -382,7 +338,7 @@ export default function WorksheetGenerator() {
                 fullWidth
                 size="small"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => handleTitleChange(e.target.value)}
                 sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
               />
 
@@ -488,7 +444,7 @@ export default function WorksheetGenerator() {
                     title={title}
                     questions={questions}
                     docType={docType}
-                    standard={activeLesson?.standard ?? 'Texas TEKS Geometry'}
+                    standard={activeModule?.teks ?? 'Texas TEKS Geometry'}
                   />
                 }
                 fileName={`${title.replace(/\s+/g, '_').toLowerCase()}.pdf`}
