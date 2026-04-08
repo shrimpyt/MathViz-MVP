@@ -2,7 +2,7 @@
 
 ## Pattern: Domain-Driven Factory + Component Rendering Pipeline
 
-MathViz is structured as a **pure transformation pipeline**: curriculum data → problem generation → rendering → output (screen or PDF). There is no global state manager, no API layer, and no database.
+Euclid is structured as a **pure transformation pipeline**: curriculum data → problem generation → rendering → output (screen or PDF). There is no global state manager, no API layer, and no database.
 
 ```
 [Curriculum Registry]
@@ -11,7 +11,7 @@ MathViz is structured as a **pure transformation pipeline**: curriculum data →
         ↓
 [WorksheetGenerator UI]     ← state orchestrator (useState, useMemo)
         ↓                                ↓
-[MathVizEngine (Web)]          [PdfDocument (PDF)]
+[EuclidEngine (Web)]          [PdfDocument (PDF)]
         ↓                                ↓
 [GeometrySVG (SVG)]         [@react-pdf/renderer]
 ```
@@ -20,7 +20,7 @@ MathViz is structured as a **pure transformation pipeline**: curriculum data →
 
 ### 1. Data / Domain Layer (`src/data/`, `src/modules/`, `src/lib/`)
 
-- **`src/data/geometryCurriculum.ts`** — Static curriculum config. Defines `StoryModule[]` with `Lesson[]`. Each lesson has `generateQuestions()` (basic) and optionally `generateProblems()` (advanced, used by MathVizEngine).
+- **`src/data/geometryCurriculum.ts`** — Static curriculum config. Defines `StoryModule[]` with `Lesson[]`. Each lesson has `generateQuestions()` (basic) and optionally `generateProblems()` (advanced, used by EuclidEngine).
 - **`src/lib/ProblemFactory.ts`** — Core math logic. Contains:
   - All TypeScript interfaces for problem types: `CircleProblem`, `ProbabilityProblem`, `CongruenceProblem`, `MathProblem`.
   - All SVG parameter interfaces.
@@ -38,11 +38,11 @@ MathViz is structured as a **pure transformation pipeline**: curriculum data →
 - **`src/app/page.tsx`** — Entry point. Wraps `WorksheetGenerator` in an MUI `ThemeProvider` with a dark theme.
 - **`src/components/WorksheetGenerator.tsx`** — The single stateful orchestrator component. Holds all UI state: `docType`, `selectedStoryModuleId`, `selectedLessonId`, `title`, `numQuestions`, `difficulty`, `seed`, `mounted`.
   - Uses `useMemo` to compute `advancedProblems` and `questions` reactively.
-  - Decides whether to use `MathVizEngine` (for TEKS modules with `generateProblems`) or a basic `Paper` preview fallback.
+  - Decides whether to use `EuclidEngine` (for TEKS modules with `generateProblems`) or a basic `Paper` preview fallback.
 
-### 3. Rendering Layer (`src/components/MathVizEngine.tsx`, `src/components/GeometrySVG.tsx`)
+### 3. Rendering Layer (`src/components/EuclidEngine.tsx`, `src/components/GeometrySVG.tsx`)
 
-- **`src/components/MathVizEngine.tsx`** — Takes `problems: MathProblem[]`, `mode: OutputMode`, `title: string`. Renders a simulated US Letter (8.5" × 11") print document to the screen. Contains sub-components: `Blank`, `StepBlock`, `TEKSBadge`, `DiagramBox`, `CircleProblemCard`, `ProbabilityProblemCard`, `CongruenceProblemCard`, `DocumentHeader`, `SectionDivider`.
+- **`src/components/EuclidEngine.tsx`** — Takes `problems: MathProblem[]`, `mode: OutputMode`, `title: string`. Renders a simulated US Letter (8.5" × 11") print document to the screen. Contains sub-components: `Blank`, `StepBlock`, `TEKSBadge`, `DiagramBox`, `CircleProblemCard`, `ProbabilityProblemCard`, `CongruenceProblemCard`, `DocumentHeader`, `SectionDivider`.
 - **`src/components/GeometrySVG.tsx`** — Pure SVG renderer. Exports `GeometrySVG` as a dispatch switch component routing to specialist SVGs: `InscribedAngleSVG`, `CentralAngleSVG`, `TangentSVG`, `TwoChordsSVG`, `TwoSecantsSVG`, `ConcentricCirclesSVG`, `ShadedSectorSVG`, `CongruenceSVG`. All use a `200×200` SVG viewBox.
 
 ### 4. Export Layer (`src/components/PdfDocument.tsx`)
@@ -56,7 +56,7 @@ MathViz is structured as a **pure transformation pipeline**: curriculum data →
 geometryCurriculum (data) 
   → lesson.generateProblems(mode, seed) 
   → MathProblem[] 
-  → MathVizEngine props 
+  → EuclidEngine props
   → renders CircleProblemCard | ProbabilityProblemCard | CongruenceProblemCard 
   → GeometrySVG (SVG diagrams)
 ```
@@ -90,6 +90,6 @@ Pure React local state in `WorksheetGenerator.tsx`. No Context, no Redux, no Zus
 
 ## Entry Points
 
-- **Web App**: `src/app/page.tsx` → `WorksheetGenerator` → `MathVizEngine`
+- **Web App**: `src/app/page.tsx` → `WorksheetGenerator` → `EuclidEngine`
 - **PDF**: `src/components/PdfDocument.tsx` (consumed by `PDFDownloadLink` in `WorksheetGenerator`)
 - **Renderer (legacy)**: `src/renderer.ts` — appears to be a development utility, unused in the App Router flow.

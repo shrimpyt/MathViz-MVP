@@ -32,8 +32,8 @@ export interface Lesson {
   standard: string;
   generateQuestions: (count: number, docType: DocumentType) => Question[];
   /**
-   * Advanced generator: returns MathProblem[] for use with MathVizEngine.
-   * When present, the WorksheetGenerator uses MathVizEngine for the preview.
+   * Advanced generator: returns MathProblem[] for use with EuclidEngine.
+   * When present, the WorksheetGenerator uses EuclidEngine for the preview.
    */
   generateProblems?: (mode: OutputMode, seed: number) => MathProblem[];
 }

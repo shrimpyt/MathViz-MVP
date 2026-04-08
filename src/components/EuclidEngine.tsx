@@ -1,5 +1,5 @@
 "use client";
-// MathVizEngine.tsx
+// EuclidEngine.tsx
 // Orchestrator — filters problems by type, calculates offsets, renders cards.
 // All visual components live in ./problem-cards/.
 
@@ -26,19 +26,19 @@ import {
 const PAGE_WIDTH_PX = 816;
 const PAGE_HEIGHT_PX = Math.round(PAGE_WIDTH_PX * (11 / 8.5)); // 1056
 
-// ── Main MathVizEngine component ──────────────────────────────────────────────
+// ── Main EuclidEngine component ──────────────────────────────────────────────
 
-interface MathVizEngineProps {
+interface EuclidEngineProps {
   problems: MathProblem[];
   mode: OutputMode;
   title?: string;
 }
 
-export function MathVizEngine({
+export function EuclidEngine({
   problems,
   mode,
   title = "Geometry",
-}: MathVizEngineProps) {
+}: EuclidEngineProps) {
   const [revealed, setRevealed] = useState(false);
 
   const circleProblems = problems.filter(
@@ -161,7 +161,7 @@ export function MathVizEngine({
         {/* Footer */}
         <div className="mt-8 pt-3 border-t border-slate-200 flex justify-between text-[10px] font-sans text-slate-400">
           <span>Texas TEKS G.12(A) · G.13(B) · G.6(B) · G.9(A)</span>
-          <span>MathViz — generated {new Date().toLocaleDateString()}</span>
+          <span>Euclid — generated {new Date().toLocaleDateString()}</span>
         </div>
       </div>
     </div>

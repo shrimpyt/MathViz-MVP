@@ -13,9 +13,9 @@
 
 ---
 
-### 2. `MathVizEngine.tsx` God Component (554 lines)
+### 2. `EuclidEngine.tsx` God Component (554 lines)
 
-**Location:** `src/components/MathVizEngine.tsx`
+**Location:** `src/components/EuclidEngine.tsx`
 **Risk:** MEDIUM — Difficult to maintain and test as complexity grows.
 
 The file contains 8+ internal React components, all in one file. Adding a new TEKS standard (e.g., volume, similar figures) requires modifying this already-large file.
@@ -125,7 +125,7 @@ Not imported by any App Router page or component in the current code path. May b
 
 **Location:** `WorksheetGenerator.tsx` (lines 529–611)
 
-The basic Paper preview duplicates the "Classical Academy" document header markup that is also in `MathVizEngine.tsx`'s `DocumentHeader` component. If the header design changes, it must be updated in two places.
+The basic Paper preview duplicates the "Classical Academy" document header markup that is also in `EuclidEngine.tsx`'s `DocumentHeader` component. If the header design changes, it must be updated in two places.
 
 **Action:** Extract a shared `WorksheetHeader` component.
 
@@ -135,11 +135,11 @@ The basic Paper preview duplicates the "Classical Academy" document header marku
 
 **Location:** `WorksheetGenerator.tsx` line 487–505
 
-The `PdfDocument` receives the `questions: Question[]` from the basic generator, not the advanced `MathProblem[]` used by `MathVizEngine`. This means PDF exports lack the SVG diagrams and step-by-step scaffolding that the interactive preview shows.
+The `PdfDocument` receives the `questions: Question[]` from the basic generator, not the advanced `MathProblem[]` used by `EuclidEngine`. This means PDF exports lack the SVG diagrams and step-by-step scaffolding that the interactive preview shows.
 
 **Risk:** User confusion — the screen preview looks different from the downloaded PDF.
 
-**Action:** Build a `@react-pdf/renderer`-compatible version of `MathVizEngine` to make PDF output match the screen preview.
+**Action:** Build a `@react-pdf/renderer`-compatible version of `EuclidEngine` to make PDF output match the screen preview.
 
 ---
 
@@ -147,6 +147,6 @@ The `PdfDocument` receives the `questions: Question[]` from the basic generator,
 
 **Location:** `src/app/page.tsx` or `src/app/layout.tsx`
 
-If `MathVizEngine` or `GeometrySVG` throws a runtime error (e.g., from an unexpected SVG param combination), the entire page crashes with no user-facing recovery.
+If `EuclidEngine` or `GeometrySVG` throws a runtime error (e.g., from an unexpected SVG param combination), the entire page crashes with no user-facing recovery.
 
 **Action:** Wrap the preview area in a React `ErrorBoundary` component.

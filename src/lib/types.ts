@@ -1,5 +1,5 @@
 // types.ts
-// All shared domain types for MathViz problem generation.
+// All shared domain types for Euclid problem generation.
 // Single source of truth — imported by factories, renderers, and the public API.
 
 // ── Output & TEKS ─────────────────────────────────────────────────────────────

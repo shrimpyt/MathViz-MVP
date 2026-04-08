@@ -6,10 +6,10 @@ This roadmap covers the implementation of Chapter 10 (Right Triangles & Trig) an
 ## Phase 1: Foundation & De-Godding (Architectural Cleanup)
 **Goal**: Break down the "God Components" to make the codebase maintainable and testable.
 - [ ] **CH-01**: Extract `ProblemFactory` logic into domain-specific sub-factories.
-- [ ] **CH-02**: Decompose `MathVizEngine` into `SurfaceRenderer`, `SVGCanvas`, and `KaTeXOverlay`.
+- [ ] **CH-02**: Decompose `EuclidEngine` into `SurfaceRenderer`, `SVGCanvas`, and `KaTeXOverlay`.
 - [ ] **CH-03**: Centralize PRNG logic into a shared `math-utils` module.
 - **Success Criteria**:
-  - `MathVizEngine.tsx` is reduced by >40% in line count.
+  - `EuclidEngine.tsx` is reduced by >40% in line count.
   - No duplicated `mulberry32` code remains.
   - Automated unit tests pass for the new sub-factories.
 

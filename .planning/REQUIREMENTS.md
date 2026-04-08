@@ -4,7 +4,7 @@
 Implement the "Right Triangles & Trigonometry" module (Chapter 10) using the LLM-wrapper architecture. This milestone also includes necessary architectural refactoring to remove technical debt.
 
 ## [REQ-ARCH] Architecture & Refactoring
-- **ARCH-01**: Decompose `MathVizEngine` into domain-specific rendering components.
+- **ARCH-01**: Decompose `EuclidEngine` into domain-specific rendering components.
 - **ARCH-02**: Decompose `WorksheetGenerator` to separate UI state from document generation logic.
 - **ARCH-03**: Centralize PRNG logic to prevent duplication across the codebase.
 - **ARCH-04**: Implement `AIProblemWrapper` service to interface with OpenAI (GPT-4o) for scenario generation.
