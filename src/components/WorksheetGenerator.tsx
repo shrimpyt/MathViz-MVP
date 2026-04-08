@@ -154,9 +154,10 @@ export default function WorksheetGenerator() {
         position="fixed"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: '#121416',
-          color: '#66d9cc',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(12px)',
+          color: '#d9a720',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           boxShadow: 'none',
         }}
       >
@@ -165,10 +166,33 @@ export default function WorksheetGenerator() {
             variant="h6"
             noWrap
             component="div"
-            sx={{ flexGrow: 1, fontWeight: 'bold', color: '#66d9cc' }}
+            sx={{ 
+              flexGrow: 1, 
+              fontWeight: 800, 
+              color: '#d9a720', 
+              fontFamily: 'var(--font-playfair), serif',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase'
+            }}
           >
-            Euclid AI
+            Euclid Engine
           </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button 
+              variant="text" 
+              size="small" 
+              sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: '#d9a720' } }}
+            >
+              Docs
+            </Button>
+            <Button 
+              variant="text" 
+              size="small" 
+              sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: '#d9a720' } }}
+            >
+              Support
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -182,10 +206,10 @@ export default function WorksheetGenerator() {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               boxSizing: 'border-box',
-              pt: '64px',
-              backgroundColor: 'rgba(40, 42, 44, 0.6)',
-              backdropFilter: 'blur(10px)',
-              borderRight: '1px solid rgba(255, 255, 255, 0.05)',
+              pt: '80px',
+              backgroundColor: 'rgba(15, 23, 42, 0.7)',
+              backdropFilter: 'blur(16px)',
+              borderRight: '1px solid rgba(255, 255, 255, 0.08)',
             },
           }}
         >
@@ -431,8 +455,14 @@ export default function WorksheetGenerator() {
               startIcon={<Save />}
               sx={{
                 borderRadius: 8,
-                borderColor: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
+                borderColor: 'rgba(255, 255, 255, 0.15)',
+                color: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(4px)',
+                '&:hover': {
+                  borderColor: '#d9a720',
+                  color: '#d9a720',
+                  backgroundColor: 'rgba(217, 167, 32, 0.05)',
+                }
               }}
             >
               Save Draft
@@ -601,7 +631,7 @@ export default function WorksheetGenerator() {
                             mt: 2,
                             p: 2,
                             bgcolor: '#f8fafc',
-                            borderLeft: '2px solid #66d9cc',
+                            borderLeft: '2px solid #d9a720',
                             borderRadius: 1,
                           }}
                         >

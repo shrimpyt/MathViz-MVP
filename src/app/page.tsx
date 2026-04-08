@@ -1,37 +1,22 @@
 "use client";
 
-import { Box, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { Box, CssBaseline } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
 import WorksheetGenerator from "../components/WorksheetGenerator";
-
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: "#66d9cc",
-      contrastText: "#003733",
-    },
-    secondary: {
-      main: "#4fd8eb",
-    },
-    background: {
-      default: "#121416",
-      paper: "#282a2c",
-    },
-    text: {
-      primary: "#e1e3e4",
-      secondary: "#c4c7c8",
-    }
-  },
-  typography: {
-    fontFamily: "Lexend, Inter, sans-serif",
-  },
-});
+import theme from "../core/theme";
 
 export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <Box 
+        sx={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          height: "100vh",
+          background: 'radial-gradient(circle at 50% 50%, #1e2d45 0%, #0f172a 100%)',
+        }}
+      >
         <WorksheetGenerator />
       </Box>
     </ThemeProvider>
