@@ -65,7 +65,7 @@ export class RightTriangles extends BaseGeometryModule {
     const target = ratioMap[ratioTarget];
 
     // Build the specific SVG config
-    let svgLabels: { opposite: string | number; adjacent: string | number; hypotenuse: string | number } = {
+    const svgLabels: { opposite: string | number; adjacent: string | number; hypotenuse: string | number } = {
       opposite: opp,
       adjacent: adj,
       hypotenuse: hyp,

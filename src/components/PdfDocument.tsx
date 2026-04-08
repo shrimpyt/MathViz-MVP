@@ -9,6 +9,7 @@
 
 import React from 'react';
 import {
+  Image,
   Page,
   Text,
   View,
@@ -20,7 +21,7 @@ import {
   Ellipse,
 } from '@react-pdf/renderer';
 import { Question } from '../core/types';
-import { PdfGeometrySVG } from "./PdfGeometrySVG";
+import { PdfGeometrySVG, PdfRightTriangleSVG } from "./PdfGeometrySVG";
 import { MathProblem } from "@/lib/ProblemFactory";
 
 
@@ -292,6 +293,9 @@ const PdfDiagram = ({ type, data }: { type: string; data?: import('../core/types
       </Svg>
     );
   }
+    if (type === 'right-triangle') {
+    return <PdfRightTriangleSVG {...data as any} kind="RightTriangle" />;
+  }
   return null;
 };
 
@@ -338,6 +342,7 @@ export default function PdfDocument({
         <View style={styles.headerWrapper}>
           {/* Double-rule title block */}
           <View style={styles.headerTopRule}>
+            <Image src="/logo_mark.png" style={{ width: 32, height: 32, marginBottom: 4 }}  />
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.modeLabel}>{modeLabel}</Text>
           </View>
