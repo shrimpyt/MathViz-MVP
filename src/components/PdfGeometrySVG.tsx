@@ -62,7 +62,7 @@ function Label({
 
 function CircleBase() {
   return (
-    <Circle cx={CX} cy={CY} r={R} fill="none" stroke="#334155" strokeWidth={1.5} />
+    <Circle cx={CX} cy={CY} r={R} fill="none" stroke="#0F172A" strokeWidth={1.5} />
   );
 }
 
@@ -88,10 +88,10 @@ export function PdfInscribedAngleSVG({
         stroke="#3b82f6"
         strokeWidth={3}
       />
-      <Line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#334155" strokeWidth={1.2} />
-      <Line x1={V.x} y1={V.y} x2={B.x} y2={B.y} stroke="#334155" strokeWidth={1.2} />
+      <Line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
+      <Line x1={V.x} y1={V.y} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
       {[A, B, V].map((pt, i) => (
-        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#334155" />
+        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
       ))}
       <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: 0 }} />
       <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
@@ -124,11 +124,11 @@ export function PdfCentralAngleSVG({ interceptedArc }: { interceptedArc: number 
         stroke="#3b82f6"
         strokeWidth={3}
       />
-      <Line x1={CX} y1={CY} x2={A.x} y2={A.y} stroke="#334155" strokeWidth={1.2} />
-      <Line x1={CX} y1={CY} x2={B.x} y2={B.y} stroke="#334155" strokeWidth={1.2} />
-      <Circle cx={CX} cy={CY} r={2.5} fill="#334155" />
+      <Line x1={CX} y1={CY} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
+      <Line x1={CX} y1={CY} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
+      <Circle cx={CX} cy={CY} r={2.5} fill="#0F172A" />
       {[A, B].map((pt, i) => (
-        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#334155" />
+        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
       ))}
       <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: 0 }} />
       <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
@@ -158,7 +158,7 @@ export function PdfTangentSVG({ tangentAngle }: TangentSVGParams) {
         strokeWidth={1.5}
         strokeDasharray="4,2"
       />
-      <Line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#334155" strokeWidth={1.2} />
+      <Line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
       <Path
         d={arcPath(CX, CY, R, chordStart, chordEnd)}
         fill="none"
@@ -166,7 +166,7 @@ export function PdfTangentSVG({ tangentAngle }: TangentSVGParams) {
         strokeWidth={3}
       />
       {[A, B].map((pt, i) => (
-        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#334155" />
+        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
       ))}
       <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: -5 }} />
       <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
@@ -203,11 +203,11 @@ export function PdfTwoChordsSVG({ arc1, arc2 }: ChordSVGParams) {
       <CircleBase />
       <Path d={arcPath(CX, CY, R, a0, a1)} fill="none" stroke="#3b82f6" strokeWidth={3} />
       <Path d={arcPath(CX, CY, R, a2, a3)} fill="none" stroke="#10b981" strokeWidth={3} />
-      <Line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#334155" strokeWidth={1.2} />
-      <Line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#334155" strokeWidth={1.2} />
+      <Line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.2} />
+      <Line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#0F172A" strokeWidth={1.2} />
       <Circle cx={P.x} cy={P.y} r={2.5} fill="#e11d48" />
       {[A, B, C, D].map((pt, i) => (
-        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#334155" />
+        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
       ))}
       {[
         { pt: A, lbl: "A", off: { x: -7, y: 0 } },
@@ -251,10 +251,10 @@ export function PdfTwoSecantsSVG({ interceptedArc }: { interceptedArc: number })
         stroke="#10b981"
         strokeWidth={3}
       />
-      <Line x1={EX} y1={EY} x2={A.x} y2={A.y} stroke="#334155" strokeWidth={1.2} />
-      <Line x1={EX} y1={EY} x2={B.x} y2={B.y} stroke="#334155" strokeWidth={1.2} />
+      <Line x1={EX} y1={EY} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
+      <Line x1={EX} y1={EY} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
       {[A, B, C, D].map((pt, i) => (
-        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#334155" />
+        <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
       ))}
       <Circle cx={EX} cy={EY} r={2.5} fill="#e11d48" />
       <Label x={EX} y={EY} text="P" offset={{ x: 8, y: 0 }} />
@@ -276,7 +276,7 @@ export function PdfConcentricCirclesSVG({ outerR, innerR }: ConcentricSVGParams)
 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
-      <Circle cx={CX} cy={CY} r={scaledOuter} fill="#dbeafe" stroke="#334155" strokeWidth={1.5} />
+      <Circle cx={CX} cy={CY} r={scaledOuter} fill="#dbeafe" stroke="#0F172A" strokeWidth={1.5} />
       <Circle
         cx={CX} cy={CY} r={scaledInner}
         fill="#3b82f6" fillOpacity={0.55}
@@ -376,7 +376,7 @@ export function PdfRightTriangleSVG({
 
   return (
     <Svg viewBox={`0 0 ${width} ${height}`} width="130" height="130">
-      <Polygon points={pts} fill="none" stroke="#334155" strokeWidth={1.5} />
+      <Polygon points={pts} fill="none" stroke="#0F172A" strokeWidth={1.5} />
       
       {orientation === "right" ? (
         <Path d={`M ${xRight - 10} ${yBottom} L ${xRight - 10} ${yBottom - 10} L ${xRight} ${yBottom - 10}`} fill="none" stroke="#64748b" strokeWidth={1.2} />
@@ -384,23 +384,23 @@ export function PdfRightTriangleSVG({
         <Path d={`M ${xLeft + 10} ${yBottom} L ${xLeft + 10} ${yBottom - 10} L ${xLeft} ${yBottom - 10}`} fill="none" stroke="#64748b" strokeWidth={1.2} />
       )}
 
-      <Path d={arcD} fill="none" stroke="#0284c7" strokeWidth={1.5} />
-      <Text x={refLblPos.x} y={refLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0369a1" }}>
+      <Path d={arcD} fill="none" stroke="#D9A720" strokeWidth={1.5} />
+      <Text x={refLblPos.x} y={refLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#D9A720" }}>
         {referenceAngleLabel}
       </Text>
 
       {referenceAnglePos === "base" ? (
         <>
-          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.adjacent)}</Text>
-          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.opposite)}</Text>
+          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.adjacent)}</Text>
+          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.opposite)}</Text>
         </>
       ) : (
         <>
-          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.opposite)}</Text>
-          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.adjacent)}</Text>
+          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.opposite)}</Text>
+          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.adjacent)}</Text>
         </>
       )}
-      <Text x={hypLblPos.x} y={hypLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.hypotenuse)}</Text>
+      <Text x={hypLblPos.x} y={hypLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.hypotenuse)}</Text>
     </Svg>
   );
 }
@@ -421,7 +421,7 @@ export function PdfShadedSectorSVG({ sectorAngle }: SectorSVGParams) {
 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
-      <Circle cx={CX} cy={CY} r={R} fill="#f1f5f9" stroke="#334155" strokeWidth={1.5} />
+      <Circle cx={CX} cy={CY} r={R} fill="#f1f5f9" stroke="#0F172A" strokeWidth={1.5} />
       <Path d={pathD} fill="#3b82f6" fillOpacity={0.55} stroke="#1d4ed8" strokeWidth={1.2} />
       {(() => {
         const mid = polarToCart(CX, CY, R * 0.5, startDeg + 90 + sectorAngle / 2);
@@ -526,7 +526,7 @@ function RightAngleMark({ v, p1, p2 }: { v: Pt; p1: Pt; p2: Pt }) {
     <Path
       d={`M ${q1.x} ${q1.y} L ${corner.x} ${corner.y} L ${q2.x} ${q2.y}`}
       fill="none"
-      stroke="#334155"
+      stroke="#0F172A"
       strokeWidth={1.2}
     />
   );
@@ -557,13 +557,13 @@ export function PdfCongruenceSVG({
       <Polygon
         points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`}
         fill="none"
-        stroke="#334155"
+        stroke="#0F172A"
         strokeWidth={1.5}
       />
       <Polygon
         points={`${D.x},${D.y} ${E.x},${E.y} ${F.x},${F.y}`}
         fill="none"
-        stroke="#334155"
+        stroke="#0F172A"
         strokeWidth={1.5}
       />
 

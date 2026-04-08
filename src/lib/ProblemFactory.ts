@@ -22,7 +22,7 @@ export type {
 } from "./types";
 
 import type { OutputMode, MathProblem } from "./types";
-import { mulberry32, pick } from "./math-utils";
+import { mulberry32 } from "./math-utils";
 import { generateCircleProblems } from "./factories/CircleFactory";
 import { generateProbabilityProblems } from "./factories/ProbabilityFactory";
 import { generateTrigProblems } from "./factories/TrigonometryFactory";

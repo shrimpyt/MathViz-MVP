@@ -83,6 +83,18 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
   }
+  if (p.type === 'G.9A') {
+    const entries = Object.entries(p.given);
+    const givenStr = entries.map(([k, v]) => `${k} = ${v}`).join(', ');
+    return {
+      id: idx + 1,
+      text: `Given ${givenStr}. Find ${p.find}.`,
+      points: 10,
+      diagramType: 'right-triangle',
+      diagramData: p.svgParams as any,
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
   return {
     id: idx + 1,
     text: `Problem`,

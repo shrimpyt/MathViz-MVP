@@ -7,7 +7,6 @@ import {
   Typography,
   Button,
   TextField,
-  Slider,
   AppBar,
   Toolbar,
   ToggleButton,

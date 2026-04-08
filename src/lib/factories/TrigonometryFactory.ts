@@ -1,4 +1,4 @@
-import type { TrigProblem, TrigSubtype, ProblemStep, BlankField } from '../types';
+import type { TrigProblem, ProblemStep, BlankField } from '../types';
 import { pick } from '../math-utils';
 
 export function generateTrigProblems(rng: () => number, count: number): TrigProblem[] {
