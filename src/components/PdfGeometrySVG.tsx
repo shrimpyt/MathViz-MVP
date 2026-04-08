@@ -8,6 +8,7 @@ import type {
   SectorSVGParams,
   CongruenceSVGParams,
 } from "@/lib/ProblemFactory";
+import type { TrigSVGParams } from "@/lib/types";
 
 const CX = 100;
 const CY = 100;
@@ -300,6 +301,110 @@ export function PdfConcentricCirclesSVG({ outerR, innerR }: ConcentricSVGParams)
   );
 }
 
+export function PdfRightTriangleSVG({
+  opposite, adjacent, orientation, referenceAnglePos, labels, referenceAngleLabel
+}: TrigSVGParams) {
+  const width = 130;
+  const height = 130;
+  const pad = 20;
+  const effW = width - 2 * pad;
+  const effH = height - 2 * pad;
+
+  const maxSide = Math.max(opposite, adjacent);
+  let baseLength = 0;
+  let vertLength = 0;
+
+  if (referenceAnglePos === "base") {
+    baseLength = (adjacent / maxSide) * effW;
+    vertLength = (opposite / maxSide) * effH;
+  } else {
+    baseLength = (opposite / maxSide) * effW;
+    vertLength = (adjacent / maxSide) * effH;
+  }
+
+  const xLeft = pad + (effW - baseLength) / 2;
+  const xRight = xLeft + baseLength;
+  const yBottom = height - pad - (effH - vertLength) / 2;
+  const yTop = yBottom - vertLength;
+
+  let pts = "";
+  let baseLblPos = { x: 0, y: 0 };
+  let vertLblPos = { x: 0, y: 0 };
+  let hypLblPos = { x: 0, y: 0 };
+  let arcD = "";
+  let refLblPos = { x: 0, y: 0 };
+
+  if (orientation === "right") {
+    pts = `${xLeft},${yBottom} ${xRight},${yBottom} ${xRight},${yTop}`;
+    baseLblPos = { x: (xLeft + xRight) / 2, y: yBottom + 8 };
+    vertLblPos = { x: xRight + 8, y: (yTop + yBottom) / 2 };
+    hypLblPos = { x: (xLeft + xRight) / 2 - 15, y: (yTop + yBottom) / 2 - 10 };
+    
+    if (referenceAnglePos === "base") {
+      const angle = Math.atan2(vertLength, baseLength);
+      const arcLx = xLeft + 18 * Math.cos(angle);
+      const arcLy = yBottom - 18 * Math.sin(angle);
+      arcD = `M ${xLeft + 18} ${yBottom} A 18 18 0 0 0 ${arcLx} ${arcLy}`;
+      refLblPos = { x: xLeft + 25, y: yBottom - 2 };
+    } else {
+      const angle = Math.atan2(baseLength, vertLength);
+      const arcLx = xRight - 18 * Math.sin(angle);
+      const arcLy = yTop + 18 * Math.cos(angle);
+      arcD = `M ${xRight} ${yTop + 18} A 18 18 0 0 1 ${arcLx} ${arcLy}`;
+      refLblPos = { x: xRight - 20, y: yTop + 18 };
+    }
+  } else {
+    pts = `${xRight},${yBottom} ${xLeft},${yBottom} ${xLeft},${yTop}`;
+    baseLblPos = { x: (xLeft + xRight) / 2, y: yBottom + 8 };
+    vertLblPos = { x: xLeft - 22, y: (yTop + yBottom) / 2 };
+    hypLblPos = { x: (xLeft + xRight) / 2 + 10, y: (yTop + yBottom) / 2 - 10 };
+
+    if (referenceAnglePos === "base") {
+      const angle = Math.atan2(vertLength, baseLength);
+      const arcLx = xRight - 18 * Math.cos(angle);
+      const arcLy = yBottom - 18 * Math.sin(angle);
+      arcD = `M ${xRight - 18} ${yBottom} A 18 18 0 0 1 ${arcLx} ${arcLy}`;
+      refLblPos = { x: xRight - 25, y: yBottom - 2 };
+    } else {
+      const angle = Math.atan2(baseLength, vertLength); 
+      const arcLx = xLeft + 18 * Math.sin(angle);
+      const arcLy = yTop + 18 * Math.cos(angle);
+      arcD = `M ${xLeft} ${yTop + 18} A 18 18 0 0 0 ${arcLx} ${arcLy}`;
+      refLblPos = { x: xLeft + 2, y: yTop + 18 };
+    }
+  }
+
+  return (
+    <Svg viewBox={`0 0 ${width} ${height}`} width="130" height="130">
+      <Polygon points={pts} fill="none" stroke="#334155" strokeWidth={1.5} />
+      
+      {orientation === "right" ? (
+        <Path d={`M ${xRight - 10} ${yBottom} L ${xRight - 10} ${yBottom - 10} L ${xRight} ${yBottom - 10}`} fill="none" stroke="#64748b" strokeWidth={1.2} />
+      ) : (
+        <Path d={`M ${xLeft + 10} ${yBottom} L ${xLeft + 10} ${yBottom - 10} L ${xLeft} ${yBottom - 10}`} fill="none" stroke="#64748b" strokeWidth={1.2} />
+      )}
+
+      <Path d={arcD} fill="none" stroke="#0284c7" strokeWidth={1.5} />
+      <Text x={refLblPos.x} y={refLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0369a1" }}>
+        {referenceAngleLabel}
+      </Text>
+
+      {referenceAnglePos === "base" ? (
+        <>
+          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.adjacent)}</Text>
+          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.opposite)}</Text>
+        </>
+      ) : (
+        <>
+          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.opposite)}</Text>
+          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.adjacent)}</Text>
+        </>
+      )}
+      <Text x={hypLblPos.x} y={hypLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#334155" }}>{String(labels.hypotenuse)}</Text>
+    </Svg>
+  );
+}
+
 export function PdfShadedSectorSVG({ sectorAngle }: SectorSVGParams) {
   const startDeg = -90;
   const endDeg = startDeg + sectorAngle;
@@ -518,7 +623,8 @@ type SVGParams =
   | (ChordSVGParams & { kind: "TwoChords" })
   | (ConcentricSVGParams & { kind: "ConcentricCircles" })
   | (SectorSVGParams & { kind: "ShadedSector" })
-  | (CongruenceSVGParams & { kind: "Congruence" });
+  | (CongruenceSVGParams & { kind: "Congruence" })
+  | (TrigSVGParams & { kind: "RightTriangle" });
 
 
 export function PdfGeometrySVG({ params }: { params: SVGParams }) {
@@ -541,6 +647,8 @@ export function PdfGeometrySVG({ params }: { params: SVGParams }) {
       return <PdfShadedSectorSVG {...(params as SectorSVGParams)} />;
     case "Congruence":
       return <PdfCongruenceSVG {...(params as CongruenceSVGParams)} />;
+    case "RightTriangle":
+      return <PdfRightTriangleSVG {...(params as TrigSVGParams)} />;
     default:
       return null;
   }
