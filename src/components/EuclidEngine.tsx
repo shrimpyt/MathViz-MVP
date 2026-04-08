@@ -61,7 +61,7 @@ export function EuclidEngine({
   const trigOffset = congruenceOffset + congruenceProblems.length;
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-6" style={{ backgroundColor: '#172336' }}>
+    <div className="flex flex-col items-center min-h-screen py-6" style={{ backgroundColor: '#0F172A' }}>
       {/* GuidedNote reveal toggle */}
       {mode === "GuidedNote" && (
         <div className="mb-4 flex items-center gap-3">
@@ -70,7 +70,7 @@ export function EuclidEngine({
             className="px-4 py-1.5 rounded-full text-sm font-sans font-medium shadow-sm transition-colors"
             style={{
               background: revealed ? "#d9a720" : "rgba(30, 45, 69, 0.4)",
-              color: revealed ? "#172336" : "#fff",
+              color: revealed ? "#0F172A" : "#fff",
               backdropFilter: "blur(4px)",
               border: "1px solid rgba(255, 255, 255, 0.1)",
             }}
@@ -96,7 +96,69 @@ export function EuclidEngine({
       >
         <DocumentHeader mode={mode} title={title} />
         
-        {/* ... (rest of the content) ... */}
+        {/* G.12(A) — Circles */}
+        {circleProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.12(A) — Circle Relationships" />
+            {circleProblems.map((p, i) => (
+              <CircleProblemCard
+                key={i}
+                problem={p}
+                index={circleOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* G.13(B) — Probability */}
+        {probProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.13(B) — Geometric Probability" />
+            {probProblems.map((p, i) => (
+              <ProbabilityProblemCard
+                key={i}
+                problem={p}
+                index={probOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* G.6(B) — Triangle Congruence */}
+        {congruenceProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.6(B) — Triangle Congruence" />
+            {congruenceProblems.map((p, i) => (
+              <CongruenceProblemCard
+                key={i}
+                problem={p}
+                index={congruenceOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* G.9(A) — Right Triangles & Trigonometry */}
+        {trigProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.9(A) — Right Triangles & Trigonometry" />
+            {trigProblems.map((p, i) => (
+              <TrigProblemCard
+                key={i}
+                problem={p}
+                idx={trigOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
 
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] font-sans text-slate-400">

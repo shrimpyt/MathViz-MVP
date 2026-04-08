@@ -25,6 +25,7 @@ import type { OutputMode, MathProblem } from "./types";
 import { mulberry32, pick } from "./math-utils";
 import { generateCircleProblems } from "./factories/CircleFactory";
 import { generateProbabilityProblems } from "./factories/ProbabilityFactory";
+import { generateTrigProblems } from "./factories/TrigonometryFactory";
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
@@ -45,14 +46,21 @@ export class ProblemFactory {
     return generateProbabilityProblems(this.rng, n);
   }
 
+  /** Generate n problems for G.9(A) Trigonometry */
+  generateTrigonometry(n: number) {
+    return generateTrigProblems(this.rng, n);
+  }
+
   /** Generate a full set sized for the given output mode */
   generateForMode(mode: OutputMode): MathProblem[] {
     const multiplier = mode === "Review" ? 3 : 1;
     const circleCount = 3 * multiplier;
     const probCount = 2 * multiplier;
+    const trigCount = 2 * multiplier; // Added 2 trig problems per standard worksheet
     return [
       ...this.generateCircle(circleCount),
       ...this.generateProbability(probCount),
+      ...this.generateTrigonometry(trigCount),
     ];
   }
 }

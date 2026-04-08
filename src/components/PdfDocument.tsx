@@ -44,12 +44,12 @@ const styles = StyleSheet.create({
   },
   headerTopRule: {
     borderTopWidth: 3,
-    borderTopColor: '#172336',
+    borderTopColor: '#0F172A',
     borderTopStyle: 'solid',
     paddingTop: 5,
     paddingBottom: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#172336',
+    borderBottomColor: '#0F172A',
     borderBottomStyle: 'solid',
     marginBottom: 10,
     alignItems: 'center',
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Times-Bold',
     fontSize: 20,
     textAlign: 'center',
-    color: '#172336',
+    color: '#0F172A',
     letterSpacing: 0.5,
   },
   modeLabel: {
