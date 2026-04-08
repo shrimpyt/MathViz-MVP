@@ -20,30 +20,30 @@ const circleProblems = problems.filter(
 ## Component Style
 
 - **Functional components only** — No class components.
-- `"use client"` directive at the top of all components that use hooks or browser APIs (`MathVizEngine.tsx`, `WorksheetGenerator.tsx`, `GeometrySVG.tsx`, `src/app/page.tsx`).
+- `"use client"` directive at the top of all components that use hooks or browser APIs (`EuclidEngine.tsx`, `WorksheetGenerator.tsx`, `GeometrySVG.tsx`, `src/app/page.tsx`).
 - Props are typed with inline interfaces:
 
 ```typescript
-interface MathVizEngineProps {
+interface EuclidEngineProps {
   problems: MathProblem[];
   mode: OutputMode;
   title?: string;
 }
 
-export function MathVizEngine({ problems, mode, title = "Geometry" }: MathVizEngineProps) { ... }
+export function EuclidEngine({ problems, mode, title = "Geometry" }: EuclidEngineProps) { ... }
 ```
 
 - Default export for page-level components and `WorksheetGenerator`; **named exports** for all other components.
 
 ## File & Section Organization
 
-Files are organized with comment banners (`// ── Section Name ───`), providing visual separation in large files. Example from `MathVizEngine.tsx`:
+Files are organized with comment banners (`// ── Section Name ───`), providing visual separation in large files. Example from `EuclidEngine.tsx`:
 
 ```typescript
 // ── Constants ─────────────────────────────────────────────────────────────────
 // ── Blank rendering ───────────────────────────────────────────────────────────
 // ── Circle Problem Card ───────────────────────────────────────────────────────
-// ── Main MathVizEngine component ──────────────────────────────────────────────
+// ── Main EuclidEngine component ──────────────────────────────────────────────
 ```
 
 This convention should be maintained when adding new sections.
@@ -61,7 +61,7 @@ Used in `WorksheetGenerator.tsx` and `page.tsx` for application chrome.
 - Colors are hardcoded hex (`#121416`, `#66d9cc`) rather than MUI theme tokens in most places — this is inconsistent and could be improved.
 
 ### System 2: Tailwind CSS utility classes (Document Engine)
-Used in `MathVizEngine.tsx` and `GeometrySVG.tsx` for the printable document.
+Used in `EuclidEngine.tsx` and `GeometrySVG.tsx` for the printable document.
 
 ```tsx
 <div className="break-inside-avoid mb-5">

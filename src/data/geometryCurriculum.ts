@@ -15,7 +15,7 @@ const pseudoRandom = (seed: number) => {
 };
 
 // ── Helper: convert a CircleProblem/ProbabilityProblem to the basic Question type
-// so MathVizEngine-backed lessons can still serve the basic preview fallback.
+// so EuclidEngine-backed lessons can still serve the basic preview fallback.
 function problemToQuestion(p: MathProblem, idx: number): Question {
   if (p.type === 'G.12A') {
     const entries = Object.entries(p.given);

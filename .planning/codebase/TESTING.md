@@ -61,7 +61,7 @@ Each module (`anatomy-of-a-circle.ts`, `target-zone.ts`, `logic-of-congruence.ts
 - `TargetZone.generateMany(count, rng)` → correct probability calculations
 - `LogicOfCongruence.generateMany(count, rng)` → valid congruence subtypes
 
-### 3. Component Tests — `MathVizEngine`
+### 3. Component Tests — `EuclidEngine`
 
 Testing rendering behavior using **React Testing Library**:
 - Renders the correct number of problem cards

@@ -2,7 +2,7 @@
 
 ## Summary
 
-MathViz-MVP is a **local-first, self-contained application**. It has no external API dependencies at runtime — all problem generation, SVG rendering, and PDF export happen in-browser.
+Euclid-MVP is a **local-first, self-contained application**. It has no external API dependencies at runtime — all problem generation, SVG rendering, and PDF export happen in-browser.
 
 ## External Services
 

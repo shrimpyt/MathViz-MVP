@@ -1,8 +1,8 @@
-# MathViz-MVP
+# Euclid-MVP
 
 ## What This Is
 
-MathViz is a production-ready tool for teachers to generate unique, multi-step geometry worksheets. It uses an LLM-assisted generation strategy (GPT-4o) combined with a deterministic math engine to wrap structured math problems in creative, real-world scenarios.
+Euclid is a production-ready tool for teachers to generate unique, multi-step geometry worksheets. It uses an LLM-assisted generation strategy (GPT-4o) combined with a deterministic math engine to wrap structured math problems in creative, real-world scenarios.
 
 ## Core Value
 
@@ -19,7 +19,7 @@ Usability and minimum viability for teachers to effortlessly create unique, diff
 
 - [ ] Implement AI-driven question generation (Option C: LLM real-world wrappers around structured math engine).
 - [ ] Add support for "Right Triangles & Trigonometry" (Chapter 10: Pythagorean Theorem, Special Right Triangles, Trig Ratios, Angles of Elevation/Depression, Law of Sines/Cosines).
-- [ ] Decompose "God Components" (MathVizEngine, WorksheetGenerator) for better testability and maintenance.
+- [ ] Decompose "God Components" (EuclidEngine, WorksheetGenerator) for better testability and maintenance.
 - [ ] Implement robust testing, starting with `ProblemFactory`.
 
 ### Out of Scope
@@ -31,7 +31,7 @@ Usability and minimum viability for teachers to effortlessly create unique, diff
 ## Context
 
 - **Stack**: Next.js 16.2.2 (App Router), TypeScript, MUI 7, Tailwind 4.
-- **Current State**: Deployed on Vercel, single GitHub repo. High technical debt in MathVizEngine/WorksheetGenerator.
+- **Current State**: Deployed on Vercel, single GitHub repo. High technical debt in EuclidEngine/WorksheetGenerator.
 - **Curriculum**: Texas Geometry by Pearson (2016).
 - **Security**: The user previously provided an OpenAI key in chat. An action item was created to rotate it and store it in Vercel.
 

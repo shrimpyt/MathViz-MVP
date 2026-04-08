@@ -3,7 +3,7 @@
 ## Root Directory
 
 ```
-/MathViz
+/Euclid
 ├── src/                    ← All application source code
 ├── public/                 ← Static assets (favicon, etc.)
 ├── .planning/              ← GSD planning docs (this repo)
@@ -60,11 +60,11 @@ src/
 │   ├── WorksheetGenerator.tsx  ← Main stateful orchestrator (698 lines)
 │   │                             UI: MUI AppBar + Drawer (control panel) + main preview area
 │   │                             State: docType, selectedModule, selectedLesson, title, seed, etc.
-│   │                             Decides advanced (MathVizEngine) vs basic (Paper) preview
-│   ├── MathVizEngine.tsx       ← Print document renderer (554 lines)
+│   │                             Decides advanced (EuclidEngine) vs basic (Paper) preview
+│   ├── EuclidEngine.tsx       ← Print document renderer (554 lines)
 │   │                             Components: Blank, StepBlock, TEKSBadge, DiagramBox,
 │   │                             CircleProblemCard, ProbabilityProblemCard, CongruenceProblemCard,
-│   │                             DocumentHeader, SectionDivider, MathVizEngine (main)
+│   │                             DocumentHeader, SectionDivider, EuclidEngine (main)
 │   ├── GeometrySVG.tsx         ← SVG geometry renderer (673 lines)
 │   │                             8 specialist SVG components + GeometrySVG dispatch switch
 │   ├── PdfDocument.tsx         ← @react-pdf/renderer PDF document template
@@ -85,12 +85,12 @@ src/
 | Curriculum config | `src/data/geometryCurriculum.ts` |
 | Module registry | `src/modules/CurriculumRegistry.ts` |
 | UI controller | `src/components/WorksheetGenerator.tsx` |
-| Print engine | `src/components/MathVizEngine.tsx` |
+| Print engine | `src/components/EuclidEngine.tsx` |
 | SVG renderer | `src/components/GeometrySVG.tsx` |
 | PDF template | `src/components/PdfDocument.tsx` |
 
 ## Naming Conventions
 
-- **Files**: PascalCase for components (`MathVizEngine.tsx`), camelCase for utilities (`ProblemFactory.ts`), kebab-case for modules (`anatomy-of-a-circle.ts`)
+- **Files**: PascalCase for components (`EuclidEngine.tsx`), camelCase for utilities (`ProblemFactory.ts`), kebab-case for modules (`anatomy-of-a-circle.ts`)
 - **Exports**: Named exports for components used outside the file (except default export for Next.js pages and `WorksheetGenerator.tsx`)
 - **Types**: Interfaces for object shapes (`BlankField`, `ProblemStep`), type aliases for unions (`MathProblem`, `OutputMode`, `DocumentType`)

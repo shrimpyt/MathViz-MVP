@@ -20,11 +20,11 @@ All pages under `src/app/` use the App Router convention. The root layout is `sr
 |---|---|---|
 | MUI (Material UI) | ^7.3.9 | Primary component library — AppBar, Drawer, ToggleButtonGroup, Select, Slider, TextField, Typography, Box |
 | Emotion (React + Styled) | ^11.14 | CSS-in-JS engine under MUI; used via `sx` prop |
-| Tailwind CSS | ^4 | Utility classes for layout and spacing in domain components (`MathVizEngine.tsx`, `GeometrySVG.tsx`) |
+| Tailwind CSS | ^4 | Utility classes for layout and spacing in domain components (`EuclidEngine.tsx`, `GeometrySVG.tsx`) |
 | @tailwindcss/postcss | ^4 | PostCSS plugin; Tailwind v4 integration |
 | Lucide React | ^1.7.0 | Icon set (currently imported but not visually used in reviewed components) |
 
-> **Note:** There is a styling split — MUI's `sx` prop for the control shell (`WorksheetGenerator.tsx`), and Tailwind utility classes for the document rendering engine (`MathVizEngine.tsx`). These two systems coexist without conflict but should be noted for contributors.
+> **Note:** There is a styling split — MUI's `sx` prop for the control shell (`WorksheetGenerator.tsx`), and Tailwind utility classes for the document rendering engine (`EuclidEngine.tsx`). These two systems coexist without conflict but should be noted for contributors.
 
 ## Math & Document Rendering
 

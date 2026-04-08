@@ -17,4 +17,4 @@ Last activity: 2026-04-08 — Created roadmap for Chapter 10.
 - [ ] Breaking down "God Components" (Phase 1).
 
 ## Next Steps
-- `/gsd-plan-phase 1` — Begin decomposition of `MathVizEngine`.
+- `/gsd-plan-phase 1` — Begin decomposition of `EuclidEngine`.

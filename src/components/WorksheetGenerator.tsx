@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import PdfDocument from './PdfDocument';
-import { MathVizEngine } from './MathVizEngine';
+import { EuclidEngine } from './EuclidEngine';
 import { CURRICULUM_REGISTRY } from '../modules/CurriculumRegistry';
 import { Autocomplete } from '@mui/material';
 import { DocumentType, DiagramData, problemToQuestion } from '../core/types';
@@ -32,7 +32,7 @@ import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
 
-// ── Map DocumentType → MathVizEngine OutputMode ───────────────────────────────
+// ── Map DocumentType → EuclidEngine OutputMode ───────────────────────────────
 
 function toOutputMode(docType: DocumentType): OutputMode {
   if (docType === 'guided-notes') return 'GuidedNote';
@@ -125,7 +125,7 @@ export default function WorksheetGenerator() {
 
 
 
-  // Advanced problems for MathVizEngine (null if lesson doesn't support it)
+  // Advanced problems for EuclidEngine (null if lesson doesn't support it)
 
   const advancedProblems = useMemo<MathProblem[]>(() => {
     if (!activeModule) return [];
@@ -138,7 +138,7 @@ export default function WorksheetGenerator() {
     return advancedProblems.map((p, i) => problemToQuestion(p, i)).slice(0, numQuestions);
   }, [advancedProblems, numQuestions]);
 
-  // Whether to use MathVizEngine preview
+  // Whether to use EuclidEngine preview
   const useAdvancedPreview = true;
 
   return (
@@ -167,7 +167,7 @@ export default function WorksheetGenerator() {
             component="div"
             sx={{ flexGrow: 1, fontWeight: 'bold', color: '#66d9cc' }}
           >
-            MathViz AI
+            Euclid AI
           </Typography>
         </Toolbar>
       </AppBar>
@@ -463,9 +463,9 @@ export default function WorksheetGenerator() {
             )}
           </Box>
 
-          {/* Preview — MathVizEngine for advanced modules, basic Paper for others */}
+          {/* Preview — EuclidEngine for advanced modules, basic Paper for others */}
           {useAdvancedPreview ? (
-            <MathVizEngine
+            <EuclidEngine
               problems={advancedProblems!}
               mode={toOutputMode(docType)}
               title={title}

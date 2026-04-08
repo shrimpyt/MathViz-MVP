@@ -443,7 +443,7 @@ export default function PdfDocument({
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>{standard}</Text>
           <Text style={styles.footerText}>
-            MathViz — {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            Euclid — {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </Text>
         </View>
 
