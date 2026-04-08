@@ -8,19 +8,12 @@
 import { AnatomyOfACircle } from "./anatomy-of-a-circle";
 import { TargetZone } from "./target-zone";
 import { LogicOfCongruence } from "./logic-of-congruence";
+import { RightTriangles } from "./right-triangles";
 import type { MathProblem, OutputMode } from "@/lib/ProblemFactory";
 
-// ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
+// ── Seeded PRNG — imported from canonical source ──────────────────────────────
 
-function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { mulberry32 } from "@/lib/math-utils";
 
 // ── Registry shape ────────────────────────────────────────────────────────────
 
@@ -62,6 +55,24 @@ function congruenceProblems(mode: OutputMode, seed: number): MathProblem[] {
   return LogicOfCongruence.generateMany(count, rng);
 }
 
+function trigIntroProblems(mode: OutputMode, seed: number): MathProblem[] {
+  const rng = mulberry32(seed);
+  const count = mode === "Review" ? 6 : 3;
+  return RightTriangles.generateMany(count, rng, ["IdentifyRatio"]);
+}
+
+function trigSideProblems(mode: OutputMode, seed: number): MathProblem[] {
+  const rng = mulberry32(seed);
+  const count = mode === "Review" ? 6 : 3;
+  return RightTriangles.generateMany(count, rng, ["SolveForSide"]);
+}
+
+function trigAngleProblems(mode: OutputMode, seed: number): MathProblem[] {
+  const rng = mulberry32(seed);
+  const count = mode === "Review" ? 6 : 3;
+  return RightTriangles.generateMany(count, rng, ["SolveForAngle"]);
+}
+
 function mixedProblems(mode: OutputMode, seed: number): MathProblem[] {
   const rng = mulberry32(seed);
   const multiplier = mode === "Review" ? 3 : 1;
@@ -100,6 +111,30 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     description:
       "Structured two-column proofs applying the five triangle congruence theorems.",
     generate: congruenceProblems,
+  },
+  {
+    id: "trig-1-ratios",
+    title: "Trigonometry: Introduction to Ratios",
+    story: "Identify sine, cosine, and tangent fractions for a reference angle.",
+    teks: "G.9(A)",
+    description: "Identify the SOH CAH TOA fractions given all three sides of a right triangle.",
+    generate: trigIntroProblems,
+  },
+  {
+    id: "trig-2-sides",
+    title: "Trigonometry: Solving for Sides",
+    story: "Use trigonometric ratios to find missing side lengths.",
+    teks: "G.9(A)",
+    description: "Set up and solve sine, cosine, and tangent equations to find missing sides.",
+    generate: trigSideProblems,
+  },
+  {
+    id: "trig-3-angles",
+    title: "Trigonometry: Solving for Angles",
+    story: "Use inverse trigonometric functions to find missing angles.",
+    teks: "G.9(A)",
+    description: "Apply inverse sine, inverse cosine, and inverse tangent to solve for a reference angle.",
+    generate: trigAngleProblems,
   },
   {
     id: "circles-and-probability",

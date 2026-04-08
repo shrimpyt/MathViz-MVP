@@ -2,18 +2,11 @@ import { Curriculum, DocumentType, Question } from '../core/types';
 import { AnatomyOfACircle } from '../modules/anatomy-of-a-circle';
 import { TargetZone } from '../modules/target-zone';
 import { LogicOfCongruence } from '../modules/logic-of-congruence';
+import { RightTriangles } from '../modules/right-triangles';
 import type { MathProblem, OutputMode } from '@/lib/ProblemFactory';
 
-// Seeded PRNG used by the module generators
-function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+// Seeded PRNG — imported from canonical source
+import { mulberry32 } from '@/lib/math-utils';
 
 // Helper for consistent pseudo-random generation to avoid React hydration issues
 const pseudoRandom = (seed: number) => {
@@ -44,6 +37,17 @@ function problemToQuestion(p: MathProblem, idx: number): Question {
           : `A spinner has a shaded sector of ${p.sectorAngle}°. Find P(shaded).`,
       points: 10,
       diagramType: 'circle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  if (p.type === 'G.9A') {
+    return {
+      id: idx + 1,
+      text: p.subtype === 'IdentifyRatio' 
+        ? `Identify the ratio for ${p.ratioType}(θ) given the right triangle.` 
+        : `Using trigonometric ratios and the reference angle, solve for ${p.find}.`,
+      points: 10,
+      diagramType: 'right-triangle',
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
   }
@@ -238,6 +242,61 @@ export const geometryCurriculum: Curriculum = {
           generateQuestions: (count: number, docType: DocumentType): Question[] => {
             const rng = mulberry32(9012);
             const problems = LogicOfCongruence.generateMany(count, rng);
+            return problems.map((p, i) => problemToQuestion(p, i));
+          },
+        },
+      ],
+    },
+
+    // ── Story: SOH CAH TOA ──────────────────────────────────────────────────
+    {
+      id: 'mod-trig',
+      title: 'Right Triangles & Trigonometry',
+      description:
+        'Master the fundamental trigonometric ratios: Sine, Cosine, and Tangent.',
+      lessons: [
+        {
+          id: 'lesson-g9a-ratios',
+          title: 'Introduction to Trig Ratios',
+          standard: 'G.9(A) TEKS',
+          generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
+            const rng = mulberry32(seed);
+            const count = mode === 'Review' ? 6 : 3;
+            return RightTriangles.generateMany(count, rng, ["IdentifyRatio"]);
+          },
+          generateQuestions: (count: number, docType: DocumentType): Question[] => {
+            const rng = mulberry32(9013);
+            const problems = RightTriangles.generateMany(count, rng, ["IdentifyRatio"]);
+            return problems.map((p, i) => problemToQuestion(p, i));
+          },
+        },
+        {
+          id: 'lesson-g9a-sides',
+          title: 'Solving for Missing Sides',
+          standard: 'G.9(A) TEKS',
+          generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
+            const rng = mulberry32(seed);
+            const count = mode === 'Review' ? 6 : 3;
+            return RightTriangles.generateMany(count, rng, ["SolveForSide"]);
+          },
+          generateQuestions: (count: number, docType: DocumentType): Question[] => {
+            const rng = mulberry32(9014);
+            const problems = RightTriangles.generateMany(count, rng, ["SolveForSide"]);
+            return problems.map((p, i) => problemToQuestion(p, i));
+          },
+        },
+        {
+          id: 'lesson-g9a-angles',
+          title: 'Solving for Missing Angles',
+          standard: 'G.9(A) TEKS',
+          generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
+            const rng = mulberry32(seed);
+            const count = mode === 'Review' ? 6 : 3;
+            return RightTriangles.generateMany(count, rng, ["SolveForAngle"]);
+          },
+          generateQuestions: (count: number, docType: DocumentType): Question[] => {
+            const rng = mulberry32(9015);
+            const problems = RightTriangles.generateMany(count, rng, ["SolveForAngle"]);
             return problems.map((p, i) => problemToQuestion(p, i));
           },
         },
