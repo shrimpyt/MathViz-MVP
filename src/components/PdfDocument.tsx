@@ -44,12 +44,12 @@ const styles = StyleSheet.create({
   },
   headerTopRule: {
     borderTopWidth: 3,
-    borderTopColor: '#1e293b',
+    borderTopColor: '#172336',
     borderTopStyle: 'solid',
     paddingTop: 5,
     paddingBottom: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomColor: '#172336',
     borderBottomStyle: 'solid',
     marginBottom: 10,
     alignItems: 'center',
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Times-Bold',
     fontSize: 20,
     textAlign: 'center',
-    color: '#0f172a',
+    color: '#172336',
     letterSpacing: 0.5,
   },
   modeLabel: {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Times-Bold',
     fontSize: 12,
     width: 22,
-    color: '#0f172a',
+    color: '#172336',
   },
   problemContent: {
     flex: 1,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingRight: 6,
     borderLeftWidth: 2,
-    borderLeftColor: '#66d9cc',
+    borderLeftColor: '#d9a720',
     borderLeftStyle: 'solid',
     backgroundColor: '#f8fafc',
   },
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   answerLabel: {
     fontFamily: 'Times-Bold',
     fontSize: 11,
-    color: '#0f172a',
+    color: '#172336',
     marginRight: 4,
   },
   answerBlank: {
@@ -443,7 +443,7 @@ export default function PdfDocument({
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>{standard}</Text>
           <Text style={styles.footerText}>
-            Euclid — {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            Euclid Engine — {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </Text>
         </View>
 

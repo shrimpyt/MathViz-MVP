@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #d9a720;
-  --color-oxford: #172336;
-  --color-slate: #617483;
+  --color-gold: #d9a720;
+  --color-oxford: #0f172a;
+  --color-slate-blue: #1e293b;
   --font-sans: var(--font-inter), sans-serif;
   --font-serif: var(--font-playfair), serif;
 }
@@ -11,9 +11,9 @@
 :root {
   --background: #0f172a;
   --foreground: #fbfbfb;
-  --glass-bg: rgba(23, 35, 54, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08);
   --gold: #d9a720;
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 body {

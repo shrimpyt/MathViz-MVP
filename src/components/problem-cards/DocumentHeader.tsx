@@ -17,16 +17,14 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
   return (
     <div className="mb-6">
       {/* Classical double-rule header */}
-      <div style={{ borderTop: "3px solid #1e293b", borderBottom: "1px solid #1e293b", paddingTop: "6px", paddingBottom: "6px", marginBottom: "12px" }}>
+      <div style={{ borderTop: "3px solid #172336", borderBottom: "1px solid #172336", paddingTop: "6px", paddingBottom: "6px", marginBottom: "12px" }}>
         <h1
-          style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
-          className="text-2xl font-bold text-center text-slate-900 leading-tight tracking-wide"
+          className="font-serif text-2xl font-bold text-center text-slate-900 leading-tight tracking-wide"
         >
           {title}
         </h1>
         <p
-          style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
-          className="text-center text-xs text-slate-500 tracking-widest uppercase mt-1"
+          className="font-serif text-center text-xs text-slate-500 tracking-widest uppercase mt-1"
         >
           {modeLabel[mode]}
         </p>
@@ -34,8 +32,7 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
 
       {/* Name / Date / Period row */}
       <div
-        style={{ fontFamily: "'Times New Roman', Georgia, serif" }}
-        className="flex justify-between items-end text-sm text-slate-700 pb-2 border-b border-slate-300"
+        className="font-serif flex justify-between items-end text-sm text-slate-700 pb-2 border-b border-slate-300"
       >
         <div>
           Name:{" "}
@@ -83,11 +80,11 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
 export function SectionDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-2 my-4">
-      <div className="h-px flex-1 bg-slate-300" />
-      <span className="font-serif text-xs font-semibold uppercase tracking-widest text-slate-500 px-2">
+      <div className="h-px flex-1" style={{ backgroundColor: "#d9a720", opacity: 0.5 }} />
+      <span className="font-serif text-xs font-semibold uppercase tracking-widest px-2" style={{ color: "#172336" }}>
         {label}
       </span>
-      <div className="h-px flex-1 bg-slate-300" />
+      <div className="h-px flex-1" style={{ backgroundColor: "#d9a720", opacity: 0.5 }} />
     </div>
   );
 }

@@ -106,8 +106,6 @@ export default function WorksheetGenerator() {
   }, [activeModule, docType]);
   const title = customTitle || defaultTitle;
   const handleTitleChange = (val: string) => setCustomTitle(val);
-  const [numQuestions, setNumQuestions] = useState(5);
-  const [difficulty, setDifficulty] = useState(40);
   const [seed, setSeed] = useState(42);
   const [mounted, setMounted] = useState(false);
 
@@ -135,8 +133,8 @@ export default function WorksheetGenerator() {
   // Basic questions for the fallback preview and PDF
 
   const questions = useMemo(() => {
-    return advancedProblems.map((p, i) => problemToQuestion(p, i)).slice(0, numQuestions);
-  }, [advancedProblems, numQuestions]);
+    return advancedProblems.map((p, i) => problemToQuestion(p, i));
+  }, [advancedProblems]);
 
   // Whether to use EuclidEngine preview
   const useAdvancedPreview = true;
@@ -162,21 +160,28 @@ export default function WorksheetGenerator() {
         }}
       >
         <Toolbar>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ 
-              flexGrow: 1, 
-              fontWeight: 800, 
-              color: '#d9a720', 
-              fontFamily: 'var(--font-playfair), serif',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase'
-            }}
-          >
-            Euclid Engine
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexGrow: 1 }}>
+            <Box 
+              component="img" 
+              src="/logo_mark.png" 
+              alt="Euclid Engine Logo"
+              sx={{ height: 32, width: 32, opacity: 0.9 }} 
+            />
+            <Typography
+              variant="h6"
+              noWrap
+              sx={{ 
+                fontWeight: 700, 
+                color: '#d9a720', 
+                fontFamily: 'var(--font-playfair), serif',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                fontSize: '1.1rem'
+              }}
+            >
+              Euclid Engine
+            </Typography>
+          </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button 
               variant="text" 
@@ -384,42 +389,6 @@ export default function WorksheetGenerator() {
                     sx={{ mb: 2, backgroundColor: '#282a2c', borderRadius: 2 }}
                   />
                 </>
-              )}
-
-              {!useAdvancedPreview && (
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography
-                      variant="caption"
-                      display="block"
-                      sx={{ mb: 0.5, color: 'text.secondary' }}
-                    >
-                      Questions
-                    </Typography>
-                    <TextField
-                      type="number"
-                      size="small"
-                      fullWidth
-                      value={numQuestions}
-                      onChange={(e) => setNumQuestions(Number(e.target.value))}
-                      sx={{ backgroundColor: '#282a2c', borderRadius: 2 }}
-                    />
-                  </Box>
-                  <Box sx={{ flex: 2 }}>
-                    <Typography
-                      variant="caption"
-                      display="block"
-                      sx={{ mb: 0.5, color: 'text.secondary' }}
-                    >
-                      Difficulty
-                    </Typography>
-                    <Slider
-                      value={difficulty}
-                      onChange={(_, val) => setDifficulty(val as number)}
-                      size="small"
-                    />
-                  </Box>
-                </Box>
               )}
             </Box>
           </Box>
