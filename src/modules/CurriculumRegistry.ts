@@ -8,7 +8,7 @@
 import { AnatomyOfACircle } from "./anatomy-of-a-circle";
 import { TargetZone } from "./target-zone";
 import { LogicOfCongruence } from "./logic-of-congruence";
-import { RightTriangles } from "./right-triangles";
+import { generateTrigProblems } from "@/lib/factories/TrigonometryFactory";
 import type { MathProblem, OutputMode } from "@/lib/ProblemFactory";
 
 // ── Seeded PRNG — imported from canonical source ──────────────────────────────
@@ -58,19 +58,19 @@ function congruenceProblems(mode: OutputMode, seed: number): MathProblem[] {
 function trigIntroProblems(mode: OutputMode, seed: number): MathProblem[] {
   const rng = mulberry32(seed);
   const count = mode === "Review" ? 6 : 3;
-  return RightTriangles.generateMany(count, rng, ["IdentifyRatio"]);
+  return generateTrigProblems(rng, count, ["IdentifyRatio"]);
 }
 
 function trigSideProblems(mode: OutputMode, seed: number): MathProblem[] {
   const rng = mulberry32(seed);
   const count = mode === "Review" ? 6 : 3;
-  return RightTriangles.generateMany(count, rng, ["SolveForSide"]);
+  return generateTrigProblems(rng, count, ["SolveForSide"]);
 }
 
 function trigAngleProblems(mode: OutputMode, seed: number): MathProblem[] {
   const rng = mulberry32(seed);
   const count = mode === "Review" ? 6 : 3;
-  return RightTriangles.generateMany(count, rng, ["SolveForAngle"]);
+  return generateTrigProblems(rng, count, ["SolveForAngle"]);
 }
 
 function mixedProblems(mode: OutputMode, seed: number): MathProblem[] {

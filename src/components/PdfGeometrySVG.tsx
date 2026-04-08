@@ -379,28 +379,28 @@ export function PdfRightTriangleSVG({
       <Polygon points={pts} fill="none" stroke="#0F172A" strokeWidth={1.5} />
       
       {orientation === "right" ? (
-        <Path d={`M ${xRight - 10} ${yBottom} L ${xRight - 10} ${yBottom - 10} L ${xRight} ${yBottom - 10}`} fill="none" stroke="#64748b" strokeWidth={1.2} />
+        <Path d={`M ${xRight - 10} ${yBottom} L ${xRight - 10} ${yBottom - 10} L ${xRight} ${yBottom - 10}`} fill="none" stroke="#0F172A" strokeWidth={1.2} />
       ) : (
-        <Path d={`M ${xLeft + 10} ${yBottom} L ${xLeft + 10} ${yBottom - 10} L ${xLeft} ${yBottom - 10}`} fill="none" stroke="#64748b" strokeWidth={1.2} />
+        <Path d={`M ${xLeft + 10} ${yBottom} L ${xLeft + 10} ${yBottom - 10} L ${xLeft} ${yBottom - 10}`} fill="none" stroke="#0F172A" strokeWidth={1.2} />
       )}
 
       <Path d={arcD} fill="none" stroke="#D9A720" strokeWidth={1.5} />
-      <Text x={refLblPos.x} y={refLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#D9A720" }}>
+      <Text x={refLblPos.x} y={refLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#B48A18" }}>
         {referenceAngleLabel}
       </Text>
 
       {referenceAnglePos === "base" ? (
         <>
-          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.adjacent)}</Text>
-          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.opposite)}</Text>
+          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#0F172A" }}>{String(labels.adjacent)}</Text>
+          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#0F172A" }}>{String(labels.opposite)}</Text>
         </>
       ) : (
         <>
-          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.opposite)}</Text>
-          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.adjacent)}</Text>
+          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#0F172A" }}>{String(labels.opposite)}</Text>
+          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#0F172A" }}>{String(labels.adjacent)}</Text>
         </>
       )}
-      <Text x={hypLblPos.x} y={hypLblPos.y} style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#0F172A" }}>{String(labels.hypotenuse)}</Text>
+      <Text x={hypLblPos.x} y={hypLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#0F172A" }}>{String(labels.hypotenuse)}</Text>
     </Svg>
   );
 }

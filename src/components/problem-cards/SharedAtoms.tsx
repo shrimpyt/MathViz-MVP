@@ -34,11 +34,11 @@ export function Blank({
   return (
     <span className="inline-flex items-center mx-1 gap-1">
       {revealed ? (
-        <span className="inline-block px-2 py-0.5 bg-green-50 border border-green-400 rounded font-serif text-sm text-green-900">
+        <span className="inline-block px-2 py-0.5 bg-green-50 border border-green-800 font-serif text-sm text-green-900">
           {field.answer}
         </span>
       ) : (
-        <span className="inline-block border-b-2 border-slate-500 min-w-[80px] px-1 font-serif text-sm text-slate-400 italic">
+        <span className="inline-block border-b-2 border-slate-900 min-w-[80px] px-1 font-serif text-sm text-slate-800 italic">
           {field.label}
         </span>
       )}
@@ -91,7 +91,7 @@ export function TEKSBadge({ standard }: { standard: string }) {
 
 export function DiagramBox({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-[130px] h-[130px] flex-shrink-0 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+    <div className="w-[140px] h-[140px] flex-shrink-0 border-2 border-[#1e293b] overflow-hidden bg-white shadow-[4px_4px_0px_rgba(30,41,59,0.1)]">
       {children}
     </div>
   );

@@ -10,10 +10,11 @@
 
 :root {
   --background: #0f172a;
-  --foreground: #fbfbfb;
+  --foreground: #f8fafc; /* Slightly softer white */
   --gold: #d9a720;
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --deep-navy: #020617;
 }
 
 body {
@@ -33,12 +34,27 @@ body {
   background: rgba(30, 45, 69, 0.4);
   backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
-  transition: all 0.3s ease;
+  /* No animations - removed transition */
 }
 
 .glass-card:hover {
   border-color: var(--gold);
   background: rgba(30, 45, 69, 0.6);
+}
+
+.logo-blend {
+  mix-blend-mode: lighten;
+}
+
+.scholarly-title {
+  font-family: var(--font-serif);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.geometric-grid {
+  background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
 ::-webkit-scrollbar {

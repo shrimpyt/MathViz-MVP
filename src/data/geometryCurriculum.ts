@@ -2,7 +2,7 @@ import { Curriculum, DocumentType, Question } from '../core/types';
 import { AnatomyOfACircle } from '../modules/anatomy-of-a-circle';
 import { TargetZone } from '../modules/target-zone';
 import { LogicOfCongruence } from '../modules/logic-of-congruence';
-import { RightTriangles } from '../modules/right-triangles';
+import { generateTrigProblems } from '@/lib/factories/TrigonometryFactory';
 import type { MathProblem, OutputMode } from '@/lib/ProblemFactory';
 
 // Seeded PRNG — imported from canonical source
@@ -262,11 +262,11 @@ export const geometryCurriculum: Curriculum = {
           generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
             const rng = mulberry32(seed);
             const count = mode === 'Review' ? 6 : 3;
-            return RightTriangles.generateMany(count, rng, ["IdentifyRatio"]);
+            return generateTrigProblems(rng, count, ["IdentifyRatio"]);
           },
           generateQuestions: (count: number, docType: DocumentType): Question[] => {
             const rng = mulberry32(9013);
-            const problems = RightTriangles.generateMany(count, rng, ["IdentifyRatio"]);
+            const problems = generateTrigProblems(rng, count, ["IdentifyRatio"]);
             return problems.map((p, i) => problemToQuestion(p, i));
           },
         },
@@ -277,12 +277,12 @@ export const geometryCurriculum: Curriculum = {
           generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
             const rng = mulberry32(seed);
             const count = mode === 'Review' ? 6 : 3;
-            return RightTriangles.generateMany(count, rng, ["SolveForSide"]);
+            return generateTrigProblems(rng, count, ["SolveForSide"]);
           },
           generateQuestions: (count: number, docType: DocumentType): Question[] => {
             const rng = mulberry32(9014);
-            const problems = RightTriangles.generateMany(count, rng, ["SolveForSide"]);
-            return problems.map((p, i) => problemToQuestion(p, i));
+            const problems = generateTrigProblems(rng, count, ["SolveForSide"]);
+            return problems.map((p: MathProblem, i: number) => problemToQuestion(p, i));
           },
         },
         {
@@ -292,12 +292,12 @@ export const geometryCurriculum: Curriculum = {
           generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
             const rng = mulberry32(seed);
             const count = mode === 'Review' ? 6 : 3;
-            return RightTriangles.generateMany(count, rng, ["SolveForAngle"]);
+            return generateTrigProblems(rng, count, ["SolveForAngle"]);
           },
           generateQuestions: (count: number, docType: DocumentType): Question[] => {
             const rng = mulberry32(9015);
-            const problems = RightTriangles.generateMany(count, rng, ["SolveForAngle"]);
-            return problems.map((p, i) => problemToQuestion(p, i));
+            const problems = generateTrigProblems(rng, count, ["SolveForAngle"]);
+            return problems.map((p: MathProblem, i: number) => problemToQuestion(p, i));
           },
         },
       ],

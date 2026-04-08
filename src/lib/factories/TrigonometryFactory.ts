@@ -1,7 +1,11 @@
 import type { TrigProblem, ProblemStep, BlankField } from '../types';
 import { pick } from '../math-utils';
 
-export function generateTrigProblems(rng: () => number, count: number): TrigProblem[] {
+export function generateTrigProblems(
+  rng: () => number,
+  count: number,
+  allowedSubtypes?: readonly TrigSubtype[]
+): TrigProblem[] {
   const problems: TrigProblem[] = [];
 
   for (let i = 0; i < count; i++) {
@@ -12,7 +16,10 @@ export function generateTrigProblems(rng: () => number, count: number): TrigProb
     // IdentifyRatio: Given all sides, write the fraction
     // SolveForSide: Given one acute angle and one side, find another
     // SolveForAngle: Given two sides, use inverse trig to find angle
-    const subtype = pick(rng, ['IdentifyRatio', 'SolveForSide', 'SolveForAngle'] as const);
+    const subtypeOptions = allowedSubtypes && allowedSubtypes.length > 0 
+      ? allowedSubtypes 
+      : ['IdentifyRatio', 'SolveForSide', 'SolveForAngle'] as const;
+    const subtype = pick(rng, subtypeOptions) as TrigSubtype;
 
     // Pythagorean triples to keep numbers clean
     const triples = [

@@ -151,31 +151,30 @@ export default function WorksheetGenerator() {
         position="fixed"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'rgba(15, 23, 42, 0.8)',
+          backgroundColor: 'var(--glass-bg)',
           backdropFilter: 'blur(12px)',
-          color: '#d9a720',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          color: 'var(--gold)',
+          borderBottom: '1px solid var(--glass-border)',
           boxShadow: 'none',
         }}
       >
         <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexGrow: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
             <Box 
               component="img" 
-              src="/logo_mark.png" 
+              src="/logo_dark.png" 
               alt="Euclid Engine Logo"
-              sx={{ height: 32, width: 32, opacity: 0.9 }} 
+              className="logo-blend"
+              sx={{ height: 40, width: 40 }} 
             />
             <Typography
               variant="h6"
               noWrap
+              className="scholarly-title"
               sx={{ 
                 fontWeight: 700, 
-                color: '#d9a720', 
-                fontFamily: 'var(--font-playfair), serif',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                fontSize: '1.1rem'
+                color: 'var(--gold)', 
+                fontSize: '1.2rem'
               }}
             >
               Euclid Engine
@@ -204,6 +203,7 @@ export default function WorksheetGenerator() {
         {/* ── Control Panel Drawer ── */}
         <Drawer
           variant="permanent"
+          className="geometric-grid"
           sx={{
             width: drawerWidth,
             flexShrink: 0,
@@ -211,9 +211,9 @@ export default function WorksheetGenerator() {
               width: drawerWidth,
               boxSizing: 'border-box',
               pt: '80px',
-              backgroundColor: 'rgba(15, 23, 42, 0.7)',
+              backgroundColor: 'var(--glass-bg)',
               backdropFilter: 'blur(16px)',
-              borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRight: '1px solid var(--glass-border)',
             },
           }}
         >

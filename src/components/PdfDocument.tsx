@@ -19,6 +19,7 @@ import {
   Circle,
   Line,
   Ellipse,
+  Path,
 } from '@react-pdf/renderer';
 import { Question } from '../core/types';
 import { PdfGeometrySVG, PdfRightTriangleSVG } from "./PdfGeometrySVG";
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#1e293b',
     marginBottom: 6,
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
 
   // Diagram placeholder box
@@ -342,8 +343,13 @@ export default function PdfDocument({
         <View style={styles.headerWrapper}>
           {/* Double-rule title block */}
           <View style={styles.headerTopRule}>
-            <Image src="/logo_mark.png" style={{ width: 32, height: 32, marginBottom: 4 }}  />
-            <Text style={styles.title}>{title}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              <Image 
+                src="/logo_light.png" 
+                style={{ width: 30, height: 30, marginRight: 10 }} 
+              />
+              <Text style={styles.title}>{title}</Text>
+            </View>
             <Text style={styles.modeLabel}>{modeLabel}</Text>
           </View>
 

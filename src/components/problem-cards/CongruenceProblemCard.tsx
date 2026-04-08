@@ -29,22 +29,23 @@ export function CongruenceProblemCard({
   };
 
   return (
-    <div className="break-inside-avoid mb-5">
-      <div className="flex items-start gap-3">
+    <div className="flex bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
+      <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
+        <span className="font-serif text-xl font-bold text-[#0F172A]">
+          {index + 1}
+        </span>
+      </div>
+      <div className="p-6 flex-1 flex flex-row items-start gap-6">
         <div className="flex-1">
-          <div className="flex items-center mb-1">
-            <span className="font-serif font-bold text-base text-slate-800 mr-2">
-              {index + 1}.
-            </span>
+          <div className="flex items-center mb-2">
             <TEKSBadge standard="G.6(B)" />
-            <span className="text-xs text-slate-500 italic">
+            <span className="text-xs text-slate-500 italic font-sans uppercase tracking-wider">
               {theoremName[problem.subtype]}
             </span>
           </div>
 
-          {/* Given list */}
-          <div className="font-serif text-sm text-slate-700 mb-2">
-            <span className="font-semibold">Given: </span>
+          <div className="font-serif text-[1.1rem] text-[#0F172A] mb-4 leading-relaxed font-medium">
+            <span className="font-bold">Given: </span>
             {problem.given.map((g, i) => (
               <span key={i}>
                 {g}
@@ -55,8 +56,7 @@ export function CongruenceProblemCard({
             <span className="italic">{problem.find}</span>.
           </div>
 
-          {/* Proof steps */}
-          <div className="pl-3 border-l-2 border-violet-200">
+          <div className="space-y-3">
             {problem.steps.map((s, i) => (
               <StepBlock
                 key={i}
@@ -69,9 +69,9 @@ export function CongruenceProblemCard({
           </div>
 
           {mode === "Test" && (
-            <p className="font-serif text-sm mt-2">
+            <p className="font-serif text-sm mt-4 pt-4 border-t border-slate-100">
               <span className="font-semibold">Theorem: </span>
-              <span className="inline-block border-b-2 border-slate-700 min-w-[120px]">
+              <span className="inline-block border-b-2 border-slate-900 min-w-[140px]">
                 &nbsp;
               </span>
             </p>

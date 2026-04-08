@@ -84,11 +84,13 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
     };
   }
   if (p.type === 'G.9A') {
-    const entries = Object.entries(p.given);
-    const givenStr = entries.map(([k, v]) => `${k} = ${v}`).join(', ');
     return {
       id: idx + 1,
-      text: `Given ${givenStr}. Find ${p.find}.`,
+      text: p.subtype === 'IdentifyRatio' 
+        ? `Find the value of ${p.ratioType} θ in the triangle below.`
+        : p.subtype === 'SolveForSide'
+        ? `Find the value of ${p.find} to the nearest tenth.`
+        : `Find the measure of angle ${p.find} to the nearest degree.`,
       points: 10,
       diagramType: 'right-triangle',
       diagramData: p.svgParams as any,
@@ -97,7 +99,7 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
   }
   return {
     id: idx + 1,
-    text: `Problem`,
+    text: `Problem ${idx + 1}`,
     points: 10
-  }
+  };
 }
