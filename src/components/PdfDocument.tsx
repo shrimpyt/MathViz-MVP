@@ -19,11 +19,12 @@ import {
   Circle,
   Line,
   Ellipse,
-  Path,
+
 } from '@react-pdf/renderer';
 import { Question } from '../core/types';
 import { PdfGeometrySVG, PdfRightTriangleSVG } from "./PdfGeometrySVG";
 import { MathProblem } from "@/lib/ProblemFactory";
+import { TrigSVGParams } from "@/lib/types";
 
 
 // ── StyleSheet ────────────────────────────────────────────────────────────────
@@ -295,7 +296,7 @@ const PdfDiagram = ({ type, data }: { type: string; data?: import('../core/types
     );
   }
     if (type === 'right-triangle') {
-    return <PdfRightTriangleSVG {...data as any} kind="RightTriangle" />;
+    return <PdfRightTriangleSVG {...data as unknown as TrigSVGParams} kind="RightTriangle" />;
   }
   return null;
 };
@@ -344,6 +345,7 @@ export default function PdfDocument({
           {/* Double-rule title block */}
           <View style={styles.headerTopRule}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image 
                 src="/logo_light.png" 
                 style={{ width: 30, height: 30, marginRight: 10 }} 
