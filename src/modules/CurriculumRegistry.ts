@@ -116,6 +116,16 @@ function mixedProblems(mode: OutputMode, seed: number): MathProblem[] {
 export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Chapter 1: Tools of Geometry ───────────────────────────────────────────
   {
+    id: "ch1-1-points-lines",
+    chapter: 1,
+    chapterTitle: "Chapter 1: Tools of Geometry",
+    title: "1-1: Nets and Drawings",
+    story: "Visualizing 3D objects in 2D space.",
+    teks: "G.1(A) · G.4(D)",
+    description: "Identify nets and orthographic drawings of geometric solids.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch1-test",
     chapter: 1,
     chapterTitle: "Chapter 1: Tools of Geometry",
@@ -127,6 +137,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   // ── Chapter 2: Reasoning and Proof ────────────────────────────────────────
   {
+    id: "ch2-1-inductive-reasoning",
+    chapter: 2,
+    chapterTitle: "Chapter 2: Reasoning and Proof",
+    title: "2-1: Inductive Reasoning",
+    story: "Find patterns and make conjectures.",
+    teks: "G.4(A)",
+    description: "Using patterns to find individual cases and making predictions.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch2-test",
     chapter: 2,
     chapterTitle: "Chapter 2: Reasoning and Proof",
@@ -137,6 +157,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     generate: placeholderGenerator,
   },
   // ── Chapter 3: Parallel & Perpendicular Lines ─────────────────────────────
+  {
+    id: "ch3-1-lines-angles",
+    chapter: 3,
+    chapterTitle: "Chapter 3: Parallel & Perpendicular Lines",
+    title: "3-1: Lines and Angles",
+    story: "Identify relationships between lines and angles.",
+    teks: "G.5(A)",
+    description: "Identify parallel, skew, and perpendicular lines, and transversal angles.",
+    generate: placeholderGenerator,
+  },
   {
     id: "ch3-test",
     chapter: 3,
@@ -170,6 +200,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   // ── Chapter 5: Relationships Within Triangles ─────────────────────────────
   {
+    id: "ch5-1-midsegments",
+    chapter: 5,
+    chapterTitle: "Chapter 5: Relationships Within Triangles",
+    title: "5-1: Midsegments of Triangles",
+    story: "Connecting midpoints to find hidden lengths.",
+    teks: "G.5(D)",
+    description: "Using the Triangle Midsegment Theorem to solve for segments and angles.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch5-test",
     chapter: 5,
     chapterTitle: "Chapter 5: Relationships Within Triangles",
@@ -181,6 +221,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   // ── Chapter 6: Polygons and Quadrilaterals ────────────────────────────────
   {
+    id: "ch6-1-polygons",
+    chapter: 6,
+    chapterTitle: "Chapter 6: Polygons and Quadrilaterals",
+    title: "6-1: The Polygon Angle-Sum Theorems",
+    story: "Interior and exterior angles of multi-sided shapes.",
+    teks: "G.5(A)",
+    description: "Calculate the sum of interior angles and measures of individual exterior angles.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch6-test",
     chapter: 6,
     chapterTitle: "Chapter 6: Polygons and Quadrilaterals",
@@ -191,6 +241,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     generate: placeholderGenerator,
   },
   // ── Chapter 7: Similarity ──────────────────────────────────────────────────
+  {
+    id: "ch7-2-similar-polygons",
+    chapter: 7,
+    chapterTitle: "Chapter 7: Similarity",
+    title: "7-2: Similar Polygons",
+    story: "Scaling shapes while preserving their form.",
+    teks: "G.7(A)",
+    description: "Using scale factors to solve for missing side lengths in similar figures.",
+    generate: placeholderGenerator,
+  },
   {
     id: "ch7-test",
     chapter: 7,
@@ -264,6 +324,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   // ── Chapter 9: Transformations ────────────────────────────────────────────
   {
+    id: "ch9-1-translations",
+    chapter: 9,
+    chapterTitle: "Chapter 9: Transformations",
+    title: "9-1: Translations",
+    story: "Sliding figures across the coordinate plane.",
+    teks: "G.3(A)",
+    description: "Represent translations as vectors and solve for new coordinates.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch9-test",
     chapter: 9,
     chapterTitle: "Chapter 9: Transformations",
@@ -275,6 +345,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   // ── Chapter 10: Area ──────────────────────────────────────────────────────
   {
+    id: "ch10-1-area-polygons",
+    chapter: 10,
+    chapterTitle: "Chapter 10: Area",
+    title: "10-1: Area of Parallelograms and Triangles",
+    story: "Calculating flat space for standard shapes.",
+    teks: "G.11(B)",
+    description: "Find the area given base and height, including coordinate geometry scenarios.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch10-test",
     chapter: 10,
     chapterTitle: "Chapter 10: Area",
@@ -285,6 +365,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     generate: placeholderGenerator,
   },
   // ── Chapter 11: Surface Area and Volume ──────────────────────────────────
+  {
+    id: "ch11-2-surface-area",
+    chapter: 11,
+    chapterTitle: "Chapter 11: Surface Area and Volume",
+    title: "11-2: Surface Area of Prisms and Cylinders",
+    story: "Wrapping 3D shapes in logic.",
+    teks: "G.11(C)",
+    description: "Solve for lateral and total surface area using formulas.",
+    generate: placeholderGenerator,
+  },
   {
     id: "ch11-test",
     chapter: 11,
@@ -307,6 +397,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     generate: circleProblems,
   },
   {
+    id: "ch12-1-tangent-lines",
+    chapter: 12,
+    chapterTitle: "Chapter 12: Circles",
+    title: "12-1: Tangent Lines",
+    story: "Understanding lines that skim the edge of a circle.",
+    teks: "G.12(A)",
+    description: "Properties of tangents and their relationship to radii.",
+    generate: placeholderGenerator,
+  },
+  {
     id: "ch12-test",
     chapter: 12,
     chapterTitle: "Chapter 12: Circles",
@@ -326,6 +426,16 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     teks: "G.13(B)",
     description: "Area-based geometric probability using concentric circle (bullseye) and shaded sector (spinner) models.",
     generate: probabilityProblems,
+  },
+  {
+    id: "ch13-1-experimental-theoretical",
+    chapter: 13,
+    chapterTitle: "Chapter 13: Probability",
+    title: "13-1: Experimental and Theoretical Probability",
+    story: "Comparing what should happen to what actually happens.",
+    teks: "G.13(B)",
+    description: "Calculate frequencies and theoretical outcomes for geometric events.",
+    generate: placeholderGenerator,
   },
   {
     id: "ch13-test",

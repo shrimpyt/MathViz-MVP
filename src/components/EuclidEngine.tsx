@@ -172,10 +172,10 @@ export function EuclidEngine({
             {specialProblems.map((p, i) => (
               <TrigProblemCard
                 key={i}
+                problem={p}
                 idx={specialOffset + i}
                 mode={mode}
                 revealed={revealed}
-                problem={p as any}
               />
             ))}
           </>

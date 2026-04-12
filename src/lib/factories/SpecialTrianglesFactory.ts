@@ -1,17 +1,5 @@
-import type { MathProblem, ProblemStep, TrigSVGParams } from '../types';
+import type { MathProblem, ProblemStep, TrigSVGParams, SpecialTriangleProblem, SpecialTriangleSubtype } from '../types';
 import { pick } from '../math-utils';
-
-export type SpecialTriangleSubtype = '45-45-90' | '30-60-90';
-
-export interface SpecialTriangleProblem {
-  type: "G.9A";
-  subtype: SpecialTriangleSubtype;
-  given: Record<string, string | number>;
-  find: string;
-  answer: string | number;
-  steps: ProblemStep[];
-  svgParams: TrigSVGParams;
-}
 
 export function generateSpecialTriangleProblems(
   rng: () => number,
@@ -111,7 +99,7 @@ export function generateSpecialTriangleProblems(
     }
 
     problems.push({
-      type: "G.9A",
+      type: "G.9B",
       subtype,
       given,
       find,

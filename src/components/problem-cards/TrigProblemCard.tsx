@@ -113,18 +113,23 @@ export function TrigProblemCard({
   mode,
   revealed,
 }: {
-  problem: TrigProblem;
+  problem: TrigProblem | SpecialTriangleProblem;
   idx: number;
   mode: "GuidedNote" | "Review" | "Test";
-  revealed?: boolean;
+  revealed: boolean;
 }) {
   const p = problem;
   
   let pretext = "";
   if (p.subtype === "IdentifyRatio") {
-    pretext = `Identify the ratio for ${p.ratioType}(θ) given the right triangle.`;
+    // Standard trig ratio (G.9A)
+    const pt = p as TrigProblem;
+    pretext = `Identify the ratio for ${pt.ratioType}(θ) given the right triangle.`;
   } else if (p.subtype === "SolveForSide") {
     pretext = `Using trigonometric ratios and the reference angle, solve for ${p.find}.`;
+  } else if (p.subtype === "45-45-90" || p.subtype === "30-60-90") {
+    // Special Right Triangle (G.9B)
+    pretext = `Apply the properties of ${p.subtype} triangles to find the unknown length: ${p.find}.`;
   } else {
     pretext = `Apply the inverse trigonometric function to solve for angle x.`;
   }
