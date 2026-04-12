@@ -50,6 +50,7 @@ function problemToQuestion(p: MathProblem, idx: number): Question {
       diagramType: 'right-triangle',
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
+  }
   if (p.type === 'G.9B') {
     const entries = Object.entries(p.given);
     const givenStr = entries.map(([k, v]) => `${k} = ${v}`).join(', ');
