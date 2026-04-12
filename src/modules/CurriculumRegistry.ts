@@ -498,8 +498,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 15: Probability ──────────────────────────────────────────────────
   {
     id: "target-zone",
-    chapter: 15,
-    chapterTitle: "Topic 15: Probability",
+    topic: 15,
+    topicTitle: "Topic 15: Probability",
     title: "Target Zone",
     story: "Calculate the probability a dart hits the bullseye — or a spinner lands on the shaded region.",
     teks: "G.13(B)",
@@ -508,8 +508,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch15-1-experimental-theoretical",
-    chapter: 15,
-    chapterTitle: "Topic 15: Probability",
+    topic: 15,
+    topicTitle: "Topic 15: Probability",
     title: "15-1: Experimental and Theoretical Probability",
     story: "Comparing what should happen to what actually happens.",
     teks: "G.13(B)",
@@ -518,8 +518,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch15-test",
-    chapter: 15,
-    chapterTitle: "Topic 15: Probability",
+    topic: 15,
+    topicTitle: "Topic 15: Probability",
     title: "Topic 15 Test",
     story: "Geometric probability and permutations.",
     teks: "G.13(B) · G.13(C)",
