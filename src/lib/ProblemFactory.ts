@@ -22,6 +22,7 @@ export type {
   ChordSVGParams,
   ConcentricSVGParams,
   SectorSVGParams,
+  CongruenceSVGParams,
   CoordinateSVGParams,
   MeasurementSVGParams,
   TrigSVGParams,

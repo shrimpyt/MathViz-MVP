@@ -7,8 +7,8 @@ import type {
   ConcentricSVGParams,
   SectorSVGParams,
   CongruenceSVGParams,
+  TrigSVGParams,
 } from "@/lib/ProblemFactory";
-import type { TrigSVGParams } from "@/lib/types";
 
 const CX = 100;
 const CY = 100;
