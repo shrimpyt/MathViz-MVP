@@ -28,7 +28,7 @@ export class AIService {
         
         Original Problem:
         Type: ${problem.type}
-        Find: ${problem.find}
+        Find: ${'find' in problem ? problem.find : 'Probability'}
         Answer: ${problem.answer}
         
         Return the new 'instruction' and 'find' text as JSON.
@@ -36,11 +36,11 @@ export class AIService {
 
       // Simulating an AI response for now to ensure the UI loop works
       // The user can rotate their API key and hook this up.
-      return {
-        ...problem,
-        find: problem.find + " (AI-Enhanced Scenario)",
-        // In reality, we'd update problem.steps etc.
-      };
+      const result = { ...problem };
+      if ('find' in result) {
+        (result as any).find = (result as any).find + " (AI-Enhanced Scenario)";
+      }
+      return result;
     } catch (error) {
       console.error("AIService Error:", error);
       return problem;

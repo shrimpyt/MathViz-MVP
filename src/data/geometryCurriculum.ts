@@ -76,7 +76,7 @@ function problemToQuestion(p: MathProblem, idx: number): Question {
   // Final fallback
   return {
     id: idx + 1,
-    text: `Solve the given geometry problem: ${p.find}.`,
+    text: "Solve the given geometry problem.",
     points: 10,
     diagramType: 'angle',
     scaffolding: [],
