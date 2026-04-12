@@ -4,7 +4,7 @@
 
 // ── Output & TEKS ─────────────────────────────────────────────────────────────
 
-export type TEKSStandard = "G.12A" | "G.13B" | "G.9A";
+export type TEKSStandard = "G.12A" | "G.13B" | "G.9A" | "G.9B";
 export type OutputMode = "GuidedNote" | "Review" | "Test";
 
 // ── Shared building blocks ────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ export interface CongruenceProblem {
 
 // ── G.9(A): Right Triangles & Trigonometry ────────────────────────────────────
 
-export type TrigSubtype = "IdentifyRatio" | "SolveForSide" | "SolveForAngle";
+export type TrigSubtype = "IdentifyRatio" | "SolveForSide" | "SolveForAngle" | "ElevationDepression";
 
 export interface TrigProblem {
   type: "G.9A";
@@ -75,6 +75,18 @@ export interface TrigProblem {
   given: Record<string, string | number>; 
   find: string;
   answer: number | string;
+  steps: ProblemStep[];
+  svgParams: TrigSVGParams;
+}
+
+export type SpecialTriangleSubtype = "45-45-90" | "30-60-90";
+
+export interface SpecialTriangleProblem {
+  type: "G.9B";
+  subtype: SpecialTriangleSubtype;
+  given: Record<string, string | number>;
+  find: string;
+  answer: string | number;
   steps: ProblemStep[];
   svgParams: TrigSVGParams;
 }
@@ -118,7 +130,7 @@ export interface CongruenceSVGParams {
 
 // ── Union type ────────────────────────────────────────────────────────────────
 
-export type MathProblem = CircleProblem | ProbabilityProblem | CongruenceProblem | TrigProblem;
+export type MathProblem = CircleProblem | ProbabilityProblem | CongruenceProblem | TrigProblem | SpecialTriangleProblem;
 
 // ── SVG parameter types ───────────────────────────────────────────────────────
 

@@ -75,9 +75,16 @@ export function generateTrigProblems(
         ]
       });
 
-    } else if (subtype === 'SolveForSide') {
+    } else if (subtype === 'SolveForSide' || subtype === 'ElevationDepression') {
       // Let's pretend we only know the angle and one side
       refAngleLabel = `${angleValue}°`;
+      
+      const isAltScenario = subtype === 'ElevationDepression';
+      const scenario = pick(rng, [
+        { find: 'height', obj: 'a building', observer: 'a surveyor' },
+        { find: 'distance', obj: 'a lighthouse', observer: 'a boat' },
+        { find: 'length', obj: 'a tree', observer: 'a shadow' }
+      ]);
       
       if (ratioType === 'sin') {
         given = { angle: angleValue, hypotenuse: hyp };
@@ -85,7 +92,12 @@ export function generateTrigProblems(
         answer = opp;
         labelHyp = String(hyp);
         labelOpp = 'x';
-        labelAdj = ''; // unknown
+        labelAdj = ''; 
+
+        if (isAltScenario) {
+          find = `the ${scenario.find}`;
+          steps.push({ instruction: `Scenario: ${scenario.observer} measures the angle of elevation to the top of ${scenario.obj} as ${angleValue}°.` });
+        }
 
         steps.push({
           instruction: `Select the correct trig ratio linking opposite and hypotenuse:`,

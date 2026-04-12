@@ -10,6 +10,7 @@ import type {
   ProbabilityProblem,
   CongruenceProblem,
   TrigProblem,
+  SpecialTriangleProblem,
   OutputMode,
 } from "@/lib/types";
 import {
@@ -53,12 +54,16 @@ export function EuclidEngine({
   const trigProblems = problems.filter(
     (p): p is TrigProblem => p.type === "G.9A"
   );
+  const specialProblems = problems.filter(
+    (p): p is SpecialTriangleProblem => p.type === "G.9B"
+  );
 
   // Global offset index for continuous numbering across all sections
   const circleOffset = 0;
   const probOffset = circleProblems.length;
   const congruenceOffset = probOffset + probProblems.length;
   const trigOffset = congruenceOffset + congruenceProblems.length;
+  const specialOffset = trigOffset + trigProblems.length;
 
   return (
     <div className="flex flex-col items-center min-h-screen py-6 geometric-grid" style={{ backgroundColor: '#0F172A' }}>
@@ -160,11 +165,27 @@ export function EuclidEngine({
           </>
         )}
 
+        {/* G.9(B) — Special Right Triangles */}
+        {specialProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.9(B) — Special Right Triangles" />
+            {specialProblems.map((p, i) => (
+              <TrigProblemCard
+                key={i}
+                idx={specialOffset + i}
+                mode={mode}
+                revealed={revealed}
+                problem={p as any}
+              />
+            ))}
+          </>
+        )}
+
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] font-sans text-slate-400">
           <div className="flex gap-2">
             <span className="font-bold text-slate-600">TEKS</span>
-            <span>G.12(A) · G.13(B) · G.6(B) · G.9(A)</span>
+            <span>G.12(A) · G.13(B) · G.6(B) · G.9(A) · G.9(B)</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="font-serif italic">Euclid Engine</span>

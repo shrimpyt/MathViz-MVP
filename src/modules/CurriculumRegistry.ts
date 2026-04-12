@@ -9,6 +9,7 @@ import { AnatomyOfACircle } from "./anatomy-of-a-circle";
 import { TargetZone } from "./target-zone";
 import { LogicOfCongruence } from "./logic-of-congruence";
 import { generateTrigProblems } from "@/lib/factories/TrigonometryFactory";
+import { generateSpecialTriangleProblems } from "@/lib/factories/SpecialTrianglesFactory";
 import type { MathProblem, OutputMode } from "@/lib/ProblemFactory";
 
 // ── Seeded PRNG — imported from canonical source ──────────────────────────────
@@ -73,6 +74,18 @@ function trigAngleProblems(mode: OutputMode, seed: number): MathProblem[] {
   return generateTrigProblems(rng, count, ["SolveForAngle"]);
 }
 
+function specialTriangleProblems(mode: OutputMode, seed: number): MathProblem[] {
+  const rng = mulberry32(seed);
+  const count = mode === "Review" ? 6 : 3;
+  return generateSpecialTriangleProblems(rng, count);
+}
+
+function elevationDepressionProblems(mode: OutputMode, seed: number): MathProblem[] {
+  const rng = mulberry32(seed);
+  const count = mode === "Review" ? 6 : 3;
+  return generateTrigProblems(rng, count, ["ElevationDepression"]);
+}
+
 function mixedProblems(mode: OutputMode, seed: number): MathProblem[] {
   const rng = mulberry32(seed);
   const multiplier = mode === "Review" ? 3 : 1;
@@ -135,6 +148,22 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
     teks: "G.9(A)",
     description: "Apply inverse sine, inverse cosine, and inverse tangent to solve for a reference angle.",
     generate: trigAngleProblems,
+  },
+  {
+    id: "special-right-triangles",
+    title: "Special Right Triangles",
+    story: "Apply the exact ratios for 45-45-90 and 30-60-90 triangles.",
+    teks: "G.9(B)",
+    description: "Use simplified radical relationships (x, x, x√2 and x, x√3, 2x) to solve for missing sides.",
+    generate: specialTriangleProblems,
+  },
+  {
+    id: "elevation-depression",
+    title: "Angles of Elevation & Depression",
+    story: "Solve real-world trigonometry problems using surveyor and lighthouse scenarios.",
+    teks: "G.9(A)",
+    description: "Translate descriptive word problems into trigonometric equations and solve for unknown measures.",
+    generate: elevationDepressionProblems,
   },
   {
     id: "circles-and-probability",

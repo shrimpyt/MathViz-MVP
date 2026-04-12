@@ -42,7 +42,7 @@ function toOutputMode(docType: DocumentType): OutputMode {
 
 // ── Basic diagram for the fallback preview ────────────────────────────────────
 
-const WebDiagram = ({ type, data }: { type: string; data?: DiagramData }) => {
+const WebDiagram = ({ type, data }: { type: string; data?: any }) => {
   if (type === 'circle') {
     return (
       <svg width="150" height="150" viewBox="0 0 150 150">
@@ -84,6 +84,57 @@ const WebDiagram = ({ type, data }: { type: string; data?: DiagramData }) => {
         <text x="10" y="95" fontSize="12">L2</text>
         <text x="60" y="45" fontSize="12">1</text>
         {data?.angleValue && <text x="75" y="45" fontSize="10">{data.angleValue}°</text>}
+      </svg>
+    );
+  }
+  if (type === 'right-triangle') {
+    // Basic right-triangle renderer for the web fallback
+    const width = 150;
+    const height = 150;
+    const pad = 30;
+    const effW = width - 2 * pad;
+    const effH = height - 2 * pad;
+
+    const opposite = data?.opposite || 3;
+    const adjacent = data?.adjacent || 4;
+    const orientation = data?.orientation || 'right';
+    const refPos = data?.referenceAnglePos || 'base';
+
+    const maxSide = Math.max(opposite, adjacent);
+    let bLen = 0;
+    let vLen = 0;
+
+    if (refPos === "base") {
+      bLen = (adjacent / maxSide) * effW;
+      vLen = (opposite / maxSide) * effH;
+    } else {
+      bLen = (opposite / maxSide) * effW;
+      vLen = (adjacent / maxSide) * effH;
+    }
+
+    const xL = pad + (effW - bLen) / 2;
+    const xR = xL + bLen;
+    const yB = height - pad - (effH - vLen) / 2;
+    const yT = yB - vLen;
+
+    const pts = orientation === "right" 
+      ? `${xL},${yB} ${xR},${yB} ${xR},${yT}`
+      : `${xR},${yB} ${xL},${yB} ${xL},${yT}`;
+
+    return (
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <polygon points={pts} fill="none" stroke="black" strokeWidth="2" strokeLinejoin="round" />
+        {orientation === "right" ? (
+          <path d={`M ${xR - 10} ${yB} L ${xR - 10} ${yB - 10} L ${xR} ${yB - 10}`} fill="none" stroke="black" strokeWidth="1.2" />
+        ) : (
+          <path d={`M ${xL + 10} ${yB} L ${xL + 10} ${yB - 10} L ${xL} ${yB - 10}`} fill="none" stroke="black" strokeWidth="1.2" />
+        )}
+        <text x={(xL + xR) / 2} y={yB + 15} fontSize="10" textAnchor="middle" fill="#0F172A" fontWeight="bold">
+          {refPos === "base" ? data?.labels?.adjacent : data?.labels?.opposite}
+        </text>
+        <text x={orientation === "right" ? xR + 10 : xL - 10} y={(yT + yB) / 2} fontSize="10" textAnchor="middle" fill="#0F172A" fontWeight="bold">
+          {refPos === "base" ? data?.labels?.opposite : data?.labels?.adjacent}
+        </text>
       </svg>
     );
   }
