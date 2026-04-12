@@ -50,14 +50,35 @@ function problemToQuestion(p: MathProblem, idx: number): Question {
       diagramType: 'right-triangle',
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
+  if (p.type === 'G.9B') {
+    const entries = Object.entries(p.given);
+    const givenStr = entries.map(([k, v]) => `${k} = ${v}`).join(', ');
+    return {
+      id: idx + 1,
+      text: `Given ${givenStr}. Solve for ${p.find}.`,
+      points: 10,
+      diagramType: 'right-triangle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
   }
-  // G.6B
+  // G.6B: Triangle Congruence
+  if (p.type === 'G.6B') {
+    return {
+      id: idx + 1,
+      text: `Given: ${p.given.join('; ')}. ${p.find}.`,
+      points: 10,
+      diagramType: 'angle',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  
+  // Final fallback
   return {
     id: idx + 1,
-    text: `Given: ${p.given.join('; ')}. ${p.find}.`,
+    text: `Solve the given geometry problem: ${p.find}.`,
     points: 10,
     diagramType: 'angle',
-    scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    scaffolding: [],
   };
 }
 
