@@ -6,4 +6,6 @@ export { CircleProblemCard } from "./CircleProblemCard";
 export { ProbabilityProblemCard } from "./ProbabilityProblemCard";
 export { CongruenceProblemCard } from "./CongruenceProblemCard";
 export { TrigProblemCard } from "./TrigProblemCard";
+export { CoordinateProblemCard } from "./CoordinateProblemCard";
+export { MeasurementProblemCard } from "./MeasurementProblemCard";
 export { DocumentHeader, SectionDivider } from "./DocumentHeader";

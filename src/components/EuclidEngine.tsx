@@ -45,11 +45,17 @@ export function EuclidEngine({
   const circleProblems = problems.filter(
     (p): p is CircleProblem => p.type === "G.12A"
   );
+  const measurementProblems = problems.filter(
+    (p): p is MeasurementProblem => p.type === "G.12B"
+  );
   const probProblems = problems.filter(
     (p): p is ProbabilityProblem => p.type === "G.13B"
   );
   const congruenceProblems = problems.filter(
     (p): p is CongruenceProblem => p.type === "G.6B"
+  );
+  const coordinateProblems = problems.filter(
+    (p): p is CoordinateProblem => p.type === "G.2B"
   );
   const trigProblems = problems.filter(
     (p): p is TrigProblem => p.type === "G.9A"
@@ -60,9 +66,11 @@ export function EuclidEngine({
 
   // Global offset index for continuous numbering across all sections
   const circleOffset = 0;
-  const probOffset = circleProblems.length;
+  const measurementOffset = circleOffset + circleProblems.length;
+  const probOffset = measurementOffset + measurementProblems.length;
   const congruenceOffset = probOffset + probProblems.length;
-  const trigOffset = congruenceOffset + congruenceProblems.length;
+  const coordinateOffset = congruenceOffset + congruenceProblems.length;
+  const trigOffset = coordinateOffset + coordinateProblems.length;
   const specialOffset = trigOffset + trigProblems.length;
 
   return (
@@ -117,6 +125,22 @@ export function EuclidEngine({
           </>
         )}
 
+        {/* G.12(B) — Circle Measurement */}
+        {measurementProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.12(B) — Circle Measurement" />
+            {measurementProblems.map((p, i) => (
+              <MeasurementProblemCard
+                key={i}
+                problem={p}
+                index={measurementOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
         {/* G.13(B) — Probability */}
         {probProblems.length > 0 && (
           <>
@@ -142,6 +166,22 @@ export function EuclidEngine({
                 key={i}
                 problem={p}
                 index={congruenceOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* G.2(B) — Coordinate Geometry */}
+        {coordinateProblems.length > 0 && (
+          <>
+            <SectionDivider label="G.2(B) — Coordinate Geometry" />
+            {coordinateProblems.map((p, i) => (
+              <CoordinateProblemCard
+                key={i}
+                problem={p}
+                index={coordinateOffset + i}
                 mode={mode}
                 revealed={revealed}
               />

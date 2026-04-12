@@ -4,7 +4,7 @@
 
 // ── Output & TEKS ─────────────────────────────────────────────────────────────
 
-export type TEKSStandard = "G.12A" | "G.13B" | "G.9A" | "G.9B";
+export type TEKSStandard = "G.12A" | "G.13B" | "G.9A" | "G.9B" | "G.2B" | "G.12B";
 export type OutputMode = "GuidedNote" | "Review" | "Test";
 
 // ── Shared building blocks ────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ export interface ProblemStep {
   blanks?: BlankField[];
 }
 
-// ── G.12(A): Circle problems ──────────────────────────────────────────────────
+// ── G.12(A): Circle problems (Theorems) ───────────────────────────────────────
 
 export interface CircleProblem {
   type: "G.12A";
@@ -91,6 +91,39 @@ export interface SpecialTriangleProblem {
   svgParams: TrigSVGParams;
 }
 
+// ── G.2(B): Coordinate Geometry ───────────────────────────────────────────────
+
+export type CoordinateSubtype = "Distance" | "Midpoint" | "Slope";
+
+export interface CoordinateProblem {
+  type: "G.2B";
+  subtype: CoordinateSubtype;
+  p1: { x: number; y: number; label: string };
+  p2: { x: number; y: number; label: string };
+  find: string;
+  answer: number | string;
+  steps: ProblemStep[];
+  svgParams: CoordinateSVGParams;
+}
+
+// ── G.12(B): Circle Measurement ───────────────────────────────────────────────
+
+export type MeasurementSubtype = "Circumference" | "ArcLength" | "SectorArea";
+
+export interface MeasurementProblem {
+  type: "G.12B";
+  subtype: MeasurementSubtype;
+  radius: number;
+  angle?: number;
+  find: string;
+  answer: number | string;
+  unit: string;
+  steps: ProblemStep[];
+  svgParams: MeasurementSVGParams;
+}
+
+// ── SVG parameter types ───────────────────────────────────────────────────────
+
 export interface TrigSVGParams {
   kind: "RightTriangle";
   /** The abstract lengths (not drawn to scale perfectly, but proportionally) */
@@ -128,12 +161,6 @@ export interface CongruenceSVGParams {
   rightAngleAt: number;
 }
 
-// ── Union type ────────────────────────────────────────────────────────────────
-
-export type MathProblem = CircleProblem | ProbabilityProblem | CongruenceProblem | TrigProblem | SpecialTriangleProblem;
-
-// ── SVG parameter types ───────────────────────────────────────────────────────
-
 export interface InscribedAngleSVGParams {
   kind: "InscribedAngle" | "CentralAngle" | "TwoChords" | "TwoSecants";
   interceptedArc: number;   // degrees
@@ -162,3 +189,29 @@ export interface SectorSVGParams {
   kind: "ShadedSector";
   sectorAngle: number;
 }
+
+export interface CoordinateSVGParams {
+  kind: "CoordinateGrid";
+  p1: { x: number; y: number; label: string };
+  p2: { x: number; y: number; label: string };
+  showRuler?: boolean;
+}
+
+export interface MeasurementSVGParams {
+  kind: "CircleMeasurement";
+  radius: number;
+  angle?: number;
+  showArc?: boolean;
+  showSector?: boolean;
+}
+
+// ── Union type ────────────────────────────────────────────────────────────────
+
+export type MathProblem = 
+  | CircleProblem 
+  | ProbabilityProblem 
+  | CongruenceProblem 
+  | TrigProblem 
+  | SpecialTriangleProblem
+  | CoordinateProblem
+  | MeasurementProblem;

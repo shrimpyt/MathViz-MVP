@@ -83,10 +83,12 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
   }
-  if (p.type === 'G.9A') {
+  if (p.type === 'G.9A' || p.type === 'G.9B') {
     return {
       id: idx + 1,
-      text: p.subtype === 'IdentifyRatio' 
+      text: p.type === 'G.9B' 
+        ? `Solve for the missing side in the ${p.subtype} triangle.`
+        : p.subtype === 'IdentifyRatio' 
         ? `Find the value of ${p.ratioType} θ in the triangle below.`
         : p.subtype === 'SolveForSide'
         ? `Find the value of ${p.find} to the nearest tenth.`
@@ -94,6 +96,24 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
       points: 10,
       diagramType: 'right-triangle',
       diagramData: p.svgParams as unknown as Record<string, unknown>,
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  if (p.type === 'G.2B') {
+    return {
+      id: idx + 1,
+      text: `Given points ${p.p1.label}(${p.p1.x}, ${p.p1.y}) and ${p.p2.label}(${p.p2.x}, ${p.p2.y}). Find the ${p.find}.`,
+      points: 10,
+      diagramType: 'coordinate',
+      scaffolding: p.steps.map(s => ({ text: s.instruction })),
+    };
+  }
+  if (p.type === 'G.12B') {
+    return {
+      id: idx + 1,
+      text: `A circle has a radius of ${p.radius}. Find the ${p.find}.`,
+      points: 10,
+      diagramType: 'circle',
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
   }
