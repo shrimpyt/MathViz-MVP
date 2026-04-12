@@ -93,7 +93,7 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
         : `Find the measure of angle ${p.find} to the nearest degree.`,
       points: 10,
       diagramType: 'right-triangle',
-      diagramData: p.svgParams as any,
+      diagramData: p.svgParams as unknown as Record<string, unknown>,
       scaffolding: p.steps.map(s => ({ text: s.instruction })),
     };
   }
