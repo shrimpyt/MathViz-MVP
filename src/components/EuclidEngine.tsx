@@ -11,6 +11,8 @@ import type {
   CongruenceProblem,
   TrigProblem,
   SpecialTriangleProblem,
+  CoordinateProblem,
+  MeasurementProblem,
   OutputMode,
 } from "@/lib/types";
 import {
@@ -20,6 +22,8 @@ import {
   ProbabilityProblemCard,
   CongruenceProblemCard,
   TrigProblemCard,
+  CoordinateProblemCard,
+  MeasurementProblemCard,
 } from "./problem-cards";
 
 // ── Constants ─────────────────────────────────────────────────────────────────

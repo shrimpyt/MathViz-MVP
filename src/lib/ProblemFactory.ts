@@ -11,14 +11,20 @@ export type {
   CircleProblem,
   ProbabilityProblem,
   CongruenceProblem,
+  CoordinateProblem,
+  MeasurementProblem,
+  TrigProblem,
+  SpecialTriangleProblem,
   CongruenceSubtype,
-  CongruenceSVGParams,
   MathProblem,
   InscribedAngleSVGParams,
   TangentSVGParams,
   ChordSVGParams,
   ConcentricSVGParams,
   SectorSVGParams,
+  CoordinateSVGParams,
+  MeasurementSVGParams,
+  TrigSVGParams,
 } from "./types";
 
 import type { OutputMode, MathProblem } from "./types";
