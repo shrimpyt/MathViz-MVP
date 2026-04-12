@@ -1,5 +1,5 @@
 import React from "react";
-import type { TrigProblem, TrigSVGParams } from "@/lib/types";
+import type { TrigProblem, TrigSVGParams, SpecialTriangleProblem } from "@/lib/types";
 import { StepBlock, DiagramBox } from "./SharedAtoms";
 
 function RightTriangleSVG({ params }: { params: TrigSVGParams }) {
