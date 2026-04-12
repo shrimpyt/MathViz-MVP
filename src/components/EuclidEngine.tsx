@@ -229,7 +229,7 @@ export function EuclidEngine({
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] font-sans text-slate-400">
           <div className="flex gap-2">
             <span className="font-bold text-slate-600">TEKS</span>
-            <span>G.12(A) · G.13(B) · G.6(B) · G.9(A) · G.9(B)</span>
+            <span>G.12(A) · G.12(B) · G.13(B) · G.6(B) · G.2(B) · G.9(A) · G.9(B)</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="font-serif italic">Euclid Engine</span>

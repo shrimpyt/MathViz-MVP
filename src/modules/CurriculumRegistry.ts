@@ -23,10 +23,10 @@ import { mulberry32 } from "@/lib/math-utils";
 export interface CurriculumEntry {
   /** Unique key used in URL params / state */
   id: string;
-  /** Chapter number in the textbook */
-  chapter: number;
-  /** Human-friendly chapter title */
-  chapterTitle: string;
+  /** Topic number in the curriculum */
+  topic: number;
+  /** Human-friendly topic title (e.g. "Topic 1: ...") */
+  topicTitle: string;
   /** Human-friendly story title shown in the UI */
   title: string;
   /** One-sentence story framing shown as a sub-label */
@@ -106,14 +106,19 @@ function measurementProblems(mode: OutputMode, seed: number): MathProblem[] {
 
 function placeholderGenerator(mode: OutputMode, seed: number): MathProblem[] {
   return [{
-    type: "G.12A" as any, // Placeholder type
-    subtype: "TBD" as any,
+    type: "G.12A",
+    subtype: "InscribedAngle",
     given: {},
-    find: "Coming Soon",
-    answer: "Check back later",
+    find: "TBD",
+    answer: 0,
+    unit: "°",
     steps: [{ instruction: "This lesson is currently under construction." }],
-    svgParams: { kind: "Circle" as any }
-  }] as any;
+    svgParams: { 
+      kind: "InscribedAngle",
+      interceptedArc: 60,
+      inscribedAngle: 30
+    }
+  }];
 }
 
 /** 
@@ -149,8 +154,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 1: Tools of Geometry ─────────────────────────────────────────────
   {
     id: "ch1-1-points-lines",
-    chapter: 1,
-    chapterTitle: "Topic 1: Tools of Geometry",
+    topic: 1,
+    topicTitle: "Topic 1: Tools of Geometry",
     title: "1-1: Nets and Drawings",
     story: "Visualizing 3D objects in 2D space.",
     teks: "G.1(A) · G.4(D)",
@@ -159,8 +164,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch1-test",
-    chapter: 1,
-    chapterTitle: "Topic 1: Tools of Geometry",
+    topic: 1,
+    topicTitle: "Topic 1: Tools of Geometry",
     title: "Topic 1 Test",
     story: "Comprehensive assessment of geometric foundations.",
     teks: "G.2(B) · G.5(C)",
@@ -170,8 +175,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 2: Reasoning and Proof ──────────────────────────────────────────
   {
     id: "ch2-1-inductive-reasoning",
-    chapter: 2,
-    chapterTitle: "Topic 2: Reasoning and Proof",
+    topic: 2,
+    topicTitle: "Topic 2: Reasoning and Proof",
     title: "2-1: Inductive Reasoning",
     story: "Find patterns and make conjectures.",
     teks: "G.4(A)",
@@ -180,8 +185,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch2-test",
-    chapter: 2,
-    chapterTitle: "Topic 2: Reasoning and Proof",
+    topic: 2,
+    topicTitle: "Topic 2: Reasoning and Proof",
     title: "Topic 2 Test",
     story: "Logic and formal proof structures.",
     teks: "G.4(A) · G.4(B)",
@@ -191,8 +196,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 3: Parallel and Perpendicular Lines ─────────────────────────────
   {
     id: "ch3-1-lines-angles",
-    chapter: 3,
-    chapterTitle: "Topic 3: Parallel and Perpendicular Lines",
+    topic: 3,
+    topicTitle: "Topic 3: Parallel and Perpendicular Lines",
     title: "3-1: Lines and Angles",
     story: "Identify relationships between lines and angles.",
     teks: "G.5(A)",
@@ -201,8 +206,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch3-test",
-    chapter: 3,
-    chapterTitle: "Topic 3: Parallel and Perpendicular Lines",
+    topic: 3,
+    topicTitle: "Topic 3: Parallel and Perpendicular Lines",
     title: "Topic 3 Test",
     story: "Angles created by transversals and parallel lines.",
     teks: "G.5(A) · G.5(B)",
@@ -212,8 +217,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 4: Congruent Triangles ──────────────────────────────────────────
   {
     id: "logic-of-congruence",
-    chapter: 4,
-    chapterTitle: "Topic 4: Congruent Triangles",
+    topic: 4,
+    topicTitle: "Topic 4: Congruent Triangles",
     title: "Logic of Congruence",
     story: "Prove two triangles are congruent using SSS, SAS, ASA, AAS, or HL.",
     teks: "G.6(B)",
@@ -222,8 +227,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch4-test",
-    chapter: 4,
-    chapterTitle: "Topic 4: Congruent Triangles",
+    topic: 4,
+    topicTitle: "Topic 4: Congruent Triangles",
     title: "Topic 4 Test",
     story: "Assessment of triangle congruence and classification.",
     teks: "G.6(B)",
@@ -233,8 +238,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 5: Relationships Within Triangles ───────────────────────────────
   {
     id: "ch5-1-midsegments",
-    chapter: 5,
-    chapterTitle: "Topic 5: Relationships Within Triangles",
+    topic: 5,
+    topicTitle: "Topic 5: Relationships Within Triangles",
     title: "5-1: Midsegments of Triangles",
     story: "Connecting midpoints to find hidden lengths.",
     teks: "G.5(D)",
@@ -243,8 +248,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch5-test",
-    chapter: 5,
-    chapterTitle: "Topic 5: Relationships Within Triangles",
+    topic: 5,
+    topicTitle: "Topic 5: Relationships Within Triangles",
     title: "Topic 5 Test",
     story: "Bisectors, medians, altitudes, and triangle inequalities.",
     teks: "G.5(D) · G.6(D)",
@@ -254,8 +259,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 6: Polygons and Quadrilaterals ──────────────────────────────────
   {
     id: "ch6-1-polygons",
-    chapter: 6,
-    chapterTitle: "Topic 6: Polygons and Quadrilaterals",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
     title: "6-1: The Polygon Angle-Sum Theorems",
     story: "Interior and exterior angles of multi-sided shapes.",
     teks: "G.5(A)",
@@ -264,8 +269,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch6-test",
-    chapter: 6,
-    chapterTitle: "Topic 6: Polygons and Quadrilaterals",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
     title: "Topic 6 Test",
     story: "Properties of parallelograms and special quadrilaterals.",
     teks: "G.6(E)",
@@ -275,8 +280,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 7: Coordinate Geometry ──────────────────────────────────────────
   {
     id: "ch7-1-distance-midpoint",
-    chapter: 7,
-    chapterTitle: "Topic 7: Coordinate Geometry",
+    topic: 7,
+    topicTitle: "Topic 7: Coordinate Geometry",
     title: "7-1: Distance and Midpoint",
     story: "Navigating the xy-plane with precision.",
     teks: "G.2(B)",
@@ -285,8 +290,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch7-test",
-    chapter: 7,
-    chapterTitle: "Topic 7: Coordinate Geometry",
+    topic: 7,
+    topicTitle: "Topic 7: Coordinate Geometry",
     title: "Topic 7 Test",
     story: "Analytic geometry of points and lines.",
     teks: "G.2(B) · G.2(C)",
@@ -296,8 +301,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 8: Transformational Geometry ────────────────────────────────────
   {
     id: "ch8-1-translations",
-    chapter: 8,
-    chapterTitle: "Topic 8: Transformational Geometry",
+    topic: 8,
+    topicTitle: "Topic 8: Transformational Geometry",
     title: "8-1: Translations",
     story: "Sliding figures across the coordinate plane.",
     teks: "G.3(A)",
@@ -306,8 +311,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch8-test",
-    chapter: 8,
-    chapterTitle: "Topic 8: Transformational Geometry",
+    topic: 8,
+    topicTitle: "Topic 8: Transformational Geometry",
     title: "Topic 8 Test",
     story: "Reflections, translations, rotations, and symmetry.",
     teks: "G.3(A) · G.3(B) · G.3(C)",
@@ -317,8 +322,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 9: Similarity ────────────────────────────────────────────────────
   {
     id: "ch9-2-similar-polygons",
-    chapter: 9,
-    chapterTitle: "Topic 9: Similarity",
+    topic: 9,
+    topicTitle: "Topic 9: Similarity",
     title: "9-2: Similar Polygons",
     story: "Scaling shapes while preserving their form.",
     teks: "G.7(A)",
@@ -327,8 +332,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch9-test",
-    chapter: 9,
-    chapterTitle: "Topic 9: Similarity",
+    topic: 9,
+    topicTitle: "Topic 9: Similarity",
     title: "Topic 9 Test",
     story: "Ratios, proportions, and similar figures.",
     teks: "G.7(A) · G.7(B)",
@@ -338,8 +343,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 10: Right Triangles and Trigonometry ─────────────────────────────
   {
     id: "trig-1-ratios",
-    chapter: 10,
-    chapterTitle: "Topic 10: Right Triangles and Trigonometry",
+    topic: 10,
+    topicTitle: "Topic 10: Right Triangles and Trigonometry",
     title: "Trigonometry: Introduction to Ratios",
     story: "Identify sine, cosine, and tangent fractions for a reference angle.",
     teks: "G.9(A)",
@@ -348,8 +353,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "trig-2-sides",
-    chapter: 10,
-    chapterTitle: "Topic 10: Right Triangles and Trigonometry",
+    topic: 10,
+    topicTitle: "Topic 10: Right Triangles and Trigonometry",
     title: "Trigonometry: Solving for Sides",
     story: "Use trigonometric ratios to find missing side lengths.",
     teks: "G.9(A)",
@@ -358,8 +363,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "trig-3-angles",
-    chapter: 10,
-    chapterTitle: "Topic 10: Right Triangles and Trigonometry",
+    topic: 10,
+    topicTitle: "Topic 10: Right Triangles and Trigonometry",
     title: "Trigonometry: Solving for Angles",
     story: "Use inverse trigonometric functions to find missing angles.",
     teks: "G.9(A)",
@@ -368,8 +373,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "special-right-triangles",
-    chapter: 10,
-    chapterTitle: "Topic 10: Right Triangles and Trigonometry",
+    topic: 10,
+    topicTitle: "Topic 10: Right Triangles and Trigonometry",
     title: "Special Right Triangles",
     story: "Apply the exact ratios for 45-45-90 and 30-60-90 triangles.",
     teks: "G.9(B)",
@@ -378,8 +383,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "elevation-depression",
-    chapter: 10,
-    chapterTitle: "Topic 10: Right Triangles and Trigonometry",
+    topic: 10,
+    topicTitle: "Topic 10: Right Triangles and Trigonometry",
     title: "Angles of Elevation & Depression",
     story: "Solve real-world trigonometry problems using surveyor and lighthouse scenarios.",
     teks: "G.9(A)",
@@ -388,8 +393,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch10-test",
-    chapter: 10,
-    chapterTitle: "Topic 10: Right Triangles and Trigonometry",
+    topic: 10,
+    topicTitle: "Topic 10: Right Triangles and Trigonometry",
     title: "Topic 10 Test",
     story: "Comprehensive assessment of Right Triangles and Trigonometry.",
     teks: "G.8(A) · G.9(A) · G.9(B)",
@@ -399,8 +404,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 11: Circle Measurement ──────────────────────────────────────────
   {
     id: "ch11-1-circumference",
-    chapter: 11,
-    chapterTitle: "Topic 11: Circle Measurement",
+    topic: 11,
+    topicTitle: "Topic 11: Circle Measurement",
     title: "11-1: Circumference and Arc Length",
     story: "Measuring the curves of the world.",
     teks: "G.12(B)",
@@ -409,8 +414,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch11-test",
-    chapter: 11,
-    chapterTitle: "Topic 11: Circle Measurement",
+    topic: 11,
+    topicTitle: "Topic 11: Circle Measurement",
     title: "Topic 11 Test",
     story: "Angles and measurement in circles.",
     teks: "G.12(B) · G.12(C)",
@@ -420,8 +425,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 12: Theorems About Circles ──────────────────────────────────────
   {
     id: "anatomy-of-a-circle",
-    chapter: 12,
-    chapterTitle: "Topic 12: Theorems About Circles",
+    topic: 12,
+    topicTitle: "Topic 12: Theorems About Circles",
     title: "Anatomy of a Circle",
     story: "Master inscribed angles, central angles, tangents, chords, and secants.",
     teks: "G.12(A)",
@@ -430,8 +435,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch12-1-tangent-lines",
-    chapter: 12,
-    chapterTitle: "Topic 12: Theorems About Circles",
+    topic: 12,
+    topicTitle: "Topic 12: Theorems About Circles",
     title: "12-1: Tangent Lines",
     story: "Understanding lines that skim the edge of a circle.",
     teks: "G.12(A)",
@@ -440,8 +445,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch12-test",
-    chapter: 12,
-    chapterTitle: "Topic 12: Theorems About Circles",
+    topic: 12,
+    topicTitle: "Topic 12: Theorems About Circles",
     title: "Topic 12 Test",
     story: "Comprehensive assessment of circle theorems.",
     teks: "G.12(A)",
@@ -451,8 +456,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 13: Area ────────────────────────────────────────────────────────
   {
     id: "ch13-1-area-polygons",
-    chapter: 13,
-    chapterTitle: "Topic 13: Area",
+    topic: 13,
+    topicTitle: "Topic 13: Area",
     title: "13-1: Area of Parallelograms and Triangles",
     story: "Calculating flat space for standard shapes.",
     teks: "G.11(B)",
@@ -461,8 +466,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch13-test",
-    chapter: 13,
-    chapterTitle: "Topic 13: Area",
+    topic: 13,
+    topicTitle: "Topic 13: Area",
     title: "Topic 13 Test",
     story: "Area of polygons and composite figures.",
     teks: "G.11(B)",
@@ -472,8 +477,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   // ── Topic 14: Surface Area and Volume ─────────────────────────────────────
   {
     id: "ch14-2-surface-area",
-    chapter: 14,
-    chapterTitle: "Topic 14: Surface Area and Volume",
+    topic: 14,
+    topicTitle: "Topic 14: Surface Area and Volume",
     title: "14-2: Surface Area of Prisms and Cylinders",
     story: "Wrapping 3D shapes in logic.",
     teks: "G.11(C)",
@@ -482,8 +487,8 @@ export const CURRICULUM_REGISTRY: CurriculumEntry[] = [
   },
   {
     id: "ch14-test",
-    chapter: 14,
-    chapterTitle: "Topic 14: Surface Area and Volume",
+    topic: 14,
+    topicTitle: "Topic 14: Surface Area and Volume",
     title: "Topic 14 Test",
     story: "3D geometry, prisms, cylinders, pyramids, and spheres.",
     teks: "G.11(C)",
