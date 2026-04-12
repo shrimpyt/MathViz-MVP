@@ -380,6 +380,7 @@ export default function WorksheetGenerator() {
               </Typography>
               <Autocomplete
                 options={CURRICULUM_REGISTRY}
+                groupBy={(option) => option.chapterTitle}
                 getOptionLabel={(option) => option.title}
                 value={CURRICULUM_REGISTRY.find(t => t.id === selectedTopicId) || CURRICULUM_REGISTRY[0]}
                 onChange={(_, newValue) => {
