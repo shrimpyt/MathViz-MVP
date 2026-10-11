@@ -15,6 +15,8 @@ export type {
   MeasurementProblem,
   TrigProblem,
   SpecialTriangleProblem,
+  TrigSubtype,
+  SpecialTriangleSubtype,
   CongruenceSubtype,
   MathProblem,
   InscribedAngleSVGParams,
@@ -27,6 +29,42 @@ export type {
   MeasurementSVGParams,
   TrigSVGParams,
 } from "./types";
+
+// ── Re-export new-area problem types (added by area workers) ────────────────
+export type { ProofProblem, ProofStudentMode, ProofSVGParams } from "./proofDiagrams";
+export type { BaseProofProblem, ProofStep } from "./proofTypes";
+export type {
+  Algebra1Problem,
+  Algebra1Subtype,
+  Algebra1TEKS,
+  Algebra1Meta,
+  Algebra1GraphParams,
+  FunctionGraphSVGParams,
+  ScatterPlotSVGParams,
+  NumberLineSVGParams,
+  TwoWayTableSVGParams,
+} from "./factories/Algebra1Types";
+export type {
+  Algebra2Problem,
+  Algebra2ProofProblem,
+  Algebra2MathProblem,
+} from "./factories/Algebra2Types";
+export type {
+  Grade6Problem,
+  Grade7Problem,
+  Grade8Problem,
+  MiddleSchoolProblem,
+  MiddleSchoolSVGParams,
+} from "./factories/MiddleSchoolTypes";
+export type { SATProblem, SATDomain, SATFormat } from "./satTypes";
+export type { PrecalcMCQ, PrecalcFRQ, PrecalcProblem } from "./factories/PrecalcTypes";
+export type {
+  CalcMCQProblem,
+  CalcFunction,
+  CalcGraphParams,
+  CalcTopicTag,
+} from "./factories/CalculusUtils";
+export type { BaseFRQProblem, APStimulus, FRQSubpart, APSubject } from "./apTypes";
 
 import type { OutputMode, MathProblem } from "./types";
 import { mulberry32 } from "./math-utils";

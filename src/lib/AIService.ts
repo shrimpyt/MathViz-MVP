@@ -29,7 +29,7 @@ export class AIService {
         Original Problem:
         Type: ${problem.type}
         Find: ${'find' in problem ? problem.find : 'Probability'}
-        Answer: ${problem.answer}
+        Answer: ${'answer' in problem ? problem.answer : ''}
         
         Return the new 'instruction' and 'find' text as JSON.
       `;

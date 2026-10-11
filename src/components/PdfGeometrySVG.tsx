@@ -1,5 +1,5 @@
 import React from 'react';
-import { Svg, Circle, Line, Path, Text, Polygon } from '@react-pdf/renderer';
+import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse } from '@react-pdf/renderer';
 import type {
   InscribedAngleSVGParams,
   TangentSVGParams,
@@ -8,6 +8,8 @@ import type {
   SectorSVGParams,
   CongruenceSVGParams,
   TrigSVGParams,
+  CoordinateSVGParams,
+  MeasurementSVGParams,
 } from "@/lib/ProblemFactory";
 
 const CX = 100;
@@ -69,8 +71,11 @@ function CircleBase() {
 export function PdfInscribedAngleSVG({
   interceptedArc,
   inscribedAngle,
+  variant,
 }: InscribedAngleSVGParams) {
-  const arcStart = 30;
+  // Variant: rigid rotation of the whole configuration (8 positions).
+  // Arc measures and the angle are unchanged — pure presentation.
+  const arcStart = 30 + ((variant ?? 0) % 8) * 45;
   const arcEnd = arcStart + interceptedArc;
   const vertexAngle = arcStart + interceptedArc + 60;
 
@@ -108,8 +113,8 @@ export function PdfInscribedAngleSVG({
 // Similar conversion for CentralAngleSVG, TangentSVG, TwoChordsSVG, TwoSecantsSVG, ConcentricCirclesSVG, ShadedSectorSVG, CongruenceSVG
 // Let's implement them properly
 
-export function PdfCentralAngleSVG({ interceptedArc }: { interceptedArc: number }) {
-  const arcStart = 30;
+export function PdfCentralAngleSVG({ interceptedArc, variant }: { interceptedArc: number; variant?: number }) {
+  const arcStart = 30 + ((variant ?? 0) % 8) * 45;
   const arcEnd = arcStart + interceptedArc;
   const A = polarToCart(CX, CY, R, arcStart);
   const B = polarToCart(CX, CY, R, arcEnd);
@@ -141,8 +146,8 @@ export function PdfCentralAngleSVG({ interceptedArc }: { interceptedArc: number 
   );
 }
 
-export function PdfTangentSVG({ tangentAngle }: TangentSVGParams) {
-  const chordStart = 70;
+export function PdfTangentSVG({ tangentAngle, variant }: TangentSVGParams) {
+  const chordStart = 70 + ((variant ?? 0) % 8) * 45;
   const chordEnd = chordStart + tangentAngle * 2;
   const A = polarToCart(CX, CY, R, chordStart);
   const B = polarToCart(CX, CY, R, chordEnd);
@@ -180,8 +185,8 @@ export function PdfTangentSVG({ tangentAngle }: TangentSVGParams) {
   );
 }
 
-export function PdfTwoChordsSVG({ arc1, arc2 }: ChordSVGParams) {
-  const a0 = 20, a1 = a0 + arc1, a2 = a1 + 60, a3 = a2 + arc2;
+export function PdfTwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams) {
+  const a0 = 20 + ((variant ?? 0) % 8) * 45, a1 = a0 + arc1, a2 = a1 + 60, a3 = a2 + arc2;
   const A = polarToCart(CX, CY, R, a0);
   const B = polarToCart(CX, CY, R, a1);
   const C = polarToCart(CX, CY, R, a2);
@@ -232,9 +237,10 @@ export function PdfTwoChordsSVG({ arc1, arc2 }: ChordSVGParams) {
   );
 }
 
-export function PdfTwoSecantsSVG({ interceptedArc }: { interceptedArc: number }) {
+export function PdfTwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: number; variant?: number }) {
   const near = 40;
-  const arcStart = 200, arcEnd = arcStart + interceptedArc;
+  // Variant: small rotation (-40/0/+40 deg) keeps the arcs opposite the external point.
+  const arcStart = 200 + (((variant ?? 0) % 3) - 1) * 40, arcEnd = arcStart + interceptedArc;
   const A = polarToCart(CX, CY, R, arcStart);
   const B = polarToCart(CX, CY, R, arcEnd);
   const C = polarToCart(CX, CY, R, arcStart - near);
@@ -263,12 +269,12 @@ export function PdfTwoSecantsSVG({ interceptedArc }: { interceptedArc: number })
   );
 }
 
-export function PdfConcentricCirclesSVG({ outerR, innerR }: ConcentricSVGParams) {
+export function PdfConcentricCirclesSVG({ outerR, innerR, variant }: ConcentricSVGParams) {
   const scale = 70 / outerR;
   const scaledOuter = outerR * scale;
   const scaledInner = innerR * scale;
 
-  const ang45 = toRad(45 - 90);
+  const ang45 = toRad(((variant ?? 0) % 8) * 45 - 90);
   const oxEnd = CX + scaledOuter * Math.cos(ang45);
   const oyEnd = CY + scaledOuter * Math.sin(ang45);
   const rMidX = CX + (scaledOuter / 2) * Math.cos(ang45);
@@ -302,13 +308,19 @@ export function PdfConcentricCirclesSVG({ outerR, innerR }: ConcentricSVGParams)
 }
 
 export function PdfRightTriangleSVG({
-  opposite, adjacent, orientation, referenceAnglePos, labels, referenceAngleLabel
+  opposite, adjacent, orientation, referenceAnglePos, labels, referenceAngleLabel, variant
 }: TrigSVGParams) {
   const width = 130;
   const height = 130;
   const pad = 20;
-  const effW = width - 2 * pad;
-  const effH = height - 2 * pad;
+  // Variant: draw scale and center offset — pure presentation; side ratios,
+  // labels, and the reference angle are untouched.
+  const v = variant ?? 0;
+  const drawScale = [1, 0.9, 1.06, 0.94, 0.84, 1.12][v % 6];
+  const offX = [0, 5, -5, 3, -4, 6][v % 6];
+  const offY = [0, -4, 4, 5, 3, -6][v % 6];
+  const effW = (width - 2 * pad) * drawScale;
+  const effH = (height - 2 * pad) * drawScale;
 
   const maxSide = Math.max(opposite, adjacent);
   let baseLength = 0;
@@ -322,9 +334,9 @@ export function PdfRightTriangleSVG({
     vertLength = (adjacent / maxSide) * effH;
   }
 
-  const xLeft = pad + (effW - baseLength) / 2;
+  const xLeft = pad + (width - 2 * pad - baseLength) / 2 + offX;
   const xRight = xLeft + baseLength;
-  const yBottom = height - pad - (effH - vertLength) / 2;
+  const yBottom = height - pad - (height - 2 * pad - vertLength) / 2 + offY;
   const yTop = yBottom - vertLength;
 
   let pts = "";
@@ -405,8 +417,8 @@ export function PdfRightTriangleSVG({
   );
 }
 
-export function PdfShadedSectorSVG({ sectorAngle }: SectorSVGParams) {
-  const startDeg = -90;
+export function PdfShadedSectorSVG({ sectorAngle, variant }: SectorSVGParams) {
+  const startDeg = -90 + ((variant ?? 0) % 8) * 45;
   const endDeg = startDeg + sectorAngle;
   const S = polarToCart(CX, CY, R, startDeg + 90);
   const E = polarToCart(CX, CY, R, endDeg + 90);
@@ -536,9 +548,14 @@ export function PdfCongruenceSVG({
   sideMarks,
   angleMarks,
   rightAngleAt,
+  variant,
 }: CongruenceSVGParams) {
-  const [A, B, C] = VERTS_T1;
-  const [D, E, F] = VERTS_T2;
+  // Variant: mirror the pair horizontally (triangles swap sides).
+  // Marks, labels, and the congruence relationship are unchanged.
+  const mirror = (variant ?? 0) % 2 === 1;
+  const M = (pt: Pt): Pt => (mirror ? { x: 200 - pt.x, y: pt.y } : pt);
+  const [A, B, C] = VERTS_T1.map(M);
+  const [D, E, F] = VERTS_T2.map(M);
 
   const sides1: [Pt, Pt][] = [[A, B], [B, C], [C, A]];
   const sides2: [Pt, Pt][] = [[D, E], [E, F], [F, D]];
@@ -549,8 +566,12 @@ export function PdfCongruenceSVG({
 
   const labels1 = ["A", "B", "C"];
   const labels2 = ["D", "E", "F"];
-  const labelOffsets1 = [{ x: 0, y: -7 }, { x: -8, y: 6 }, { x: 8, y: 6 }];
-  const labelOffsets2 = [{ x: 0, y: -7 }, { x: 8, y: 6 }, { x: -8, y: 6 }];
+  const labelOffsets1 = mirror
+    ? [{ x: 0, y: -7 }, { x: 8, y: 6 }, { x: -8, y: 6 }]
+    : [{ x: 0, y: -7 }, { x: -8, y: 6 }, { x: 8, y: 6 }];
+  const labelOffsets2 = mirror
+    ? [{ x: 0, y: -7 }, { x: -8, y: 6 }, { x: 8, y: 6 }]
+    : [{ x: 0, y: -7 }, { x: 8, y: 6 }, { x: -8, y: 6 }];
 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
@@ -617,6 +638,115 @@ export function PdfCongruenceSVG({
   );
 }
 
+export function PdfCoordinateGridSVG({
+  p1,
+  p2,
+  variant,
+}: CoordinateSVGParams) {
+  // Variant: point marker style and segment dash pattern.
+  // Coordinates and labels are the math and are never altered.
+  const v = variant ?? 0;
+  const marker = v % 3; // 0: disc, 1: ring, 2: square
+  const dash = ["4,2", "3,3", "8,3", "2,2"][v % 4];
+  // 200x200 viewBox, grid from 20..180 (16 cells of 10px), center at 100,100.
+  // 1 math unit = 10px. Points may range roughly -8..8.
+  const C = 100;
+  const S = 10;
+  const toX = (x: number) => C + x * S;
+  const toY = (y: number) => C - y * S;
+  const gridLines = [];
+  for (let i = 0; i <= 16; i++) {
+    const p = 20 + i * 10;
+    gridLines.push(
+      <Line key={`v${i}`} x1={p} y1={20} x2={p} y2={180} stroke="#e2e8f0" strokeWidth={0.5} />,
+      <Line key={`h${i}`} x1={20} y1={p} x2={180} y2={p} stroke="#e2e8f0" strokeWidth={0.5} />
+    );
+  }
+  return (
+    <Svg viewBox="0 0 200 200" width="130" height="130">
+      {gridLines}
+      {/* Axes */}
+      <Line x1={20} y1={C} x2={180} y2={C} stroke="#94a3b8" strokeWidth={1} />
+      <Line x1={C} y1={20} x2={C} y2={180} stroke="#94a3b8" strokeWidth={1} />
+      {/* Segment between points */}
+      <Line
+        x1={toX(p1.x)} y1={toY(p1.y)} x2={toX(p2.x)} y2={toY(p2.y)}
+        stroke="#D9A720" strokeWidth={1.5} strokeDasharray={dash}
+      />
+      {/* Points */}
+      {[p1, p2].map((pp, i) =>
+        marker === 2 ? (
+          <Rect key={i} x={toX(pp.x) - 3} y={toY(pp.y) - 3} width={6} height={6} fill="#1e293b" />
+        ) : (
+          <Circle key={i} cx={toX(pp.x)} cy={toY(pp.y)} r={3}
+            fill={marker === 1 ? "#ffffff" : "#1e293b"} stroke="#1e293b" strokeWidth={marker === 1 ? 1.8 : 0} />
+        )
+      )}
+      <Text x={toX(p1.x) + 5} y={toY(p1.y) - 4} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#1e293b" }}>
+        {p1.label}
+      </Text>
+      <Text x={toX(p2.x) + 5} y={toY(p2.y) - 4} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#1e293b" }}>
+        {p2.label}
+      </Text>
+    </Svg>
+  );
+}
+
+export function PdfCircleMeasurementSVG({
+  radius,
+  angle,
+  showArc,
+  showSector,
+  variant,
+}: MeasurementSVGParams) {
+  const C = 100;
+  const R = 70;
+  // Variant: rigid rotation of the radius/angle configuration (8 positions).
+  // The radius value and angle measure are unchanged — pure presentation.
+  const rot = ((variant ?? 0) % 8) * 45;
+  const p0 = { x: C + R * Math.cos(toRad(rot)), y: C - R * Math.sin(toRad(rot)) };
+  const showAngle = typeof angle === "number" && angle > 0;
+  const end = showAngle
+    ? { x: C + R * Math.cos(toRad(rot + angle!)), y: C - R * Math.sin(toRad(rot + angle!)) }
+    : null;
+  const largeArc = showAngle && angle! > 180 ? 1 : 0;
+  const midA = toRad(rot + (angle ?? 0) / 2);
+  return (
+    <Svg viewBox="0 0 200 200" width="130" height="130">
+      <Circle cx={C} cy={C} r={R} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+      <Circle cx={C} cy={C} r={2.5} fill="#0F172A" />
+      {/* Radius line */}
+      <Line x1={C} y1={C} x2={p0.x} y2={p0.y} stroke="#0F172A" strokeWidth={1} />
+      <Text x={(C + p0.x) / 2 - 8} y={(C + p0.y) / 2 - 6} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#0F172A" }}>
+        r={radius}
+      </Text>
+      {showAngle && end && (
+        <>
+          {showSector && (
+            <Path
+              d={`M ${C} ${C} L ${p0.x} ${p0.y} A ${R} ${R} 0 ${largeArc} 0 ${end.x} ${end.y} Z`}
+              fill="#D9A720" fillOpacity={0.25}
+              stroke="#D9A720" strokeWidth={1}
+            />
+          )}
+          {showArc && !showSector && (
+            <Path
+              d={`M ${p0.x} ${p0.y} A ${R} ${R} 0 ${largeArc} 0 ${end.x} ${end.y}`}
+              fill="none"
+              stroke="#D9A720" strokeWidth={2.5}
+            />
+          )}
+          <Line x1={C} y1={C} x2={end.x} y2={end.y} stroke="#0F172A" strokeWidth={1} />
+          <Text x={C + (R + 14) * Math.cos(midA) - 6} y={C - (R + 14) * Math.sin(midA) + 3}
+            style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#64748b" }}>
+            {angle}°
+          </Text>
+        </>
+      )}
+    </Svg>
+  );
+}
+
 type SVGParams =
   | (InscribedAngleSVGParams & { inscribedAngle?: number; centralAngle?: number })
   | (TangentSVGParams & { kind: "Tangent" })
@@ -624,7 +754,9 @@ type SVGParams =
   | (ConcentricSVGParams & { kind: "ConcentricCircles" })
   | (SectorSVGParams & { kind: "ShadedSector" })
   | (CongruenceSVGParams & { kind: "Congruence" })
-  | (TrigSVGParams & { kind: "RightTriangle" });
+  | (TrigSVGParams & { kind: "RightTriangle" })
+  | (CoordinateSVGParams & { kind: "CoordinateGrid" })
+  | (MeasurementSVGParams & { kind: "CircleMeasurement" });
 
 
 export function PdfGeometrySVG({ params }: { params: SVGParams }) {
@@ -649,6 +781,10 @@ export function PdfGeometrySVG({ params }: { params: SVGParams }) {
       return <PdfCongruenceSVG {...(params as CongruenceSVGParams)} />;
     case "RightTriangle":
       return <PdfRightTriangleSVG {...(params as TrigSVGParams)} />;
+    case "CoordinateGrid":
+      return <PdfCoordinateGridSVG {...(params as CoordinateSVGParams)} />;
+    case "CircleMeasurement":
+      return <PdfCircleMeasurementSVG {...(params as MeasurementSVGParams)} />;
     default:
       return null;
   }

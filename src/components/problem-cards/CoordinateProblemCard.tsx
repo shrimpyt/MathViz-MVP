@@ -2,6 +2,7 @@
 import React from "react";
 import type { CoordinateProblem, OutputMode } from "@/lib/types";
 import { StepBlock, TEKSBadge, DiagramBox } from "./SharedAtoms";
+import { latexToText } from "@/lib/answerKey";
 
 interface Props {
   problem: CoordinateProblem;
@@ -19,10 +20,10 @@ export function CoordinateProblemCard({ problem, index, mode, revealed }: Props)
           <p className="text-[13px] leading-relaxed text-slate-700 max-w-[480px]">
             Points <strong>{problem.p1.label}({problem.p1.x}, {problem.p1.y})</strong> and 
             <strong> {problem.p2.label}({problem.p2.x}, {problem.p2.y})</strong> are shown on the coordinate plane. 
-            Find the {problem.find}.
+            Find the {latexToText(problem.find)}.
           </p>
         </div>
-        <TEKSBadge code="G.2B" />
+        <TEKSBadge standard="G.2B" />
       </div>
 
       <div className="flex gap-6 mt-4">
@@ -30,9 +31,10 @@ export function CoordinateProblemCard({ problem, index, mode, revealed }: Props)
           {problem.steps.map((step, i) => (
             <StepBlock
               key={i}
+              stepIndex={i}
               step={step}
               mode={mode}
-              revealed={revealed}
+              revealed={revealed ?? false}
             />
           ))}
         </div>

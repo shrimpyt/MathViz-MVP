@@ -15,6 +15,20 @@ import type {
   MeasurementProblem,
   OutputMode,
 } from "@/lib/types";
+import type {
+  ProofProblem,
+  Algebra1Problem,
+  Algebra2Problem,
+  Algebra2ProofProblem,
+  Grade6Problem,
+  Grade7Problem,
+  Grade8Problem,
+  SATProblem,
+  PrecalcMCQ,
+  PrecalcFRQ,
+  CalcMCQProblem,
+  BaseFRQProblem,
+} from "@/lib/ProblemFactory";
 import {
   DocumentHeader,
   SectionDivider,
@@ -24,7 +38,20 @@ import {
   TrigProblemCard,
   CoordinateProblemCard,
   MeasurementProblemCard,
+  ProofProblemCard,
+  Algebra1ProblemCard,
+  Algebra2ProblemCard,
+  Algebra2ProofCard,
+  MiddleSchoolGrade6Card,
+  MiddleSchoolGrade7Card,
+  MiddleSchoolGrade8Card,
+  SATProblemCard,
+  PrecalcMCQCard,
+  PrecalcFRQCard,
+  CalculusMCQCard,
+  CalculusFRQCard,
 } from "./problem-cards";
+import { ClassicalNotesCard } from "./problem-cards/ClassicalNotesCard";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -37,12 +64,32 @@ interface EuclidEngineProps {
   problems: MathProblem[];
   mode: OutputMode;
   title?: string;
+  /** Per-entry problem groups for Classical Notes mode (built by WorksheetGenerator). */
+  classicalGroups?: ClassicalGroup[];
+  /** Worksheet seed — drives deterministic margin-prompt rotation in Classical mode. */
+  seed?: number;
+  /** Proof document flavor: controls two-column vs Elements presentation. */
+  proofDocMode?: "proof-two-column" | "proof-fill-reasons" | "proof-elements";
+  /** Standards line for the footer (defaults to the geometry list). */
+  standard?: string;
+}
+
+export interface ClassicalGroup {
+  entryId: string;
+  title: string;
+  teks: string;
+  problems: MathProblem[];
+  startIndex: number;
 }
 
 export function EuclidEngine({
   problems,
   mode,
   title = "Geometry",
+  classicalGroups,
+  seed,
+  proofDocMode,
+  standard,
 }: EuclidEngineProps) {
   const [revealed, setRevealed] = useState(false);
 
@@ -68,6 +115,48 @@ export function EuclidEngine({
     (p): p is SpecialTriangleProblem => p.type === "G.9B"
   );
 
+  // ── New subject areas ──
+  const proofProblems = problems.filter(
+    (p): p is ProofProblem =>
+      p.type === "Proof" && (p as { domain?: string }).domain === "geometry"
+  );
+  const a2ProofProblems = problems.filter(
+    (p): p is Algebra2ProofProblem =>
+      p.type === "Proof" && (p as { domain?: string }).domain === "algebra2"
+  );
+  const algebra1Problems = problems.filter(
+    (p): p is Algebra1Problem => (p as { type: string }).type.startsWith("A.")
+  );
+  const algebra2Problems = problems.filter(
+    (p): p is Algebra2Problem => (p as { type: string }).type.startsWith("A2.")
+  );
+  const ms6Problems = problems.filter(
+    (p): p is Grade6Problem => p.type === "MS.6"
+  );
+  const ms7Problems = problems.filter(
+    (p): p is Grade7Problem => p.type === "MS.7"
+  );
+  const ms8Problems = problems.filter(
+    (p): p is Grade8Problem => p.type === "MS.8"
+  );
+  const satProblems = problems.filter(
+    (p): p is SATProblem => p.type === "SAT"
+  );
+  const precalcMCQs = problems.filter(
+    (p): p is PrecalcMCQ => p.type === "PRECALC_MCQ"
+  );
+  const precalcFRQs = problems.filter(
+    (p): p is PrecalcFRQ =>
+      p.type === "AP_FRQ" && (p as { subject?: string }).subject === "precalc"
+  );
+  const calcMCQs = problems.filter(
+    (p): p is CalcMCQProblem => p.type === "CALC_MCQ"
+  );
+  const calcFRQs = problems.filter(
+    (p): p is BaseFRQProblem =>
+      p.type === "AP_FRQ" && (p as { subject?: string }).subject === "calc"
+  );
+
   // Global offset index for continuous numbering across all sections
   const circleOffset = 0;
   const measurementOffset = circleOffset + circleProblems.length;
@@ -76,6 +165,21 @@ export function EuclidEngine({
   const coordinateOffset = congruenceOffset + congruenceProblems.length;
   const trigOffset = coordinateOffset + coordinateProblems.length;
   const specialOffset = trigOffset + trigProblems.length;
+  const proofOffset = specialOffset + specialProblems.length;
+  const a2ProofOffset = proofOffset + proofProblems.length;
+  const algebra1Offset = a2ProofOffset + a2ProofProblems.length;
+  const algebra2Offset = algebra1Offset + algebra1Problems.length;
+  const ms6Offset = algebra2Offset + algebra2Problems.length;
+  const ms7Offset = ms6Offset + ms6Problems.length;
+  const ms8Offset = ms7Offset + ms7Problems.length;
+  const satOffset = ms8Offset + ms8Problems.length;
+  const precalcMCQOffset = satOffset + satProblems.length;
+  const precalcFRQOffset = precalcMCQOffset + precalcMCQs.length;
+  const calcMCQOffset = precalcFRQOffset + precalcFRQs.length;
+  const calcFRQOffset = calcMCQOffset + calcMCQs.length;
+
+  const showClassicalGroups =
+    mode === "Classical" && !!classicalGroups && classicalGroups.length > 0;
 
   return (
     <div className="flex flex-col items-center min-h-screen py-6 geometric-grid" style={{ backgroundColor: '#0F172A' }}>
@@ -112,7 +216,25 @@ export function EuclidEngine({
         }}
       >
         <DocumentHeader mode={mode} title={title} />
-        
+
+        {showClassicalGroups ? (
+          <>
+            {classicalGroups!.map((g) => (
+              <ClassicalNotesCard
+                key={g.entryId}
+                entryId={g.entryId}
+                problems={g.problems}
+                mode={mode}
+                seed={seed}
+                startIndex={g.startIndex}
+                sectionLabel={g.title}
+                teksBadge={g.teks}
+              />
+            ))}
+          </>
+        ) : (
+          <>
+
         {/* G.12(A) — Circles */}
         {circleProblems.length > 0 && (
           <>
@@ -225,11 +347,213 @@ export function EuclidEngine({
           </>
         )}
 
+        {/* Geometry Proofs */}
+        {proofProblems.length > 0 && (
+          <>
+            <SectionDivider label="Geometry Proofs" />
+            {proofProblems.map((p, i) => (
+              <ProofProblemCard
+                key={i}
+                problem={p}
+                index={proofOffset + i}
+                mode={mode}
+                revealed={revealed}
+                presentation={
+                  proofDocMode === "proof-elements"
+                    ? p.elementsProposition
+                      ? "elements"
+                      : "two-column"
+                    : "two-column"
+                }
+              />
+            ))}
+          </>
+        )}
+
+        {/* Algebra 2 — Proofs */}
+        {a2ProofProblems.length > 0 && (
+          <>
+            <SectionDivider label="Algebra 2 — Proofs" />
+            {a2ProofProblems.map((p, i) => (
+              <Algebra2ProofCard
+                key={i}
+                problem={p}
+                index={a2ProofOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Algebra 1 */}
+        {algebra1Problems.length > 0 && (
+          <>
+            <SectionDivider label="Algebra 1" />
+            {algebra1Problems.map((p, i) => (
+              <Algebra1ProblemCard
+                key={i}
+                problem={p}
+                index={algebra1Offset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Algebra 2 */}
+        {algebra2Problems.length > 0 && (
+          <>
+            <SectionDivider label="Algebra 2" />
+            {algebra2Problems.map((p, i) => (
+              <Algebra2ProblemCard
+                key={i}
+                problem={p}
+                index={algebra2Offset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Grade 6 Math */}
+        {ms6Problems.length > 0 && (
+          <>
+            <SectionDivider label="Grade 6 Math" />
+            {ms6Problems.map((p, i) => (
+              <MiddleSchoolGrade6Card
+                key={i}
+                problem={p}
+                index={ms6Offset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Grade 7 Math */}
+        {ms7Problems.length > 0 && (
+          <>
+            <SectionDivider label="Grade 7 Math" />
+            {ms7Problems.map((p, i) => (
+              <MiddleSchoolGrade7Card
+                key={i}
+                problem={p}
+                index={ms7Offset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Grade 8 Math */}
+        {ms8Problems.length > 0 && (
+          <>
+            <SectionDivider label="Grade 8 Math" />
+            {ms8Problems.map((p, i) => (
+              <MiddleSchoolGrade8Card
+                key={i}
+                problem={p}
+                index={ms8Offset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* SAT Math Practice */}
+        {satProblems.length > 0 && (
+          <>
+            <SectionDivider label="SAT Math Practice" />
+            {satProblems.map((p, i) => (
+              <SATProblemCard
+                key={i}
+                problem={p}
+                index={satOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* AP Precalculus — Multiple Choice */}
+        {precalcMCQs.length > 0 && (
+          <>
+            <SectionDivider label="AP Precalculus — Multiple Choice" />
+            {precalcMCQs.map((p, i) => (
+              <PrecalcMCQCard
+                key={i}
+                problem={p}
+                index={precalcMCQOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* AP Precalculus — Free Response */}
+        {precalcFRQs.length > 0 && (
+          <>
+            <SectionDivider label="AP Precalculus — Free Response" />
+            {precalcFRQs.map((p, i) => (
+              <PrecalcFRQCard
+                key={i}
+                problem={p}
+                index={precalcFRQOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* AP Calculus — Multiple Choice */}
+        {calcMCQs.length > 0 && (
+          <>
+            <SectionDivider label="AP Calculus — Multiple Choice" />
+            {calcMCQs.map((p, i) => (
+              <CalculusMCQCard
+                key={i}
+                problem={p}
+                index={calcMCQOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* AP Calculus — Free Response */}
+        {calcFRQs.length > 0 && (
+          <>
+            <SectionDivider label="AP Calculus — Free Response" />
+            {calcFRQs.map((p, i) => (
+              <CalculusFRQCard
+                key={i}
+                problem={p}
+                index={calcFRQOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+          </>
+        )}
+
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] font-sans text-slate-400">
           <div className="flex gap-2">
             <span className="font-bold text-slate-600">TEKS</span>
-            <span>G.12(A) · G.12(B) · G.13(B) · G.6(B) · G.2(B) · G.9(A) · G.9(B)</span>
+            <span>{standard ?? "G.12(A) · G.12(B) · G.13(B) · G.6(B) · G.2(B) · G.9(A) · G.9(B)"}</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="font-serif italic">Euclid Engine</span>

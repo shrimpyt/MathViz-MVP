@@ -1,6 +1,7 @@
 import React from "react";
-import type { TrigProblem, TrigSVGParams, SpecialTriangleProblem } from "@/lib/types";
+import type { TrigProblem, TrigSVGParams, SpecialTriangleProblem, OutputMode } from "@/lib/types";
 import { StepBlock, DiagramBox } from "./SharedAtoms";
+import { latexToText } from "@/lib/answerKey";
 
 function RightTriangleSVG({ params }: { params: TrigSVGParams }) {
   const width = 100;
@@ -115,7 +116,7 @@ export function TrigProblemCard({
 }: {
   problem: TrigProblem | SpecialTriangleProblem;
   idx: number;
-  mode: "GuidedNote" | "Review" | "Test";
+  mode: OutputMode;
   revealed: boolean;
 }) {
   const p = problem;
@@ -126,10 +127,10 @@ export function TrigProblemCard({
     const pt = p as TrigProblem;
     pretext = `Identify the ratio for ${pt.ratioType}(θ) given the right triangle.`;
   } else if (p.subtype === "SolveForSide") {
-    pretext = `Using trigonometric ratios and the reference angle, solve for ${p.find}.`;
+    pretext = `Using trigonometric ratios and the reference angle, solve for ${latexToText(p.find)}.`;
   } else if (p.subtype === "45-45-90" || p.subtype === "30-60-90") {
     // Special Right Triangle (G.9B)
-    pretext = `Apply the properties of ${p.subtype} triangles to find the unknown length: ${p.find}.`;
+    pretext = `Apply the properties of ${p.subtype} triangles to find the unknown length: ${latexToText(p.find)}.`;
   } else {
     pretext = `Apply the inverse trigonometric function to solve for angle x.`;
   }

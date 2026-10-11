@@ -4,8 +4,12 @@
 
 // ── Output & TEKS ─────────────────────────────────────────────────────────────
 
-export type TEKSStandard = "G.12A" | "G.13B" | "G.9A" | "G.9B" | "G.2B" | "G.12B";
-export type OutputMode = "GuidedNote" | "Review" | "Test";
+import type { Algebra1TEKS } from "./factories/Algebra1Types";
+
+export type TEKSStandard =
+  | "G.12A" | "G.13B" | "G.9A" | "G.9B" | "G.2B" | "G.12B"
+  | Algebra1TEKS;
+export type OutputMode = "GuidedNote" | "Review" | "Test" | "Classical";
 
 // ── Shared building blocks ────────────────────────────────────────────────────
 
@@ -18,6 +22,12 @@ export interface BlankField {
 export interface ProblemStep {
   instruction: string;
   blanks?: BlankField[];
+  /**
+   * Optional justification for the step (e.g. "Inscribed Angle Theorem").
+   * The Classical Notes renderer shows the instruction and blanks this
+   * reason for the student to fill in. Other modes ignore it.
+   */
+  reason?: string;
 }
 
 // ── G.12(A): Circle problems (Theorems) ───────────────────────────────────────
@@ -126,6 +136,8 @@ export interface MeasurementProblem {
 
 export interface TrigSVGParams {
   kind: "RightTriangle";
+  /** Seeded presentation variant (0-7): draw scale/position jitter. */
+  variant?: number;
   /** The abstract lengths (not drawn to scale perfectly, but proportionally) */
   opposite: number;
   adjacent: number;
@@ -146,6 +158,8 @@ export interface TrigSVGParams {
 
 export interface CongruenceSVGParams {
   kind: "Congruence";
+  /** Seeded presentation variant (0-7): mirror layout. */
+  variant?: number;
   subtype: CongruenceSubtype;
   sideA: number;
   sideB: number;
@@ -163,6 +177,8 @@ export interface CongruenceSVGParams {
 
 export interface InscribedAngleSVGParams {
   kind: "InscribedAngle" | "CentralAngle" | "TwoChords" | "TwoSecants";
+  /** Seeded presentation variant (0-7): rotation of the configuration on the circle. */
+  variant?: number;
   interceptedArc: number;   // degrees
   inscribedAngle?: number;
   centralAngle?: number;
@@ -170,28 +186,38 @@ export interface InscribedAngleSVGParams {
 
 export interface TangentSVGParams {
   kind: "Tangent";
+  /** Seeded presentation variant (0-7): rotation of the configuration on the circle. */
+  variant?: number;
   tangentAngle: number;
 }
 
 export interface ChordSVGParams {
   kind: "TwoChords";
+  /** Seeded presentation variant (0-7): rotation of the configuration on the circle. */
+  variant?: number;
   arc1: number;
   arc2: number;
 }
 
 export interface ConcentricSVGParams {
   kind: "ConcentricCircles";
+  /** Seeded presentation variant (0-7): radius-line angle. */
+  variant?: number;
   outerR: number;
   innerR: number;
 }
 
 export interface SectorSVGParams {
   kind: "ShadedSector";
+  /** Seeded presentation variant (0-7): rotation of the sector start angle. */
+  variant?: number;
   sectorAngle: number;
 }
 
 export interface CoordinateSVGParams {
   kind: "CoordinateGrid";
+  /** Seeded presentation variant (0-7): marker style, dash pattern. */
+  variant?: number;
   p1: { x: number; y: number; label: string };
   p2: { x: number; y: number; label: string };
   showRuler?: boolean;
@@ -199,6 +225,8 @@ export interface CoordinateSVGParams {
 
 export interface MeasurementSVGParams {
   kind: "CircleMeasurement";
+  /** Seeded presentation variant (0-7): rotation of radius/angle configuration. */
+  variant?: number;
   radius: number;
   angle?: number;
   showArc?: boolean;
@@ -207,6 +235,19 @@ export interface MeasurementSVGParams {
 
 // ── Union type ────────────────────────────────────────────────────────────────
 
+import type { ProofProblem } from "./proofDiagrams";
+import type { Algebra1Problem } from "./factories/Algebra1Types";
+import type { Algebra2Problem, Algebra2ProofProblem } from "./factories/Algebra2Types";
+import type {
+  Grade6Problem,
+  Grade7Problem,
+  Grade8Problem,
+} from "./factories/MiddleSchoolTypes";
+import type { SATProblem } from "./satTypes";
+import type { PrecalcMCQ, PrecalcFRQ } from "./factories/PrecalcTypes";
+import type { CalcMCQProblem } from "./factories/CalculusUtils";
+import type { BaseFRQProblem } from "./apTypes";
+
 export type MathProblem = 
   | CircleProblem 
   | ProbabilityProblem 
@@ -214,4 +255,16 @@ export type MathProblem =
   | TrigProblem 
   | SpecialTriangleProblem
   | CoordinateProblem
-  | MeasurementProblem;
+  | MeasurementProblem
+  | ProofProblem
+  | Algebra1Problem
+  | Algebra2Problem
+  | Algebra2ProofProblem
+  | Grade6Problem
+  | Grade7Problem
+  | Grade8Problem
+  | SATProblem
+  | PrecalcMCQ
+  | PrecalcFRQ
+  | CalcMCQProblem
+  | BaseFRQProblem;

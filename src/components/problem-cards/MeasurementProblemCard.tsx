@@ -2,6 +2,7 @@
 import React from "react";
 import type { MeasurementProblem, OutputMode } from "@/lib/types";
 import { StepBlock, TEKSBadge, DiagramBox } from "./SharedAtoms";
+import { latexToText } from "@/lib/answerKey";
 
 interface Props {
   problem: MeasurementProblem;
@@ -21,11 +22,11 @@ export function MeasurementProblemCard({ problem, index, mode, revealed }: Props
           <span className="font-bold text-slate-800">{index + 1}.</span>
           <p className="text-[13px] leading-relaxed text-slate-700 max-w-[480px]">
             A circle has a radius of <strong>{radius} {problem.unit === "sq units" ? "units" : problem.unit}</strong>. 
-            Find the <strong>{problem.find}</strong>. 
+            Find the <strong>{latexToText(problem.find)}</strong>. 
             {angle > 0 && ` The central angle is ${angle}°.`}
           </p>
         </div>
-        <TEKSBadge code="G.12B" />
+        <TEKSBadge standard="G.12B" />
       </div>
 
       <div className="flex gap-6 mt-4">
@@ -33,9 +34,10 @@ export function MeasurementProblemCard({ problem, index, mode, revealed }: Props
           {problem.steps.map((step, i) => (
             <StepBlock
               key={i}
+              stepIndex={i}
               step={step}
               mode={mode}
-              revealed={revealed}
+              revealed={revealed ?? false}
             />
           ))}
         </div>

@@ -1,11 +1,23 @@
 import type { MathProblem, ProblemStep, TrigSVGParams, SpecialTriangleProblem, SpecialTriangleSubtype } from '../types';
 import { pick } from '../math-utils';
 
+/**
+ * Which side is GIVEN in the problem statement. Difficulty tiers:
+ *   Easy   (1): leg / short leg are given (direct application of the ratio)
+ *   Medium (2): + hypotenuse may be given (requires working backwards)
+ *   Hard   (3): + long leg may be given (hardest direction for 30-60-90)
+ */
+export type SpecialTriangleKnown = "leg" | "shortLeg" | "hypotenuse" | "longLeg";
+
+const ALL_KNOWN: readonly SpecialTriangleKnown[] = ["leg", "shortLeg", "hypotenuse", "longLeg"];
+
 export function generateSpecialTriangleProblems(
   rng: () => number,
-  count: number
+  count: number,
+  allowedKnown: readonly SpecialTriangleKnown[] = ALL_KNOWN
 ): SpecialTriangleProblem[] {
   const problems: SpecialTriangleProblem[] = [];
+  const pool = allowedKnown.length > 0 ? allowedKnown : ALL_KNOWN;
 
   for (let i = 0; i < count; i++) {
     const subtype = pick(rng, ['45-45-90', '30-60-90'] as const);
@@ -30,8 +42,13 @@ export function generateSpecialTriangleProblems(
       adj = baseVal;
       hyp = baseVal * Math.sqrt(2);
       refAngleLabel = '45°';
-      
-      const knownType = pick(rng, ['leg', 'hypotenuse'] as const);
+
+      const knownOptions = (['leg', 'hypotenuse'] as const).filter((k) =>
+        pool.includes(k)
+      );
+      const knownType = knownOptions.length > 0
+        ? pick(rng, knownOptions)
+        : 'leg';
       if (knownType === 'leg') {
         given = { leg: baseVal };
         find = 'hypotenuse (x)';
@@ -66,8 +83,16 @@ export function generateSpecialTriangleProblems(
       adj = baseVal * Math.sqrt(3); // long leg
       hyp = baseVal * 2;
       refAngleLabel = '30°'; // angle opposite to 'opp'
-      
-      const scenario = pick(rng, ['givenShort', 'givenLong', 'givenHyp'] as const);
+
+      const scenarioOptions = (['givenShort', 'givenHyp', 'givenLong'] as const).filter(
+        (s) =>
+          pool.includes(
+            s === 'givenShort' ? 'shortLeg' : s === 'givenHyp' ? 'hypotenuse' : 'longLeg'
+          )
+      );
+      const scenario = scenarioOptions.length > 0
+        ? pick(rng, scenarioOptions)
+        : 'givenShort';
       if (scenario === 'givenShort') {
         given = { shortLeg: baseVal };
         const findTarget = pick(rng, ['longLeg', 'hypotenuse'] as const);

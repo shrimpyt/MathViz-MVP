@@ -1,0 +1,453 @@
+=== rt-fuzz ===
+
+===== rt-fuzz =====
+checks: 316328, failures: 6579
+  [NO-ANSWER-FIELD] 4352
+  [BAD-SVG-PARAM] 2223
+  [COUNT-NOT-PREFIX] 4
+  FAIL BAD-SVG-PARAM logic-of-congruence [GuidedNote] seed=0: problem[0] G.6B: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM logic-of-congruence [GuidedNote] seed=0: problem[1] G.6B: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM ch4-test [GuidedNote] seed=0: problem[0] G.6B: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM ch4-test [GuidedNote] seed=0: problem[1] G.6B: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM proofs-4-2-sss-sas [GuidedNote] seed=0: problem[0] Proof: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM proofs-4-2-sss-sas [GuidedNote] seed=0: problem[1] Proof: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM proofs-4-3-asa-aas [GuidedNote] seed=0: problem[0] Proof: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM proofs-4-3-asa-aas [GuidedNote] seed=0: problem[1] Proof: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM proofs-4-4-cpctc [GuidedNote] seed=0: problem[0] Proof: svgParams.rightAngleAt=-1
+  FAIL BAD-SVG-PARAM proofs-4-4-cpctc [GuidedNote] seed=0: problem[1] Proof: svgParams.rightAngleAt=-1
+  FAIL NO-ANSWER-FIELD precalc-vectors [GuidedNote] seed=0: problem[0] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-vectors [GuidedNote] seed=0: problem[1] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-complex [GuidedNote] seed=0: problem[0] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-complex [GuidedNote] seed=0: problem[1] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-conics [GuidedNote] seed=0: problem[0] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-conics [GuidedNote] seed=0: problem[1] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-trig [GuidedNote] seed=0: problem[0] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-trig [GuidedNote] seed=0: problem[1] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-limits [GuidedNote] seed=0: problem[0] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-limits [GuidedNote] seed=0: problem[1] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-param-polar [GuidedNote] seed=0: problem[0] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-param-polar [GuidedNote] seed=0: problem[1] PRECALC_MCQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-frq [GuidedNote] seed=0: problem[0] AP_FRQ: no answer/key field
+  FAIL NO-ANSWER-FIELD precalc-frq [GuidedNote] seed=0: problem[1] AP_FRQ: no answer/key field
+  FAIL NO-ANSWER-FIELD calc-frq [GuidedNote] seed=0: problem[0] AP_FRQ: no answer/key field
+  FAIL NO-ANSWER-FIELD calc-frq [GuidedNote] seed=0: problem[1] AP_FRQ: no answer/key field
+  FAIL COUNT-NOT-PREFIX sat-full-module [GuidedNote] seed=31337: count=2 output differs from count=6 prefix — cross-mode/key alignment suspect
+[exit 0]
+=== rt-verify ===
+
+sat problems checked: 1920, unverified-by-evaluator: 67
+
+===== rt-verify (SAT) =====
+checks: 15060, failures: 92
+  [SAT-PCT-EXPL] 57
+  [SAT-KEY-WRONG] 15
+  [SAT-NO-CORRECT] 15
+  [SAT-DISTRACTOR-CORRECT] 5
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=4: LinearFunction: marked key A ("-9") does NOT satisfy the equation! stem: The function f is defined by f(x) = x + 3. What value of x satisfies f params={"m":1,"b":3,"v":-6,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=4: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = x + 3. What value of x satisfies f
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=7: LinearFunction: marked key D ("-6") does NOT satisfy the equation! stem: The function f is defined by f(x) = −5x − 9. What value of x satisfies params={"m":-5,"b":-9,"v":21,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=7: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = −5x − 9. What value of x satisfies
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=8: LinearFunction: marked key B ("8") does NOT satisfy the equation! stem: The function f is defined by f(x) = −2x + 8. What value of x satisfies params={"m":-2,"b":8,"v":-8,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=8: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = −2x + 8. What value of x satisfies
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=13: LinearFunction: marked key A ("-3") does NOT satisfy the equation! stem: The function f is defined by f(x) = 4x − 8. What value of x satisfies  params={"m":4,"b":-8,"v":-20,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=13: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = 4x − 8. What value of x satisfies 
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=19: LinearFunction: marked key D ("1") does NOT satisfy the equation! stem: The function f is defined by f(x) = 5x − 8. What value of x satisfies  params={"m":5,"b":-8,"v":-3,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=19: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = 5x − 8. What value of x satisfies 
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=19: LinearFunction: marked key C ("-9") does NOT satisfy the equation! stem: The function f is defined by f(x) = x + 1. What value of x satisfies f params={"m":1,"b":1,"v":-8,"solveForX":1}
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=20: LinearFunction: marked key A ("-5") does NOT satisfy the equation! stem: The function f is defined by f(x) = −2x − 6. What value of x satisfies params={"m":-2,"b":-6,"v":4,"solveForX":1}
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=22: LinearFunction: marked key B ("3") does NOT satisfy the equation! stem: The function f is defined by f(x) = x − 9. What value of x satisfies f params={"m":1,"b":-9,"v":-6,"solveForX":1}
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=28: LinearFunction: marked key D ("9") does NOT satisfy the equation! stem: The function f is defined by f(x) = −4x + 2. What value of x satisfies params={"m":-4,"b":2,"v":-34,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=28: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = −4x + 2. What value of x satisfies
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=28: LinearFunction: marked key C ("7") does NOT satisfy the equation! stem: The function f is defined by f(x) = −6x + 8. What value of x satisfies params={"m":-6,"b":8,"v":-34,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=28: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = −6x + 8. What value of x satisfies
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=31: LinearFunction: marked key B ("9") does NOT satisfy the equation! stem: The function f is defined by f(x) = x + 9. What value of x satisfies f params={"m":1,"b":9,"v":18,"solveForX":1}
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=31: LinearFunction: marked key B ("-7") does NOT satisfy the equation! stem: The function f is defined by f(x) = −5x − 6. What value of x satisfies params={"m":-5,"b":-6,"v":29,"solveForX":1}
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=32: LinearFunction: marked key C ("8") does NOT satisfy the equation! stem: The function f is defined by f(x) = 3x + 7. What value of x satisfies  params={"m":3,"b":7,"v":31,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=32: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = 3x + 7. What value of x satisfies 
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=34: LinearFunction: marked key B ("7") does NOT satisfy the equation! stem: The function f is defined by f(x) = 6x − 2. What value of x satisfies  params={"m":6,"b":-2,"v":40,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=34: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = 6x − 2. What value of x satisfies 
+  FAIL SAT-KEY-WRONG sat-hoa-functions [Test] seed=35: LinearFunction: marked key A ("3") does NOT satisfy the equation! stem: The function f is defined by f(x) = −3x − 2. What value of x satisfies params={"m":-3,"b":-2,"v":-11,"solveForX":1}
+  FAIL SAT-NO-CORRECT sat-hoa-functions [Test] seed=35: LinearFunction: no option satisfies the math. stem: The function f is defined by f(x) = −3x − 2. What value of x satisfies
+  FAIL SAT-DISTRACTOR-CORRECT sat-pam-nonlinear-equations [Test] seed=4: NonlinearEquation: option D ("3") is ALSO mathematically correct! stem: If (x − 7)² = 16, what is the positive solution for x?
+  FAIL SAT-DISTRACTOR-CORRECT sat-pam-nonlinear-equations [Test] seed=20: NonlinearEquation: option A ("5") is ALSO mathematically correct! stem: If (x − 7)² = 4, what is the positive solution for x?
+  FAIL SAT-DISTRACTOR-CORRECT sat-pam-nonlinear-equations [Test] seed=22: NonlinearEquation: option A ("1") is ALSO mathematically correct! stem: If (x − 6)² = 25, what is the positive solution for x?
+  FAIL SAT-DISTRACTOR-CORRECT sat-pam-nonlinear-equations [Test] seed=28: NonlinearEquation: option B ("3") is ALSO mathematically correct! stem: If (x − 6)² = 9, what is the positive solution for x?
+  FAIL SAT-DISTRACTOR-CORRECT sat-pam-nonlinear-equations [Test] seed=32: NonlinearEquation: option D ("3") is ALSO mathematically correct! stem: If (x − 5)² + 20 = 24, what is the positive solution for x?
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=0: explanation claims 25% but key is -25 (stem: The population of a town was 36. It is now 27. What is the p)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=1: explanation claims 10% but key is -10 (stem: The population of a town was 80. It is now 72. What is the p)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=3: explanation claims 25% but key is -25 (stem: The price of a backpack was $16. It is now $12. What is the )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=5: explanation claims 50% but key is -50 (stem: The rent for an apartment was $4. It is now $2. What is the )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=5: explanation claims 30% but key is -30 (stem: The population of a town was 80. It is now 56. What is the p)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=6: explanation claims 25% but key is -25 (stem: The price of a pair of sneakers was $36. It is now $27. What)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=7: explanation claims 30% but key is -30 (stem: The price of a pair of sneakers was $60. It is now $42. What)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=8: explanation claims 10% but key is -10 (stem: The number of students in a club was 30. It is now 27. What )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=9: explanation claims 25% but key is -25 (stem: The number of students in a club was 28. It is now 21. What )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=11: explanation claims 10% but key is -10 (stem: The price of a pair of sneakers was $60. It is now $54. What)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=11: explanation claims 10% but key is -10 (stem: The price of a pair of sneakers was $20. It is now $18. What)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=12: explanation claims 15% but key is -15 (stem: The number of students in a club was 40. It is now 34. What )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=13: explanation claims 40% but key is -40 (stem: The population of a town was 15. It is now 9. What is the pe)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=15: explanation claims 15% but key is -15 (stem: The rent for an apartment was $60. It is now $51. What is th)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=16: explanation claims 20% but key is -20 (stem: The rent for an apartment was $40. It is now $32. What is th)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=16: explanation claims 25% but key is -25 (stem: The population of a town was 16. It is now 12. What is the p)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=18: explanation claims 50% but key is -50 (stem: The population of a town was 6. It is now 3. What is the per)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=19: explanation claims 25% but key is -25 (stem: The rent for an apartment was $24. It is now $18. What is th)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=21: explanation claims 15% but key is -15 (stem: The rent for an apartment was $40. It is now $34. What is th)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=22: explanation claims 15% but key is -15 (stem: The rent for an apartment was $80. It is now $68. What is th)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=23: explanation claims 25% but key is -25 (stem: The population of a town was 32. It is now 24. What is the p)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=24: explanation claims 20% but key is -20 (stem: The price of a pair of sneakers was $20. It is now $16. What)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=24: explanation claims 50% but key is -50 (stem: The number of students in a club was 10. It is now 5. What i)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=25: explanation claims 25% but key is -25 (stem: The rent for an apartment was $28. It is now $21. What is th)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=27: explanation claims 30% but key is -30 (stem: The price of a backpack was $90. It is now $63. What is the )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=28: explanation claims 20% but key is -20 (stem: The price of a pair of sneakers was $45. It is now $36. What)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=28: explanation claims 30% but key is -30 (stem: The price of a backpack was $60. It is now $42. What is the )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=29: explanation claims 40% but key is -40 (stem: The price of a pair of sneakers was $15. It is now $9. What )
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=30: explanation claims 15% but key is -15 (stem: The population of a town was 120. It is now 102. What is the)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=30: explanation claims 25% but key is -25 (stem: The population of a town was 28. It is now 21. What is the p)
+  FAIL SAT-PCT-EXPL sat-psda-percent [Test] seed=32: explanation claims 40% but key is -40 (stem: The population of a town was 30. It is now 18. What is the p)
+  ... (truncated)
+[exit 0]
+=== rt-verify2 ===
+
+[geometry] unverified variants: 0
+
+===== rt-verify2 (geometry) =====
+checks: 2200, failures: 0
+[exit 0]
+=== rt-verify3 ===
+
+[verify3] unverified variants: 304
+
+===== rt-verify3 (A2/calc/precalc/MS) =====
+checks: 4348, failures: 6
+  [CALC-RELRATE] 6
+  FAIL CALC-RELRATE calc-derivative-apps [Test] seed=9: INDEPENDENT mine=0.7958 != factory 2.3873241463784303 (prompt: Water pours into a conical tank (radius = height/3) at 10 cm³/s. How f)
+[exit 0]
+=== rt-verify4 ===
+
+[verify4] coverage per block (ok/skipped):
+  ABS: ok=120 skip=0
+  COMPOUND: ok=120 skip=0
+  DIRVAR: ok=120 skip=0
+  EXP0: ok=120 skip=0
+  EXP1: ok=120 skip=0
+  EXP2: ok=120 skip=0
+  EXP3: ok=120 skip=0
+  FACTOR: ok=180 skip=0
+  INEQ: ok=120 skip=0
+  LINEQ: ok=240 skip=0
+  POLYADD: ok=120 skip=0
+  PROP: ok=120 skip=0
+  QUADGRAPH: ok=120 skip=0
+  QUADSOLVE: ok=120 skip=0
+  RADICAL: ok=120 skip=0
+  SEQ: ok=120 skip=0
+  SLOPEINT: ok=120 skip=0
+  STDFORM: ok=120 skip=0
+  SYSTEM: ok=360 skip=0
+
+===== rt-verify4 (algebra 1) =====
+checks: 2700, failures: 0
+[exit 0]
+=== rt-verify5 ===
+
+[verify5] coverage per block (ok/skipped):
+  BESTFIT: ok=120 skip=0
+  COMPLETESQ: ok=120 skip=0
+  DISCRIM: ok=120 skip=0
+  DIVPROP: ok=120 skip=0
+  EXP: ok=240 skip=0
+  EXPMODEL: ok=120 skip=0
+  FACTOR2: ok=480 skip=0
+  FOIL: ok=120 skip=0
+  FUNCNOT: ok=120 skip=0
+  FUNCRULE: ok=120 skip=0
+  GRAPHLINE: ok=120 skip=0
+  LININEQ: ok=120 skip=0
+  PARPERP: ok=120 skip=0
+  PTSLOPE: ok=120 skip=0
+  QUADATTR: ok=120 skip=0
+  QUADTRANS: ok=120 skip=0
+  RATEXPR: ok=120 skip=0
+  RECURSE: ok=240 skip=0
+  RELFUNC: ok=120 skip=0
+  SLOPEPTS: ok=120 skip=0
+  SYSWORD: ok=120 skip=0
+  TRANSLIN: ok=120 skip=0
+  TWOWAY: ok=120 skip=0
+  VERTEXFORM: ok=120 skip=0
+
+===== rt-verify5 (algebra 1 batch 2) =====
+checks: 3480, failures: 0
+[exit 0]
+=== rt-verify6 ===
+
+[verify6] coverage per block (ok/skipped):
+  ANGLE: ok=120 skip=0
+  CIRCLE: ok=360 skip=0
+  COMPEVT: ok=120 skip=0
+  DEC: ok=120 skip=0
+  FDP: ok=120 skip=0
+  INT: ok=120 skip=0
+  LINREL: ok=120 skip=0
+  MSEQU: ok=413 skip=67
+  MSINEQ: ok=240 skip=0
+  NETS: ok=120 skip=0
+  PCT: ok=360 skip=0
+  PCTERR: ok=120 skip=0
+  PROP7: ok=120 skip=0
+  RAT: ok=240 skip=0
+  RATIO: ok=120 skip=0
+  SAMPLE: ok=120 skip=0
+  SCINOT: ok=119 skip=1
+  STATS: ok=120 skip=0
+  TRANS: ok=99 skip=21
+  TRIANG: ok=240 skip=0
+
+===== rt-verify6 (middle school) =====
+checks: 3600, failures: 0
+[exit 0]
+=== rt-proofs ===
+proof entries: proofs-2-4-elements, proofs-3-2-parallel-properties, proofs-3-3-proving-parallel, proofs-4-2-sss-sas, proofs-4-3-asa-aas, proofs-4-4-cpctc, proofs-4-5-isosceles, proofs-4-6-hl, proofs-9-3-similarity, proofs-12-1-tangent-lines, proofs-12-3-inscribed-angles, a2-p-log-exp-proofs
+
+===== rt-proofs =====
+checks: 2151, failures: 9
+  [PROOF-KEY-NO-REASONS] 8
+  [PROOF-DOCTYPE-IDENTICAL] 1
+  FAIL PROOF-DOCTYPE-IDENTICAL docTypes [proof-two-column/proof-fill-reasons] seed=0: both docTypes map to OutputMode "Test" → byte-identical problem sets; "Full two-column proofs" tooltip promise broken (reasons blanked via supply-reasons unless answer key shown)
+  FAIL PROOF-KEY-NO-REASONS proofs-2-4-elements [Test] seed=7: PDF answer key line is just "I.1 — Q.E.D." — none of the 9 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-3-2-parallel-properties [Test] seed=7: PDF answer key line is just "m∠8 = 112°" — none of the 4 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-3-3-proving-parallel [Test] seed=7: PDF answer key line is just "l ∥ m" — none of the 4 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-4-2-sss-sas [Test] seed=7: PDF answer key line is just "△ABC ≅ △DEF" — none of the 7 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-4-3-asa-aas [Test] seed=7: PDF answer key line is just "△ABC ≅ △DEF" — none of the 7 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-4-4-cpctc [Test] seed=7: PDF answer key line is just "∠B ≅ ∠E" — none of the 8 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-4-5-isosceles [Test] seed=7: PDF answer key line is just "∠B ≅ ∠C" — none of the 7 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+  FAIL PROOF-KEY-NO-REASONS proofs-4-6-hl [Test] seed=7: PDF answer key line is just "△ABC ≅ △DEF" — none of the 6 reasons appear in the key; a printed proof-fill-reasons key is ungradeable
+[exit 0]
+=== rt-frq ===
+
+FRQ problems checked: 200
+
+===== rt-frq =====
+checks: 288, failures: 0
+[exit 0]
+=== rt-inputs ===
+
+checked 1010 hostile inputs across 29 entries
+
+===== rt-inputs =====
+checks: 1010, failures: 83
+  [INPUT-DIFF-THROW] 53
+  [INPUT-COUNT-HANG] 18
+  [SEAM-THROW] 11
+  [TEXT-KEY-THROW] 1
+  FAIL INPUT-COUNT-HANG logic-of-congruence [Test] seed=42: count=Infinity: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG logic-of-congruence [Test] seed=42: count=1e12: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG logic-of-congruence [Test] seed=42: count=1e9: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG special-right-triangles [Test] seed=42: count=Infinity: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG special-right-triangles [Test] seed=42: count=1e12: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG special-right-triangles [Test] seed=42: count=1e9: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG target-zone [Test] seed=42: count=Infinity: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG target-zone [Test] seed=42: count=1e12: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG target-zone [Test] seed=42: count=1e9: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG proofs-4-4-cpctc [Test] seed=42: count=Infinity: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG proofs-4-4-cpctc [Test] seed=42: count=1e12: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG proofs-4-4-cpctc [Test] seed=42: count=1e9: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG a1-1-2-variables-both-sides [Test] seed=42: count=Infinity: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG a1-1-2-variables-both-sides [Test] seed=42: count=1e12: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG a1-1-2-variables-both-sides [Test] seed=42: count=1e9: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG a1-23-2-slope-intercept [Test] seed=42: count=Infinity: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG a1-23-2-slope-intercept [Test] seed=42: count=1e12: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-COUNT-HANG a1-23-2-slope-intercept [Test] seed=42: count=1e9: crashed status=1: node:internal/modules/cjs/loader:1568
+  throw err;
+  ^
+
+Error: Cannot find module 'tsx/cjs'
+Require stack:
+- /home/hatch
+  FAIL INPUT-DIFF-THROW a1-1-2-variables-both-sides [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-1-2-variables-both-sides [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-1-2-variables-both-sides [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-1-2-variables-both-sides [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-1-2-variables-both-sides [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-1-2-variables-both-sides [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-2-slope-intercept [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-2-slope-intercept [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-2-slope-intercept [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-2-slope-intercept [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-2-slope-intercept [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-2-slope-intercept [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-9-function-notation [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-9-function-notation [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-9-function-notation [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-9-function-notation [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-9-function-notation [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-23-9-function-notation [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-4-3-elimination [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-4-3-elimination [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-4-3-elimination [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-4-3-elimination [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-4-3-elimination [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-4-3-elimination [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-5-4-division-properties [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-5-4-division-properties [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-5-4-division-properties [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-5-4-division-properties [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-5-4-division-properties [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-5-4-division-properties [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-7-2-multiply-factor [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-7-2-multiply-factor [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-7-2-multiply-factor [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-7-2-multiply-factor [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-7-2-multiply-factor [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-7-2-multiply-factor [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-1-graphs-properties [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-1-graphs-properties [Test] seed=42: difficulty=4 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-1-graphs-properties [Test] seed=42: difficulty=-1 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-1-graphs-properties [Test] seed=42: difficulty=99 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-1-graphs-properties [Test] seed=42: difficulty=NaN threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-1-graphs-properties [Test] seed=42: difficulty=2.5 threw: Cannot read properties of undefined (reading 'includes')
+  FAIL INPUT-DIFF-THROW a1-8-8-completing-square [Test] seed=42: difficulty=0 threw: Cannot read properties of undefined (reading 'includes')
+  ... (truncated)
+[exit 0]
+=== rt-xmode ===
+
+===== rt-xmode =====
+checks: 1620, failures: 24
+  [XMODE-DIVERGE] 22
+  [XMODE-REVIEW-PREFIX] 2
+  FAIL XMODE-DIVERGE proofs-2-4-elements [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-3-2-parallel-properties [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-3-3-proving-parallel [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-4-2-sss-sas [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-4-3-asa-aas [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-4-4-cpctc [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-4-5-isosceles [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-4-6-hl [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-9-3-similarity [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-12-1-tangent-lines [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-DIVERGE proofs-12-3-inscribed-angles [GuidedNote/Test/Classical] seed=5: same seed+count gives different UNDERLYING problems across modes (Test,Classical diverge even after stripping blanking flags)
+  FAIL XMODE-REVIEW-PREFIX sat-full-module [Review] seed=5: Review stream doesn't share the Test stream prefix for the same seed (after stripping blanking flags)
+[exit 0]
+=== rt-pdf ===
+max doc: 400 problems → 389 KB
+pages: 130
+ToUnicode mappings: 103
+decoded glyphs: 60746, unmapped: 936 (non-ASCII: 88)
+decoded chars: 61506, avg/page: 473
+hostile title ok: 51.9 KB
+empty doc ok: 16064 bytes
+classical-notes ok: 48.5 KB
+proof-two-column ok: 34.5 KB
+proof-fill-reasons ok: 33.4 KB
+proof-elements ok: 33.7 KB
+sat-practice ok: 32.2 KB
+
+===== rt-pdf =====
+checks: 24, failures: 2
+  [PDF-UNMAPPED] 1
+  [PDF-KEY-MISSING] 1
+  FAIL PDF-UNMAPPED max-doc [worksheet] seed=0: 88/60746 glyph codes are neither ToUnicode-mapped nor ASCII — possible mojibake
+  FAIL PDF-KEY-MISSING max-doc [worksheet] seed=0: no "ANSWER KEY" heading in decoded text
+[exit 0]

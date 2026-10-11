@@ -12,6 +12,7 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
     GuidedNote: "Guided Notes",
     Review: "Review Practice",
     Test: "Assessment",
+    Classical: "Classical Notes",
   };
 
   return (

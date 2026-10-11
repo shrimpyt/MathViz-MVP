@@ -81,10 +81,12 @@ function CircleBase() {
 export function InscribedAngleSVG({
   interceptedArc,
   inscribedAngle,
+  variant,
 }: InscribedAngleSVGParams & {
   kind: "InscribedAngle" | "CentralAngle" | "TwoChords" | "TwoSecants";
 }) {
-  const arcStart = 30;
+  // Variant: rigid rotation of the whole configuration (8 positions).
+  const arcStart = 30 + ((variant ?? 0) % 8) * 45;
   const arcEnd = arcStart + interceptedArc;
   const vertexAngle = arcStart + interceptedArc + 60;
 
@@ -122,8 +124,8 @@ export function InscribedAngleSVG({
 
 // ── Central Angle SVG ─────────────────────────────────────────────────────────
 
-export function CentralAngleSVG({ interceptedArc }: { interceptedArc: number }) {
-  const arcStart = 30;
+export function CentralAngleSVG({ interceptedArc, variant }: { interceptedArc: number; variant?: number }) {
+  const arcStart = 30 + ((variant ?? 0) % 8) * 45;
   const arcEnd = arcStart + interceptedArc;
   const A = polarToCart(CX, CY, R, arcStart);
   const B = polarToCart(CX, CY, R, arcEnd);
@@ -158,8 +160,8 @@ export function CentralAngleSVG({ interceptedArc }: { interceptedArc: number }) 
 
 // ── Tangent-Chord SVG ─────────────────────────────────────────────────────────
 
-export function TangentSVG({ tangentAngle }: TangentSVGParams & { kind: "Tangent" }) {
-  const chordStart = 70;
+export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind: "Tangent" }) {
+  const chordStart = 70 + ((variant ?? 0) % 8) * 45;
   const chordEnd = chordStart + tangentAngle * 2; // arc = 2 × angle
   const A = polarToCart(CX, CY, R, chordStart);
   const B = polarToCart(CX, CY, R, chordEnd);
@@ -200,8 +202,8 @@ export function TangentSVG({ tangentAngle }: TangentSVGParams & { kind: "Tangent
 
 // ── Two-Chords SVG ────────────────────────────────────────────────────────────
 
-export function TwoChordsSVG({ arc1, arc2 }: ChordSVGParams & { kind: "TwoChords" }) {
-  const a0 = 20, a1 = a0 + arc1, a2 = a1 + 60, a3 = a2 + arc2;
+export function TwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams & { kind: "TwoChords" }) {
+  const a0 = 20 + ((variant ?? 0) % 8) * 45, a1 = a0 + arc1, a2 = a1 + 60, a3 = a2 + arc2;
   const A = polarToCart(CX, CY, R, a0);
   const B = polarToCart(CX, CY, R, a1);
   const C = polarToCart(CX, CY, R, a2);
@@ -254,9 +256,10 @@ export function TwoChordsSVG({ arc1, arc2 }: ChordSVGParams & { kind: "TwoChords
 
 // ── Two-Secants SVG ───────────────────────────────────────────────────────────
 
-export function TwoSecantsSVG({ interceptedArc }: { interceptedArc: number }) {
+export function TwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: number; variant?: number }) {
   const near = 40;
-  const arcStart = 200, arcEnd = arcStart + interceptedArc;
+  // Variant: small rotation (-40/0/+40 deg) keeps arcs opposite the external point.
+  const arcStart = 200 + (((variant ?? 0) % 3) - 1) * 40, arcEnd = arcStart + interceptedArc;
   const A = polarToCart(CX, CY, R, arcStart);
   const B = polarToCart(CX, CY, R, arcEnd);
   const C = polarToCart(CX, CY, R, arcStart - near);
@@ -299,13 +302,14 @@ export function TwoSecantsSVG({ interceptedArc }: { interceptedArc: number }) {
 export function ConcentricCirclesSVG({
   outerR,
   innerR,
+  variant,
 }: ConcentricSVGParams & { kind: "ConcentricCircles" }) {
   const scale = 70 / outerR;
   const scaledOuter = outerR * scale; // = 70
   const scaledInner = innerR * scale;
 
   // Outer radius line at 45° to separate labels
-  const ang45 = toRad(45 - 90); // polarToCart convention: -90 offset
+  const ang45 = toRad(((variant ?? 0) % 8) * 45 - 90); // polarToCart convention: -90 offset
   const oxEnd = CX + scaledOuter * Math.cos(ang45);
   const oyEnd = CY + scaledOuter * Math.sin(ang45);
   const rMidX = CX + (scaledOuter / 2) * Math.cos(ang45);
@@ -348,8 +352,9 @@ export function ConcentricCirclesSVG({
 
 export function ShadedSectorSVG({
   sectorAngle,
+  variant,
 }: SectorSVGParams & { kind: "ShadedSector" }) {
-  const startDeg = -90; // top of circle
+  const startDeg = -90 + ((variant ?? 0) % 8) * 45; // variant: rotation
   const endDeg = startDeg + sectorAngle;
   const S = polarToCart(CX, CY, R, startDeg + 90);
   const E = polarToCart(CX, CY, R, endDeg + 90);
@@ -493,9 +498,13 @@ export function CongruenceSVG({
   sideMarks,
   angleMarks,
   rightAngleAt,
+  variant,
 }: CongruenceSVGParams & { kind: "Congruence" }) {
-  const [A, B, C] = VERTS_T1;
-  const [D, E, F] = VERTS_T2;
+  // Variant: mirror the pair horizontally (triangles swap sides).
+  const mirror = (variant ?? 0) % 2 === 1;
+  const M = (pt: Pt): Pt => (mirror ? { x: 200 - pt.x, y: pt.y } : pt);
+  const [A, B, C] = VERTS_T1.map(M);
+  const [D, E, F] = VERTS_T2.map(M);
 
   // Sides of triangle 1: AB, BC, CA
   const sides1: [Pt, Pt][] = [[A, B], [B, C], [C, A]];
@@ -511,8 +520,12 @@ export function CongruenceSVG({
   const labels1 = ["A", "B", "C"];
   const labels2 = ["D", "E", "F"];
   // Label offsets push outward from triangle centroid
-  const labelOffsets1 = [{ x: 0, y: -7 }, { x: -8, y: 6 }, { x: 8, y: 6 }];
-  const labelOffsets2 = [{ x: 0, y: -7 }, { x: 8, y: 6 }, { x: -8, y: 6 }];
+  const labelOffsets1 = mirror
+    ? [{ x: 0, y: -7 }, { x: 8, y: 6 }, { x: -8, y: 6 }]
+    : [{ x: 0, y: -7 }, { x: -8, y: 6 }, { x: 8, y: 6 }];
+  const labelOffsets2 = mirror
+    ? [{ x: 0, y: -7 }, { x: -8, y: 6 }, { x: 8, y: 6 }]
+    : [{ x: 0, y: -7 }, { x: 8, y: 6 }, { x: -8, y: 6 }];
 
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Triangle congruence diagram">
@@ -625,32 +638,35 @@ export function GeometrySVG({ params }: { params: SVGParams }) {
           kind="InscribedAngle"
           interceptedArc={(params as InscribedAngleSVGParams).interceptedArc}
           inscribedAngle={(params as InscribedAngleSVGParams).inscribedAngle}
+          variant={(params as InscribedAngleSVGParams).variant}
         />
       );
     case "CentralAngle":
-      return <CentralAngleSVG interceptedArc={(params as InscribedAngleSVGParams).interceptedArc} />;
+      return <CentralAngleSVG interceptedArc={(params as InscribedAngleSVGParams).interceptedArc} variant={(params as InscribedAngleSVGParams).variant} />;
     case "Tangent":
-      return <TangentSVG kind="Tangent" tangentAngle={(params as TangentSVGParams).tangentAngle} />;
+      return <TangentSVG kind="Tangent" tangentAngle={(params as TangentSVGParams).tangentAngle} variant={(params as TangentSVGParams).variant} />;
     case "TwoChords":
       return (
         <TwoChordsSVG
           kind="TwoChords"
           arc1={(params as ChordSVGParams).arc1}
           arc2={(params as ChordSVGParams).arc2}
+          variant={(params as ChordSVGParams).variant}
         />
       );
     case "TwoSecants":
-      return <TwoSecantsSVG interceptedArc={(params as InscribedAngleSVGParams).interceptedArc} />;
+      return <TwoSecantsSVG interceptedArc={(params as InscribedAngleSVGParams).interceptedArc} variant={(params as InscribedAngleSVGParams).variant} />;
     case "ConcentricCircles":
       return (
         <ConcentricCirclesSVG
           kind="ConcentricCircles"
           outerR={(params as ConcentricSVGParams).outerR}
           innerR={(params as ConcentricSVGParams).innerR}
+          variant={(params as ConcentricSVGParams).variant}
         />
       );
     case "ShadedSector":
-      return <ShadedSectorSVG kind="ShadedSector" sectorAngle={(params as SectorSVGParams).sectorAngle} />;
+      return <ShadedSectorSVG kind="ShadedSector" sectorAngle={(params as SectorSVGParams).sectorAngle} variant={(params as SectorSVGParams).variant} />;
     case "Congruence": {
       const p = params as CongruenceSVGParams;
       return (
@@ -663,6 +679,7 @@ export function GeometrySVG({ params }: { params: SVGParams }) {
           sideMarks={p.sideMarks}
           angleMarks={p.angleMarks}
           rightAngleAt={p.rightAngleAt}
+          variant={p.variant}
         />
       );
     }

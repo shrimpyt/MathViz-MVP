@@ -4,6 +4,7 @@
 
 import React from "react";
 import type { BlankField, ProblemStep, OutputMode } from "@/lib/ProblemFactory";
+import { latexToText } from "@/lib/answerKey";
 
 // ── Blank rendering ───────────────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ export function Blank({
   if (mode === "Review") {
     return (
       <span className="inline-block mx-1 px-2 py-0.5 bg-blue-50 border border-blue-300 rounded font-serif text-sm text-blue-900">
-        {field.answer}
+        {latexToText(field.answer)}
       </span>
     );
   }
@@ -35,11 +36,11 @@ export function Blank({
     <span className="inline-flex items-center mx-1 gap-1">
       {revealed ? (
         <span className="inline-block px-2 py-0.5 bg-green-50 border border-green-800 font-serif text-sm text-green-900">
-          {field.answer}
+          {latexToText(field.answer)}
         </span>
       ) : (
         <span className="inline-block border-b-2 border-slate-900 min-w-[80px] px-1 font-serif text-sm text-slate-800 italic">
-          {field.label}
+          {latexToText(field.label)}
         </span>
       )}
     </span>
@@ -65,7 +66,7 @@ export function StepBlock({
         <span className="font-semibold text-slate-500 mr-1">
           Step {stepIndex + 1}.
         </span>
-        {step.instruction}
+        {latexToText(step.instruction)}
         {step.blanks?.map((b, i) => (
           <React.Fragment key={i}>
             {" "}

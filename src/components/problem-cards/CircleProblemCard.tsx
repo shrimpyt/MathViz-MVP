@@ -6,6 +6,8 @@ import React from "react";
 import type { CircleProblem, OutputMode } from "@/lib/ProblemFactory";
 import { GeometrySVG } from "@/components/GeometrySVG";
 import { TEKSBadge, StepBlock, DiagramBox } from "./SharedAtoms";
+import { givenKeyName } from "@/lib/answerKey";
+import { latexToText } from "@/lib/answerKey";
 
 interface CircleProblemCardProps {
   problem: CircleProblem;
@@ -48,11 +50,11 @@ export function CircleProblemCard({
             <span className="font-bold">Given: </span>
             {givenEntries.map(([k, v], i) => (
               <span key={k}>
-                {k.replace(/([A-Z])/g, " $1").toLowerCase()} = {v}°
+                {givenKeyName(k)} = {v}°
                 {i < givenEntries.length - 1 ? ", " : ""}
               </span>
             ))}
-            . Find the <span className="italic">{problem.find}</span>.
+            . Find the <span className="italic">{latexToText(problem.find)}</span>.
           </p>
           <div className="space-y-3">
             {problem.steps.map((s, i) => (

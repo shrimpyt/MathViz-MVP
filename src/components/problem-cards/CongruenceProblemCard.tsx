@@ -6,6 +6,7 @@ import React from "react";
 import type { CongruenceProblem, OutputMode } from "@/lib/ProblemFactory";
 import { GeometrySVG } from "@/components/GeometrySVG";
 import { TEKSBadge, StepBlock, DiagramBox } from "./SharedAtoms";
+import { latexToText } from "@/lib/answerKey";
 
 interface CongruenceProblemCardProps {
   problem: CongruenceProblem;
@@ -53,7 +54,7 @@ export function CongruenceProblemCard({
               </span>
             ))}
             {". "}
-            <span className="italic">{problem.find}</span>.
+            <span className="italic">{latexToText(problem.find)}</span>.
           </div>
 
           <div className="space-y-3">

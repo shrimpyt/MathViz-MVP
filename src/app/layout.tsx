@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
 export const metadata: Metadata = {
-  title: "Euclid Engine | AI Math Architects",
-  description: "Accelerate K-12 math mastery with AI-driven, structural analysis of geometric and analytical truth.",
+  title: "Euclid Engine | Math Worksheet Generator",
+  description: "Generate fresh, mathematically correct math worksheets with answer keys. Pick topics, set difficulty, preview, and print PDFs.",
 };
 
 export default function RootLayout({
