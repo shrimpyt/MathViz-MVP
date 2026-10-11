@@ -47,6 +47,8 @@ import type { CalcGraphParams } from "@/lib/factories/CalculusUtils";
 import type { ClassicalGroup } from "./EuclidEngine";
 import { TrigSVGParams } from "@/lib/types";
 import { latexToText, formatAnswer, pdfSafeText } from "@/lib/answerKey";
+import type { Presentation } from "../lib/accommodations";
+import { DEFAULT_PRESENTATION } from "../lib/accommodations";
 
 // ── Embedded serif font ───────────────────────────────────────────────────────
 // The PDF's standard 14 fonts only cover WinAnsi, so math glyphs (√ θ π ∠ —)
@@ -68,6 +70,19 @@ Font.register({
 Font.register({
   family: "WorksheetSerifBold",
   fonts: [{ src: fontSrc("DejaVuSerif-Bold.ttf"), fontWeight: 700 }],
+});
+
+// ── Sans-serif family for the IEP accommodation generator ─────────────────────
+// DejaVu Sans is the sans companion to the DejaVu Serif used for the base
+// worksheet. (The bundled geist-sans variable font cannot be used here:
+// the PDF renderer's font subsetter throws `RangeError: Offset is outside
+// the bounds of the DataView` on both its woff2 and static-TTF instances.)
+Font.register({
+  family: "WorksheetSans",
+  fonts: [
+    { src: fontSrc("DejaVuSans.ttf"), fontWeight: 400 },
+    { src: fontSrc("DejaVuSans-Bold.ttf"), fontWeight: 700 },
+  ],
 });
 
 // ── Section grouping (mirrors EuclidEngine's preview order) ──────────────────
@@ -117,7 +132,26 @@ const SECTION_DEFS: SectionDef[] = [
 
 // ── StyleSheet ────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+// ── Presentation-aware stylesheet ─────────────────────────────────────────────
+// Accommodations (IEP generator) scale the presentation without touching math.
+// getStyles() memoizes per distinct presentation so the default path
+// (fontScale 1 / serif / spacing 1) renders byte-identical output to before.
+
+function createStyles(presentation: Presentation) {
+  const fs = (n: number) => Math.round(n * presentation.fontScale * 10) / 10;
+  const sp = (n: number) => Math.round(n * presentation.spacingScale * 10) / 10;
+  // Family swap for sans mode: returns a spreadable style fragment. Bold serif
+  // maps to the sans bold weight so headings stay bold in sans mode.
+  const fam = (
+    f: 'WorksheetSerif' | 'WorksheetSerifBold',
+  ): { fontFamily: string; fontWeight?: number } =>
+    presentation.fontFamily === 'sans'
+      ? f === 'WorksheetSerifBold'
+        ? { fontFamily: 'WorksheetSans', fontWeight: 700 }
+        : { fontFamily: 'WorksheetSans' }
+      : { fontFamily: f };
+
+  return StyleSheet.create({
   // Page: strict US Letter, 0.65in margins
   page: {
     size: 'LETTER',
@@ -126,38 +160,38 @@ const styles = StyleSheet.create({
     paddingLeft: '0.75in',
     paddingRight: '0.75in',
     backgroundColor: '#ffffff',
-    fontFamily: 'WorksheetSerif',
+    ...fam('WorksheetSerif'),
   },
 
   // ── Classical Academy header ──
   headerWrapper: {
-    marginBottom: 14,
+    marginBottom: sp(14),
   },
   headerTopRule: {
     borderTopWidth: 3,
     borderTopColor: '#0F172A',
     borderTopStyle: 'solid',
-    paddingTop: 5,
-    paddingBottom: 4,
+    paddingTop: sp(5),
+    paddingBottom: sp(4),
     borderBottomWidth: 1,
     borderBottomColor: '#0F172A',
     borderBottomStyle: 'solid',
-    marginBottom: 10,
+    marginBottom: sp(10),
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 20,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(20),
     textAlign: 'center',
     color: '#0F172A',
     letterSpacing: 0.5,
   },
   modeLabel: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 9,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(9),
     textAlign: 'center',
     color: '#64748b',
-    marginTop: 2,
+    marginTop: sp(2),
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -170,8 +204,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#94a3b8',
     borderBottomStyle: 'solid',
-    paddingBottom: 4,
-    marginBottom: 6,
+    paddingBottom: sp(4),
+    marginBottom: sp(6),
   },
   infoLeft: {
     flexDirection: 'row',
@@ -179,12 +213,12 @@ const styles = StyleSheet.create({
   },
   infoRight: {
     flexDirection: 'row',
-    gap: 16,
+    gap: sp(16),
     alignItems: 'flex-end',
   },
   infoLabel: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 11,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
     color: '#334155',
   },
   infoBlank: {
@@ -200,17 +234,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#cbd5e1',
     borderStyle: 'solid',
-    padding: 6,
-    marginBottom: 10,
+    padding: sp(6),
+    marginBottom: sp(10),
   },
   directionsText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#475569',
   },
   directionsBold: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 10,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(10),
     color: '#334155',
   },
 
@@ -218,7 +252,7 @@ const styles = StyleSheet.create({
   sectionDivider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: sp(8),
   },
   sectionRule: {
     flex: 1,
@@ -226,10 +260,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#94a3b8',
   },
   sectionLabel: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 8,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(8),
     color: '#64748b',
-    marginHorizontal: 8,
+    marginHorizontal: sp(8),
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -237,11 +271,11 @@ const styles = StyleSheet.create({
   // ── Problem container — wrap:false enforces unbreakable ──
   problemRow: {
     flexDirection: 'row',
-    marginBottom: 18,
+    marginBottom: sp(18),
   },
   problemNumber: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 12,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(12),
     width: 22,
     color: '#172336',
   },
@@ -249,27 +283,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   questionText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 11,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
     color: '#1e293b',
-    marginBottom: 6,
+    marginBottom: sp(6),
     lineHeight: 1.4,
   },
 
   // Diagram placeholder box
   diagramBox: {
-    marginTop: 6,
-    marginBottom: 6,
+    marginTop: sp(6),
+    marginBottom: sp(6),
     alignSelf: 'flex-end',
   },
 
   // Scaffolding steps
   scaffoldBox: {
-    marginTop: 6,
-    marginLeft: 8,
-    paddingLeft: 8,
-    paddingVertical: 6,
-    paddingRight: 6,
+    marginTop: sp(6),
+    marginLeft: sp(8),
+    paddingLeft: sp(8),
+    paddingVertical: sp(6),
+    paddingRight: sp(6),
     borderLeftWidth: 2,
     borderLeftColor: '#d9a720',
     borderLeftStyle: 'solid',
@@ -278,11 +312,11 @@ const styles = StyleSheet.create({
   scaffoldStep: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: 6,
+    marginBottom: sp(6),
   },
   scaffoldText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#334155',
   },
   blank: {
@@ -290,20 +324,20 @@ const styles = StyleSheet.create({
     borderBottomColor: '#334155',
     borderBottomStyle: 'solid',
     height: 14,
-    marginLeft: 4,
+    marginLeft: sp(4),
   },
 
   // Answer line for test mode
   answerLine: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginTop: 8,
+    marginTop: sp(8),
   },
   answerLabel: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 11,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(11),
     color: '#172336',
-    marginRight: 4,
+    marginRight: sp(4),
   },
   answerBlank: {
     borderBottomWidth: 1,
@@ -324,62 +358,62 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
     borderTopStyle: 'solid',
-    paddingTop: 4,
+    paddingTop: sp(4),
   },
   footerText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 8,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(8),
     color: '#94a3b8',
   },
 
   // ── Answer key ──
   keyTitle: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 20,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(20),
     textAlign: 'center',
     color: '#0F172A',
     letterSpacing: 0.5,
   },
   keyWarning: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 10,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(10),
     textAlign: 'center',
     color: '#b91c1c',
-    marginTop: 4,
+    marginTop: sp(4),
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
   keyRow: {
     flexDirection: 'row',
-    marginBottom: 7,
+    marginBottom: sp(7),
   },
   keyNumber: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 12,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(12),
     width: 26,
     color: '#172336',
   },
   keyAnswer: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 12,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(12),
     color: '#1e293b',
     flex: 1,
   },
   keyAnswerSm: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 11,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
     color: '#1e293b',
   },
   keyJust: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 9,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(9),
     color: '#475569',
-    marginTop: 2,
+    marginTop: sp(2),
   },
 
   // ── Proof tables ──
   proofTable: {
-    marginTop: 6,
+    marginTop: sp(6),
     borderWidth: 1,
     borderColor: '#0F172A',
     borderStyle: 'solid',
@@ -394,10 +428,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
   },
   proofCell: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#1e293b',
-    padding: 4,
+    padding: sp(4),
   },
   proofNum: {
     width: 24,
@@ -416,76 +450,76 @@ const styles = StyleSheet.create({
     borderLeftStyle: 'solid',
   },
   proofHead: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontStyle: 'normal',
   },
   givenText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#334155',
-    marginBottom: 4,
+    marginBottom: sp(4),
   },
   elementsEnunc: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 11,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
     color: '#0F172A',
-    marginBottom: 6,
-    paddingLeft: 8,
+    marginBottom: sp(6),
+    paddingLeft: sp(8),
     borderLeftWidth: 3,
     borderLeftColor: '#d9a720',
     borderLeftStyle: 'solid',
   },
   elementsStep: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#0F172A',
-    marginBottom: 4,
+    marginBottom: sp(4),
     lineHeight: 1.4,
   },
   elementsReason: {
     color: '#64748b',
-    fontSize: 9,
+    fontSize: fs(9),
   },
   qed: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 11,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(11),
     textAlign: 'right',
-    marginTop: 6,
+    marginTop: sp(6),
     letterSpacing: 2,
   },
 
   // ── MCQ choices / SAT grid-in ──
   choiceList: {
-    marginTop: 6,
-    marginBottom: 4,
+    marginTop: sp(6),
+    marginBottom: sp(4),
   },
   choiceRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 4,
+    marginBottom: sp(4),
   },
   choiceLetter: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 11,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(11),
     color: '#0F172A',
     width: 28,
   },
   choiceKey: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 11,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(11),
     color: '#15803d',
     width: 28,
   },
   choiceText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 11,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
     color: '#1e293b',
     flex: 1,
   },
   gridInRow: {
     flexDirection: 'row',
-    marginTop: 8,
-    marginBottom: 4,
+    marginTop: sp(8),
+    marginBottom: sp(4),
   },
   gridInBox: {
     width: 30,
@@ -493,70 +527,83 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0F172A',
     borderStyle: 'solid',
-    marginRight: 4,
+    marginRight: sp(4),
     alignItems: 'center',
     justifyContent: 'center',
   },
   gridInText: {
-    fontFamily: 'WorksheetSerifBold',
-    fontSize: 14,
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(14),
     color: '#0F172A',
   },
 
   // ── FRQ stimulus / subparts ──
   stimulusText: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 11,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
     color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: sp(8),
     lineHeight: 1.4,
     backgroundColor: '#f8fafc',
-    padding: 6,
+    padding: sp(6),
   },
   frqTable: {
-    marginBottom: 8,
+    marginBottom: sp(8),
     borderWidth: 1,
     borderColor: '#0F172A',
     borderStyle: 'solid',
   },
   tableCaption: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#475569',
-    marginBottom: 4,
+    marginBottom: sp(4),
   },
   frqTableRow: {
     flexDirection: 'row',
   },
   frqCell: {
-    fontFamily: 'WorksheetSerif',
-    fontSize: 10,
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
     color: '#1e293b',
     flex: 1,
     textAlign: 'center',
-    padding: 4,
+    padding: sp(4),
     borderWidth: 0.5,
     borderColor: '#cbd5e1',
     borderStyle: 'solid',
   },
   frqCellHead: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     backgroundColor: '#f1f5f9',
   },
   subpart: {
-    marginTop: 8,
+    marginTop: sp(8),
   },
   workspaceLines: {
-    marginTop: 6,
+    marginTop: sp(6),
   },
   workspaceLine: {
     borderBottomWidth: 1,
     borderBottomColor: '#94a3b8',
     borderBottomStyle: 'solid',
     height: 18,
-    marginBottom: 2,
+    marginBottom: sp(2),
   },
-});
+  });
+}
+
+type StylesType = ReturnType<typeof createStyles>;
+const stylesCache = new Map<string, StylesType>();
+function getStyles(presentation: Presentation): StylesType {
+  const key = `${presentation.fontScale}|${presentation.fontFamily}|${presentation.spacingScale}|${presentation.maxProblemsPerPage}`;
+  let s = stylesCache.get(key);
+  if (!s) {
+    s = createStyles(presentation);
+    stylesCache.set(key, s);
+  }
+  return s;
+}
 
 // ── Diagram primitives ────────────────────────────────────────────────────────
 
@@ -634,16 +681,26 @@ export interface PdfDocumentProps {
   classicalGroups?: ClassicalGroup[];
   /** Worksheet seed — drives deterministic margin-prompt rotation in Classical mode. */
   seed?: number;
+  /** Presentation overrides from the IEP accommodation generator. Presentation
+      only — never changes math. Defaults to the standard presentation. */
+  presentation?: Presentation;
+  /** Heading for the answer-key page. Defaults to 'ANSWER KEY'. Per-version
+      keys pass their own label (e.g. 'Answer Key — Group A'). */
+  keyHeading?: string;
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
+// PdfVersionPages renders one worksheet version's pages (worksheet + its own
+// answer key) as a fragment, so the combined accommodated export can render
+// several versions — with divider pages between — inside a single <Document>.
+// The default PdfDocument export preserves the original single-version API.
 
 interface PdfItem {
   problem?: MathProblem;
   question: Question;
 }
 
-export default function PdfDocument({
+export function PdfVersionPages({
   title,
   questions,
   advancedProblems,
@@ -653,7 +710,10 @@ export default function PdfDocument({
   logoSrc,
   classicalGroups,
   seed = 1,
+  presentation = DEFAULT_PRESENTATION,
+  keyHeading = 'ANSWER KEY',
 }: PdfDocumentProps) {
+  const styles = getStyles(presentation);
   const modeLabel =
     docType === 'guided-notes'
       ? 'Guided Notes'
@@ -790,6 +850,33 @@ export default function PdfDocument({
     return null;
   };
 
+  // ── Diagram scaling for the large-print accommodation ─────────────────────
+  // Diagram components render at fixed intrinsic sizes (largest observed:
+  // 200×200). Scale the drawing visually and reserve the scaled box in layout
+  // so enlarged diagrams never overlap neighboring content.
+  const renderScaledDiagram = (item: PdfItem) => {
+    const diagram = renderPdfDiagram(item);
+    if (!diagram) return null;
+    const s = presentation.fontScale;
+    if (s === 1) return <View style={styles.diagramBox}>{diagram}</View>;
+    const W = 220;
+    const H = 200;
+    return (
+      <View style={[styles.diagramBox, { width: W * s, height: H * s }]}>
+        <View
+          style={{
+            width: W,
+            height: H,
+            transform: `scale(${s})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          {diagram}
+        </View>
+      </View>
+    );
+  };
+
   // ── FRQ stimulus (shared by precalc + calc) ───────────────────────────────
 
   const renderFRQStimulus = (p: {
@@ -882,7 +969,7 @@ export default function PdfDocument({
           </View>
 
           {/* Diagram */}
-          <View style={styles.diagramBox}>{renderPdfDiagram(item)}</View>
+          {renderScaledDiagram(item)}
         </View>
       </View>
     </View>
@@ -972,7 +1059,7 @@ export default function PdfDocument({
               )}
             </View>
 
-            <View style={styles.diagramBox}>{renderPdfDiagram(item)}</View>
+            {renderScaledDiagram(item)}
           </View>
         </View>
       </View>
@@ -1077,7 +1164,7 @@ export default function PdfDocument({
                 </View>
               )}
             </View>
-            <View style={styles.diagramBox}>{renderPdfDiagram(item)}</View>
+            {renderScaledDiagram(item)}
           </View>
         </View>
       </View>
@@ -1259,7 +1346,7 @@ export default function PdfDocument({
   );
 
   return (
-    <Document>
+    <>
       <Page size="LETTER" style={styles.page}>
         {/* ── Classical Academy Header ── */}
         {renderHeader(title, modeLabel)}
@@ -1291,7 +1378,14 @@ export default function PdfDocument({
                     <View style={styles.sectionRule} />
                   </View>
                 )}
-                {sec.items.map(({ item, n }) => renderProblem(item, n))}
+                {sec.items.map(({ item, n }) => {
+                  const el = renderProblem(item, n);
+                  // Fewer-per-page accommodation: force a page break every K
+                  // problems. (Classical-notes entry sections keep natural flow.)
+                  const needsBreak =
+                    n > 1 && (n - 1) % presentation.maxProblemsPerPage === 0;
+                  return needsBreak ? React.cloneElement(el, { break: true }) : el;
+                })}
               </View>
             ))}
           </View>
@@ -1305,7 +1399,7 @@ export default function PdfDocument({
         <Page size="LETTER" style={styles.page}>
           <View style={styles.headerWrapper}>
             <View style={styles.headerTopRule}>
-              <Text style={styles.keyTitle}>ANSWER KEY</Text>
+              <Text style={styles.keyTitle}>{keyHeading}</Text>
               <Text style={styles.keyWarning}>Do not distribute — teacher use only</Text>
               <Text style={styles.modeLabel}>{title}</Text>
             </View>
@@ -1323,6 +1417,60 @@ export default function PdfDocument({
           {renderFooter()}
         </Page>
       )}
+    </>
+  );
+}
+
+// ── Single-version document (original public API, unchanged behavior) ─────────
+
+export default function PdfDocument(props: PdfDocumentProps) {
+  return (
+    <Document>
+      <PdfVersionPages {...props} />
     </Document>
+  );
+}
+
+// ── Accommodation divider page ────────────────────────────────────────────────
+// Separates versions in the combined accommodated export. Carries the version's
+// dividerText (e.g. "Group A — Large print · 3 students · print 3 copies").
+
+const dividerStyles = StyleSheet.create({
+  page: {
+    size: 'LETTER',
+    backgroundColor: '#ffffff',
+    fontFamily: 'WorksheetSerif',
+  },
+  centerBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: '0.75in',
+  },
+  dividerTitle: {
+    fontFamily: 'WorksheetSerifBold',
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#0F172A',
+    marginBottom: 10,
+  },
+  dividerSub: {
+    fontFamily: 'WorksheetSerif',
+    fontSize: 10,
+    textAlign: 'center',
+    color: '#64748b',
+  },
+});
+
+export function AccommodationDividerPage({ text }: { text: string }) {
+  return (
+    <Page size="LETTER" style={dividerStyles.page}>
+      <View style={dividerStyles.centerBox}>
+        <Text style={dividerStyles.dividerTitle}>{text}</Text>
+        <Text style={dividerStyles.dividerSub}>
+          Euclid Engine · accommodated version
+        </Text>
+      </View>
+    </Page>
   );
 }

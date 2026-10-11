@@ -52,6 +52,8 @@ import {
   CalculusFRQCard,
 } from "./problem-cards";
 import { ClassicalNotesCard } from "./problem-cards/ClassicalNotesCard";
+import type { Presentation } from "../lib/accommodations";
+import { DEFAULT_PRESENTATION } from "../lib/accommodations";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -72,6 +74,10 @@ interface EuclidEngineProps {
   proofDocMode?: "proof-two-column" | "proof-fill-reasons" | "proof-elements";
   /** Standards line for the footer (defaults to the geometry list). */
   standard?: string;
+  /** Presentation overrides from the IEP accommodation generator. The web
+      preview is approximate (font scale via CSS zoom, which also scales
+      spacing); the PDF is the artifact of record. */
+  presentation?: Presentation;
 }
 
 export interface ClassicalGroup {
@@ -90,8 +96,15 @@ export function EuclidEngine({
   seed,
   proofDocMode,
   standard,
+  presentation = DEFAULT_PRESENTATION,
 }: EuclidEngineProps) {
   const [revealed, setRevealed] = useState(false);
+
+  // Approximate the accommodated presentation in the web preview. CSS zoom
+  // scales text and spacing together; the PDF remains the artifact of record.
+  // (Sans-serif swap is print-only in Phase 1.)
+  const previewZoom =
+    presentation.fontScale !== 1 ? { zoom: presentation.fontScale } : undefined;
 
   const circleProblems = problems.filter(
     (p): p is CircleProblem => p.type === "G.12A"
@@ -182,7 +195,7 @@ export function EuclidEngine({
     mode === "Classical" && !!classicalGroups && classicalGroups.length > 0;
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-6 geometric-grid" style={{ backgroundColor: '#0F172A' }}>
+    <div className="flex flex-col items-center min-h-screen py-6 geometric-grid" style={{ backgroundColor: '#0F172A', ...previewZoom }}>
       {/* GuidedNote reveal toggle */}
       {mode === "GuidedNote" && (
         <div className="mb-4 flex items-center gap-3">

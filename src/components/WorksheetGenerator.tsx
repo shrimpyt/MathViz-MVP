@@ -42,10 +42,17 @@ import {
   Clear as ClearIcon,
   Menu as MenuIcon,
 } from '@mui/icons-material';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import PdfDocument from './PdfDocument';
+import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/renderer';
+import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
 import { EuclidEngine } from './EuclidEngine';
 import type { ClassicalGroup } from './EuclidEngine';
+import AccommodationsPanel from './AccommodationsPanel';
+import {
+  createAccommodationStore,
+  planVersions,
+  type ClassAccommodationList,
+  type NewGroupInput,
+} from '../lib/accommodations';
 import { CURRICULUM_REGISTRY } from '../modules/CurriculumRegistry';
 import type { CurriculumEntry, DifficultyLevel } from '../modules/CurriculumRegistry';
 import { DocumentType, problemToQuestion } from '../core/types';
@@ -239,6 +246,57 @@ export default function WorksheetGenerator() {
   const [draftError, setDraftError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // ── IEP accommodations ──
+  // Anonymous, localStorage-backed class lists. The version plan is derived
+  // from the same base problem set, so every version shares identical math.
+  const [accomStore] = useState(() => createAccommodationStore());
+  const [accomList, setAccomList] = useState<ClassAccommodationList | null>(null);
+  const [activeVersionId, setActiveVersionId] = useState<string>('base');
+  const [accomError, setAccomError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load the most recently updated class list (browser only).
+    try {
+      const lists = accomStore.listLists();
+      if (lists.length > 0) {
+        const latest = [...lists].sort((a, b) =>
+          b.updatedAt.localeCompare(a.updatedAt)
+        )[0];
+        setAccomList(latest);
+      }
+    } catch {
+      // localStorage unavailable — the feature simply stays hidden.
+    }
+  }, [accomStore]);
+
+  const refreshAccomList = (id: string) => {
+    const l = accomStore.getList(id);
+    setAccomList(l);
+    if (l) {
+      // If the active version's group was deleted, fall back to base.
+      setActiveVersionId((v) =>
+        v !== 'base' && !l.groups.some((g) => g.id === v) ? 'base' : v
+      );
+    }
+  };
+
+  const handleAccomOp = (op: () => ClassAccommodationList | void, listId?: string) => {
+    setAccomError(null);
+    try {
+      op();
+      if (listId) refreshAccomList(listId);
+      else {
+        const lists = accomStore.listLists();
+        const latest = [...lists].sort((a, b) =>
+          b.updatedAt.localeCompare(a.updatedAt)
+        )[0];
+        setAccomList(latest ?? null);
+      }
+    } catch (e) {
+      setAccomError(e instanceof Error ? e.message : 'Could not save accommodation.');
+    }
+  };
 
   useEffect(() => {
     // Defer setMounted so PDFDownloadLink only renders on the client
@@ -449,6 +507,31 @@ export default function WorksheetGenerator() {
     return advancedProblems.map((p, i) => problemToQuestion(p, i));
   }, [advancedProblems]);
 
+  // ── Version plan (IEP accommodations) ──
+  // One base version plus one version per accommodation group, all derived
+  // from the same generated problem set. Empty list → base version only and
+  // the feature stays invisible.
+  const versionPlan = useMemo(
+    () => planVersions(advancedProblems, accomList),
+    [advancedProblems, accomList]
+  );
+  const hasAccommodations = versionPlan.groups.length > 0;
+  const activeVersion = useMemo(
+    () =>
+      versionPlan.all().find((v) => v.versionId === activeVersionId) ??
+      versionPlan.base,
+    [versionPlan, activeVersionId]
+  );
+  // Per-version questions (identical to base in Phase 1; derived per version
+  // so later content transforms stay correct).
+  const versionQuestions = useMemo(
+    () => new Map(versionPlan.all().map((v) => [
+      v.versionId,
+      v.problems.map((p, i) => problemToQuestion(p, i)),
+    ])),
+    [versionPlan]
+  );
+
   // ── Title & standards ──
   const defaultTitle = useMemo(() => {
     if (selectedModules.length === 0) return 'Geometry Practice';
@@ -462,6 +545,44 @@ export default function WorksheetGenerator() {
     const teks = [...new Set(selectedModules.map((m) => m.teks))];
     return teks.length > 0 ? teks.join(' · ') : 'Texas TEKS Geometry';
   }, [selectedModules]);
+
+  // Combined multi-version PDF document for the accommodated export.
+  // Base version + its key, then each group version + its key, with labeled
+  // divider pages between versions. (Keys always derive from their own
+  // version's problems.)
+  const accommodatedDocument = useMemo(() => {
+    if (!hasAccommodations) return null;
+    return (
+      <PdfRendererDocument>
+        {versionPlan.all().flatMap((v, vi) => {
+          const nodes: React.ReactNode[] = [];
+          // Divider page between versions (none before the base version).
+          if (vi > 0) {
+            nodes.push(
+              <AccommodationDividerPage key={`div-${v.versionId}`} text={v.dividerText} />
+            );
+          }
+          nodes.push(
+            <PdfVersionPages
+              key={v.versionId}
+              title={v.kind === 'base' ? title : `${title} — ${v.label}`}
+              questions={versionQuestions.get(v.versionId) ?? []}
+              advancedProblems={v.problems}
+              docType={docType}
+              standard={standards}
+              includeAnswerKey={includeAnswerKey}
+              logoSrc="/logo_light.png"
+              classicalGroups={classicalGroups}
+              seed={seed}
+              presentation={v.presentation}
+              keyHeading={v.answerKeyLabel}
+            />
+          );
+          return nodes;
+        })}
+      </PdfRendererDocument>
+    );
+  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, includeAnswerKey, classicalGroups, seed]);
 
   // ── Draft save / load ──
   const saveDraft = () => {
@@ -1269,6 +1390,58 @@ export default function WorksheetGenerator() {
               </Box>
             </PanelSection>
 
+            {/* ── Accommodations (IEP generator) ── */}
+            <PanelSection
+              title="Accommodations"
+              action={
+                hasAccommodations ? (
+                  <Chip
+                    size="small"
+                    label={`${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'}`}
+                    data-testid="accom-group-count-chip"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.64rem',
+                      fontWeight: 700,
+                      backgroundColor: 'rgba(217,167,32,0.16)',
+                      color: '#d9a720',
+                      '& .MuiChip-label': { px: 0.75 },
+                    }}
+                  />
+                ) : undefined
+              }
+            >
+              <AccommodationsPanel
+                list={accomList}
+                error={accomError}
+                onCreateList={(classLabel) =>
+                  handleAccomOp(() => {
+                    accomStore.createList(classLabel);
+                  })
+                }
+                onUpdateClassLabel={(listId, classLabel) =>
+                  handleAccomOp(() => {
+                    accomStore.updateClassLabel(listId, classLabel);
+                  }, listId)
+                }
+                onAddGroup={(listId, input: NewGroupInput) =>
+                  handleAccomOp(() => {
+                    accomStore.addGroup(listId, input);
+                  }, listId)
+                }
+                onUpdateGroup={(listId, groupId, patch) =>
+                  handleAccomOp(() => {
+                    accomStore.updateGroup(listId, groupId, patch);
+                  }, listId)
+                }
+                onRemoveGroup={(listId, groupId) =>
+                  handleAccomOp(() => {
+                    accomStore.removeGroup(listId, groupId);
+                  }, listId)
+                }
+              />
+            </PanelSection>
+
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 2 }} />
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)', display: 'block', mb: 1 }}>
               {advancedProblems.length} problem{advancedProblems.length === 1 ? '' : 's'} in this set
@@ -1351,29 +1524,40 @@ export default function WorksheetGenerator() {
             {mounted && selectedModules.length > 0 && (
               <PDFDownloadLink
                 document={
-                  <PdfDocument
-                    title={title}
-                    questions={questions}
-                    advancedProblems={advancedProblems}
-                    docType={docType}
-                    standard={standards}
-                    includeAnswerKey={includeAnswerKey}
-                    logoSrc="/logo_light.png"
-                    classicalGroups={classicalGroups}
-                    seed={seed}
-                  />
+                  hasAccommodations && accommodatedDocument ? (
+                    accommodatedDocument
+                  ) : (
+                    <PdfDocument
+                      title={title}
+                      questions={questions}
+                      advancedProblems={advancedProblems}
+                      docType={docType}
+                      standard={standards}
+                      includeAnswerKey={includeAnswerKey}
+                      logoSrc="/logo_light.png"
+                      classicalGroups={classicalGroups}
+                      seed={seed}
+                    />
+                  )
                 }
-                fileName={`${title.replace(/\s+/g, '_').toLowerCase()}.pdf`}
+                fileName={
+                  hasAccommodations
+                    ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
+                    : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`
+                }
                 style={{ textDecoration: 'none' }}
               >
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<PictureAsPdf />}
-                  sx={{ borderRadius: 8 }}
-                >
-                  Export to PDF
-                </Button>
+                {({ loading }: { loading: boolean }) => (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<PictureAsPdf />}
+                    disabled={loading}
+                    sx={{ borderRadius: 8 }}
+                  >
+                    {loading ? 'Preparing PDF…' : 'Export to PDF'}
+                  </Button>
+                )}
               </PDFDownloadLink>
             )}
           </Box>
@@ -1390,17 +1574,81 @@ export default function WorksheetGenerator() {
               Select at least one topic from the control panel to build a worksheet.
             </Alert>
           ) : (
-            <PreviewErrorBoundary key={errorBoundaryKey}>
-              <EuclidEngine
-                problems={advancedProblems}
-                mode={toOutputMode(docType)}
-                title={title}
-                classicalGroups={classicalGroups}
-                seed={seed}
-                proofDocMode={proofDocMode}
-                standard={standards}
-              />
-            </PreviewErrorBoundary>
+            <>
+              {/* ── Version tabs (visible only when accommodation groups exist) ── */}
+              {hasAccommodations && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    width: '100%',
+                    maxWidth: '8.5in',
+                    px: 4,
+                    pb: 1.5,
+                  }}
+                  data-testid="version-tab-strip"
+                >
+                  {versionPlan.all().map((v) => {
+                    const selected = v.versionId === activeVersion.versionId;
+                    return (
+                      <Button
+                        key={v.versionId}
+                        onClick={() => setActiveVersionId(v.versionId)}
+                        data-testid={`version-tab-${v.versionId}`}
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          borderRadius: 8,
+                          px: 2,
+                          py: 0.75,
+                          border: '1px solid',
+                          borderColor: selected
+                            ? 'rgba(217,167,32,0.55)'
+                            : 'rgba(255,255,255,0.12)',
+                          backgroundColor: selected
+                            ? 'rgba(217,167,32,0.13)'
+                            : 'rgba(2,6,23,0.35)',
+                          color: selected ? '#d9a720' : 'rgba(148,163,184,0.92)',
+                          '&:hover': {
+                            borderColor: 'rgba(217,167,32,0.55)',
+                            color: '#d9a720',
+                          },
+                        }}
+                      >
+                        {v.label}
+                        {v.kind === 'group' ? ` (${v.studentCount})` : ''}
+                      </Button>
+                    );
+                  })}
+                  <Typography
+                    sx={{
+                      fontSize: '0.68rem',
+                      color: 'rgba(148,163,184,0.65)',
+                      ml: 0.5,
+                    }}
+                  >
+                    Previewing: {activeVersion.label}
+                    {activeVersion.accommodations.length > 0 &&
+                      ` — ${activeVersion.accommodations.join(', ')}`}
+                  </Typography>
+                </Box>
+              )}
+              <PreviewErrorBoundary key={errorBoundaryKey}>
+                <EuclidEngine
+                  problems={activeVersion.problems}
+                  mode={toOutputMode(docType)}
+                  title={title}
+                  classicalGroups={classicalGroups}
+                  seed={seed}
+                  proofDocMode={proofDocMode}
+                  standard={standards}
+                  presentation={activeVersion.presentation}
+                />
+              </PreviewErrorBoundary>
+            </>
           )}
         </Box>
       </Box>
