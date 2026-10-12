@@ -65,6 +65,11 @@ export type {
   CalcTopicTag,
 } from "./factories/CalculusUtils";
 export type { BaseFRQProblem, APStimulus, FRQSubpart, APSubject } from "./apTypes";
+export type {
+  GeometryProblem,
+  GeometryType,
+  GeometryDiagramParams,
+} from "./factories/GeometryTypes";
 
 import type { OutputMode, MathProblem } from "./types";
 import { mulberry32 } from "./math-utils";

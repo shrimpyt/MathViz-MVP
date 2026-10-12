@@ -502,13 +502,14 @@ function groupFGraceful(): void {
       html.includes('data-testid="narration-box"')
   );
 
-  // Under-construction entry (placeholder problem): no crash, no definitions.
-  const uc = getEntry("ch1-1-points-lines");
-  const placeholder = uc.generate("Classical" as OutputMode, 5, { count: 3 });
-  html = renderCard("ch1-1-points-lines", placeholder, 3);
-  check("under-construction entry: renders", html.length > 0);
+  // Keyless entry (proofs entries intentionally have no definitions set):
+  // real problems, no crash, no definitions block.
+  const uc = getEntry("proofs-2-4-elements");
+  const keyless = uc.generate("Classical" as OutputMode, 5, { count: 3 });
+  html = renderCard("proofs-2-4-elements", keyless, 3);
+  check("keyless entry: renders", html.length > 0);
   check(
-    "under-construction entry: definitions block omitted",
+    "keyless entry: definitions block omitted",
     !html.includes('data-testid="definitions-block"')
   );
 }

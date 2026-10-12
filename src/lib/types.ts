@@ -247,6 +247,7 @@ import type { SATProblem } from "./satTypes";
 import type { PrecalcMCQ, PrecalcFRQ } from "./factories/PrecalcTypes";
 import type { CalcMCQProblem } from "./factories/CalculusUtils";
 import type { BaseFRQProblem } from "./apTypes";
+import type { GeometryProblem } from "./factories/GeometryTypes";
 
 export type MathProblem = 
   | CircleProblem 
@@ -267,4 +268,5 @@ export type MathProblem =
   | PrecalcMCQ
   | PrecalcFRQ
   | CalcMCQProblem
-  | BaseFRQProblem;
+  | BaseFRQProblem
+  | GeometryProblem;

@@ -145,8 +145,10 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
     };
   }
   if (
-    p.type === 'A2.4' || p.type === 'A2.5' || p.type === 'A2.7' ||
-    p.type === 'A2.8' || p.type === 'A2.11' || p.type === 'A2.12' ||
+    p.type === 'A2.2' || p.type === 'A2.3' ||
+    p.type === 'A2.4' || p.type === 'A2.5' || p.type === 'A2.6' || p.type === 'A2.7' ||
+    p.type === 'A2.8' || p.type === 'A2.9' || p.type === 'A2.10' ||
+    p.type === 'A2.11' || p.type === 'A2.12' ||
     p.type === 'A2.S' || p.type === 'A2.C'
   ) {
     const givenEntries = Object.entries(p.given);
@@ -217,6 +219,17 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
         ? ({ stimulus: stim, subparts: p.subparts } as unknown as Record<string, unknown>)
         : (stim.kind === 'graph' ? (stim.params as unknown as Record<string, unknown>) : undefined),
       scaffolding: p.subparts.map((s) => ({ text: latexToText(s.prompt) })),
+    };
+  }
+  if ((p as { type: string }).type.startsWith('GEO.')) {
+    const gp = p as unknown as import('@/lib/factories/GeometryTypes').GeometryProblem;
+    return {
+      id: idx + 1,
+      text: gp.prompt,
+      points: 10,
+      diagramType: gp.svgParams ? `geometry-${gp.svgParams.kind}` : undefined,
+      diagramData: gp.svgParams as unknown as Record<string, unknown>,
+      scaffolding: gp.steps.map((s) => ({ text: latexToText(s.instruction) })),
     };
   }
   return {

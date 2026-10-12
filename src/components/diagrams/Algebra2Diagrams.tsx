@@ -10,12 +10,15 @@ import type {
   Algebra2DiagramParams,
   Algebra2ConicSVGParams,
   Algebra2RationalSVGParams,
+  Algebra2FuncGraphParams,
 } from "@/lib/factories/Algebra2Types";
 import {
   conicView,
   rationalView,
+  funcGraphView,
   sampleParabola,
   sampleRational,
+  sampleFunction,
   gridLines,
   makeProjector,
 } from "./plotMath";
@@ -119,6 +122,64 @@ function RationalGraphSVG(params: Algebra2RationalSVGParams) {
   );
 }
 
+const GRAPH_COLORS = [BLUE, RED, "#059669", "#9333ea"];
+
+function FuncGraphSVG(params: Algebra2FuncGraphParams) {
+  const view = funcGraphView(params);
+  const p = makeProjector(view);
+  const toPath = (pts: { x: number; y: number }[]) =>
+    pts.map((pt, j) => {
+      const s = p(pt.x, pt.y);
+      return `${j === 0 ? "M" : "L"} ${s.x.toFixed(1)} ${s.y.toFixed(1)}`;
+    }).join(" ");
+  let colorIdx = 0;
+  const nextColor = () => GRAPH_COLORS[colorIdx++ % GRAPH_COLORS.length];
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Function graph">
+      <Grid view={view} />
+      {(params.shade ?? []).map((poly, i) => (
+        <path key={`sh${i}`} d={`${toPath(poly)} Z`} fill={BLUE} opacity={0.13} stroke="none" />
+      ))}
+      {(params.lines ?? []).map((ln, i) => {
+        const m = ln.mNum / ln.mDen;
+        const b = ln.bNum / ln.bDen;
+        const segs = sampleFunction((x) => m * x + b, view.minX, view.maxX, view.minY, view.maxY);
+        const color = nextColor();
+        return segs.map((seg, j) => (
+          <path key={`ln${i}-${j}`} d={toPath(seg)} fill="none" stroke={color} strokeWidth={2}
+            strokeDasharray={ln.dashed ? "5,4" : undefined} />
+        ));
+      })}
+      {(params.verticalLines ?? []).map((v, i) => {
+        const t1 = p(v.x, view.minY), t2 = p(v.x, view.maxY);
+        return (
+          <line key={`vl${i}`} x1={t1.x} y1={t1.y} x2={t2.x} y2={t2.y}
+            stroke={nextColor()} strokeWidth={2} strokeDasharray={v.dashed ? "5,4" : undefined} />
+        );
+      })}
+      {(params.absGraphs ?? []).map((g, i) => {
+        const a = g.aNum / g.aDen;
+        const segs = sampleFunction((x) => a * Math.abs(x - g.h) + g.k, view.minX, view.maxX, view.minY, view.maxY);
+        const color = nextColor();
+        return segs.map((seg, j) => (
+          <path key={`ag${i}-${j}`} d={toPath(seg)} fill="none" stroke={color} strokeWidth={2}
+            strokeDasharray={g.dashed ? "5,4" : undefined} />
+        ));
+      })}
+      {(params.parabolas ?? []).map((pb, i) => {
+        const pts = sampleParabola(pb.h, pb.k, pb.a, view.minX, view.maxX, view.minY, view.maxY);
+        return <path key={`pb${i}`} d={toPath(pts)} fill="none" stroke={nextColor()} strokeWidth={2} />;
+      })}
+      {(params.points ?? []).map((pt, i) => {
+        const s = p(pt.x, pt.y);
+        return pt.open
+          ? <circle key={`pt${i}`} cx={s.x} cy={s.y} r={4} fill="#fff" stroke={INK} strokeWidth={2} />
+          : <circle key={`pt${i}`} cx={s.x} cy={s.y} r={3.2} fill={INK} />;
+      })}
+    </svg>
+  );
+}
+
 export function Algebra2WebSVG({ params }: { params: Algebra2DiagramParams }) {
   if (!params) return null;
   switch (params.kind) {
@@ -126,6 +187,8 @@ export function Algebra2WebSVG({ params }: { params: Algebra2DiagramParams }) {
       return <ConicGraphSVG {...params} />;
     case "RationalGraph":
       return <RationalGraphSVG {...params} />;
+    case "FuncGraph":
+      return <FuncGraphSVG {...params} />;
     default:
       return null;
   }

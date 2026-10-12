@@ -11,6 +11,8 @@ import type {
   CoordinateSVGParams,
   MeasurementSVGParams,
 } from "@/lib/ProblemFactory";
+import type { GeometryDiagramParams } from "@/lib/ProblemFactory";
+import { PdfGeometryFigureSVG } from "./diagrams/GeometryPdfDiagrams";
 
 const CX = 100;
 const CY = 100;
@@ -761,6 +763,19 @@ type SVGParams =
 
 export function PdfGeometrySVG({ params }: { params: SVGParams }) {
   if (!params) return null;
+
+  // New Geometry lesson/test figures (GeometryProblem svgParams) dispatch to
+  // their own PDF renderer. "ShadedSector" is NOT routed here — it keeps the
+  // existing PdfShadedSectorSVG case below.
+  const gkind = (params as { kind?: string }).kind;
+  if (
+    gkind === "TriangleFigure" || gkind === "PolygonFigure" || gkind === "GridFigure" ||
+    gkind === "TransversalFigure" || gkind === "TangentFigure" || gkind === "SolidFigure" ||
+    gkind === "NetFigure" || gkind === "SketchFigure" || gkind === "AngleFigure" ||
+    gkind === "PatternFigure"
+  ) {
+    return <PdfGeometryFigureSVG params={params as unknown as GeometryDiagramParams} />;
+  }
 
   switch (params.kind) {
     case "InscribedAngle":

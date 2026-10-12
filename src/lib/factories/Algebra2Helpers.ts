@@ -167,6 +167,46 @@ export function pointToLatex(x: number | string, y: number | string): string {
   return `(${x}, ${y})`;
 }
 
+// ── Half-plane clipping (for shaded feasible regions in diagram params) ──────
+
+export interface Pt {
+  x: number;
+  y: number;
+}
+
+/** Square polygon ±box, counterclockwise. */
+export function boxPolygon(box: number): Pt[] {
+  return [
+    { x: -box, y: -box },
+    { x: box, y: -box },
+    { x: box, y: box },
+    { x: -box, y: box },
+  ];
+}
+
+/**
+ * Sutherland–Hodgman clip of a polygon to the half-plane
+ * a·x + b·y ≤ c (keep "le") or a·x + b·y ≥ c (keep "ge").
+ */
+export function clipHalfPlane(poly: Pt[], a: number, b: number, c: number, keep: "le" | "ge"): Pt[] {
+  if (poly.length === 0) return poly;
+  const val = (p: Pt) => a * p.x + b * p.y - c;
+  const inside = (p: Pt) => (keep === "le" ? val(p) <= 1e-9 : val(p) >= -1e-9);
+  const out: Pt[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const cur = poly[i];
+    const prev = poly[(i + poly.length - 1) % poly.length];
+    const curIn = inside(cur);
+    const prevIn = inside(prev);
+    if (curIn !== prevIn) {
+      const t = val(prev) / (val(prev) - val(cur));
+      out.push({ x: prev.x + (cur.x - prev.x) * t, y: prev.y + (cur.y - prev.y) * t });
+    }
+    if (curIn) out.push(cur);
+  }
+  return out;
+}
+
 // ── Maker selection with difficulty + subtype filtering ───────────────────────
 
 export interface MakerLike {

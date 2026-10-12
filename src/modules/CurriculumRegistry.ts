@@ -29,11 +29,16 @@ import {
   a2_4_2_multiply,
   a2_4_3_detInverse,
   a2_4_4_systemsMatrices,
+  a2_5_1_quadAttributes,
+  a2_5_2_quadStandard,
+  a2_5_3_quadModeling,
   a2_5_4_focusDirectrix,
+  a2_5_5_quadFactoring,
   a2_5_6_quadEquations,
   a2_5_7_completingSquare,
   a2_5_8_quadFormula,
   a2_5_9_complexNumbers,
+  a2_5_10_quadInequalities,
   a2_5_11_linQuadSystems,
   a2_7_6_logProperties,
   a2_7_7_expLogEquations,
@@ -53,8 +58,52 @@ import {
   a2_p_polyIdentities,
   a2x_sequences,
   a2x_circleEquations,
+  a2_2_1_relationsFunctions,
+  a2_2_2_attributesFunctions,
+  a2_2_3_absTransformations,
+  a2_2_4_absIneqGraph,
+  a2_2_5_absEquations,
+  a2_2_6_absInequalities,
+  a2_3_1_systemsGraphs,
+  a2_3_2_systemsAlgebraic,
+  a2_3_3_systemsInequalities,
+  a2_3_4_threeVariables,
+  a2_3_5_matricesSystems,
+  a2_6_1_functionOperations,
+  a2_6_2_inverseFunctions,
+  a2_6_3_sqrtTransformations,
+  a2_6_4_sqrtAsInverses,
+  a2_6_5_sqrtEquationsIntro,
+  a2_6_6_sqrtEquationsSolving,
+  a2_7_1_expAttributes,
+  a2_7_2_eToX,
+  a2_7_3_recursiveModels,
+  a2_7_4_logAttributes,
+  a2_7_5_naturalLog,
+  a2_8_1_polyAttributes,
+  a2_8_3_polyAddSubMul,
+  a2_8_7_fta,
+  a2_9_1_rootsRadicals,
+  a2_9_2_radicalMultDiv,
+  a2_9_3_binomialRadicals,
+  a2_9_4_rationalExponents,
+  a2_10_1_cubicTransformations,
+  a2_10_2_cuberootTransformations,
+  a2_10_3_cuberootEquations,
   a2x_circleLineSystems,
 } from "./algebra-2";
+import {
+  geo_1_1_foundations,
+  geo_2_1_inductive,
+  geo_5_1_midsegments,
+  geo_6_1_polygons,
+  geo_8_1_translations,
+  geo_12_1_tangentLines,
+  geo_13_1_area,
+  geo_14_2_surfaceArea,
+  geo_15_1_probability,
+  geoTopicTest,
+} from "./geometry-lessons";
 import { MIDDLE_SCHOOL_ENTRIES } from "./middle-school";
 import { SAT_MATH_REGISTRY } from "./sat-math";
 import { PRECALCULUS_ENTRIES } from "./precalculus";
@@ -264,12 +313,11 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     id: "ch1-1-points-lines",
     topic: 1,
     topicTitle: "Topic 1: Tools of Geometry",
-    title: "1-1: Nets and Drawings",
+    title: "1-1: Points, Lines, Planes & Nets",
     story: "Visualizing 3D objects in 2D space.",
     teks: "G.1(A) · G.4(D)",
-    description: "Identify nets and orthographic drawings of geometric solids.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    description: "Points, lines, and planes fundamentals (naming, collinear and coplanar points, intersections, segment and angle measures) together with nets and orthographic drawings of solids.",
+    generate: geo_1_1_foundations,
   },
   {
     id: "ch1-test",
@@ -279,8 +327,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Comprehensive assessment of geometric foundations.",
     teks: "G.2(B) · G.5(C)",
     description: "Points, lines, planes, segments, and basic constructions.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(1, m, s, o),
+    generate: (m, s, o) => geoTopicTest(1, m, s, o),
   },
   // ── Topic 2: Reasoning and Proof ──────────────────────────────────────────
   {
@@ -291,8 +338,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Find patterns and make conjectures.",
     teks: "G.4(A)",
     description: "Using patterns to find individual cases and making predictions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_2_1_inductive,
   },
   {
     id: "ch2-test",
@@ -302,8 +348,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Logic and formal proof structures.",
     teks: "G.4(A) · G.4(B)",
     description: "Conditional statements, deductive reasoning, and segment/angle proofs.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(2, m, s, o),
+    generate: (m, s, o) => geoTopicTest(2, m, s, o),
   },
   // ── Topic 3: Parallel and Perpendicular Lines ─────────────────────────────
   {
@@ -314,8 +359,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Angles created by transversals and parallel lines.",
     teks: "G.5(A) · G.5(B)",
     description: "Parallel lines, slope, and equations of lines.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(3, m, s, o),
+    generate: (m, s, o) => geoTopicTest(3, m, s, o),
   },
   // ── Topic 4: Congruent Triangles ──────────────────────────────────────────
   {
@@ -347,8 +391,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Connecting midpoints to find hidden lengths.",
     teks: "G.5(D)",
     description: "Using the Triangle Midsegment Theorem to solve for segments and angles.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_5_1_midsegments,
   },
   {
     id: "ch5-test",
@@ -358,8 +401,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Bisectors, medians, altitudes, and triangle inequalities.",
     teks: "G.5(D) · G.6(D)",
     description: "Incenter, circumcenter, centroid, and orthocenter properties.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(5, m, s, o),
+    generate: (m, s, o) => geoTopicTest(5, m, s, o),
   },
   // ── Topic 6: Polygons and Quadrilaterals ──────────────────────────────────
   {
@@ -370,8 +412,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Interior and exterior angles of multi-sided shapes.",
     teks: "G.5(A)",
     description: "Calculate the sum of interior angles and measures of individual exterior angles.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_6_1_polygons,
   },
   {
     id: "ch6-test",
@@ -381,8 +422,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Properties of parallelograms and special quadrilaterals.",
     teks: "G.6(E)",
     description: "Rhombuses, rectangles, squares, trapezoids, and kites.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(6, m, s, o),
+    generate: (m, s, o) => geoTopicTest(6, m, s, o),
   },
   // ── Topic 7: Coordinate Geometry ──────────────────────────────────────────
   {
@@ -414,8 +454,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Sliding figures across the coordinate plane.",
     teks: "G.3(A)",
     description: "Represent translations as vectors and solve for new coordinates.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_8_1_translations,
   },
   {
     id: "ch8-test",
@@ -425,8 +464,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Reflections, translations, rotations, and symmetry.",
     teks: "G.3(A) · G.3(B) · G.3(C)",
     description: "Rigid motions and composition of transformations.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(8, m, s, o),
+    generate: (m, s, o) => geoTopicTest(8, m, s, o),
   },
   // ── Topic 9: Similarity ────────────────────────────────────────────────────
   {
@@ -437,8 +475,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Ratios, proportions, and similar figures.",
     teks: "G.7(A) · G.7(B)",
     description: "Triangle similarity theorems (AA~, SAS~, SSS~) and dilations.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(9, m, s, o),
+    generate: (m, s, o) => geoTopicTest(9, m, s, o),
   },
   // ── Topic 10: Right Triangles and Trigonometry ─────────────────────────────
   {
@@ -541,8 +578,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Understanding lines that skim the edge of a circle.",
     teks: "G.12(A)",
     description: "Properties of tangents and their relationship to radii.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_12_1_tangentLines,
   },
   {
     id: "ch12-test",
@@ -563,8 +599,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Calculating flat space for standard shapes.",
     teks: "G.11(B)",
     description: "Find the area given base and height, including coordinate geometry scenarios.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_13_1_area,
   },
   {
     id: "ch13-test",
@@ -574,8 +609,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Area of polygons and composite figures.",
     teks: "G.11(B)",
     description: "Calculating area for triangles, quadrilaterals, and regular polygons.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(13, m, s, o),
+    generate: (m, s, o) => geoTopicTest(13, m, s, o),
   },
   // ── Topic 14: Surface Area and Volume ─────────────────────────────────────
   {
@@ -586,8 +620,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Wrapping 3D shapes in logic.",
     teks: "G.11(C)",
     description: "Solve for lateral and total surface area using formulas.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_14_2_surfaceArea,
   },
   {
     id: "ch14-test",
@@ -597,8 +630,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "3D geometry, prisms, cylinders, pyramids, and spheres.",
     teks: "G.11(C)",
     description: "Surface area and volume of three-dimensional solids.",
-    underConstruction: true,
-    generate: (m, s, o) => topicTestGenerator(14, m, s, o),
+    generate: (m, s, o) => geoTopicTest(14, m, s, o),
   },
   // ── Topic 15: Probability ──────────────────────────────────────────────────
   {
@@ -619,8 +651,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Comparing what should happen to what actually happens.",
     teks: "G.13(B)",
     description: "Calculate frequencies and theoretical outcomes for geometric events.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: geo_15_1_probability,
   },
   {
     id: "ch15-test",
@@ -1324,8 +1355,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Decide whether a relation is a function.",
     teks: "A2.2",
     description: "Domain, range, and the vertical line test.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_2_1_relationsFunctions(m, s, o),
   },
   {
     id: "a2-2-2-attributes-functions",
@@ -1335,8 +1365,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Intercepts, intervals of increase/decrease, and extrema.",
     teks: "A2.2",
     description: "Read key attributes directly from graphs and tables.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_2_2_attributesFunctions(m, s, o),
   },
   {
     id: "a2-2-3-abs-transformations",
@@ -1346,8 +1375,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Shift, stretch, and reflect the V-shape.",
     teks: "A2.2",
     description: "Attributes and transformations of absolute value functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_2_3_absTransformations(m, s, o),
   },
   {
     id: "a2-2-4-abs-inequalities-graph",
@@ -1357,8 +1385,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Shade the region that satisfies the inequality.",
     teks: "A2.2",
     description: "Graph absolute value inequalities in two variables.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_2_4_absIneqGraph(m, s, o),
   },
   {
     id: "a2-2-5-abs-equations",
@@ -1368,8 +1395,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Split into two cases and check for extraneous roots.",
     teks: "A2.2",
     description: "Solve absolute value equations algebraically.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_2_5_absEquations(m, s, o),
   },
   {
     id: "a2-2-6-abs-inequalities",
@@ -1379,8 +1405,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "And-bound versus or-bound solution sets.",
     teks: "A2.2",
     description: "Solve absolute value inequalities algebraically.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_2_6_absInequalities(m, s, o),
   },
   {
     id: "a2-3-1-systems-graphs",
@@ -1390,8 +1415,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Read the solution where the graphs cross.",
     teks: "A2.3",
     description: "Solve systems by interpreting tables and graphs.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_3_1_systemsGraphs(m, s, o),
   },
   {
     id: "a2-3-2-systems-algebraic",
@@ -1401,8 +1425,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Substitution and elimination, step by step.",
     teks: "A2.3",
     description: "Solve linear systems by substitution and elimination.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_3_2_systemsAlgebraic(m, s, o),
   },
   {
     id: "a2-3-3-systems-inequalities",
@@ -1412,8 +1435,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Overlap the half-planes to find the feasible region.",
     teks: "A2.3",
     description: "Graph systems of linear inequalities.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_3_3_systemsInequalities(m, s, o),
   },
   {
     id: "a2-3-4-three-variables",
@@ -1423,8 +1445,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Eliminate one variable at a time.",
     teks: "A2.3",
     description: "Solve 3×3 linear systems algebraically.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_3_4_threeVariables(m, s, o),
   },
   {
     id: "a2-3-5-matrices-systems",
@@ -1434,8 +1455,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "First look at matrices as an organizing tool.",
     teks: "A2.3",
     description: "Introduce matrices in the context of linear systems.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_3_5_matricesSystems(m, s, o),
   },
   {
     id: "a2-4-1-matrix-add-subtract",
@@ -1485,8 +1505,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "How a, h, k reshape the parabola.",
     teks: "A2.5",
     description: "Attributes and transformations of quadratic functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_5_1_quadAttributes(m, s, o),
   },
   {
     id: "a2-5-2-quad-standard",
@@ -1496,8 +1515,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Read direction, width, and the y-intercept from ax²+bx+c.",
     teks: "A2.5",
     description: "Work with quadratics in standard form.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_5_2_quadStandard(m, s, o),
   },
   {
     id: "a2-5-3-quad-modeling",
@@ -1507,8 +1525,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Fit a parabola to projectile and area situations.",
     teks: "A2.5",
     description: "Model real situations with quadratic functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_5_3_quadModeling(m, s, o),
   },
   {
     id: "a2-5-4-focus-directrix",
@@ -1528,8 +1545,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Undo the multiplication to find the zeros.",
     teks: "A2.5",
     description: "Factor quadratics over the integers.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_5_5_quadFactoring(m, s, o),
   },
   {
     id: "a2-5-6-quad-equations",
@@ -1579,8 +1595,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Sign charts turn parabolas into interval answers.",
     teks: "A2.5",
     description: "Solve quadratic inequalities algebraically and graphically.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_5_10_quadInequalities(m, s, o),
   },
   {
     id: "a2-5-11-lin-quad-systems",
@@ -1600,8 +1615,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Add, multiply, and chain functions together.",
     teks: "A2.6",
     description: "Operations on functions and composition (f∘g)(x).",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_6_1_functionOperations(m, s, o),
   },
   {
     id: "a2-6-2-inverse-functions",
@@ -1611,8 +1625,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Undo a function by swapping x and y.",
     teks: "A2.6",
     description: "Find and verify inverse functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_6_2_inverseFunctions(m, s, o),
   },
   {
     id: "a2-6-3-sqrt-transformations",
@@ -1622,8 +1635,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "The square root curve, shifted and stretched.",
     teks: "A2.6",
     description: "Attributes and transformations of square root functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_6_3_sqrtTransformations(m, s, o),
   },
   {
     id: "a2-6-4-sqrt-as-inverses",
@@ -1633,8 +1645,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Square roots undo squaring — with a domain catch.",
     teks: "A2.6",
     description: "Connect square root functions to inverse quadratic relationships.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_6_4_sqrtAsInverses(m, s, o),
   },
   {
     id: "a2-6-5-sqrt-equations-intro",
@@ -1644,8 +1655,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Isolate the radical before you square.",
     teks: "A2.6",
     description: "First steps solving equations with radicals.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_6_5_sqrtEquationsIntro(m, s, o),
   },
   {
     id: "a2-6-6-sqrt-equations-solving",
@@ -1655,8 +1665,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Square both sides — then check every candidate.",
     teks: "A2.6",
     description: "Solve radical equations and reject extraneous roots.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_6_6_sqrtEquationsSolving(m, s, o),
   },
   {
     id: "a2-7-1-exp-attributes",
@@ -1666,8 +1675,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Growth curves and their horizontal asymptote.",
     teks: "A2.7",
     description: "Attributes and transformations of exponential functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_7_1_expAttributes(m, s, o),
   },
   {
     id: "a2-7-2-e-to-x",
@@ -1677,8 +1685,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Continuous growth has its own base.",
     teks: "A2.7",
     description: "Evaluate and graph functions with base e.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_7_2_eToX(m, s, o),
   },
   {
     id: "a2-7-3-recursive-models",
@@ -1688,8 +1695,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Each term builds on the last.",
     teks: "A2.7",
     description: "Write and evaluate recursive exponential models.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_7_3_recursiveModels(m, s, o),
   },
   {
     id: "a2-7-4-log-attributes",
@@ -1699,8 +1705,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "The exponential curve, reflected.",
     teks: "A2.7",
     description: "Attributes and transformations of logarithmic functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_7_4_logAttributes(m, s, o),
   },
   {
     id: "a2-7-5-natural-log",
@@ -1710,8 +1715,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Base e gets its own button: ln.",
     teks: "A2.7",
     description: "Evaluate and apply natural logarithms.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_7_5_naturalLog(m, s, o),
   },
   {
     id: "a2-7-6-log-properties",
@@ -1741,8 +1745,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "End behavior and turning points from degree and leading coefficient.",
     teks: "A2.8",
     description: "Describe polynomial attributes from equations and graphs.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_8_1_polyAttributes(m, s, o),
   },
   {
     id: "a2-8-2-linear-factors-zeros",
@@ -1762,8 +1765,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Polynomial arithmetic, term by term.",
     teks: "A2.8",
     description: "Add, subtract, and multiply polynomials.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_8_3_polyAddSubMul(m, s, o),
   },
   {
     id: "a2-8-4-poly-solve",
@@ -1803,8 +1805,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "A degree-n polynomial has exactly n complex zeros.",
     teks: "A2.8",
     description: "Use the Fundamental Theorem of Algebra to count zeros.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_8_7_fta(m, s, o),
   },
   {
     id: "a2-9-1-roots-radicals",
@@ -1814,8 +1815,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Simplify radicals to their cleanest form.",
     teks: "A2.9",
     description: "Simplify radical expressions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_9_1_rootsRadicals(m, s, o),
   },
   {
     id: "a2-9-2-radical-mult-div",
@@ -1825,8 +1825,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Combine radicals, then rationalize.",
     teks: "A2.9",
     description: "Multiply and divide radical expressions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_9_2_radicalMultDiv(m, s, o),
   },
   {
     id: "a2-9-3-binomial-radicals",
@@ -1836,8 +1835,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Conjugates clear the denominator.",
     teks: "A2.9",
     description: "Operate with binomial radical expressions and rationalize denominators.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_9_3_binomialRadicals(m, s, o),
   },
   {
     id: "a2-9-4-rational-exponents",
@@ -1847,8 +1845,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Fractional exponents are radicals in disguise.",
     teks: "A2.9",
     description: "Convert between radical and rational-exponent forms; simplify.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_9_4_rationalExponents(m, s, o),
   },
   {
     id: "a2-10-1-cubic-transformations",
@@ -1858,8 +1855,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "The S-curve and its inflection point.",
     teks: "A2.10",
     description: "Attributes and transformations of cubic functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_10_1_cubicTransformations(m, s, o),
   },
   {
     id: "a2-10-2-cuberoot-transformations",
@@ -1869,8 +1865,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Cube roots keep their sign — and their shape.",
     teks: "A2.10",
     description: "Attributes and transformations of cube root functions.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_10_2_cuberootTransformations(m, s, o),
   },
   {
     id: "a2-10-3-cuberoot-equations",
@@ -1880,8 +1875,7 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     story: "Cube both sides — no extraneous roots this time.",
     teks: "A2.10",
     description: "Solve cube root equations.",
-    underConstruction: true,
-    generate: placeholderGenerator,
+    generate: (m, s, o) => a2_10_3_cuberootEquations(m, s, o),
   },
   {
     id: "a2-11-1-simplify",

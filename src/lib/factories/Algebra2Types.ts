@@ -14,10 +14,15 @@ import { latexToText } from "../answerKey";
 // TEKS-by-topic code, so registry entries, cards, and problems agree.
 
 export type Algebra2Type =
+  | "A2.2" // T2 Relations, functions & absolute value
+  | "A2.3" // T3 Systems of equations & inequalities
   | "A2.4" // T4 Matrices
   | "A2.5" // T5 Quadratics, parabolas, nonlinear systems
+  | "A2.6" // T6 Function operations, inverses, square root functions
   | "A2.7" // T7 Exponentials & logarithms
   | "A2.8" // T8 Polynomials (division, factoring, roots)
+  | "A2.9" // T9 Radical expressions & rational exponents
+  | "A2.10" // T10 Cubic & cube root functions
   | "A2.11" // T11 Rational functions & equations
   | "A2.12" // T12 Data & regression
   | "A2.S" // Sequences & series (supplementary — not in scope doc)
@@ -43,7 +48,45 @@ export interface Algebra2RationalSVGParams {
   hole: { x: number; y: number } | null;
 }
 
-export type Algebra2DiagramParams = Algebra2ConicSVGParams | Algebra2RationalSVGParams;
+/** A line y = mx + b with exact fractional slope/intercept (for FuncGraph). */
+export interface Algebra2FuncGraphLine {
+  mNum: number;
+  mDen: number;
+  bNum: number;
+  bDen: number;
+  /** Dashed rendering (boundary of a strict inequality). */
+  dashed?: boolean;
+}
+
+/** An absolute-value graph y = a·|x − h| + k with exact fractional a. */
+export interface Algebra2FuncGraphAbs {
+  h: number;
+  k: number;
+  aNum: number;
+  aDen: number;
+  /** Dashed rendering (boundary of a strict inequality). */
+  dashed?: boolean;
+}
+
+/**
+ * General function graph: lines, V-graphs, parabolas, marked points, and
+ * shaded regions. Shade regions are explicit polygons in data coordinates
+ * (computed by the factory); the renderers clip them to the view window.
+ */
+export interface Algebra2FuncGraphParams {
+  kind: "FuncGraph";
+  lines?: Algebra2FuncGraphLine[];
+  verticalLines?: { x: number; dashed?: boolean }[];
+  absGraphs?: Algebra2FuncGraphAbs[];
+  parabolas?: { h: number; k: number; a: number }[];
+  shade?: { x: number; y: number }[][];
+  points?: { x: number; y: number; open?: boolean }[];
+}
+
+export type Algebra2DiagramParams =
+  | Algebra2ConicSVGParams
+  | Algebra2RationalSVGParams
+  | Algebra2FuncGraphParams;
 
 // ── Computational problem ─────────────────────────────────────────────────────
 
@@ -98,10 +141,15 @@ export function formatAlgebra2Answer(p: Algebra2MathProblem): string {
 
 /** Human-readable topic label for section dividers / cards. */
 export const ALGEBRA2_TOPIC_LABELS: Record<Algebra2Type | Algebra2ProofType, string> = {
+  "A2.2": "Functions & Absolute Value",
+  "A2.3": "Systems of Equations",
   "A2.4": "Matrices",
   "A2.5": "Quadratics & Nonlinear Systems",
+  "A2.6": "Square Root Functions & Inverses",
   "A2.7": "Exponentials & Logarithms",
   "A2.8": "Polynomial Division & Factoring",
+  "A2.9": "Radical Expressions & Rational Exponents",
+  "A2.10": "Cubic & Cube Root Functions",
   "A2.11": "Rational Functions & Equations",
   "A2.12": "Data & Regression",
   "A2.S": "Sequences & Series",

@@ -10,6 +10,8 @@ import { formatAlgebra1Answer } from "@/modules/algebra-1";
 import { formatAlgebra2Answer } from "./factories/Algebra2Types";
 import { formatPrecalcAnswer } from "./factories/PrecalcTypes";
 import { formatCalculusAnswer } from "./factories/CalculusUtils";
+import { formatGeometryAnswer } from "./factories/GeometryTypes";
+import type { GeometryProblem } from "./factories/GeometryTypes";
 
 // ── latexToText ───────────────────────────────────────────────────────────────
 
@@ -29,9 +31,6 @@ const SUBSCRIPT: Record<string, string> = {
 
 const SYMBOLS: [RegExp, string][] = [
   [/\^\\circ/g, "°"], // 37^\circ → 37°
-  [/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "$1/$2"],
-  [/\\sqrt\s*\{([^{}]*)\}/g, "√$1"],
-  [/\\sqrt(?![a-zA-Z{])/g, "√"],
   [/\\times/g, "×"],
   [/\\div/g, "÷"],
   [/\\cdot/g, "·"],
@@ -58,6 +57,48 @@ function mapChars(s: string, table: Record<string, string>): string {
   return s.split("").map((c) => table[c] ?? c).join("");
 }
 
+/** True when `t` is a single parenthesized unit: "(x - 3)", "((a))". */
+function wrapsWhole(t: string): boolean {
+  if (!t.startsWith("(") || !t.endsWith(")")) return false;
+  let depth = 0;
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] === "(") depth++;
+    else if (t[i] === ")") {
+      depth--;
+      if (depth === 0 && i < t.length - 1) return false;
+    }
+  }
+  return depth === 0;
+}
+
+/**
+ * A multi-term radicand needs visible grouping once the radical sign loses
+ * its overbar: "\sqrt{x - 3}" must read "√(x - 3)", not "√x - 3" (which
+ * parses as (√x) - 3). Single terms stay bare: "\sqrt{5}" → "√5",
+ * "\sqrt{2x}" → "√2x". A leading minus belongs to the radicand's value,
+ * not its term structure, so it is ignored for the multi-term test.
+ */
+function groupRadicand(rad: string): string {
+  const t = rad.trim();
+  if (t === "" || wrapsWhole(t)) return t;
+  const body = t.startsWith("-") ? t.slice(1) : t;
+  const multiTerm = /[+\-/]/.test(body) || /\s/.test(body);
+  return multiTerm ? `(${t})` : t;
+}
+
+/**
+ * Radical forms, applied after \frac (so a fraction inside a radicand has
+ * already become "a/b" and is grouped as a multi-term radicand).
+ */
+function replaceRoots(s: string): string {
+  s = s.replace(/\\sqrt\[3\]\s*\{([^{}]*)\}/g, (_m, r: string) => `∛${groupRadicand(r)}`);
+  s = s.replace(/\\sqrt\[4\]\s*\{([^{}]*)\}/g, (_m, r: string) => `∜${groupRadicand(r)}`);
+  s = s.replace(/\\sqrt\[(\d+)\]\s*\{([^{}]*)\}/g, (_m, n: string, r: string) => `√[${n}]${groupRadicand(r)}`);
+  s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, (_m, r: string) => `√${groupRadicand(r)}`);
+  s = s.replace(/\\sqrt(?![a-zA-Z{])/g, "√");
+  return s;
+}
+
 /**
  * Convert a LaTeX-flavoured string to readable unicode text.
  * Safe to call on plain text — it passes through unchanged.
@@ -68,6 +109,13 @@ export function latexToText(input: string | number | null | undefined): string {
 
   // Strip inline/display math delimiters: \( \) \[ \] and $
   s = s.replace(/\\\(|\\\)|\\\[|\\\]/g, "").replace(/\$/g, "");
+
+  // Fractions first: a \frac inside a radicand must already read "a/b"
+  // when the radical grouping decision is made.
+  s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "$1/$2");
+
+  // Radicals, with grouping preserved for multi-term radicands.
+  s = replaceRoots(s);
 
   // Common commands → unicode
   for (const [re, rep] of SYMBOLS) {
@@ -133,6 +181,9 @@ export function givenKeyName(key: string): string {
  * One-line printable answer for the answer key, in the problem's own units.
  */
 export function formatAnswer(p: MathProblem): string {
+  if ((p as { type: string }).type.startsWith("GEO.")) {
+    return formatGeometryAnswer(p as GeometryProblem);
+  }
   switch (p.type) {
     case "G.12A":
       return `${latexToText(p.answer)}°`;
@@ -169,7 +220,9 @@ export function formatAnswer(p: MathProblem): string {
     case "A.7C": case "A.6B": case "A.8A": case "A.6C": case "A.9A":
     case "A.9B": case "A.9E":
       return formatAlgebra1Answer(p);
-    case "A2.4": case "A2.5": case "A2.7": case "A2.8":
+    case "A2.2": case "A2.3":
+    case "A2.4": case "A2.5": case "A2.6": case "A2.7": case "A2.8":
+    case "A2.9": case "A2.10":
     case "A2.11": case "A2.12": case "A2.S": case "A2.C":
       return formatAlgebra2Answer(p);
     case "MS.6":

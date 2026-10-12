@@ -21,3 +21,4 @@ export { PrecalcMCQCard } from "./PrecalcMCQCard";
 export { PrecalcFRQCard } from "./PrecalcFRQCard";
 export { CalculusMCQCard } from "./CalculusMCQCard";
 export { CalculusFRQCard } from "./CalculusFRQCard";
+export { GeometryProblemCard } from "./GeometryProblemCard";

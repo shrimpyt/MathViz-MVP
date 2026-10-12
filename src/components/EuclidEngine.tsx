@@ -28,6 +28,7 @@ import type {
   PrecalcFRQ,
   CalcMCQProblem,
   BaseFRQProblem,
+  GeometryProblem,
 } from "@/lib/ProblemFactory";
 import {
   DocumentHeader,
@@ -50,6 +51,7 @@ import {
   PrecalcFRQCard,
   CalculusMCQCard,
   CalculusFRQCard,
+  GeometryProblemCard,
 } from "./problem-cards";
 import { ClassicalNotesCard } from "./problem-cards/ClassicalNotesCard";
 import type { Presentation } from "../lib/accommodations";
@@ -188,6 +190,9 @@ export function EuclidEngine({
     (p): p is BaseFRQProblem =>
       p.type === "AP_FRQ" && (p as { subject?: string }).subject === "calc"
   );
+  const geometryProblems = problems.filter(
+    (p): p is GeometryProblem => (p as { type: string }).type.startsWith("GEO.")
+  );
 
   // Global offset index for continuous numbering across all sections
   const circleOffset = 0;
@@ -209,6 +214,7 @@ export function EuclidEngine({
   const precalcFRQOffset = precalcMCQOffset + precalcMCQs.length;
   const calcMCQOffset = precalcFRQOffset + precalcFRQs.length;
   const calcFRQOffset = calcMCQOffset + calcMCQs.length;
+  const geometryOffset = calcFRQOffset + calcFRQs.length;
 
   const showClassicalGroups =
     mode === "Classical" && !!classicalGroups && classicalGroups.length > 0;
@@ -581,6 +587,22 @@ export function EuclidEngine({
                 key={i}
                 problem={p}
                 index={calcFRQOffset + i}
+                mode={mode}
+                revealed={revealed}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Geometry — Lessons & Chapter Tests (GEO.*) */}
+        {geometryProblems.length > 0 && (
+          <>
+            <SectionDivider label="Geometry" />
+            {geometryProblems.map((p, i) => (
+              <GeometryProblemCard
+                key={i}
+                problem={p}
+                index={geometryOffset + i}
                 mode={mode}
                 revealed={revealed}
               />

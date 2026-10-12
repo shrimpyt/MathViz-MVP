@@ -83,7 +83,13 @@ for (let li = 0; li < WIRED_LESSONS.length; li++) {
 
           // — answer key / text safety —
           const key = formatAlgebra2Answer(cp);
-          check(key === latexToText(res.expectedAnswer), `${tag}: answer-key exact`);
+          // formatAlgebra2Answer appends the problem's unit (when set) after
+          // the converted answer; the checker's expectedAnswer is the raw
+          // answer string, so the unit suffix is accounted for here.
+          check(
+            key === latexToText(res.expectedAnswer) + (cp.unit ? ` ${cp.unit}` : ""),
+            `${tag}: answer-key exact`
+          );
           check(!latexToText(cp.answer).includes("\\"), `${tag}: latex fully converted`);
           try {
             const safe = pdfSafeText(cp.answer);
@@ -128,7 +134,11 @@ for (let li = 0; li < WIRED_LESSONS.length; li++) {
               const cp = p as Algebra2Problem;
               const blanks = cp.steps.flatMap((s) => s.blanks ?? []);
               check(blanks.length > 0, `${tag}/Review: has blanks`);
-              const missing = blanks.filter((b) => !html.includes(latexToText(b.answer)));
+              // renderToStaticMarkup HTML-escapes text nodes; unescape so
+              // answers containing < or > (inequality solution sets) compare
+              // against the text a reader actually sees.
+              const visibleHtml = html.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+              const missing = blanks.filter((b) => !visibleHtml.includes(latexToText(b.answer)));
               check(missing.length === 0, `${tag}/Review: all blank answers shown (${missing.length} missing)`);
             }
           }
