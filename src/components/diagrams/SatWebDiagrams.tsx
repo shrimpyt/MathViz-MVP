@@ -93,21 +93,21 @@ function SatRightTriangleWeb({
       <polygon
         points={`${ax},${ay} ${bx},${by} ${cx},${cy}`}
         fill="none"
-        stroke="#0F172A"
+        stroke="#111111"
         strokeWidth={2}
       />
       {/* right-angle mark at the bottom-left */}
       <path
         d={`M ${ax + 10} ${ay} L ${ax + 10} ${ay - 10} L ${ax} ${ay - 10}`}
         fill="none"
-        stroke="#0F172A"
+        stroke="#111111"
         strokeWidth={1.5}
       />
       {/* reference angle arc at the base vertex */}
       <path
         d={`M ${bx - rArc} ${by} A ${rArc} ${rArc} 0 0 0 ${arcEndX} ${arcEndY}`}
         fill="none"
-        stroke="#B48A18"
+        stroke="#555555"
         strokeWidth={1.8}
       />
       <text
@@ -115,15 +115,15 @@ function SatRightTriangleWeb({
         y={by - 4}
         fontSize={13}
         fontStyle="italic"
-        fill="#0F172A"
+        fill="#111111"
         textAnchor="middle"
       >
         {angleLabel}
       </text>
-      <text x={(ax + bx) / 2} y={ay + 18} fontSize={12} textAnchor="middle" fill="#0F172A">
+      <text x={(ax + bx) / 2} y={ay + 18} fontSize={12} textAnchor="middle" fill="#111111">
         {labels.adj}
       </text>
-      <text x={bx + 14} y={(by + cy) / 2 + 4} fontSize={12} textAnchor="middle" fill="#0F172A">
+      <text x={bx + 14} y={(by + cy) / 2 + 4} fontSize={12} textAnchor="middle" fill="#111111">
         {labels.opp}
       </text>
       <text
@@ -131,7 +131,7 @@ function SatRightTriangleWeb({
         y={(ay + cy) / 2 - 6}
         fontSize={12}
         textAnchor="middle"
-        fill="#0F172A"
+        fill="#111111"
       >
         {labels.hyp}
       </text>
@@ -161,19 +161,19 @@ function SatTriangleWeb({
       <polygon
         points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`}
         fill="none"
-        stroke="#0F172A"
+        stroke="#111111"
         strokeWidth={2}
       />
       {[A, B, C].map((p, i) => (
         <React.Fragment key={i}>
-          <circle cx={p.x} cy={p.y} r={2.5} fill="#0F172A" />
+          <circle cx={p.x} cy={p.y} r={2.5} fill="#111111" />
           <text
             x={p.x + (i === 0 ? 0 : i === 1 ? -14 : 14)}
             y={p.y + (i === 0 ? -8 : 16)}
             fontSize={13}
             fontWeight="bold"
             textAnchor="middle"
-            fill="#0F172A"
+            fill="#111111"
           >
             {vertices[i]}
           </text>

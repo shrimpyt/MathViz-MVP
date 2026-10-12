@@ -21,7 +21,7 @@ const LETTERS = ["A", "B", "C", "D", "E"];
 function Badge({ text, tone }: { text: string; tone: "calc" | "ap" | "bc" }) {
   const colors =
     tone === "calc"
-      ? "bg-amber-100 border-amber-400 text-amber-900"
+      ? "bg-[#eee] border-[#999] text-[#111]"
       : tone === "ap"
         ? "bg-slate-100 border-slate-300 text-slate-600"
         : "bg-purple-100 border-purple-400 text-purple-900";
@@ -44,9 +44,9 @@ export function CalculusMCQCard({
   const hasDiagram = !!problem.graph;
 
   return (
-    <div className="flex bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
-      <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
-        <span className="font-serif text-xl font-bold text-[#0F172A]">
+    <div className="flex break-inside-avoid mb-8">
+      <div className="pr-4 flex flex-col items-start justify-start w-10 shrink-0">
+        <span className="font-serif text-lg font-bold text-[#111]">
           {index + 1}
         </span>
       </div>
@@ -63,11 +63,11 @@ export function CalculusMCQCard({
               {problem.topicLabel}
             </span>
           </div>
-          <p className="font-serif text-[1.1rem] text-[#0F172A] mb-4 leading-relaxed font-medium">
+          <p className="font-serif text-[1.1rem] text-[#111] mb-4 leading-relaxed font-medium">
             {latexToText(problem.prompt)}
           </p>
           {problem.table && (
-            <table className="mb-4 border-2 border-[#0F172A] font-serif text-sm">
+            <table className="mb-4 border-2 border-[#111] font-serif text-sm">
               <thead>
                 <tr className="bg-slate-100">
                   {problem.table.headers.map((h, i) => (
@@ -79,7 +79,7 @@ export function CalculusMCQCard({
               </thead>
               <tbody>
                 {problem.table.rows.map((row, ri) => (
-                  <tr key={ri} className={ri % 2 === 1 ? "bg-slate-50" : ""}>
+                  <tr key={ri} className="">
                     {row.map((c, ci) => (
                       <td key={ci} className="border border-slate-300 px-3 py-1 text-center">
                         {latexToText(c)}
@@ -97,13 +97,13 @@ export function CalculusMCQCard({
                 <li
                   key={ci}
                   className={`font-serif text-[1rem] flex items-start gap-2 px-2 py-1 rounded ${
-                    showAnswer && isCorrect ? "bg-green-50 border border-green-700" : ""
+                    showAnswer && isCorrect ? "bg-[#eee] border border-[#111]" : ""
                   }`}
                 >
-                  <span className="font-bold text-[#0F172A] w-6 shrink-0">
+                  <span className="font-bold text-[#111] w-6 shrink-0">
                     ({LETTERS[ci]})
                   </span>
-                  <span className={showAnswer && isCorrect ? "font-semibold text-green-900" : "text-[#0F172A]"}>
+                  <span className={showAnswer && isCorrect ? "font-semibold text-green-900" : "text-[#111]"}>
                     {latexToText(choice)}
                   </span>
                 </li>

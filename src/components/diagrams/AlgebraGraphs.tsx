@@ -258,9 +258,9 @@ export function FunctionGraphSVG({ params }: { params: FunctionGraphSVGParams })
       })}
       {marks.map((mk, i) => (
         <g key={i}>
-          <circle cx={X(mk.x)} cy={Y(mk.y)} r={3} fill="#0F172A" />
+          <circle cx={X(mk.x)} cy={Y(mk.y)} r={3} fill="#111111" />
           {mk.label ? (
-            <text x={X(mk.x) + 5} y={Y(mk.y) - 5} fontSize={7.5} fill="#0F172A" fontFamily="Georgia, serif">
+            <text x={X(mk.x) + 5} y={Y(mk.y) - 5} fontSize={7.5} fill="#111111" fontFamily="Georgia, serif">
               {mk.label}
             </text>
           ) : null}
@@ -328,14 +328,14 @@ export function NumberLineSVG({ params }: { params: NumberLineSVGParams }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" aria-label="Number line">
       <rect x={0} y={0} width={W} height={H} fill="#ffffff" />
-      <line x1={padX - 6} y1={midY} x2={W - padX + 6} y2={midY} stroke="#0F172A" strokeWidth={1.5} />
-      <polygon points={`${padX - 6},${midY} ${padX + 1},${midY - 3.5} ${padX + 1},${midY + 3.5}`} fill="#0F172A" />
-      <polygon points={`${W - padX + 6},${midY} ${W - padX - 1},${midY - 3.5} ${W - padX - 1},${midY + 3.5}`} fill="#0F172A" />
+      <line x1={padX - 6} y1={midY} x2={W - padX + 6} y2={midY} stroke="#111111" strokeWidth={1.5} />
+      <polygon points={`${padX - 6},${midY} ${padX + 1},${midY - 3.5} ${padX + 1},${midY + 3.5}`} fill="#111111" />
+      <polygon points={`${W - padX + 6},${midY} ${W - padX - 1},${midY - 3.5} ${W - padX - 1},${midY + 3.5}`} fill="#111111" />
       {Array.from({ length: max - min + 1 }, (_, i) => {
         const v = min + i;
         return (
           <g key={v}>
-            <line x1={X(v)} y1={midY - 4} x2={X(v)} y2={midY + 4} stroke="#0F172A" strokeWidth={1} />
+            <line x1={X(v)} y1={midY - 4} x2={X(v)} y2={midY + 4} stroke="#111111" strokeWidth={1} />
             <text x={X(v)} y={midY + 16} fontSize={7.5} textAnchor="middle" fill="#475569" fontFamily="Georgia, serif">
               {v}
             </text>
@@ -364,8 +364,8 @@ export function TwoWayTableSVG({ params }: { params: TwoWayTableSVGParams }) {
   const top = 18;
   const cell = (x: number, y: number, w: number, h: number, text: string, bold = false, shade = false) => (
     <g key={`${x}-${y}-${text}`}>
-      <rect x={x} y={y} width={w} height={h} fill={shade ? "#f1f5f9" : "#ffffff"} stroke="#0F172A" strokeWidth={1} />
-      <text x={x + w / 2} y={y + h / 2 + 3} fontSize={7.5} textAnchor="middle" fill="#0F172A"
+      <rect x={x} y={y} width={w} height={h} fill={shade ? "#f1f5f9" : "#ffffff"} stroke="#111111" strokeWidth={1} />
+      <text x={x + w / 2} y={y + h / 2 + 3} fontSize={7.5} textAnchor="middle" fill="#111111"
         fontFamily="Georgia, serif" fontWeight={bold ? "bold" : "normal"}>
         {text}
       </text>
@@ -375,7 +375,7 @@ export function TwoWayTableSVG({ params }: { params: TwoWayTableSVGParams }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" aria-label="Two-way table">
       <rect x={0} y={0} width={W} height={H} fill="#ffffff" />
       {params.title && (
-        <text x={W / 2} y={titleY} fontSize={8.5} textAnchor="middle" fill="#0F172A" fontFamily="Georgia, serif" fontStyle="italic">
+        <text x={W / 2} y={titleY} fontSize={8.5} textAnchor="middle" fill="#111111" fontFamily="Georgia, serif" fontStyle="italic">
           {params.title}
         </text>
       )}
@@ -490,9 +490,9 @@ export function PdfFunctionGraphSVG({ params }: { params: FunctionGraphSVGParams
       })}
       {marks.map((mk, i) => (
         <React.Fragment key={i}>
-          <PdfCircle cx={X(mk.x)} cy={Y(mk.y)} r={3} fill="#0F172A" />
+          <PdfCircle cx={X(mk.x)} cy={Y(mk.y)} r={3} fill="#111111" />
           {mk.label ? (
-            <PdfText x={X(mk.x) + 5} y={Y(mk.y) - 1} style={{ fontSize: 7.5, fontFamily: PDF_FONT, color: "#0F172A" }}>
+            <PdfText x={X(mk.x) + 5} y={Y(mk.y) - 1} style={{ fontSize: 7.5, fontFamily: PDF_FONT, color: "#111111" }}>
               {mk.label}
             </PdfText>
           ) : null}
@@ -547,12 +547,12 @@ export function PdfNumberLineSVG({ params }: { params: NumberLineSVGParams }) {
   const rayEnd = rayLeft ? X(params.value) : X(max);
   return (
     <Svg viewBox={`0 0 ${W} ${H}`} width="130" height="39">
-      <PdfLine x1={padX - 6} y1={midY} x2={W - padX + 6} y2={midY} stroke="#0F172A" strokeWidth={1.5} />
+      <PdfLine x1={padX - 6} y1={midY} x2={W - padX + 6} y2={midY} stroke="#111111" strokeWidth={1.5} />
       {Array.from({ length: max - min + 1 }, (_, i) => {
         const v = min + i;
         return (
           <React.Fragment key={v}>
-            <PdfLine x1={X(v)} y1={midY - 4} x2={X(v)} y2={midY + 4} stroke="#0F172A" strokeWidth={1} />
+            <PdfLine x1={X(v)} y1={midY - 4} x2={X(v)} y2={midY + 4} stroke="#111111" strokeWidth={1} />
             <PdfText x={X(v) - 3} y={midY + 15} style={{ fontSize: 7.5, fontFamily: PDF_FONT, color: "#475569" }}>
               {`${v}`}
             </PdfText>
@@ -580,9 +580,9 @@ export function PdfTwoWayTableSVG({ params }: { params: TwoWayTableSVGParams }) 
   const top = 18;
   const cell = (x: number, y: number, w: number, h: number, text: string, bold = false) => (
     <React.Fragment key={`${x}-${y}-${text}`}>
-      <PdfRect x={x} y={y} width={w} height={h} fill="#ffffff" stroke="#0F172A" strokeWidth={1} />
+      <PdfRect x={x} y={y} width={w} height={h} fill="#ffffff" stroke="#111111" strokeWidth={1} />
       <PdfText x={x + w / 2 - text.length * 2} y={y + h / 2 + 3}
-        style={{ fontSize: 7.5, fontFamily: bold ? "Times-Bold" : PDF_FONT, color: "#0F172A" }}>
+        style={{ fontSize: 7.5, fontFamily: bold ? "Times-Bold" : PDF_FONT, color: "#111111" }}>
         {text}
       </PdfText>
     </React.Fragment>
@@ -590,7 +590,7 @@ export function PdfTwoWayTableSVG({ params }: { params: TwoWayTableSVGParams }) 
   return (
     <Svg viewBox={`0 0 ${W} ${H}`} width={String(Math.min(W, 150))} height={String(Math.min(H, 130))}>
       {params.title && (
-        <PdfText x={W / 2 - params.title.length * 2.2} y={12} style={{ fontSize: 8.5, fontFamily: PDF_FONT, color: "#0F172A" }}>
+        <PdfText x={W / 2 - params.title.length * 2.2} y={12} style={{ fontSize: 8.5, fontFamily: PDF_FONT, color: "#111111" }}>
           {params.title}
         </PdfText>
       )}

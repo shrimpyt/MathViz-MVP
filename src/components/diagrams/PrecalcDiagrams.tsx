@@ -12,10 +12,10 @@ import type { PrecalcDiagramParams } from "@/lib/factories/PrecalcTypes";
 
 // -- Pure geometry helpers (shared) --------------------------------------------
 
-const NAVY = "#0F172A";
+const NAVY = "#111111";
 const BLUE = "#3b82f6";
 const RED = "#e11d48";
-const GOLD = "#D9A720";
+const GOLD = "#111111";
 const GRID = "#e2e8f0";
 const AXIS = "#94a3b8";
 

@@ -44,11 +44,11 @@ export function MeasurementProblemCard({ problem, index, mode, revealed }: Props
         
         <DiagramBox>
           <svg width="140" height="140" viewBox="0 0 140 140">
-            <circle cx="70" cy="70" r="50" stroke="#1e293b" strokeWidth="1.5" fill="none" />
-            <circle cx="70" cy="70" r="2" fill="#1e293b" />
+            <circle cx="70" cy="70" r="50" stroke="#111" strokeWidth="1.5" fill="none" />
+            <circle cx="70" cy="70" r="2" fill="#111111" />
             
             {/* Radius line */}
-            <line x1="70" y1="70" x2="120" y2="70" stroke="#1e293b" strokeWidth="1" />
+            <line x1="70" y1="70" x2="120" y2="70" stroke="#111" strokeWidth="1" />
             <text x="90" y="65" fontSize="10" fontWeight="bold">r={radius}</text>
 
             {/* Arc / Sector if applicable */}
@@ -56,14 +56,14 @@ export function MeasurementProblemCard({ problem, index, mode, revealed }: Props
               <>
                 <path 
                   d={`M 120 70 A 50 50 0 ${angle > 180 ? 1 : 0} 0 ${70 + 50 * Math.cos(angle * Math.PI / 180)} ${70 - 50 * Math.sin(angle * Math.PI / 180)}`}
-                  stroke="#d9a720" strokeWidth={problem.subtype === "ArcLength" ? 2.5 : 1}
+                  stroke="#111" strokeWidth={problem.subtype === "ArcLength" ? 2.5 : 1}
                   fill={problem.subtype === "SectorArea" ? "rgba(217, 167, 32, 0.2)" : "none"}
                 />
                 <line 
                   x1="70" y1="70" 
                   x2={70 + 50 * Math.cos(angle * Math.PI / 180)} 
                   y2={70 - 50 * Math.sin(angle * Math.PI / 180)} 
-                  stroke="#1e293b" strokeWidth="1" 
+                  stroke="#111" strokeWidth="1" 
                 />
                 <text x="60" y="85" fontSize="8" fill="#64748b">{angle}°</text>
               </>

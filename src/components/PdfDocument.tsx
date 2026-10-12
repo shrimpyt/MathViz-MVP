@@ -163,37 +163,28 @@ function createStyles(presentation: Presentation) {
     ...fam('WorksheetSerif'),
   },
 
-  // ── Classical Academy header ──
+  // ── Plain handout header (Classical Notes 5.1 style) ──
   headerWrapper: {
     marginBottom: sp(14),
   },
   headerTopRule: {
-    borderTopWidth: 3,
-    borderTopColor: '#0F172A',
-    borderTopStyle: 'solid',
-    paddingTop: sp(5),
-    paddingBottom: sp(4),
-    borderBottomWidth: 1,
-    borderBottomColor: '#0F172A',
-    borderBottomStyle: 'solid',
-    marginBottom: sp(10),
+    paddingTop: sp(2),
+    paddingBottom: sp(2),
+    marginBottom: sp(8),
     alignItems: 'center',
   },
   title: {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(20),
     textAlign: 'center',
-    color: '#0F172A',
-    letterSpacing: 0.5,
+    color: '#111111',
   },
   modeLabel: {
     ...fam('WorksheetSerif'),
-    fontSize: fs(9),
+    fontSize: fs(10.5),
     textAlign: 'center',
-    color: '#64748b',
-    marginTop: sp(2),
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#555555',
+    marginTop: sp(3),
   },
 
   // Name / Date / Period row
@@ -202,7 +193,7 @@ function createStyles(presentation: Presentation) {
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     borderBottomWidth: 1,
-    borderBottomColor: '#94a3b8',
+    borderBottomColor: '#111111',
     borderBottomStyle: 'solid',
     paddingBottom: sp(4),
     marginBottom: sp(6),
@@ -219,53 +210,48 @@ function createStyles(presentation: Presentation) {
   infoLabel: {
     ...fam('WorksheetSerif'),
     fontSize: fs(11),
-    color: '#334155',
+    color: '#111111',
   },
   infoBlank: {
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: '#111111',
     borderBottomStyle: 'solid',
     height: 14,
   },
 
-  // Directions box
+  // Directions — plain italic, no box
   directionsBox: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderStyle: 'solid',
-    padding: sp(6),
     marginBottom: sp(10),
   },
   directionsText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#475569',
+    fontStyle: 'italic',
+    color: '#444444',
   },
   directionsBold: {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(10),
-    color: '#334155',
+    fontStyle: 'italic',
+    color: '#444444',
   },
 
-  // ── Section divider ──
+  // ── Section heading (5.1 h2.sec style) ──
   sectionDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: sp(8),
+    marginTop: sp(14),
+    marginBottom: sp(6),
+    borderBottomWidth: 1,
+    borderBottomColor: '#999999',
+    borderBottomStyle: 'solid',
+    paddingBottom: sp(3),
   },
   sectionRule: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#94a3b8',
+    display: 'none',
   },
   sectionLabel: {
     ...fam('WorksheetSerifBold'),
-    fontSize: fs(8),
-    color: '#64748b',
-    marginHorizontal: sp(8),
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    fontSize: fs(12.5),
+    color: '#111111',
   },
 
   // ── Problem container — wrap:false enforces unbreakable ──
@@ -277,7 +263,7 @@ function createStyles(presentation: Presentation) {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(12),
     width: 22,
-    color: '#172336',
+    color: '#111111',
   },
   problemContent: {
     flex: 1,
@@ -285,7 +271,7 @@ function createStyles(presentation: Presentation) {
   questionText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(11),
-    color: '#1e293b',
+    color: '#111111',
     marginBottom: sp(6),
     lineHeight: 1.4,
   },
@@ -297,17 +283,13 @@ function createStyles(presentation: Presentation) {
     alignSelf: 'flex-end',
   },
 
-  // Scaffolding steps
+  // Scaffolding steps — plain, no accents
   scaffoldBox: {
     marginTop: sp(6),
     marginLeft: sp(8),
     paddingLeft: sp(8),
-    paddingVertical: sp(6),
+    paddingVertical: sp(4),
     paddingRight: sp(6),
-    borderLeftWidth: 2,
-    borderLeftColor: '#d9a720',
-    borderLeftStyle: 'solid',
-    backgroundColor: '#f8fafc',
   },
   scaffoldStep: {
     flexDirection: 'row',
@@ -317,11 +299,11 @@ function createStyles(presentation: Presentation) {
   scaffoldText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#334155',
+    color: '#444444',
   },
   blank: {
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: '#444444',
     borderBottomStyle: 'solid',
     height: 14,
     marginLeft: sp(4),
@@ -336,12 +318,12 @@ function createStyles(presentation: Presentation) {
   answerLabel: {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(11),
-    color: '#172336',
+    color: '#111111',
     marginRight: sp(4),
   },
   answerBlank: {
     borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomColor: '#111111',
     borderBottomStyle: 'solid',
     width: 80,
     height: 14,
@@ -356,14 +338,14 @@ function createStyles(presentation: Presentation) {
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#999999',
     borderTopStyle: 'solid',
     paddingTop: sp(4),
   },
   footerText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(8),
-    color: '#94a3b8',
+    color: '#999999',
   },
 
   // ── Answer key ──
@@ -371,7 +353,7 @@ function createStyles(presentation: Presentation) {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(20),
     textAlign: 'center',
-    color: '#0F172A',
+    color: '#111111',
     letterSpacing: 0.5,
   },
   keyWarning: {
@@ -391,23 +373,23 @@ function createStyles(presentation: Presentation) {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(12),
     width: 26,
-    color: '#172336',
+    color: '#111111',
   },
   keyAnswer: {
     ...fam('WorksheetSerif'),
     fontSize: fs(12),
-    color: '#1e293b',
+    color: '#111111',
     flex: 1,
   },
   keyAnswerSm: {
     ...fam('WorksheetSerif'),
     fontSize: fs(11),
-    color: '#1e293b',
+    color: '#111111',
   },
   keyJust: {
     ...fam('WorksheetSerif'),
     fontSize: fs(9),
-    color: '#475569',
+    color: '#555555',
     marginTop: sp(2),
   },
 
@@ -415,22 +397,22 @@ function createStyles(presentation: Presentation) {
   proofTable: {
     marginTop: sp(6),
     borderWidth: 1,
-    borderColor: '#0F172A',
+    borderColor: '#111111',
     borderStyle: 'solid',
   },
   proofRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#cbd5e1',
+    borderBottomColor: '#999999',
     borderBottomStyle: 'solid',
   },
   proofHeadRow: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#eeeeee',
   },
   proofCell: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#1e293b',
+    color: '#111111',
     padding: sp(4),
   },
   proofNum: {
@@ -440,13 +422,13 @@ function createStyles(presentation: Presentation) {
   proofStmt: {
     flex: 1,
     borderLeftWidth: 1,
-    borderLeftColor: '#cbd5e1',
+    borderLeftColor: '#999999',
     borderLeftStyle: 'solid',
   },
   proofReason: {
     width: '34%',
     borderLeftWidth: 1,
-    borderLeftColor: '#cbd5e1',
+    borderLeftColor: '#999999',
     borderLeftStyle: 'solid',
   },
   proofHead: {
@@ -456,36 +438,35 @@ function createStyles(presentation: Presentation) {
   givenText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#334155',
+    color: '#444444',
     marginBottom: sp(4),
   },
   elementsEnunc: {
     ...fam('WorksheetSerif'),
     fontSize: fs(11),
-    color: '#0F172A',
+    color: '#111111',
     marginBottom: sp(6),
     paddingLeft: sp(8),
-    borderLeftWidth: 3,
-    borderLeftColor: '#d9a720',
-    borderLeftStyle: 'solid',
+
   },
   elementsStep: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#0F172A',
+    color: '#111111',
     marginBottom: sp(4),
     lineHeight: 1.4,
   },
   elementsReason: {
-    color: '#64748b',
+    color: '#555555',
     fontSize: fs(9),
   },
   qed: {
-    ...fam('WorksheetSerifBold'),
+    ...fam('WorksheetSerif'),
+    fontStyle: 'italic',
     fontSize: fs(11),
     textAlign: 'right',
-    marginTop: sp(6),
-    letterSpacing: 2,
+    color: '#444444',
+    marginTop: sp(10),
   },
 
   // ── MCQ choices / SAT grid-in ──
@@ -501,7 +482,7 @@ function createStyles(presentation: Presentation) {
   choiceLetter: {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(11),
-    color: '#0F172A',
+    color: '#111111',
     width: 28,
   },
   choiceKey: {
@@ -513,7 +494,7 @@ function createStyles(presentation: Presentation) {
   choiceText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(11),
-    color: '#1e293b',
+    color: '#111111',
     flex: 1,
   },
   gridInRow: {
@@ -525,7 +506,7 @@ function createStyles(presentation: Presentation) {
     width: 30,
     height: 34,
     borderWidth: 1,
-    borderColor: '#0F172A',
+    borderColor: '#111111',
     borderStyle: 'solid',
     marginRight: sp(4),
     alignItems: 'center',
@@ -534,29 +515,27 @@ function createStyles(presentation: Presentation) {
   gridInText: {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(14),
-    color: '#0F172A',
+    color: '#111111',
   },
 
   // ── FRQ stimulus / subparts ──
   stimulusText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(11),
-    color: '#1e293b',
+    color: '#111111',
     marginBottom: sp(8),
     lineHeight: 1.4,
-    backgroundColor: '#f8fafc',
-    padding: sp(6),
   },
   frqTable: {
     marginBottom: sp(8),
     borderWidth: 1,
-    borderColor: '#0F172A',
+    borderColor: '#111111',
     borderStyle: 'solid',
   },
   tableCaption: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#475569',
+    color: '#555555',
     marginBottom: sp(4),
   },
   frqTableRow: {
@@ -565,17 +544,17 @@ function createStyles(presentation: Presentation) {
   frqCell: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
-    color: '#1e293b',
+    color: '#111111',
     flex: 1,
     textAlign: 'center',
     padding: sp(4),
     borderWidth: 0.5,
-    borderColor: '#cbd5e1',
+    borderColor: '#999999',
     borderStyle: 'solid',
   },
   frqCellHead: {
     ...fam('WorksheetSerifBold'),
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#eeeeee',
   },
   subpart: {
     marginTop: sp(8),
@@ -585,7 +564,7 @@ function createStyles(presentation: Presentation) {
   },
   workspaceLine: {
     borderBottomWidth: 1,
-    borderBottomColor: '#94a3b8',
+    borderBottomColor: '#999999',
     borderBottomStyle: 'solid',
     height: 18,
     marginBottom: sp(2),
@@ -1451,14 +1430,14 @@ const dividerStyles = StyleSheet.create({
     fontFamily: 'WorksheetSerifBold',
     fontSize: 16,
     textAlign: 'center',
-    color: '#0F172A',
+    color: '#111111',
     marginBottom: 10,
   },
   dividerSub: {
     fontFamily: 'WorksheetSerif',
     fontSize: 10,
     textAlign: 'center',
-    color: '#64748b',
+    color: '#555555',
   },
 });
 

@@ -86,7 +86,7 @@ function RightAngleMark({ v, p1, p2 }: { v: Pt; p1: Pt; p2: Pt }) {
   return (
     <path
       d={`M ${q1.x} ${q1.y} L ${corner.x} ${corner.y} L ${q2.x} ${q2.y}`}
-      fill="none" stroke="#0F172A" strokeWidth={1.2}
+      fill="none" stroke="#111111" strokeWidth={1.2}
     />
   );
 }
@@ -95,7 +95,7 @@ function VertexLabel({ pt, text, dx = 0, dy = 0 }: { pt: Pt; text: string; dx?: 
   return (
     <text
       x={pt.x + dx} y={pt.y + dy}
-      fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#1e293b"
+      fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111"
     >
       {text}
     </text>
@@ -134,8 +134,8 @@ function TwoTrianglesSVG({
   const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -8, y: 7 }];
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Triangle diagram">
-      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#0F172A" strokeWidth={1.5} />
-      <polygon points={`${D.x},${D.y} ${E.x},${E.y} ${F.x},${F.y}`} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
+      <polygon points={`${D.x},${D.y} ${E.x},${E.y} ${F.x},${F.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
       {sideMarks.map((count, i) =>
         count > 0 ? (
           <React.Fragment key={i}>
@@ -201,7 +201,7 @@ export function ProofIsoscelesSVG(p: ProofIsoscelesSVGParams) {
   const C: Pt = { x: 148, y: 152 };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Isosceles triangle diagram">
-      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
       {p.markEqualLegs && (
         <>
           <TickMarks p1={A} p2={B} count={1} />
@@ -298,18 +298,18 @@ export function ProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
   const [m1, m2] = p.markedAngles;
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Parallel lines diagram">
-      <line x1={x0} y1={lY} x2={x1} y2={lY} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={x0} y1={mY} x2={x1} y2={mY} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={tTop.x} y1={tTop.y} x2={tBot.x} y2={tBot.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={x0} y1={lY} x2={x1} y2={lY} stroke="#111111" strokeWidth={1.5} />
+      <line x1={x0} y1={mY} x2={x1} y2={mY} stroke="#111111" strokeWidth={1.5} />
+      <line x1={tTop.x} y1={tTop.y} x2={tBot.x} y2={tBot.y} stroke="#111111" strokeWidth={1.2} />
       {p.parallel && (
         <>
           <ParallelTicks y={lY} />
           <ParallelTicks y={mY} />
         </>
       )}
-      <text x={x0 - 8} y={lY - 4} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#1e293b">l</text>
-      <text x={x0 - 8} y={mY - 4} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#1e293b">m</text>
-      <text x={tBot.x + 6} y={tBot.y - 2} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#1e293b">t</text>
+      <text x={x0 - 8} y={lY - 4} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">l</text>
+      <text x={x0 - 8} y={mY - 4} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">m</text>
+      <text x={tBot.x + 6} y={tBot.y - 2} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">t</text>
       {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
         <SlotArc key={n} n={n} marked={n === m1 || n === m2} />
       ))}
@@ -342,15 +342,15 @@ export function ProofCircleSVG(p: ProofCircleSVGParams) {
     const mid = polar(CX, CY, R + 14, 150 + p.arc / 2);
     return (
       <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Inscribed angle diagram">
-        <circle cx={CX} cy={CY} r={R} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+        <circle cx={CX} cy={CY} r={R} fill="none" stroke="#111111" strokeWidth={1.5} />
         <path
           d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${C.x} ${C.y}`}
           fill="none" stroke="#3b82f6" strokeWidth={3}
         />
-        <line x1={B.x} y1={B.y} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
-        <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.2} />
+        <line x1={B.x} y1={B.y} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
+        <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.2} />
         {[A, B, C].map((pt, i) => (
-          <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+          <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
         ))}
         <VertexLabel pt={A} text="A" dx={-9} dy={2} />
         <VertexLabel pt={C} text="C" dx={9} dy={2} />
@@ -371,19 +371,19 @@ export function ProofCircleSVG(p: ProofCircleSVGParams) {
   const mid = polar(CX, CY, R + 14, 90 + p.arc / 2);
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Tangent chord diagram">
-      <circle cx={CX} cy={CY} r={R} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+      <circle cx={CX} cy={CY} r={R} fill="none" stroke="#111111" strokeWidth={1.5} />
       <path
         d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${Bp.x} ${Bp.y}`}
         fill="none" stroke="#3b82f6" strokeWidth={3}
       />
       <line x1={A.x - 55} y1={A.y} x2={A.x + 55} y2={A.y} stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="5,3" />
-      <line x1={A.x} y1={A.y} x2={Bp.x} y2={Bp.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={A.x} y1={A.y} x2={Bp.x} y2={Bp.y} stroke="#111111" strokeWidth={1.2} />
       {[A, Bp].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       <VertexLabel pt={A} text="A" dx={-9} dy={-6} />
       <VertexLabel pt={Bp} text="B" dx={9} dy={2} />
-      <text x={A.x + 48} y={A.y - 6} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#1e293b">t</text>
+      <text x={A.x + 48} y={A.y - 6} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">t</text>
       <text x={mid.x} y={mid.y + 3} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#1d4ed8" fontWeight="bold">
         {p.arc}°
       </text>
@@ -405,11 +405,11 @@ function ElementsI1({ a = 7 }: { a?: number }) {
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.1 construction">
       <circle cx={A.x} cy={A.y} r={r} fill="none" stroke="#94a3b8" strokeWidth={1} />
       <circle cx={B.x} cy={B.y} r={r} fill="none" stroke="#94a3b8" strokeWidth={1} />
-      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={2} />
-      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.5} />
+      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={2} />
+      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
       {[A, B, C].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       <VertexLabel pt={A} text="A" dx={-9} dy={8} />
       <VertexLabel pt={B} text="B" dx={9} dy={8} />
@@ -432,11 +432,11 @@ function ElementsI5({ a = 8 }: { a?: number }) {
   const E: Pt = { x: C.x + (C.x - A.x) * 0.32, y: C.y + (C.y - A.y) * 0.32 };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.5 isosceles figure">
-      <line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#0F172A" strokeWidth={1.2} strokeDasharray="5,3" />
-      <line x1={A.x} y1={A.y} x2={E.x} y2={E.y} stroke="#0F172A" strokeWidth={1.2} strokeDasharray="5,3" />
-      <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.5} />
+      <line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.2} strokeDasharray="5,3" />
+      <line x1={A.x} y1={A.y} x2={E.x} y2={E.y} stroke="#111111" strokeWidth={1.2} strokeDasharray="5,3" />
+      <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
       <TickMarks p1={A} p2={B} count={1} />
       <TickMarks p1={A} p2={C} count={1} />
       <VertexLabel pt={A} text="A" dy={-8} />
@@ -454,9 +454,9 @@ function ElementsI29() {
   const H: Pt = { x: transversalX(y2), y: y2 };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.29 parallel lines">
-      <line x1={20} y1={y1} x2={180} y2={y1} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={20} y1={y2} x2={180} y2={y2} stroke="#0F172A" strokeWidth={1.5} />
-      <line x1={PL.tTop.x} y1={PL.tTop.y} x2={PL.tBot.x} y2={PL.tBot.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={20} y1={y1} x2={180} y2={y1} stroke="#111111" strokeWidth={1.5} />
+      <line x1={20} y1={y2} x2={180} y2={y2} stroke="#111111" strokeWidth={1.5} />
+      <line x1={PL.tTop.x} y1={PL.tTop.y} x2={PL.tBot.x} y2={PL.tBot.y} stroke="#111111" strokeWidth={1.2} />
       <ParallelTicks y={y1} />
       <ParallelTicks y={y2} />
       <AngleArc v={G} p1={{ x: 20, y: y1 }} p2={PL.tTop} r={14} />
@@ -483,8 +483,8 @@ function ElementsI32() {
   const E: Pt = { x: C.x + (dir.x / len) * 46, y: C.y + (dir.y / len) * 46 };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.32 angle sum figure">
-      <line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#0F172A" strokeWidth={1.5} />
-      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+      <line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.5} />
+      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
       <line x1={C.x} y1={C.y} x2={E.x} y2={E.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
       <AngleArc v={C} p1={D} p2={A} r={16} />
       <VertexLabel pt={A} text="A" dy={-8} />
@@ -532,8 +532,8 @@ function ElementsI47({ a = 6, b = 8 }: { a?: number; b?: number }) {
     const q = T(p);
     return (
       <React.Fragment key={label}>
-        <circle cx={q.x} cy={q.y} r={2.2} fill="#0F172A" />
-        <text x={q.x + dxl} y={q.y + dyl} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#1e293b">
+        <circle cx={q.x} cy={q.y} r={2.2} fill="#111111" />
+        <text x={q.x + dxl} y={q.y + dyl} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111">
           {label}
         </text>
       </React.Fragment>
@@ -541,10 +541,10 @@ function ElementsI47({ a = 6, b = 8 }: { a?: number; b?: number }) {
   };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.47 Pythagoras figure">
-      <polygon points={poly([B, B2, A2, A])} fill="#dbeafe" stroke="#0F172A" strokeWidth={1.2} />
-      <polygon points={poly([A, C, C2, A3])} fill="#dbeafe" stroke="#0F172A" strokeWidth={1.2} />
-      <polygon points={poly([B, C, C3, B3])} fill="#e0e7ff" stroke="#0F172A" strokeWidth={1.2} />
-      <polygon points={poly([A, B, C])} fill="#ffffff" stroke="#0F172A" strokeWidth={1.8} />
+      <polygon points={poly([B, B2, A2, A])} fill="#dbeafe" stroke="#111111" strokeWidth={1.2} />
+      <polygon points={poly([A, C, C2, A3])} fill="#dbeafe" stroke="#111111" strokeWidth={1.2} />
+      <polygon points={poly([B, C, C3, B3])} fill="#e0e7ff" stroke="#111111" strokeWidth={1.2} />
+      <polygon points={poly([A, B, C])} fill="#ffffff" stroke="#111111" strokeWidth={1.8} />
       {dot(A, "A", -8, 8)} {dot(B, "B", -8, -4)} {dot(C, "C", 8, 8)}
     </svg>
   );
@@ -558,7 +558,7 @@ function ElementsI48({ a = 3, b = 4 }: { a?: number; b?: number }) {
   const D: Pt = { x: 80, y: 105 + a * u }; // AD ⊥ AC, AD = AB
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.48 converse figure">
-      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#0F172A" strokeWidth={1.8} />
+      <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#111111" strokeWidth={1.8} />
       <line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
       <line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
       <RightAngleMark v={A} p1={D} p2={C} />

@@ -36,7 +36,7 @@ function Cell({
       </span>
     );
   }
-  return <span className="font-serif text-sm text-[#0F172A]">{latexToText(text)}</span>;
+  return <span className="font-serif text-sm text-[#111]">{latexToText(text)}</span>;
 }
 
 export function Algebra2ProofCard({
@@ -49,21 +49,21 @@ export function Algebra2ProofCard({
     !!flagged && (mode === "Test" || (mode === "GuidedNote" && !revealed));
 
   return (
-    <div className="bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
+    <div className="break-inside-avoid mb-8">
       <div className="flex">
-        <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
-          <span className="font-serif text-xl font-bold text-[#0F172A]">
+        <div className="pr-4 flex flex-col items-start justify-start w-10 shrink-0">
+          <span className="font-serif text-lg font-bold text-[#111]">
             {index + 1}
           </span>
         </div>
-        <div className="p-6 flex-1">
+        <div className="flex-1">
           <div className="flex items-center mb-2">
             <TEKSBadge standard="A2.P" />
             <span className="text-xs text-slate-500 italic font-sans uppercase tracking-wider">
               Proof · {problem.family}
             </span>
           </div>
-          <p className="font-serif text-[1.05rem] text-[#0F172A] mb-1 leading-relaxed">
+          <p className="font-serif text-[1.05rem] text-[#111] mb-1 leading-relaxed">
             <span className="font-bold">Given: </span>
             {problem.given.map((g, i) => (
               <span key={i}>
@@ -72,21 +72,21 @@ export function Algebra2ProofCard({
               </span>
             ))}
           </p>
-          <p className="font-serif text-[1.05rem] text-[#0F172A] mb-4 leading-relaxed">
+          <p className="font-serif text-[1.05rem] text-[#111] mb-4 leading-relaxed">
             <span className="font-bold">Prove: </span>
             <span className="italic">{latexToText(problem.prove)}</span>
           </p>
 
-          <table className="w-full border-collapse border-2 border-[#0F172A]">
+          <table className="w-full border-collapse border-2 border-[#111]">
             <thead>
               <tr className="bg-[#f8fafc]">
-                <th className="border border-[#0F172A] px-3 py-1.5 font-sans text-xs uppercase tracking-wider text-slate-500 w-10">
+                <th className="border border-[#111] px-3 py-1.5 font-sans text-xs uppercase tracking-wider text-slate-500 w-10">
                   #
                 </th>
-                <th className="border border-[#0F172A] px-3 py-1.5 font-sans text-xs uppercase tracking-wider text-slate-500 text-left">
+                <th className="border border-[#111] px-3 py-1.5 font-sans text-xs uppercase tracking-wider text-slate-500 text-left">
                   Statement
                 </th>
-                <th className="border border-[#0F172A] px-3 py-1.5 font-sans text-xs uppercase tracking-wider text-slate-500 text-left">
+                <th className="border border-[#111] px-3 py-1.5 font-sans text-xs uppercase tracking-wider text-slate-500 text-left">
                   Reason
                 </th>
               </tr>

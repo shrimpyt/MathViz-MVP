@@ -14,7 +14,7 @@ import type {
   MSScatterPlotParams,
 } from "@/lib/factories/MiddleSchoolTypes";
 
-const INK = "#0F172A";
+const INK = "#111111";
 const ACCENT = "#2563eb";
 const RED = "#e11d48";
 

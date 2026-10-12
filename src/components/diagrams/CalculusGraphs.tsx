@@ -292,7 +292,7 @@ export function CalcGraphWeb({ params }: { params: CalcGraphParams }) {
           y1={g.y1}
           x2={g.x2}
           y2={g.y2}
-          stroke={g.axis ? "#0F172A" : "#e2e8f0"}
+          stroke={g.axis ? "#111111" : "#e2e8f0"}
           strokeWidth={g.axis ? 1.2 : 0.6}
         />
       ))}
@@ -323,19 +323,19 @@ export function CalcGraphWeb({ params }: { params: CalcGraphParams }) {
         <path key={`c2-${i}`} d={d} fill="none" stroke="#8b5cf6" strokeWidth={1.8} />
       ))}
       {m.curves.map((d, i) => (
-        <path key={`c1-${i}`} d={d} fill="none" stroke="#0F172A" strokeWidth={1.8} />
+        <path key={`c1-${i}`} d={d} fill="none" stroke="#111111" strokeWidth={1.8} />
       ))}
       {m.holes.map((pt, i) => (
-        <circle key={`h${i}`} cx={pt.x} cy={pt.y} r={4} fill="#ffffff" stroke="#0F172A" strokeWidth={1.6} />
+        <circle key={`h${i}`} cx={pt.x} cy={pt.y} r={4} fill="#ffffff" stroke="#111111" strokeWidth={1.6} />
       ))}
       {m.solids.map((pt, i) => (
-        <circle key={`s${i}`} cx={pt.x} cy={pt.y} r={3.4} fill="#0F172A" />
+        <circle key={`s${i}`} cx={pt.x} cy={pt.y} r={3.4} fill="#111111" />
       ))}
       {m.markers.map((mk, i) => (
         <g key={`m${i}`}>
           <circle cx={mk.pt.x} cy={mk.pt.y} r={3} fill="#dc2626" />
           {mk.label && (
-            <text x={mk.pt.x + 6} y={mk.pt.y - 6} fontSize={7.5} fontFamily="Georgia, serif" fill="#0F172A">
+            <text x={mk.pt.x + 6} y={mk.pt.y - 6} fontSize={7.5} fontFamily="Georgia, serif" fill="#111111">
               {mk.label}
             </text>
           )}
@@ -355,7 +355,7 @@ export function CalcGraphWeb({ params }: { params: CalcGraphParams }) {
         </text>
       ))}
       {m.fnLabel && (
-        <text x={m.fnLabel.x} y={m.fnLabel.y} fontSize={8} fontStyle="italic" fontFamily="Georgia, serif" fill="#0F172A">
+        <text x={m.fnLabel.x} y={m.fnLabel.y} fontSize={8} fontStyle="italic" fontFamily="Georgia, serif" fill="#111111">
           {m.fnLabel.text}
         </text>
       )}
@@ -389,7 +389,7 @@ export function CalcGraphPdf({ params }: { params: CalcGraphParams }) {
           y1={g.y1}
           x2={g.x2}
           y2={g.y2}
-          stroke={g.axis ? "#0F172A" : "#e2e8f0"}
+          stroke={g.axis ? "#111111" : "#e2e8f0"}
           strokeWidth={g.axis ? 1.2 : 0.6}
         />
       ))}
@@ -420,13 +420,13 @@ export function CalcGraphPdf({ params }: { params: CalcGraphParams }) {
         <PdfPath key={`c2-${i}`} d={d} fill="none" stroke="#8b5cf6" strokeWidth={1.8} />
       ))}
       {m.curves.map((d, i) => (
-        <PdfPath key={`c1-${i}`} d={d} fill="none" stroke="#0F172A" strokeWidth={1.8} />
+        <PdfPath key={`c1-${i}`} d={d} fill="none" stroke="#111111" strokeWidth={1.8} />
       ))}
       {m.holes.map((pt, i) => (
-        <PdfCircle key={`h${i}`} cx={pt.x} cy={pt.y} r={4} fill="#ffffff" stroke="#0F172A" strokeWidth={1.6} />
+        <PdfCircle key={`h${i}`} cx={pt.x} cy={pt.y} r={4} fill="#ffffff" stroke="#111111" strokeWidth={1.6} />
       ))}
       {m.solids.map((pt, i) => (
-        <PdfCircle key={`s${i}`} cx={pt.x} cy={pt.y} r={3.4} fill="#0F172A" />
+        <PdfCircle key={`s${i}`} cx={pt.x} cy={pt.y} r={3.4} fill="#111111" />
       ))}
       {m.markers.map((mk, i) => (
         <React.Fragment key={`m${i}`}>
@@ -470,14 +470,14 @@ export function CalcTablePdf({
   const cell = {
     width: colW,
     padding: 4,
-    borderRight: "0.5pt solid #0F172A",
+    borderRight: "0.5pt solid #111111",
     fontSize: 8,
     fontFamily: "Times-Roman",
     textAlign: "center" as const,
   };
   return (
-    <PdfView style={{ marginVertical: 6, border: "1pt solid #0F172A", maxWidth: 320 }}>
-      <PdfView style={{ flexDirection: "row", backgroundColor: "#f1f5f9", borderBottom: "1pt solid #0F172A" }}>
+    <PdfView style={{ marginVertical: 6, border: "1pt solid #111111", maxWidth: 320 }}>
+      <PdfView style={{ flexDirection: "row", backgroundColor: "#f1f5f9", borderBottom: "1pt solid #111111" }}>
         {headers.map((h, i) => (
           <PdfText key={i} style={{ ...cell, fontFamily: "Times-Bold", borderRight: i === headers.length - 1 ? "none" : cell.borderRight }}>
             {h}

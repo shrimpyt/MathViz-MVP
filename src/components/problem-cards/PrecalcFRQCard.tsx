@@ -26,11 +26,11 @@ function StimulusBlock({ stimulus }: { stimulus: APStimulus }) {
         {stimulus.caption && (
           <p className="font-serif text-sm italic text-slate-600 mb-2">{latexToText(stimulus.caption)}</p>
         )}
-        <table className="border-collapse border-2 border-[#0F172A] font-serif text-sm">
+        <table className="border-collapse border-2 border-[#111] font-serif text-sm">
           <thead>
             <tr>
               {stimulus.headers.map((h, i) => (
-                <th key={i} className="border border-[#0F172A] bg-slate-100 px-3 py-1 font-bold">
+                <th key={i} className="border border-[#111] bg-slate-100 px-3 py-1 font-bold">
                   {latexToText(h)}
                 </th>
               ))}
@@ -77,8 +77,8 @@ function StimulusBlock({ stimulus }: { stimulus: APStimulus }) {
     );
   }
   return (
-    <div className="mb-4 px-4 py-3 bg-slate-50 border-l-4 border-[#0F172A]">
-      <p className="font-serif text-[1.02rem] text-[#0F172A] leading-relaxed">{latexToText(stimulus.text)}</p>
+    <div className="mb-4 px-4 py-3 ">
+      <p className="font-serif text-[1.02rem] text-[#111] leading-relaxed">{latexToText(stimulus.text)}</p>
     </div>
   );
 }
@@ -87,12 +87,12 @@ export function PrecalcFRQCard({ problem, index, mode, revealed }: PrecalcFRQCar
   const showKey = mode === "Review" || mode === "Classical" || (mode === "GuidedNote" && revealed);
   const totalPoints = problem.subparts.reduce((s, p) => s + (p.points ?? 0), 0);
   return (
-    <div className="bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
+    <div className="break-inside-avoid mb-8">
       <div className="flex flex-row">
-        <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
-          <span className="font-serif text-xl font-bold text-[#0F172A]">{index + 1}</span>
+        <div className="pr-4 flex flex-col items-start justify-start w-10 shrink-0">
+          <span className="font-serif text-lg font-bold text-[#111]">{index + 1}</span>
         </div>
-        <div className="p-6 flex-1">
+        <div className="flex-1">
           <div className="flex items-center mb-3 flex-wrap gap-y-1">
             <span className="inline-block text-[10px] font-mono tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-300 text-indigo-700 mr-2">
               AP PRECALCULUS · FRQ
@@ -100,7 +100,7 @@ export function PrecalcFRQCard({ problem, index, mode, revealed }: PrecalcFRQCar
             <span
               className={`inline-block text-[10px] font-mono tracking-wide px-1.5 py-0.5 rounded border mr-2 ${
                 problem.calculator
-                  ? "bg-amber-50 border-amber-400 text-amber-800"
+                  ? "bg-[#eee] border-[#999] text-[#111]"
                   : "bg-slate-100 border-slate-300 text-slate-600"
               }`}
             >
@@ -117,14 +117,14 @@ export function PrecalcFRQCard({ problem, index, mode, revealed }: PrecalcFRQCar
           <div className="space-y-4">
             {problem.subparts.map((sp) => (
               <div key={sp.label} className="border-t border-slate-100 pt-3">
-                <p className="font-serif text-[1.05rem] text-[#0F172A] leading-relaxed mb-2">
+                <p className="font-serif text-[1.05rem] text-[#111] leading-relaxed mb-2">
                   <span className="font-bold">({sp.label})</span> {latexToText(sp.prompt)}
                   {sp.points ? (
                     <span className="text-xs font-sans text-slate-400 ml-2">[{sp.points} pt]</span>
                   ) : null}
                 </p>
                 {showKey ? (
-                  <div className="ml-6 px-3 py-2 bg-green-50 border border-green-200 rounded">
+                  <div className="ml-6 px-3 py-2 bg-[#eee] border border-[#999]">
                     <p className="font-serif text-sm text-green-900">
                       <span className="font-bold">Answer: </span>
                       {latexToText(sp.answer)}

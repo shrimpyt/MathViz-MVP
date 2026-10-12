@@ -62,7 +62,7 @@ function TwoColumnTable({
   return (
     <table className="w-full border-collapse font-serif text-[0.95rem]">
       <thead>
-        <tr className="border-b-2 border-[#0F172A]">
+        <tr className="border-b-2 border-[#111]">
           <th className="text-left py-1 pr-4 font-bold w-8">#</th>
           <th className="text-left py-1 pr-4 font-bold">Statement</th>
           <th className="text-left py-1 font-bold w-[38%]">Reason</th>
@@ -102,7 +102,7 @@ function ElementsExposition({
   return (
     <div>
       {problem.elementsEnunciation && (
-        <p className="font-serif italic text-[1.02rem] text-[#0F172A] leading-relaxed mb-4 border-l-4 border-[#D9A720] pl-4">
+        <p className="font-serif italic text-[1.02rem] text-[#111] leading-relaxed mb-4 border-l-4 border-[#111] pl-4">
           {latexToText(problem.elementsEnunciation)}
         </p>
       )}
@@ -111,7 +111,7 @@ function ElementsExposition({
           const isQed = s.statement === "Q.E.D.";
           const blankReason = !!s.blankReason && !showAnswers;
           return (
-            <li key={i} className="font-serif text-[0.95rem] leading-relaxed text-[#0F172A]">
+            <li key={i} className="font-serif text-[0.95rem] leading-relaxed text-[#111]">
               {isQed ? (
                 <p className="text-right font-bold tracking-widest mt-3">Q.E.D.</p>
               ) : (
@@ -142,9 +142,9 @@ export function ProofProblemCard({
     presentation ?? problem.presentation ?? (problem.elementsProposition ? "elements" : "two-column");
 
   return (
-    <div className="flex bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
-      <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
-        <span className="font-serif text-xl font-bold text-[#0F172A]">{index + 1}</span>
+    <div className="flex break-inside-avoid mb-8">
+      <div className="pr-4 flex flex-col items-start justify-start w-10 shrink-0">
+        <span className="font-serif text-lg font-bold text-[#111]">{index + 1}</span>
       </div>
       <div className="p-6 flex-1 flex flex-row items-start gap-6">
         <div className="flex-1 min-w-0">
@@ -155,17 +155,17 @@ export function ProofProblemCard({
             </span>
           </div>
           {style === "elements" && problem.elementsProposition ? (
-            <p className="font-serif text-[1.15rem] font-bold text-[#0F172A] mb-3">
+            <p className="font-serif text-[1.15rem] font-bold text-[#111] mb-3">
               Proposition {problem.elementsProposition}
             </p>
           ) : (
-            <p className="font-serif text-[1.1rem] text-[#0F172A] mb-4 leading-relaxed font-medium">
+            <p className="font-serif text-[1.1rem] text-[#111] mb-4 leading-relaxed font-medium">
               <span className="font-bold">Prove: </span>
               {latexToText(problem.prove)}
             </p>
           )}
           <div className="mb-4">
-            <p className="font-serif text-[0.95rem] font-bold text-[#0F172A] mb-1">Given:</p>
+            <p className="font-serif text-[0.95rem] font-bold text-[#111] mb-1">Given:</p>
             <ul className="list-disc list-inside font-serif text-[0.95rem] text-slate-700 space-y-0.5">
               {problem.given.map((g, i) => (
                 <li key={i}>{latexToText(g)}</li>

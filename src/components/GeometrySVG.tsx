@@ -72,7 +72,7 @@ function Label({
 
 function CircleBase() {
   return (
-    <circle cx={CX} cy={CY} r={R} fill="none" stroke="#0F172A" strokeWidth={1.5} />
+    <circle cx={CX} cy={CY} r={R} fill="none" stroke="#111111" strokeWidth={1.5} />
   );
 }
 
@@ -105,10 +105,10 @@ export function InscribedAngleSVG({
         strokeWidth={3}
         strokeLinecap="round"
       />
-      <line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
-      <line x1={V.x} y1={V.y} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
+      <line x1={V.x} y1={V.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.2} />
       {[A, B, V].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: 0 }} />
       <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
@@ -141,11 +141,11 @@ export function CentralAngleSVG({ interceptedArc, variant }: { interceptedArc: n
         strokeWidth={3}
         strokeLinecap="round"
       />
-      <line x1={CX} y1={CY} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
-      <line x1={CX} y1={CY} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
-      <circle cx={CX} cy={CY} r={2.5} fill="#0F172A" />
+      <line x1={CX} y1={CY} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
+      <line x1={CX} y1={CY} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.2} />
+      <circle cx={CX} cy={CY} r={2.5} fill="#111111" />
       {[A, B].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: 0 }} />
       <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
@@ -177,7 +177,7 @@ export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind:
         strokeWidth={1.5}
         strokeDasharray="4 2"
       />
-      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.2} />
       <path
         d={arcPath(CX, CY, R, chordStart, chordEnd)}
         fill="none"
@@ -186,7 +186,7 @@ export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind:
         strokeLinecap="round"
       />
       {[A, B].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: -5 }} />
       <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
@@ -225,11 +225,11 @@ export function TwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams & { kind: "
       <CircleBase />
       <path d={arcPath(CX, CY, R, a0, a1)} fill="none" stroke="#3b82f6" strokeWidth={3} />
       <path d={arcPath(CX, CY, R, a2, a3)} fill="none" stroke="#10b981" strokeWidth={3} />
-      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#0F172A" strokeWidth={1.2} />
-      <line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.2} />
+      <line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.2} />
       <circle cx={P.x} cy={P.y} r={2.5} fill="#e11d48" />
       {[A, B, C, D].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       {[
         { pt: A, lbl: "A", off: { x: -7, y: 0 } },
@@ -276,10 +276,10 @@ export function TwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: num
         stroke="#10b981"
         strokeWidth={3}
       />
-      <line x1={EX} y1={EY} x2={A.x} y2={A.y} stroke="#0F172A" strokeWidth={1.2} />
-      <line x1={EX} y1={EY} x2={B.x} y2={B.y} stroke="#0F172A" strokeWidth={1.2} />
+      <line x1={EX} y1={EY} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
+      <line x1={EX} y1={EY} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.2} />
       {[A, B, C, D].map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#0F172A" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
       <circle cx={EX} cy={EY} r={2.5} fill="#e11d48" />
       <Label x={EX} y={EY} text="P" offset={{ x: 8, y: 0 }} />
@@ -318,7 +318,7 @@ export function ConcentricCirclesSVG({
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Concentric circles probability diagram">
       {/* Outer circle */}
-      <circle cx={CX} cy={CY} r={scaledOuter} fill="#dbeafe" stroke="#0F172A" strokeWidth={1.5} />
+      <circle cx={CX} cy={CY} r={scaledOuter} fill="#dbeafe" stroke="#111111" strokeWidth={1.5} />
       {/* Inner (favorable) circle */}
       <circle
         cx={CX} cy={CY} r={scaledInner}
@@ -369,7 +369,7 @@ export function ShadedSectorSVG({
 
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Shaded sector probability diagram">
-      <circle cx={CX} cy={CY} r={R} fill="#f1f5f9" stroke="#0F172A" strokeWidth={1.5} />
+      <circle cx={CX} cy={CY} r={R} fill="#f1f5f9" stroke="#111111" strokeWidth={1.5} />
       <path d={pathD} fill="#3b82f6" fillOpacity={0.55} stroke="#1d4ed8" strokeWidth={1.2} />
       {(() => {
         const mid = polarToCart(CX, CY, R * 0.5, startDeg + 90 + sectorAngle / 2);
@@ -488,7 +488,7 @@ function RightAngleMark({ v, p1, p2 }: { v: Pt; p1: Pt; p2: Pt }) {
     <path
       d={`M ${q1.x} ${q1.y} L ${corner.x} ${corner.y} L ${q2.x} ${q2.y}`}
       fill="none"
-      stroke="#0F172A"
+      stroke="#111111"
       strokeWidth={1.2}
     />
   );
@@ -533,14 +533,14 @@ export function CongruenceSVG({
       <polygon
         points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`}
         fill="none"
-        stroke="#0F172A"
+        stroke="#111111"
         strokeWidth={1.5}
       />
       {/* Triangle 2 */}
       <polygon
         points={`${D.x},${D.y} ${E.x},${E.y} ${F.x},${F.y}`}
         fill="none"
-        stroke="#0F172A"
+        stroke="#111111"
         strokeWidth={1.5}
       />
 

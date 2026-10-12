@@ -19,7 +19,7 @@ import type {
 
 type Pt = { x: number; y: number };
 const FONT = "Times-Roman";
-const INK = "#0F172A";
+const INK = "#111111";
 
 // ── Shared mark helpers ──────────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ function PdfRightAngleMark({ v, p1, p2 }: { v: Pt; p1: Pt; p2: Pt }) {
   );
 }
 
-function PdfLabel({ pt, text, dx = 0, dy = 0, size = 9, color = "#1e293b", bold = false }: {
+function PdfLabel({ pt, text, dx = 0, dy = 0, size = 9, color = "#111111", bold = false }: {
   pt: Pt; text: string; dx?: number; dy?: number; size?: number; color?: string; bold?: boolean;
 }) {
   return (
@@ -498,7 +498,7 @@ function PdfElementsI47({ a = 6, b = 8 }: { a?: number; b?: number }) {
     return (
       <React.Fragment key={label}>
         <Circle cx={q.x} cy={q.y} r={2.2} fill={INK} />
-        <Text x={q.x + dxl - 3} y={q.y + dyl + 3} style={{ fontSize: 9, fontFamily: FONT, color: "#1e293b" }}>
+        <Text x={q.x + dxl - 3} y={q.y + dyl + 3} style={{ fontSize: 9, fontFamily: FONT, color: "#111111" }}>
           {label}
         </Text>
       </React.Fragment>

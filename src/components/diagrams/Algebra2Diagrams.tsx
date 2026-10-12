@@ -20,7 +20,7 @@ import {
   makeProjector,
 } from "./plotMath";
 
-const INK = "#0F172A";
+const INK = "#111111";
 const BLUE = "#1d4ed8";
 const RED = "#e11d48";
 

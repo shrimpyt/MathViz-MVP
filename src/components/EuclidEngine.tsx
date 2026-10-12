@@ -203,8 +203,8 @@ export function EuclidEngine({
             onClick={() => setRevealed((r) => !r)}
             className="px-4 py-1.5 rounded-full text-sm font-sans font-medium shadow-sm transition-colors"
             style={{
-              background: revealed ? "#d9a720" : "rgba(30, 45, 69, 0.4)",
-              color: revealed ? "#0F172A" : "#fff",
+              background: revealed ? "#818cf8" : "rgba(30, 45, 69, 0.4)",
+              color: revealed ? "#14161f" : "#fff",
               backdropFilter: "blur(4px)",
               border: "1px solid rgba(255, 255, 255, 0.1)",
             }}

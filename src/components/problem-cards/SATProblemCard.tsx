@@ -45,20 +45,20 @@ function MCQOptions({
             <div
               className={`flex items-center gap-3 px-3 py-2 border rounded-sm font-serif ${
                 highlight
-                  ? "border-green-700 bg-green-50"
+                  ? "bg-[#eee] border-[#111]"
                   : "border-slate-300 bg-white"
               }`}
             >
               <span
                 className={`flex items-center justify-center w-7 h-7 rounded-full border-2 text-sm font-bold shrink-0 ${
                   highlight
-                    ? "border-green-700 bg-green-700 text-white"
-                    : "border-[#0F172A] text-[#0F172A]"
+                    ? "bg-[#111] text-white border-[#111]"
+                    : "border-[#111] text-[#111]"
                 }`}
               >
                 {opt.option}
               </span>
-              <span className="text-[1.05rem] text-[#0F172A]">
+              <span className="text-[1.05rem] text-[#111]">
                 {latexToText(opt.label)}
               </span>
               {highlight && (
@@ -97,8 +97,8 @@ function GridInBoxes({
             key={i}
             className={`inline-flex items-center justify-center w-9 h-11 border-2 font-serif text-lg ${
               showKey
-                ? "border-green-700 bg-green-50 text-green-900"
-                : "border-[#0F172A] bg-white"
+                ? "bg-[#eee] border-[#111] text-[#111]"
+                : "border-[#111] bg-white"
             }`}
           >
             {showKey ? keyChars[i] ?? "" : "\u00A0"}
@@ -121,13 +121,13 @@ export function SATProblemCard({
   const isTable = problem.diagram?.kind === "SatTable";
 
   return (
-    <div className="flex bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
-      <div className="border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0" style={{ backgroundColor: `${meta.badge}12` }}>
-        <span className="font-serif text-xl font-bold text-[#0F172A]">
+    <div className="flex break-inside-avoid mb-8">
+      <div className="border-r-2 border-[#111] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0" style={{ backgroundColor: `${meta.badge}12` }}>
+        <span className="font-serif text-lg font-bold text-[#111]">
           {index + 1}
         </span>
       </div>
-      <div className="p-6 flex-1">
+      <div className="flex-1">
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span
             className="inline-block text-[10px] font-mono tracking-wide px-1.5 py-0.5 rounded text-white mr-1"
@@ -148,7 +148,7 @@ export function SATProblemCard({
 
         <div className="flex flex-row items-start gap-6">
           <div className="flex-1 min-w-0">
-            <p className="font-serif text-[1.1rem] text-[#0F172A] mb-2 leading-relaxed font-medium">
+            <p className="font-serif text-[1.1rem] text-[#111] mb-2 leading-relaxed font-medium">
               {latexToText(problem.stem)}
             </p>
             {isTable && problem.diagram && (

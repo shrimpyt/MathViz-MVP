@@ -76,34 +76,34 @@ function RightTriangleSVG({ params }: { params: TrigSVGParams }) {
 
   return (
     <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
-      <polygon points={pts} fill="none" stroke="#0F172A" strokeWidth="2" strokeLinejoin="round" />
+      <polygon points={pts} fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round" />
       
       {/* Right angle square */}
       {params.orientation === "right" ? (
-        <path d={`M ${xRight - 8} ${yBottom} L ${xRight - 8} ${yBottom - 8} L ${xRight} ${yBottom - 8}`} fill="none" stroke="#0F172A" strokeWidth="1.2" />
+        <path d={`M ${xRight - 8} ${yBottom} L ${xRight - 8} ${yBottom - 8} L ${xRight} ${yBottom - 8}`} fill="none" stroke="#111" strokeWidth="1.2" />
       ) : (
-        <path d={`M ${xLeft + 8} ${yBottom} L ${xLeft + 8} ${yBottom - 8} L ${xLeft} ${yBottom - 8}`} fill="none" stroke="#0F172A" strokeWidth="1.2" />
+        <path d={`M ${xLeft + 8} ${yBottom} L ${xLeft + 8} ${yBottom - 8} L ${xLeft} ${yBottom - 8}`} fill="none" stroke="#111" strokeWidth="1.2" />
       )}
 
       {/* Reference Angle Arc */}
-      <path d={arcD} fill="none" stroke="#D9A720" strokeWidth="2" />
-      <text x={refLblPos.x} y={refLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#B48A18" fontWeight="bold">
+      <path d={arcD} fill="none" stroke="#111" strokeWidth="2" />
+      <text x={refLblPos.x} y={refLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">
         {params.referenceAngleLabel}
       </text>
 
       {/* Side Labels */}
       {params.referenceAnglePos === "base" ? (
         <>
-          <text x={baseLblPos.x} y={baseLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#0F172A" fontWeight="bold">{params.labels.adjacent}</text>
-          <text x={vertLblPos.x} y={vertLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#0F172A" fontWeight="bold">{params.labels.opposite}</text>
+          <text x={baseLblPos.x} y={baseLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.adjacent}</text>
+          <text x={vertLblPos.x} y={vertLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.opposite}</text>
         </>
       ) : (
         <>
-          <text x={baseLblPos.x} y={baseLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#0F172A" fontWeight="bold">{params.labels.opposite}</text>
-          <text x={vertLblPos.x} y={vertLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#0F172A" fontWeight="bold">{params.labels.adjacent}</text>
+          <text x={baseLblPos.x} y={baseLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.opposite}</text>
+          <text x={vertLblPos.x} y={vertLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.adjacent}</text>
         </>
       )}
-      <text x={hypLblPos.x} y={hypLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#0F172A" fontWeight="bold">{params.labels.hypotenuse}</text>
+      <text x={hypLblPos.x} y={hypLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.hypotenuse}</text>
     </svg>
   );
 }
@@ -136,14 +136,14 @@ export function TrigProblemCard({
   }
 
   return (
-    <div className="flex bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
-      <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
-        <span className="font-serif text-xl font-bold text-[#0F172A]">
+    <div className="flex break-inside-avoid">
+      <div className="pr-4 flex flex-col items-start justify-start w-10 shrink-0">
+        <span className="font-serif text-lg font-bold text-[#111]">
           {idx + 1}
         </span>
       </div>
-      <div className="p-6 flex-1">
-        <p className="font-serif text-[1.1rem] text-[#0F172A] mb-8 leading-relaxed font-medium">
+      <div className="flex-1">
+        <p className="font-serif text-[1.1rem] text-[#111] mb-8 leading-relaxed font-medium">
           {pretext}
         </p>
         

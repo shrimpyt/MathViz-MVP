@@ -8,8 +8,8 @@ import React from "react";
 import { Svg, Line, Path, Text, Polygon, Circle } from "@react-pdf/renderer";
 import type { SATDiagramParams } from "@/lib/satTypes";
 
-const INK = "#0F172A";
-const GOLD = "#B48A18";
+const INK = "#111111";
+const GOLD = "#555555";
 
 function SatPdfTable({
   headers,

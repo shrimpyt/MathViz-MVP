@@ -1,6 +1,8 @@
 "use client";
 // DocumentHeader.tsx
-// Classical Academy document header and section divider.
+// Plain teacher-handout document header and section divider.
+// Matches the Classical Notes 5.1 print style: centered serif title,
+// gray course line, Name/Date/Period rule, unadorned section headings.
 
 import React from "react";
 import type { OutputMode } from "@/lib/ProblemFactory";
@@ -17,60 +19,52 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
 
   return (
     <div className="mb-6">
-      {/* Classical double-rule header */}
-      <div style={{ borderTop: "3px solid #172336", borderBottom: "1px solid #172336", paddingTop: "6px", paddingBottom: "6px", marginBottom: "12px" }}>
-        <h1
-          className="font-serif text-2xl font-bold text-center text-slate-900 leading-tight tracking-wide"
-        >
+      {/* Plain centered title block */}
+      <div className="text-center mb-1">
+        <h1 className="font-serif text-2xl font-bold text-[#111] leading-tight">
           {title}
         </h1>
-        <p
-          className="font-serif text-center text-xs text-slate-500 tracking-widest uppercase mt-1"
-        >
+        <p className="font-serif text-sm text-[#555] mt-1">
           {modeLabel[mode]}
         </p>
       </div>
 
       {/* Name / Date / Period row */}
-      <div
-        className="font-serif flex justify-between items-end text-sm text-slate-700 pb-2 border-b border-slate-300"
-      >
+      <div className="font-serif flex justify-between items-end text-sm text-[#111] py-2 border-b border-[#111]">
         <div>
           Name:{" "}
-          <span className="inline-block border-b border-slate-600 min-w-[180px]">
+          <span className="inline-block border-b border-[#111] min-w-[180px]">
             &nbsp;
           </span>
         </div>
         <div className="flex gap-6">
           <div>
             Date:{" "}
-            <span className="inline-block border-b border-slate-600 min-w-[80px]">
+            <span className="inline-block border-b border-[#111] min-w-[80px]">
               &nbsp;
             </span>
           </div>
           <div>
             Period:{" "}
-            <span className="inline-block border-b border-slate-600 min-w-[40px]">
+            <span className="inline-block border-b border-[#111] min-w-[40px]">
               &nbsp;
             </span>
           </div>
         </div>
       </div>
 
-      {/* Mode-specific directions */}
+      {/* Mode-specific directions — plain italic, no boxes */}
       {mode === "GuidedNote" && (
-        <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-xs font-sans text-amber-800">
-          <span className="font-semibold">Directions:</span> Fill in each blank
-          as we work through the problems together. Use the diagrams to guide
-          your thinking.
-        </div>
+        <p className="mt-3 font-serif text-xs italic text-[#444]">
+          Directions: Fill in each blank as we work through the problems
+          together. Use the diagrams to guide your thinking.
+        </p>
       )}
       {mode === "Test" && (
-        <div className="mt-3 p-2 bg-slate-50 border border-slate-200 rounded text-xs font-sans text-slate-700">
-          <span className="font-semibold">Directions:</span> Show all work.
-          Write your final answer on each answer line. Partial credit may be
-          awarded for correct steps.
-        </div>
+        <p className="mt-3 font-serif text-xs italic text-[#444]">
+          Directions: Show all work. Write your final answer on each answer
+          line. Partial credit may be awarded for correct steps.
+        </p>
       )}
     </div>
   );
@@ -80,12 +74,8 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
 
 export function SectionDivider({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2 my-4">
-      <div className="h-px flex-1" style={{ backgroundColor: "#d9a720", opacity: 0.5 }} />
-      <span className="font-serif text-xs font-semibold uppercase tracking-widest px-2" style={{ color: "#172336" }}>
-        {label}
-      </span>
-      <div className="h-px flex-1" style={{ backgroundColor: "#d9a720", opacity: 0.5 }} />
-    </div>
+    <h2 className="font-serif text-base font-bold text-[#111] mt-5 mb-2 pb-1 border-b border-[#999]">
+      {label}
+    </h2>
   );
 }

@@ -32,9 +32,9 @@ export function CircleProblemCard({
   const givenEntries = Object.entries(problem.given);
 
   return (
-    <div className="flex bg-white rounded-none border-2 border-[#0F172A] overflow-hidden break-inside-avoid mb-6 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
-      <div className="bg-[#f8fafc] border-r-2 border-[#0F172A] px-4 py-6 flex flex-col items-center justify-start w-16 shrink-0">
-        <span className="font-serif text-xl font-bold text-[#0F172A]">
+    <div className="flex break-inside-avoid mb-8">
+      <div className="pr-4 flex flex-col items-start justify-start w-10 shrink-0">
+        <span className="font-serif text-lg font-bold text-[#111]">
           {index + 1}
         </span>
       </div>
@@ -46,7 +46,7 @@ export function CircleProblemCard({
               {subtypeLabel[problem.subtype]}
             </span>
           </div>
-          <p className="font-serif text-[1.1rem] text-[#0F172A] mb-4 leading-relaxed font-medium">
+          <p className="font-serif text-[1.1rem] text-[#111] mb-4 leading-relaxed font-medium">
             <span className="font-bold">Given: </span>
             {givenEntries.map(([k, v], i) => (
               <span key={k}>

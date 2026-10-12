@@ -155,7 +155,7 @@ function ClassicalStep({
         )}
       </div>
       {/* Margin prompt alongside the step */}
-      <div className="w-40 shrink-0 border-l-2 border-[#d9a720] pl-2">
+      <div className="w-40 shrink-0 border-l-2 border-[#111] pl-2">
         <p
           data-testid="margin-prompt"
           className="font-serif text-xs italic text-slate-600 leading-snug"
@@ -195,11 +195,11 @@ export function ClassicalNotesCard({
   };
 
   return (
-    <div className="bg-white border-2 border-[#0F172A] overflow-hidden mb-8 shadow-[6px_6px_0px_rgba(15,23,42,0.05)]">
+    <div className="mb-8">
       {/* Section header */}
-      <div className="bg-[#f8fafc] border-b-2 border-[#0F172A] px-6 py-4">
+      <div className="bg-[#f8fafc] border-b-2 border-[#111] px-6 py-4">
         {teksBadge && <TEKSBadge standard={teksBadge} />}
-        <span className="font-serif text-lg font-bold text-[#0F172A]">
+        <span className="font-serif text-lg font-bold text-[#111]">
           {sectionLabel ?? "Classical Notes"}
         </span>
         <span className="block font-serif text-xs italic text-slate-500 mt-1">
@@ -213,9 +213,9 @@ export function ClassicalNotesCard({
         {definitions && definitions.length > 0 && (
           <div
             data-testid="definitions-block"
-            className="mb-8 border-2 border-[#0F172A] bg-[#fffdf5] p-5 break-inside-avoid"
+            className="mb-8 border-2 border-[#111] bg-[#fffdf5] p-5 break-inside-avoid"
           >
-            <h3 className="font-serif text-base font-bold text-[#0F172A] uppercase tracking-wide mb-1">
+            <h3 className="font-serif text-base font-bold text-[#111] uppercase tracking-wide mb-1">
               Definitions
             </h3>
             <p className="font-serif text-xs italic text-slate-500 mb-4">
@@ -224,7 +224,7 @@ export function ClassicalNotesCard({
             <ol className="space-y-4">
               {definitions.map((d, i) => (
                 <li key={i} data-testid="definition">
-                  <p className="font-serif text-sm text-[#0F172A] leading-relaxed">
+                  <p className="font-serif text-sm text-[#111] leading-relaxed">
                     <span className="font-bold mr-1">{i + 1}.</span>
                     {latexToText(d)}
                   </p>
@@ -252,7 +252,7 @@ export function ClassicalNotesCard({
               >
                 <div className="flex flex-row items-start gap-6">
                   <div className="flex-1 min-w-0">
-                    <p className="font-serif text-[1.05rem] text-[#0F172A] mb-4 leading-relaxed font-medium">
+                    <p className="font-serif text-[1.05rem] text-[#111] mb-4 leading-relaxed font-medium">
                       <span className="font-bold">
                         {startIndex + pi + 1}.{" "}
                       </span>
@@ -297,9 +297,9 @@ export function ClassicalNotesCard({
         {/* 4. NARRATION box + error log — once per section */}
         <div
           data-testid="narration-box"
-          className="mt-10 border-2 border-[#0F172A] p-5 break-inside-avoid"
+          className="mt-10 border-2 border-[#111] p-5 break-inside-avoid"
         >
-          <h3 className="font-serif text-base font-bold text-[#0F172A] uppercase tracking-wide mb-1">
+          <h3 className="font-serif text-base font-bold text-[#111] uppercase tracking-wide mb-1">
             Narration
           </h3>
           <p className="font-serif text-xs italic text-slate-500 mb-3">

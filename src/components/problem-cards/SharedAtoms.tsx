@@ -26,7 +26,7 @@ export function Blank({
   }
   if (mode === "Review") {
     return (
-      <span className="inline-block mx-1 px-2 py-0.5 bg-blue-50 border border-blue-300 rounded font-serif text-sm text-blue-900">
+      <span className="inline-block mx-1 font-serif text-sm font-bold text-[#111]">
         {latexToText(field.answer)}
       </span>
     );
@@ -35,7 +35,7 @@ export function Blank({
   return (
     <span className="inline-flex items-center mx-1 gap-1">
       {revealed ? (
-        <span className="inline-block px-2 py-0.5 bg-green-50 border border-green-800 font-serif text-sm text-green-900">
+        <span className="inline-block font-serif text-sm font-bold text-[#111]">
           {latexToText(field.answer)}
         </span>
       ) : (
@@ -82,7 +82,7 @@ export function StepBlock({
 
 export function TEKSBadge({ standard }: { standard: string }) {
   return (
-    <span className="inline-block text-[10px] font-mono tracking-wide px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-600 mr-2">
+    <span className="inline-block text-[10px] font-serif italic text-[#555] mr-2">
       TEKS {standard}
     </span>
   );
@@ -92,7 +92,7 @@ export function TEKSBadge({ standard }: { standard: string }) {
 
 export function DiagramBox({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-[140px] h-[140px] flex-shrink-0 border-2 border-[#1e293b] overflow-hidden bg-white shadow-[4px_4px_0px_rgba(30,41,59,0.1)]">
+    <div className="w-[140px] h-[140px] flex-shrink-0 overflow-hidden bg-white">
       {children}
     </div>
   );

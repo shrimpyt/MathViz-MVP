@@ -52,17 +52,17 @@ export function CoordinateProblemCard({ problem, index, mode, revealed }: Props)
             <line x1="50" y1="0" x2="50" y2="100" stroke="#94a3b8" strokeWidth="1" />
             
             {/* Scale points to grid (0,0 is 50,50) */}
-            <circle cx={50 + problem.p1.x * 10} cy={50 - problem.p1.y * 10} r="2" fill="#1e293b" />
+            <circle cx={50 + problem.p1.x * 10} cy={50 - problem.p1.y * 10} r="2" fill="#111111" />
             <text x={53 + problem.p1.x * 10} y={47 - problem.p1.y * 10} fontSize="8" fontWeight="bold">{problem.p1.label}</text>
             
-            <circle cx={50 + problem.p2.x * 10} cy={50 - problem.p2.y * 10} r="2" fill="#1e293b" />
+            <circle cx={50 + problem.p2.x * 10} cy={50 - problem.p2.y * 10} r="2" fill="#111111" />
             <text x={53 + problem.p2.x * 10} y={47 - problem.p2.y * 10} fontSize="8" fontWeight="bold">{problem.p2.label}</text>
             
             {/* Line segment */}
             <line 
               x1={50 + problem.p1.x * 10} y1={50 - problem.p1.y * 10} 
               x2={50 + problem.p2.x * 10} y2={50 - problem.p2.y * 10} 
-              stroke="#d9a720" strokeWidth="1.5" strokeDasharray="2"
+              stroke="#111" strokeWidth="1.5" strokeDasharray="2"
             />
           </svg>
         </DiagramBox>

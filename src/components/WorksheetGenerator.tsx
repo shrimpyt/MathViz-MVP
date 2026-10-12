@@ -131,22 +131,6 @@ function PanelSection({
   );
 }
 
-// Shared dark input styling for the Parameters section
-const paramFieldSx = {
-  '& .MuiOutlinedInput-root': {
-    backgroundColor: 'rgba(2,6,23,0.55)',
-    borderRadius: 2,
-    fontSize: '0.85rem',
-    '& fieldset': { borderColor: 'rgba(255,255,255,0.10)' },
-    '&:hover fieldset': { borderColor: 'rgba(217,167,32,0.40)' },
-    '&.Mui-focused fieldset': { borderColor: '#d9a720', borderWidth: 1 },
-  },
-  '& .MuiInputBase-input': { color: '#fbfbfb', py: 1 },
-  '& .MuiInputBase-input::-webkit-outer-spin-button, & .MuiInputBase-input::-webkit-inner-spin-button': {
-    opacity: 0.4,
-  },
-} as const;
-
 // ── Error boundary around the live preview ────────────────────────────────────
 
 class PreviewErrorBoundary extends React.Component<
