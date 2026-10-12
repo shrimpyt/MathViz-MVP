@@ -106,9 +106,24 @@ export function EuclidEngine({
 
   // Approximate the accommodated presentation in the web preview. CSS zoom
   // scales text and spacing together; the PDF remains the artifact of record.
-  // (Sans-serif swap is print-only in Phase 1.)
   const previewZoom =
     presentation.fontScale !== 1 ? { zoom: presentation.fontScale } : undefined;
+
+  // Worksheet font follows the presentation token (sans is the default).
+  // Tailwind's font-serif utilities resolve through the --font-serif CSS
+  // variable, so overriding it on the page container flips every problem
+  // card inside the preview along with the container's own text.
+  const isSans = presentation.fontFamily === 'sans';
+  const SANS_STACK =
+    "'DejaVu Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+  const pageStyle: React.CSSProperties = {
+    width: PAGE_WIDTH_PX,
+    minHeight: PAGE_HEIGHT_PX,
+    fontFamily: isSans ? SANS_STACK : "'Times New Roman', Georgia, serif",
+    padding: "48px 56px",
+    boxSizing: "border-box",
+    ...(isSans ? ({ '--font-serif': SANS_STACK } as React.CSSProperties) : {}),
+  };
 
   const circleProblems = problems.filter(
     (p): p is CircleProblem => p.type === "G.12A"
@@ -224,13 +239,7 @@ export function EuclidEngine({
       {/* US Letter page */}
       <div
         className="bg-white shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden"
-        style={{
-          width: PAGE_WIDTH_PX,
-          minHeight: PAGE_HEIGHT_PX,
-          fontFamily: "'Times New Roman', Georgia, serif",
-          padding: "48px 56px",
-          boxSizing: "border-box",
-        }}
+        style={pageStyle}
       >
         <DocumentHeader mode={mode} title={title} />
 

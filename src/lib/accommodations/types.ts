@@ -156,7 +156,7 @@ export interface NewGroupInput {
 export interface Presentation {
   /** Multiplier for text/diagram sizing. 1 = default. */
   fontScale: number;
-  /** Font family token. 'serif' = current default (WorksheetSerif). */
+  /** Font family token. 'sans' = default (WorksheetSans); 'serif' = the Classical Notes 5.1 theme (WorksheetSerif). */
   fontFamily: 'serif' | 'sans';
   /** Multiplier for margins/padding/line-height and problem-card gaps. */
   spacingScale: number;
@@ -166,7 +166,7 @@ export interface Presentation {
 
 export const DEFAULT_PRESENTATION: Presentation = {
   fontScale: 1,
-  fontFamily: 'serif',
+  fontFamily: 'sans',
   spacingScale: 1,
   maxProblemsPerPage: 4,
 };

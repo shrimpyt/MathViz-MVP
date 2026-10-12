@@ -16,6 +16,7 @@
 import type { MathProblem } from '../types';
 import {
   ACCOMMODATION_DISPLAY_NAMES,
+  DEFAULT_PRESENTATION,
   activeAccommodationIds,
   type AccommodationGroup,
   type ClassAccommodationList,
@@ -122,12 +123,7 @@ export function planVersions(
 ): VersionPlan {
   const baseInput: VersionInput = {
     problems,
-    presentation: {
-      fontScale: 1,
-      fontFamily: 'serif',
-      spacingScale: 1,
-      maxProblemsPerPage: 4,
-    },
+    presentation: { ...DEFAULT_PRESENTATION },
   };
   const base = toPlannedVersion('base', baseInput);
 

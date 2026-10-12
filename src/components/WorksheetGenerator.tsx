@@ -201,7 +201,7 @@ interface DraftFile {
 
 export default function WorksheetGenerator() {
   const [docType, setDocType] = useState<DocumentType>('guided-notes');
-  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>(['trig-1-ratios']);
+  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
 
   const [customTitle, setCustomTitle] = useState('');
   const [seed, setSeed] = useState(42);
@@ -297,11 +297,10 @@ export default function WorksheetGenerator() {
   };
 
   // ── Topic group accordion state ──
-  // Collapsed by default; the group holding the default-selected topic starts open.
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    const entry = CURRICULUM_REGISTRY.find((e) => e.id === 'trig-1-ratios');
-    return new Set(entry ? [entry.topicTitle] : []);
-  });
+  // Collapsed by default; no topic is pre-selected, so no group starts open.
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const toggleGroup = (groupTitle: string) => {
     setExpandedGroups((prev) => {
@@ -651,6 +650,12 @@ export default function WorksheetGenerator() {
     return 'No accommodations — everyone gets the base version 👍';
   }, [step, docType, selectedTopicIds.length, advancedProblems.length, teksSelected, teksTotal, hasAccommodations, versionPlan]);
 
+  // Topbar step jumps follow the footer's Continue rule: steps past Topics
+  // require a topic selection. With nothing selected, a forward jump lands
+  // on Topics instead of an empty Accommodations/Review step.
+  const goToStep = (n: number) =>
+    setStep(n > 1 && selectedTopicIds.length === 0 ? 1 : n);
+
   return (
     <Box
       sx={{
@@ -660,7 +665,7 @@ export default function WorksheetGenerator() {
         bgcolor: '#14161f',
       }}
     >
-      <WizardTopbar step={step} goTo={setStep} problemCount={advancedProblems.length} />
+      <WizardTopbar step={step} goTo={goToStep} problemCount={advancedProblems.length} />
 
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {step === 0 && (

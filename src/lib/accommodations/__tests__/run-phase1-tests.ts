@@ -117,7 +117,7 @@ test('each transform is pure: frozen input is never mutated', () => {
 test('largePrint scales font ×1.25 and touches nothing else', () => {
   const out = largePrint({ problems: [], presentation: { ...DEFAULT_PRESENTATION } });
   assert(out.presentation.fontScale === 1.25, `fontScale=${out.presentation.fontScale}`);
-  assert(out.presentation.fontFamily === 'serif', 'fontFamily changed');
+  assert(out.presentation.fontFamily === DEFAULT_PRESENTATION.fontFamily, 'fontFamily changed');
   assert(out.presentation.spacingScale === 1, 'spacingScale changed');
   assert(out.presentation.maxProblemsPerPage === 4, 'maxProblemsPerPage changed');
 });
@@ -311,7 +311,7 @@ test('group presentations reflect their flags; base stays default', () => {
   const a = plan.groups[0].presentation;
   assert(a.fontScale === 1.25 && a.fontFamily === 'sans' && a.spacingScale === 1.5 && a.maxProblemsPerPage === 2, 'Group A presentation wrong');
   const b = plan.groups[1].presentation;
-  assert(b.fontScale === 1.25 && b.fontFamily === 'serif', 'Group B presentation wrong');
+  assert(b.fontScale === 1.25 && b.fontFamily === DEFAULT_PRESENTATION.fontFamily, 'Group B presentation wrong');
   assert(JSON.stringify(plan.base.presentation) === JSON.stringify(DEFAULT_PRESENTATION), 'base presentation mutated');
   assert(plan.base.answerKeyLabel === 'Answer Key', 'base key label wrong');
   assert(plan.groups[0].answerKeyLabel.includes('Group A'), 'group key label wrong');

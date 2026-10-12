@@ -9,8 +9,10 @@
 //      repeats — identical to the web preview for the same seed),
 //   4. NARRATION box + error log once per section.
 //
-// All text goes through pdfSafeText (DejaVu Serif is embedded; the PDF
+// All text goes through pdfSafeText (DejaVu fonts are embedded; the PDF
 // standard 14 fonts would mangle math glyphs). See answerKey.ts.
+// Typography follows the version's Presentation: sans (DejaVu Sans) is the
+// default; 'serif' renders the Classical Notes 5.1 theme (DejaVu Serif).
 
 import React from 'react';
 import {
@@ -32,6 +34,10 @@ import {
   GENERIC_MARGIN_PROMPT,
 } from '@/lib/classicalPrompts';
 import { formatAnswer, latexToText, pdfSafeText } from '@/lib/answerKey';
+import {
+  DEFAULT_PRESENTATION,
+  type Presentation,
+} from '@/lib/accommodations';
 
 // ── Step/diagram normalization ──────────────────────────────────────────────
 // The classical renderer was built when every MathProblem carried steps +
@@ -97,9 +103,32 @@ Font.register({
   ],
 });
 
+// Sans family (the default presentation font; also registered by PdfDocument).
+Font.register({
+  family: 'WorksheetSans',
+  fonts: [
+    { src: fontSrc('DejaVuSans.ttf'), fontWeight: 400 },
+    { src: fontSrc('DejaVuSans-Bold.ttf'), fontWeight: 700 },
+    { src: fontSrc('DejaVuSans-Oblique.ttf'), fontWeight: 400, fontStyle: 'italic' },
+    { src: fontSrc('DejaVuSans-BoldOblique.ttf'), fontWeight: 700, fontStyle: 'italic' },
+  ],
+});
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+// Presentation-aware stylesheet (mirrors PdfDocument's createStyles): the
+// serif tokens swap to WorksheetSans when the presentation font is 'sans'.
+function createStyles(fontFamily: 'serif' | 'sans') {
+  const fam = (
+    f: 'WorksheetSerif' | 'WorksheetSerifBold',
+  ): { fontFamily: string; fontWeight?: number } =>
+    fontFamily === 'sans'
+      ? f === 'WorksheetSerifBold'
+        ? { fontFamily: 'WorksheetSans', fontWeight: 700 }
+        : { fontFamily: 'WorksheetSans' }
+      : { fontFamily: f };
+
+  return StyleSheet.create({
   page: {
     size: 'LETTER',
     paddingTop: '0.65in',
@@ -107,7 +136,7 @@ const styles = StyleSheet.create({
     paddingLeft: '0.75in',
     paddingRight: '0.75in',
     backgroundColor: '#ffffff',
-    fontFamily: 'WorksheetSerif',
+    ...fam('WorksheetSerif'),
   },
   headerWrapper: { marginBottom: 12 },
   headerRule: {
@@ -117,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontSize: 20,
     textAlign: 'center',
     color: '#111111',
@@ -156,7 +185,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   directionsText: { fontSize: 10, color: '#555555' },
-  directionsBold: { fontFamily: 'WorksheetSerifBold', fontSize: 10, color: '#444444' },
+  directionsBold: { ...fam('WorksheetSerifBold'), fontSize: 10, color: '#444444' },
 
   // Section heading
   sectionHead: {
@@ -166,7 +195,7 @@ const styles = StyleSheet.create({
   },
   sectionRule: { flex: 1, height: 1, backgroundColor: '#999999' },
   sectionLabel: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontSize: 8,
     color: '#555555',
     marginHorizontal: 8,
@@ -184,7 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   blockTitle: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontSize: 12,
     color: '#111111',
     textTransform: 'uppercase',
@@ -193,7 +222,7 @@ const styles = StyleSheet.create({
   },
   blockSub: { fontSize: 9, color: '#555555', marginBottom: 8 },
   definitionText: { fontSize: 10, color: '#111111', lineHeight: 1.4, marginBottom: 2 },
-  definitionNum: { fontFamily: 'WorksheetSerifBold', fontSize: 10 },
+  definitionNum: { ...fam('WorksheetSerifBold'), fontSize: 10 },
   copyLine: {
     borderBottomWidth: 1,
     borderBottomColor: '#999999',
@@ -207,7 +236,7 @@ const styles = StyleSheet.create({
   problemBlock: { marginBottom: 14 },
   problemHead: { flexDirection: 'row', marginBottom: 6 },
   problemNumber: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontSize: 12,
     width: 22,
     color: '#111111',
@@ -216,7 +245,7 @@ const styles = StyleSheet.create({
   stepRow: { flexDirection: 'row', marginBottom: 8 },
   stepMain: { flex: 1, paddingRight: 8 },
   stepText: { fontSize: 10, color: '#444444', lineHeight: 1.4 },
-  stepNum: { fontFamily: 'WorksheetSerifBold', fontSize: 10, color: '#555555' },
+  stepNum: { ...fam('WorksheetSerifBold'), fontSize: 10, color: '#555555' },
   blankChip: {
     backgroundColor: '#eff6ff',
     borderWidth: 1,
@@ -228,7 +257,7 @@ const styles = StyleSheet.create({
     color: '#1e3a8a',
   },
   reasonRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 3 },
-  reasonLabel: { fontFamily: 'WorksheetSerifBold', fontSize: 10, color: '#555555', marginRight: 4 },
+  reasonLabel: { ...fam('WorksheetSerifBold'), fontSize: 10, color: '#555555', marginRight: 4 },
   reasonBlank: {
     borderBottomWidth: 1.5,
     borderBottomColor: '#111111',
@@ -246,7 +275,7 @@ const styles = StyleSheet.create({
   },
   marginPrompt: { fontSize: 8, color: '#555555', lineHeight: 1.3 },
   answerLine: { flexDirection: 'row', marginTop: 4 },
-  answerLabel: { fontFamily: 'WorksheetSerifBold', fontSize: 10, color: '#111111', marginRight: 4 },
+  answerLabel: { ...fam('WorksheetSerifBold'), fontSize: 10, color: '#111111', marginRight: 4 },
   answerText: { fontSize: 10, color: '#444444' },
   diagramBox: { marginTop: 6, alignSelf: 'flex-start' },
 
@@ -274,7 +303,7 @@ const styles = StyleSheet.create({
   },
   errorCols: { flexDirection: 'row', gap: 12 },
   errorCol: { flex: 1 },
-  errorHead: { fontFamily: 'WorksheetSerifBold', fontSize: 9, color: '#555555', marginBottom: 2 },
+  errorHead: { ...fam('WorksheetSerifBold'), fontSize: 9, color: '#555555', marginBottom: 2 },
 
   // Footer / answer key
   footer: {
@@ -291,13 +320,13 @@ const styles = StyleSheet.create({
   },
   footerText: { fontSize: 8, color: '#999999' },
   keyTitle: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontSize: 20,
     textAlign: 'center',
     color: '#111111',
   },
   keyWarning: {
-    fontFamily: 'WorksheetSerifBold',
+    ...fam('WorksheetSerifBold'),
     fontSize: 10,
     textAlign: 'center',
     color: '#b91c1c',
@@ -306,9 +335,21 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   keyRow: { flexDirection: 'row', marginBottom: 7 },
-  keyNumber: { fontFamily: 'WorksheetSerifBold', fontSize: 11, width: 26, color: '#111111' },
+  keyNumber: { ...fam('WorksheetSerifBold'), fontSize: 11, width: 26, color: '#111111' },
   keyAnswer: { fontSize: 11, color: '#111111', flex: 1, lineHeight: 1.4 },
-});
+  });
+}
+
+type ClassicalStyles = ReturnType<typeof createStyles>;
+const classicalStylesCache = new Map<string, ClassicalStyles>();
+function getClassicalStyles(fontFamily: 'serif' | 'sans'): ClassicalStyles {
+  let s = classicalStylesCache.get(fontFamily);
+  if (!s) {
+    s = createStyles(fontFamily);
+    classicalStylesCache.set(fontFamily, s);
+  }
+  return s;
+}
 
 // ── One demonstration step ────────────────────────────────────────────────────
 
@@ -316,10 +357,12 @@ function PdfClassicalStep({
   step,
   stepIndex,
   marginPrompt,
+  styles,
 }: {
   step: ProblemStep;
   stepIndex: number;
   marginPrompt: string;
+  styles: ClassicalStyles;
 }) {
   return (
     <View style={styles.stepRow}>
@@ -375,6 +418,8 @@ export interface ClassicalNotesPdfSectionProps {
   startIndex?: number;
   sectionLabel?: string;
   teksBadge?: string;
+  /** Version presentation; only the font token is consumed here. Defaults to DEFAULT_PRESENTATION (sans). */
+  presentation?: Presentation;
 }
 
 export function ClassicalNotesPdfSection({
@@ -384,7 +429,9 @@ export function ClassicalNotesPdfSection({
   startIndex = 0,
   sectionLabel,
   teksBadge,
+  presentation = DEFAULT_PRESENTATION,
 }: ClassicalNotesPdfSectionProps) {
+  const styles = getClassicalStyles(presentation.fontFamily);
   const definitions = getClassicalDefinitions(entryId);
   const stepLists = problems.map(classicalSteps);
   const totalSteps = stepLists.reduce((n, steps) => n + steps.length, 0);
@@ -445,6 +492,7 @@ export function ClassicalNotesPdfSection({
                 step={s}
                 stepIndex={si}
                 marginPrompt={stepPrompts[si] ?? GENERIC_MARGIN_PROMPT}
+                styles={styles}
               />
             ))}
             <View style={styles.answerLine}>
@@ -504,6 +552,8 @@ export interface ClassicalNotesPdfDocumentProps {
   teksBadge?: string;
   standard?: string;
   includeAnswerKey?: boolean;
+  /** Version presentation; defaults to DEFAULT_PRESENTATION (sans). */
+  presentation?: Presentation;
 }
 
 export default function ClassicalNotesPdfDocument({
@@ -515,7 +565,9 @@ export default function ClassicalNotesPdfDocument({
   teksBadge,
   standard = 'Texas TEKS Geometry',
   includeAnswerKey = false,
+  presentation = DEFAULT_PRESENTATION,
 }: ClassicalNotesPdfDocumentProps) {
+  const styles = getClassicalStyles(presentation.fontFamily);
   const renderFooter = () => (
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>{standard}</Text>
@@ -565,6 +617,7 @@ export default function ClassicalNotesPdfDocument({
           seed={seed}
           sectionLabel={sectionLabel}
           teksBadge={teksBadge}
+          presentation={presentation}
         />
 
         {renderFooter()}

@@ -1386,6 +1386,7 @@ export function PdfVersionPages({
                 startIndex={g.startIndex}
                 sectionLabel={g.title}
                 teksBadge={g.teks}
+                presentation={presentation}
               />
             ))}
           </View>
@@ -1457,11 +1458,22 @@ export default function PdfDocument(props: PdfDocumentProps) {
 // Separates versions in the combined accommodated export. Carries the version's
 // dividerText (e.g. "Group A — Large print · 3 students · print 3 copies").
 
+// Divider pages carry no version of their own, so they follow the default
+// presentation's font (sans) — same fam() swap as createStyles above.
+const dividerFam = (
+  f: 'WorksheetSerif' | 'WorksheetSerifBold',
+): { fontFamily: string; fontWeight?: number } =>
+  DEFAULT_PRESENTATION.fontFamily === 'sans'
+    ? f === 'WorksheetSerifBold'
+      ? { fontFamily: 'WorksheetSans', fontWeight: 700 }
+      : { fontFamily: 'WorksheetSans' }
+    : { fontFamily: f };
+
 const dividerStyles = StyleSheet.create({
   page: {
     size: 'LETTER',
     backgroundColor: '#ffffff',
-    fontFamily: 'WorksheetSerif',
+    ...dividerFam('WorksheetSerif'),
   },
   centerBox: {
     flex: 1,
@@ -1470,14 +1482,14 @@ const dividerStyles = StyleSheet.create({
     paddingHorizontal: '0.75in',
   },
   dividerTitle: {
-    fontFamily: 'WorksheetSerifBold',
+    ...dividerFam('WorksheetSerifBold'),
     fontSize: 16,
     textAlign: 'center',
     color: '#111111',
     marginBottom: 10,
   },
   dividerSub: {
-    fontFamily: 'WorksheetSerif',
+    ...dividerFam('WorksheetSerif'),
     fontSize: 10,
     textAlign: 'center',
     color: '#555555',
