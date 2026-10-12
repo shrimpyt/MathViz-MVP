@@ -93,6 +93,7 @@ const ALL_FLAGS: AccommodationFlags = {
   extraSpacing: true,
   fewerPerPage: true,
   reducedCount: true,
+  wordBank: true,
 };
 
 // ── 1. transform purity + expected params ─────────────────────────────────────
@@ -147,7 +148,7 @@ test('applyAccommodations composes in fixed order and dedupes', () => {
   assert(out.presentation.maxProblemsPerPage === 2, 'maxProblemsPerPage');
   const ids = activeAccommodationIds(ALL_FLAGS);
   assert(
-    JSON.stringify(ids) === JSON.stringify(['reduced-count', 'sans-serif-font', 'large-print', 'increased-spacing', 'fewer-per-page']),
+    JSON.stringify(ids) === JSON.stringify(['reduced-count', 'word-bank', 'sans-serif-font', 'large-print', 'increased-spacing', 'fewer-per-page']),
     `order=${JSON.stringify(ids)}`,
   );
 });
@@ -336,6 +337,7 @@ test('answer keys stay matched for all 16 flag combinations', () => {
       extraSpacing: !!(mask & 4),
       fewerPerPage: !!(mask & 8),
       reducedCount: false,
+      wordBank: false,
     };
     const store = createAccommodationStore(memStorage());
     const list = store.createList('T');

@@ -78,6 +78,9 @@ interface EuclidEngineProps {
       preview is approximate (font scale via CSS zoom, which also scales
       spacing); the PDF is the artifact of record. */
   presentation?: Presentation;
+  /** Word bank terms for accommodated versions (IEP word-bank option).
+      Rendered in a plain bank box under the header when non-empty. */
+  wordBank?: string[];
 }
 
 export interface ClassicalGroup {
@@ -97,6 +100,7 @@ export function EuclidEngine({
   proofDocMode,
   standard,
   presentation = DEFAULT_PRESENTATION,
+  wordBank,
 }: EuclidEngineProps) {
   const [revealed, setRevealed] = useState(false);
 
@@ -229,6 +233,22 @@ export function EuclidEngine({
         }}
       >
         <DocumentHeader mode={mode} title={title} />
+
+        {wordBank && wordBank.length > 0 && (
+          <div className="mb-5 border border-[#111] px-4 py-3">
+            <p className="font-serif text-sm font-bold text-[#111] mb-1.5">
+              Word Bank
+            </p>
+            <p className="font-serif text-sm text-[#111] leading-relaxed">
+              {wordBank.map((term, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <span className="text-[#999]"> &nbsp;·&nbsp; </span>}
+                  {term}
+                </React.Fragment>
+              ))}
+            </p>
+          </div>
+        )}
 
         {showClassicalGroups ? (
           <>

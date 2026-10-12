@@ -38,11 +38,12 @@ const accomFieldSx = {
   },
 } as const;
 
-const FLAG_KEYS = ['reducedCount', 'largePrint', 'sansSerif', 'extraSpacing', 'fewerPerPage'] as const;
+const FLAG_KEYS = ['reducedCount', 'wordBank', 'largePrint', 'sansSerif', 'extraSpacing', 'fewerPerPage'] as const;
 type FlagKey = (typeof FLAG_KEYS)[number];
 
 const FLAG_TO_ID: Record<FlagKey, string> = {
   reducedCount: 'reduced-count',
+  wordBank: 'word-bank',
   largePrint: 'large-print',
   sansSerif: 'sans-serif-font',
   extraSpacing: 'increased-spacing',

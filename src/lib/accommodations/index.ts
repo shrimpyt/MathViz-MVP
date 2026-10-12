@@ -40,6 +40,7 @@ export {
   extraSpacing,
   fewerPerPage,
   reducedCount,
+  wordBank,
   selectReducedProblems,
   reducedCountTarget,
   applyAccommodations,
@@ -47,6 +48,8 @@ export {
   type AccommodationTransform,
   type VersionInput,
 } from './transforms';
+
+export { buildWordBank } from './wordbank';
 
 export {
   planVersions,

@@ -17,10 +17,12 @@ export const PHASE1_ACCOMMODATION_IDS = [
 export type Phase1AccommodationId = (typeof PHASE1_ACCOMMODATION_IDS)[number];
 
 /**
- * Content accommodation catalog (Phase 2): transforms that change the problem
- * list itself rather than just its presentation. Currently just reduced-count.
+ * Content accommodation catalog (Phase 2+): accommodations that work with the
+ * problem content itself rather than just its presentation. reduced-count
+ * subsets the problem list; word-bank derives a reference bank of fill-in
+ * answers from it (the problem list itself is untouched).
  */
-export const CONTENT_ACCOMMODATION_IDS = ['reduced-count'] as const;
+export const CONTENT_ACCOMMODATION_IDS = ['reduced-count', 'word-bank'] as const;
 
 export type ContentAccommodationId = (typeof CONTENT_ACCOMMODATION_IDS)[number];
 
@@ -40,6 +42,7 @@ export const ALL_ACCOMMODATION_IDS: readonly AccommodationId[] = [
  */
 export const ACCOMMODATION_COMPOSITION_ORDER: readonly AccommodationId[] = [
   'reduced-count',
+  'word-bank',
   'sans-serif-font',
   'large-print',
   'increased-spacing',
@@ -49,6 +52,7 @@ export const ACCOMMODATION_COMPOSITION_ORDER: readonly AccommodationId[] = [
 /** Plain-language display names for UI labels and divider pages. */
 export const ACCOMMODATION_DISPLAY_NAMES: Record<AccommodationId, string> = {
   'reduced-count': 'Fewer problems — 25% reduction, TEKS coverage kept',
+  'word-bank': 'Word bank',
   'large-print': 'Large print',
   'sans-serif-font': 'Sans-serif font',
   'increased-spacing': 'Increased spacing',
@@ -67,6 +71,14 @@ export interface AccommodationFlags {
    * over the count on tiny bases — see selectReducedProblems).
    */
   reducedCount: boolean;
+  /**
+   * Word bank: the version carries a bank of its fill-in blank answers
+   * (deduped, deterministically shuffled — see buildWordBank) printed at the
+   * top of the worksheet, so students select answers instead of recalling
+   * them cold. Derived from the version's own final problem list; the
+   * problems themselves are unchanged.
+   */
+  wordBank: boolean;
 }
 
 export const EMPTY_FLAGS: AccommodationFlags = {
@@ -75,10 +87,12 @@ export const EMPTY_FLAGS: AccommodationFlags = {
   extraSpacing: false,
   fewerPerPage: false,
   reducedCount: false,
+  wordBank: false,
 };
 
 const FLAG_TO_ID: Record<keyof AccommodationFlags, AccommodationId> = {
   reducedCount: 'reduced-count',
+  wordBank: 'word-bank',
   largePrint: 'large-print',
   sansSerif: 'sans-serif-font',
   extraSpacing: 'increased-spacing',

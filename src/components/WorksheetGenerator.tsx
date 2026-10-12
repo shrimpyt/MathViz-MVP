@@ -538,6 +538,7 @@ export default function WorksheetGenerator() {
               seed={seed}
               presentation={v.presentation}
               keyHeading={v.answerKeyLabel}
+              wordBank={v.wordBank}
             />
           );
           return nodes;
@@ -1548,7 +1549,7 @@ function StepReview({
   setSeed: (n: number) => void;
   randomizeSeed: () => void;
   versionPlan: ReturnType<typeof planVersions>;
-  activeVersion: ReturnType<typeof planVersions> extends never ? never : { versionId: string; label: string; kind: string; problems: MathProblem[]; accommodations: string[]; presentation: import('../lib/accommodations').Presentation; studentCount?: number };
+  activeVersion: ReturnType<typeof planVersions> extends never ? never : { versionId: string; label: string; kind: string; problems: MathProblem[]; accommodations: string[]; presentation: import('../lib/accommodations').Presentation; studentCount?: number; wordBank: string[] };
   activeVersionId: string;
   setActiveVersionId: (id: string) => void;
   saveDraft: () => void;
@@ -1730,6 +1731,7 @@ function StepReview({
               proofDocMode={proofDocMode}
               standard={standards}
               presentation={activeVersion.presentation}
+              wordBank={activeVersion.wordBank}
             />
           </PreviewErrorBoundary>
         )}

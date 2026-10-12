@@ -22,6 +22,7 @@ import {
   type Presentation,
 } from './types';
 import { applyAccommodations, type VersionInput } from './transforms';
+import { buildWordBank } from './wordbank';
 
 export interface AnswerKeyEntry {
   /** 1-based number within its own version (numbering restarts per version). */
@@ -46,6 +47,13 @@ export interface PlannedVersion {
   accommodations: string[];
   problems: MathProblem[];
   presentation: Presentation;
+  /**
+   * Word bank terms for this version (only when the group's wordBank flag is
+   * on; [] otherwise). Derived from this version's OWN final problem list —
+   * after reduced-count subsetting — so the bank never offers answers to
+   * problems the version doesn't contain.
+   */
+  wordBank: string[];
   /** Divider-page line, e.g. "Group A — Large print · 3 students · print 3 copies". */
   dividerText: string;
   /** Answer-key section header for this version. */
@@ -95,6 +103,10 @@ function toPlannedVersion(
     accommodations: kind === 'base' ? [] : activeAccommodationIds(group!.flags),
     problems: transformed.problems,
     presentation: transformed.presentation,
+    wordBank:
+      kind === 'group' && group!.flags.wordBank
+        ? buildWordBank(transformed.problems)
+        : [],
     dividerText: dividerTextFor(kind, group),
     answerKeyLabel: answerKeyLabelFor(kind, group),
   };

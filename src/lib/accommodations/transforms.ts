@@ -152,8 +152,19 @@ export const reducedCount: AccommodationTransform = (input) => {
   return { problems: selectReducedProblems(input.problems), presentation: { ...input.presentation } };
 };
 
+/**
+ * Word bank: pass-through in the transform pipeline. The pipeline's unit is
+ * { problems, presentation } and a word bank is neither — it is derived data,
+ * built from the version's final problem list at planning time
+ * (see versions.ts + wordbank.ts). Problems and presentation pass untouched.
+ */
+export const wordBank: AccommodationTransform = (input) => {
+  return { problems: input.problems, presentation: { ...input.presentation } };
+};
+
 const TRANSFORM_BY_ID: Record<AccommodationId, AccommodationTransform> = {
   'reduced-count': reducedCount,
+  'word-bank': wordBank,
   'sans-serif-font': sansSerif,
   'large-print': largePrint,
   'increased-spacing': extraSpacing,

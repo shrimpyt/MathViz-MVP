@@ -83,12 +83,18 @@ function fontSrc(file: string): string {
 
 Font.register({
   family: 'WorksheetSerif',
-  fonts: [{ src: fontSrc('DejaVuSerif.ttf'), fontWeight: 400 }],
+  fonts: [
+    { src: fontSrc('DejaVuSerif.ttf'), fontWeight: 400 },
+    { src: fontSrc('DejaVuSerif-Italic.ttf'), fontWeight: 400, fontStyle: 'italic' },
+  ],
 });
 
 Font.register({
   family: 'WorksheetSerifBold',
-  fonts: [{ src: fontSrc('DejaVuSerif-Bold.ttf'), fontWeight: 700 }],
+  fonts: [
+    { src: fontSrc('DejaVuSerif-Bold.ttf'), fontWeight: 700 },
+    { src: fontSrc('DejaVuSerif-BoldItalic.ttf'), fontWeight: 700, fontStyle: 'italic' },
+  ],
 });
 
 // ── Styles ────────────────────────────────────────────────────────────────────

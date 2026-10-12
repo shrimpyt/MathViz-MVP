@@ -64,12 +64,18 @@ function fontSrc(file: string): string {
 
 Font.register({
   family: "WorksheetSerif",
-  fonts: [{ src: fontSrc("DejaVuSerif.ttf"), fontWeight: 400 }],
+  fonts: [
+    { src: fontSrc("DejaVuSerif.ttf"), fontWeight: 400 },
+    { src: fontSrc("DejaVuSerif-Italic.ttf"), fontWeight: 400, fontStyle: "italic" },
+  ],
 });
 
 Font.register({
   family: "WorksheetSerifBold",
-  fonts: [{ src: fontSrc("DejaVuSerif-Bold.ttf"), fontWeight: 700 }],
+  fonts: [
+    { src: fontSrc("DejaVuSerif-Bold.ttf"), fontWeight: 700 },
+    { src: fontSrc("DejaVuSerif-BoldItalic.ttf"), fontWeight: 700, fontStyle: "italic" },
+  ],
 });
 
 // ── Sans-serif family for the IEP accommodation generator ─────────────────────
@@ -82,6 +88,8 @@ Font.register({
   fonts: [
     { src: fontSrc("DejaVuSans.ttf"), fontWeight: 400 },
     { src: fontSrc("DejaVuSans-Bold.ttf"), fontWeight: 700 },
+    { src: fontSrc("DejaVuSans-Oblique.ttf"), fontWeight: 400, fontStyle: "italic" },
+    { src: fontSrc("DejaVuSans-BoldOblique.ttf"), fontWeight: 700, fontStyle: "italic" },
   ],
 });
 
@@ -217,6 +225,27 @@ function createStyles(presentation: Presentation) {
     borderBottomColor: '#111111',
     borderBottomStyle: 'solid',
     height: 14,
+  },
+
+  // Word bank — plain bordered box under the header (IEP option)
+  wordBankBox: {
+    borderWidth: 1,
+    borderColor: '#111111',
+    borderStyle: 'solid',
+    padding: sp(8),
+    marginBottom: sp(12),
+  },
+  wordBankLabel: {
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(11),
+    color: '#111111',
+    marginBottom: sp(4),
+  },
+  wordBankTerms: {
+    ...fam('WorksheetSerif'),
+    fontSize: fs(11),
+    color: '#111111',
+    lineHeight: 1.5,
   },
 
   // Directions — plain italic, no box
@@ -666,6 +695,9 @@ export interface PdfDocumentProps {
   /** Heading for the answer-key page. Defaults to 'ANSWER KEY'. Per-version
       keys pass their own label (e.g. 'Answer Key — Group A'). */
   keyHeading?: string;
+  /** Word bank terms for accommodated versions (IEP word-bank option).
+      Rendered in a plain bank box under the header when non-empty. */
+  wordBank?: string[];
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
@@ -691,6 +723,7 @@ export function PdfVersionPages({
   seed = 1,
   presentation = DEFAULT_PRESENTATION,
   keyHeading = 'ANSWER KEY',
+  wordBank,
 }: PdfDocumentProps) {
   const styles = getStyles(presentation);
   const modeLabel =
@@ -1327,8 +1360,18 @@ export function PdfVersionPages({
   return (
     <>
       <Page size="LETTER" style={styles.page}>
-        {/* ── Classical Academy Header ── */}
+        {/* ── Plain handout header ── */}
         {renderHeader(title, modeLabel)}
+
+        {/* ── Word bank (IEP option, accommodated versions only) ── */}
+        {wordBank && wordBank.length > 0 ? (
+          <View style={styles.wordBankBox}>
+            <Text style={styles.wordBankLabel}>Word Bank</Text>
+            <Text style={styles.wordBankTerms}>
+              {wordBank.map((t) => pdfSafeText(t)).join('  ·  ')}
+            </Text>
+          </View>
+        ) : null}
 
         {/* ── Problems: classical-notes gets per-entry sections; otherwise
             the standard grouped rendering ── */}
