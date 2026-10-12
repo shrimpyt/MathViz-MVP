@@ -10,8 +10,8 @@
 
 import {
   ACCOMMODATION_STORAGE_KEY,
+  ALL_ACCOMMODATION_IDS,
   MAX_GROUP_LABEL_LENGTH,
-  PHASE1_ACCOMMODATION_IDS,
   activeAccommodationIds,
   type AccommodationGroup,
   type ClassAccommodationList,
@@ -100,7 +100,7 @@ export function validateGroupInput(input: NewGroupInput): ValidationResult {
     errors.push('Pick at least one accommodation for the group.');
   }
   for (const id of ids) {
-    if (!(PHASE1_ACCOMMODATION_IDS as readonly string[]).includes(id)) {
+    if (!(ALL_ACCOMMODATION_IDS as readonly string[]).includes(id)) {
       errors.push(`Unknown accommodation: ${id}.`);
     }
   }

@@ -7,9 +7,11 @@
 // own transformed presentation and its own answer key.
 //
 // Invariant (spec §4): an answer key is ALWAYS derived from its version's own
-// final problem list — never from the base version. In Phase 1 the problems are
-// identical across versions, but each version still gets its own key, so a
-// later phase (e.g. reduced choices) cannot introduce a mismatch.
+// final problem list — never from the base version. Phase 1 transforms are
+// presentation-only so problems are identical across those versions, but each
+// version still gets its own key; content transforms (reduced-count) subset
+// the problems, and their keys are built from the subset, so keys can never
+// drift from the version they belong to.
 
 import type { MathProblem } from '../types';
 import {
@@ -142,8 +144,12 @@ export function buildAnswerKey(
 }
 
 /**
- * Assert the Phase 1 invariant: every version's key matches the base key
- * entry-for-entry (transforms are presentation-only, so keys cannot drift).
+ * Assert the presentation-only invariant: every version whose transforms are
+ * presentation-only has a key identical to the base key entry-for-entry.
+ * Versions with content transforms (reduced-count) are EXPECTED to differ —
+ * they have fewer problems by design — and are skipped here; their keys are
+ * verified per-version instead (each key is built from its own problem list
+ * via buildAnswerKey, so key and version can never drift).
  * Returns the list of mismatches (empty = invariant holds).
  */
 export function findKeyMismatches(
@@ -153,6 +159,9 @@ export function findKeyMismatches(
   const mismatches: { versionId: string; index: number; base: string; other: string }[] = [];
   const baseKey = buildAnswerKey(plan.base.problems, formatAnswer);
   for (const v of plan.groups) {
+    // Content-transformed versions (reduced-count) intentionally differ from
+    // base — their keys are verified per-version, not against base.
+    if (v.accommodations.includes('reduced-count')) continue;
     const key = buildAnswerKey(v.problems, formatAnswer);
     const n = Math.max(baseKey.length, key.length);
     for (let i = 0; i < n; i++) {

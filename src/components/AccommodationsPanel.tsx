@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import {
-  PHASE1_ACCOMMODATION_IDS,
+  ALL_ACCOMMODATION_IDS,
   ACCOMMODATION_DISPLAY_NAMES,
   EMPTY_FLAGS,
   type AccommodationFlags,
@@ -38,10 +38,11 @@ const accomFieldSx = {
   },
 } as const;
 
-const FLAG_KEYS = ['largePrint', 'sansSerif', 'extraSpacing', 'fewerPerPage'] as const;
+const FLAG_KEYS = ['reducedCount', 'largePrint', 'sansSerif', 'extraSpacing', 'fewerPerPage'] as const;
 type FlagKey = (typeof FLAG_KEYS)[number];
 
 const FLAG_TO_ID: Record<FlagKey, string> = {
+  reducedCount: 'reduced-count',
   largePrint: 'large-print',
   sansSerif: 'sans-serif-font',
   extraSpacing: 'increased-spacing',
@@ -57,7 +58,7 @@ function flagCheckboxes(
     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.25, mt: 0.75 }}>
       {FLAG_KEYS.map((key) => {
         const id = FLAG_TO_ID[key];
-        const displayId = PHASE1_ACCOMMODATION_IDS.includes(id as never)
+        const displayId = (ALL_ACCOMMODATION_IDS as readonly string[]).includes(id)
           ? (ACCOMMODATION_DISPLAY_NAMES as Record<string, string>)[id]
           : id;
         return (

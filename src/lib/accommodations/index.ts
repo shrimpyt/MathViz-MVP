@@ -4,6 +4,8 @@
 
 export {
   PHASE1_ACCOMMODATION_IDS,
+  CONTENT_ACCOMMODATION_IDS,
+  ALL_ACCOMMODATION_IDS,
   ACCOMMODATION_COMPOSITION_ORDER,
   ACCOMMODATION_DISPLAY_NAMES,
   EMPTY_FLAGS,
@@ -13,6 +15,8 @@ export {
   activeAccommodationIds,
   flagsFromIds,
   type Phase1AccommodationId,
+  type ContentAccommodationId,
+  type AccommodationId,
   type AccommodationFlags,
   type AccommodationGroup,
   type ClassAccommodationList,
@@ -35,6 +39,9 @@ export {
   sansSerif,
   extraSpacing,
   fewerPerPage,
+  reducedCount,
+  selectReducedProblems,
+  reducedCountTarget,
   applyAccommodations,
   presentationForFlags,
   type AccommodationTransform,

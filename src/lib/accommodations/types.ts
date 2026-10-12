@@ -17,11 +17,29 @@ export const PHASE1_ACCOMMODATION_IDS = [
 export type Phase1AccommodationId = (typeof PHASE1_ACCOMMODATION_IDS)[number];
 
 /**
+ * Content accommodation catalog (Phase 2): transforms that change the problem
+ * list itself rather than just its presentation. Currently just reduced-count.
+ */
+export const CONTENT_ACCOMMODATION_IDS = ['reduced-count'] as const;
+
+export type ContentAccommodationId = (typeof CONTENT_ACCOMMODATION_IDS)[number];
+
+/** Every accommodation id the engine knows about. */
+export type AccommodationId = Phase1AccommodationId | ContentAccommodationId;
+
+/** All ids in one list, for validation and UI display-name lookups. */
+export const ALL_ACCOMMODATION_IDS: readonly AccommodationId[] = [
+  ...CONTENT_ACCOMMODATION_IDS,
+  ...PHASE1_ACCOMMODATION_IDS,
+];
+
+/**
  * Fixed composition order for transforms. Content transforms (Phase 2) run
  * before presentation transforms; within Phase 1 the order is fixed so the
  * same group + same seed always yields byte-identical output.
  */
-export const ACCOMMODATION_COMPOSITION_ORDER: readonly Phase1AccommodationId[] = [
+export const ACCOMMODATION_COMPOSITION_ORDER: readonly AccommodationId[] = [
+  'reduced-count',
   'sans-serif-font',
   'large-print',
   'increased-spacing',
@@ -29,7 +47,8 @@ export const ACCOMMODATION_COMPOSITION_ORDER: readonly Phase1AccommodationId[] =
 ];
 
 /** Plain-language display names for UI labels and divider pages. */
-export const ACCOMMODATION_DISPLAY_NAMES: Record<Phase1AccommodationId, string> = {
+export const ACCOMMODATION_DISPLAY_NAMES: Record<AccommodationId, string> = {
+  'reduced-count': 'Fewer problems — 25% reduction, TEKS coverage kept',
   'large-print': 'Large print',
   'sans-serif-font': 'Sans-serif font',
   'increased-spacing': 'Increased spacing',
@@ -42,6 +61,12 @@ export interface AccommodationFlags {
   sansSerif: boolean;
   extraSpacing: boolean;
   fewerPerPage: boolean;
+  /**
+   * Reduced problem count: target 75% of base, with a HARD guarantee that
+   * every TEKS standard in the base version keeps ≥1 problem (coverage wins
+   * over the count on tiny bases — see selectReducedProblems).
+   */
+  reducedCount: boolean;
 }
 
 export const EMPTY_FLAGS: AccommodationFlags = {
@@ -49,9 +74,11 @@ export const EMPTY_FLAGS: AccommodationFlags = {
   sansSerif: false,
   extraSpacing: false,
   fewerPerPage: false,
+  reducedCount: false,
 };
 
-const FLAG_TO_ID: Record<keyof AccommodationFlags, Phase1AccommodationId> = {
+const FLAG_TO_ID: Record<keyof AccommodationFlags, AccommodationId> = {
+  reducedCount: 'reduced-count',
   largePrint: 'large-print',
   sansSerif: 'sans-serif-font',
   extraSpacing: 'increased-spacing',
@@ -59,7 +86,7 @@ const FLAG_TO_ID: Record<keyof AccommodationFlags, Phase1AccommodationId> = {
 };
 
 /** Active accommodation ids from a flags object, in fixed composition order. */
-export function activeAccommodationIds(flags: AccommodationFlags): Phase1AccommodationId[] {
+export function activeAccommodationIds(flags: AccommodationFlags): AccommodationId[] {
   return ACCOMMODATION_COMPOSITION_ORDER.filter((id) => {
     const flagKey = (Object.keys(FLAG_TO_ID) as (keyof AccommodationFlags)[]).find(
       (k) => FLAG_TO_ID[k] === id,
