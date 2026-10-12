@@ -14,7 +14,7 @@ export default function Home() {
           display: "flex", 
           flexDirection: "column", 
           height: "100vh",
-          background: 'radial-gradient(circle at 50% 50%, #1e2d45 0%, #0f172a 100%)',
+          background: '#14161f',
         }}
       >
         <WorksheetGenerator />

@@ -28,8 +28,8 @@ const accomFieldSx = {
     borderRadius: 2,
     fontSize: '0.8rem',
     '& fieldset': { borderColor: 'rgba(255,255,255,0.10)' },
-    '&:hover fieldset': { borderColor: 'rgba(217,167,32,0.40)' },
-    '&.Mui-focused fieldset': { borderColor: '#d9a720', borderWidth: 1 },
+    '&:hover fieldset': { borderColor: 'rgba(129,140,248,0.40)' },
+    '&.Mui-focused fieldset': { borderColor: '#818cf8', borderWidth: 1 },
   },
   '& .MuiInputBase-input': { color: '#fbfbfb', py: 0.9 },
   '& .MuiInputBase-input::placeholder': {
@@ -74,8 +74,8 @@ function flagCheckboxes(
                   p: 0.4,
                   mr: 0.5,
                   color: 'rgba(255,255,255,0.28)',
-                  '&:hover': { backgroundColor: 'rgba(217,167,32,0.10)' },
-                  '&.Mui-checked': { color: '#d9a720' },
+                  '&:hover': { backgroundColor: 'rgba(129,140,248,0.10)' },
+                  '&.Mui-checked': { color: '#818cf8' },
                 }}
               />
             }
@@ -145,11 +145,11 @@ export default function AccommodationsPanel({
             textTransform: 'none',
             fontSize: '0.75rem',
             fontWeight: 600,
-            borderColor: 'rgba(217,167,32,0.45)',
-            color: '#d9a720',
+            borderColor: 'rgba(129,140,248,0.45)',
+            color: '#818cf8',
             '&:hover': {
-              borderColor: '#d9a720',
-              backgroundColor: 'rgba(217,167,32,0.07)',
+              borderColor: '#818cf8',
+              backgroundColor: 'rgba(129,140,248,0.07)',
             },
           }}
         >
@@ -247,11 +247,11 @@ export default function AccommodationsPanel({
           mt: 1.5,
           p: 1.25,
           borderRadius: 2,
-          border: '1px dashed rgba(217,167,32,0.30)',
-          backgroundColor: 'rgba(217,167,32,0.04)',
+          border: '1px dashed rgba(129,140,248,0.30)',
+          backgroundColor: 'rgba(129,140,248,0.04)',
         }}
       >
-        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#d9a720', mb: 1 }}>
+        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#818cf8', mb: 1 }}>
           Add group
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -296,10 +296,10 @@ export default function AccommodationsPanel({
             textTransform: 'none',
             fontSize: '0.72rem',
             fontWeight: 600,
-            color: '#d9a720',
-            border: '1px solid rgba(217,167,32,0.35)',
+            color: '#818cf8',
+            border: '1px solid rgba(129,140,248,0.35)',
             borderRadius: 2,
-            '&:hover': { backgroundColor: 'rgba(217,167,32,0.08)', borderColor: '#d9a720' },
+            '&:hover': { backgroundColor: 'rgba(129,140,248,0.08)', borderColor: '#818cf8' },
           }}
         >
           Add group

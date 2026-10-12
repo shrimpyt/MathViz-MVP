@@ -3,44 +3,25 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
-  Drawer,
   Typography,
   Button,
   TextField,
-  AppBar,
-  Toolbar,
   Tooltip,
-  Checkbox,
   FormControlLabel,
   Switch,
-  Divider,
   IconButton,
   Alert,
   Collapse,
   Chip,
   InputAdornment,
-  MenuItem,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import {
   Save,
   UploadFile,
   PictureAsPdf,
-  MenuBook,
-  Assignment,
-  RateReview,
-  Quiz,
   Casino,
-  AutoStories,
-  ViewColumn,
-  EditNote,
-  HistoryEdu,
-  Timer,
   ExpandMore,
-  Search as SearchIcon,
   Clear as ClearIcon,
-  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/renderer';
 import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
@@ -95,18 +76,18 @@ function modeWord(docType: DocumentType): string {
 const DOC_MODES: {
   value: DocumentType;
   label: string;
-  icon: React.ElementType;
-  tip: string;
+  emoji: string;
+  blurb: string;
 }[] = [
-  { value: 'guided-notes', label: 'Guided', icon: MenuBook, tip: 'Fill-in-the-blank scaffolding' },
-  { value: 'review', label: 'Review', icon: RateReview, tip: 'High-density practice with answers shown' },
-  { value: 'test', label: 'Test', icon: Quiz, tip: 'Formal assessment, no hints' },
-  { value: 'worksheet', label: 'Sheet', icon: Assignment, tip: 'Standard worksheet' },
-  { value: 'classical-notes', label: 'Classical', icon: AutoStories, tip: 'Structure given, reasoning yours — definitions printed in full, reasons blanked' },
-  { value: 'proof-two-column', label: 'Proofs', icon: ViewColumn, tip: 'Full two-column proofs' },
-  { value: 'proof-fill-reasons', label: 'Fill Reasons', icon: EditNote, tip: 'Statements given, reasons blanked for the student' },
-  { value: 'proof-elements', label: 'Elements', icon: HistoryEdu, tip: "Euclid's Elements exposition — enunciation to Q.E.D." },
-  { value: 'sat-practice', label: 'SAT', icon: Timer, tip: 'Timed SAT-style practice module' },
+  { value: 'guided-notes', label: 'Guided Notes', emoji: '📝', blurb: 'Fill-in-the-blank scaffolding' },
+  { value: 'review', label: 'Review', emoji: '📊', blurb: 'High-density practice, answers shown' },
+  { value: 'test', label: 'Test', emoji: '✅', blurb: 'Formal assessment, no hints' },
+  { value: 'worksheet', label: 'Worksheet', emoji: '📄', blurb: 'Everyday practice set' },
+  { value: 'classical-notes', label: 'Classical Notes', emoji: '🏛️', blurb: 'Definitions printed, reasoning yours' },
+  { value: 'proof-two-column', label: 'Two-Column Proofs', emoji: '⚖️', blurb: 'Full proofs — statement + reason' },
+  { value: 'proof-fill-reasons', label: 'Fill Reasons', emoji: '✏️', blurb: 'Statements given, reasons blanked' },
+  { value: 'proof-elements', label: 'Elements', emoji: '📜', blurb: "Euclid's Elements, enunciation to Q.E.D." },
+  { value: 'sat-practice', label: 'SAT Practice', emoji: '⏱️', blurb: 'Timed SAT-style module' },
 ];
 
 // ── Sidebar section wrapper: consistent label row ─────────────────────────────
@@ -245,6 +226,8 @@ export default function WorksheetGenerator() {
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  // ── Wizard step: 0 Format · 1 Topics · 2 Accommodations · 3 Review ──
+  const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── IEP accommodations ──
@@ -455,11 +438,6 @@ export default function WorksheetGenerator() {
     effectiveGroups.length > 0 &&
     effectiveGroups.every(([t]) => expandedGroups.has(t));
 
-  // ── Mobile: drawer becomes a temporary slide-over with hamburger toggle ──
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileOpen, setMobileOpen] = useState(false);
-
   // ── Generation ──
   // Per-module problem sets (seed offset per topic so different topics don't
   // draw identical sequences). Kept per-module so Classical Notes mode can
@@ -657,1000 +635,1120 @@ export default function WorksheetGenerator() {
 
   const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${selectedTopicIds.join(',')}`;
 
+  // ── Wizard footer summary + TEKS coverage ──
+  const teksSelected = useMemo(
+    () =>
+      new Set(
+        selectedModules.flatMap((m) => m.teks.split(' · ').map((t) => t.trim()))
+      ).size,
+    [selectedModules]
+  );
+  const teksTotal = useMemo(
+    () =>
+      new Set(
+        CURRICULUM_REGISTRY.filter((e) => !e.underConstruction).flatMap((e) =>
+          e.teks.split(' · ').map((t) => t.trim())
+        )
+      ).size,
+    []
+  );
+  const footerSummary = useMemo(() => {
+    if (step === 0) {
+      const m = DOC_MODES.find((d) => d.value === docType);
+      return `Format: ${m ? m.label : docType} ${m ? m.emoji : ''}`;
+    }
+    if (step === 1) {
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · TEKS ${teksSelected}/${teksTotal}`;
+    }
+    if (hasAccommodations) {
+      return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready 🎉`;
+    }
+    return 'No accommodations — everyone gets the base version 👍';
+  }, [step, docType, selectedTopicIds.length, advancedProblems.length, teksSelected, teksTotal, hasAccommodations, versionPlan]);
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        bgcolor: '#121416',
+        bgcolor: '#14161f',
       }}
     >
-      <AppBar
-        position="fixed"
+      <WizardTopbar step={step} goTo={setStep} problemCount={advancedProblems.length} />
+
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {step === 0 && (
+          <StepFormat
+            docType={docType}
+            setDocType={setDocType}
+            customTitle={customTitle}
+            setCustomTitle={setCustomTitle}
+            defaultTitle={defaultTitle}
+          />
+        )}
+        {step === 1 && (
+          <StepTopics
+            topicSearch={topicSearch}
+            handleSearchChange={handleSearchChange}
+            clearTopicFilters={clearTopicFilters}
+            isFiltering={isFiltering}
+            availableOnly={availableOnly}
+            setAvailableOnly={setAvailableOnly}
+            subjectFilter={subjectFilter}
+            setSubjectFilter={setSubjectFilter}
+            subjectOptions={subjectOptions}
+            effectiveGroups={effectiveGroups}
+            expandedGroups={expandedGroups}
+            toggleGroup={toggleGroup}
+            allEffectiveExpanded={allEffectiveExpanded}
+            expandAllFiltered={expandAllFiltered}
+            collapseAllFiltered={collapseAllFiltered}
+            selectedTopicIds={selectedTopicIds}
+            toggleTopic={toggleTopic}
+            count={count}
+            setCount={setCount}
+            difficulty={difficulty}
+            setDifficulty={setDifficulty}
+          />
+        )}
+        {step === 2 && (
+          <StepAccommodations
+            accomList={accomList}
+            accomError={accomError}
+            handleAccomOp={handleAccomOp}
+            accomStore={accomStore}
+            versionPlan={versionPlan}
+            hasAccommodations={hasAccommodations}
+          />
+        )}
+        {step === 3 && (
+          <StepReview
+            hasAccommodations={hasAccommodations}
+            accommodatedDocument={accommodatedDocument}
+            questions={questions}
+            advancedProblems={advancedProblems}
+            docType={docType}
+            title={title}
+            standards={standards}
+            includeAnswerKey={includeAnswerKey}
+            setIncludeAnswerKey={setIncludeAnswerKey}
+            classicalGroups={classicalGroups}
+            seed={seed}
+            setSeed={setSeed}
+            randomizeSeed={randomizeSeed}
+            versionPlan={versionPlan}
+            activeVersion={activeVersion}
+            activeVersionId={activeVersionId}
+            setActiveVersionId={setActiveVersionId}
+            saveDraft={saveDraft}
+            fileRef={fileRef}
+            mounted={mounted}
+            draftError={draftError}
+            proofDocMode={proofDocMode}
+            selectedModules={selectedModules}
+            errorBoundaryKey={errorBoundaryKey}
+          />
+        )}
+      </Box>
+
+      {step < 3 && (
+        <WizardFooter
+          step={step}
+          setStep={setStep}
+          canContinue={step === 0 || selectedTopicIds.length > 0}
+          summary={footerSummary}
+        />
+      )}
+
+      {/* Hidden draft file input */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) loadDraftFile(f);
+          e.target.value = '';
+        }}
+      />
+    </Box>
+  );
+}
+
+// ── Wizard chrome ─────────────────────────────────────────────────────────────
+
+const WIZARD_STEPS = ['Format', 'Topics', 'Accommodations', 'Review'] as const;
+const WIZARD_EMOJI = ['🎨', '📚', '♿', '🎉'] as const;
+
+function WizardTopbar({
+  step,
+  goTo,
+  problemCount,
+}: {
+  step: number;
+  goTo: (n: number) => void;
+  problemCount: number;
+}) {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        px: { xs: 2, md: 3 },
+        py: 1.5,
+        bgcolor: '#0f1119',
+        borderBottom: '1px solid #2c3247',
+        flexShrink: 0,
+      }}
+    >
+      <Box
         sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'var(--glass-bg)',
-          backdropFilter: 'blur(12px)',
-          color: 'var(--gold)',
-          borderBottom: '1px solid var(--glass-border)',
-          boxShadow: 'none',
+          width: 36,
+          height: 36,
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg,#818cf8,#4f46e5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 900,
+          fontSize: 19,
+          color: '#fff',
+          boxShadow: '0 4px 16px rgba(129,140,248,.4)',
+          fontFamily: 'var(--font-nunito), sans-serif',
         }}
       >
-        <Toolbar>
-          {isMobile && (
-            <IconButton
-              edge="start"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Open control panel"
-              sx={{ mr: 1.5, color: 'var(--gold)' }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <Box
-              component="img"
-              src="/logo_dark.png"
-              alt="Euclid Engine Logo"
-              className="logo-blend"
-              sx={{ height: 40, width: 40 }}
-            />
-            <Typography
-              variant="h6"
-              noWrap
-              className="scholarly-title"
+        E
+      </Box>
+      <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', whiteSpace: 'nowrap' }}>
+        Euclid <Box component="span" sx={{ color: '#818cf8' }}>Engine</Box>
+      </Typography>
+
+      <Box
+        sx={{
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          gap: 0.75,
+          mx: 'auto',
+        }}
+      >
+        {WIZARD_STEPS.map((label, i) => (
+          <React.Fragment key={label}>
+            {i > 0 && (
+              <Box sx={{ width: 32, height: 2, borderRadius: 2, bgcolor: i <= step ? '#818cf8' : '#2c3247' }} />
+            )}
+            <Button
+              onClick={() => goTo(i)}
               sx={{
-                fontWeight: 700,
-                color: 'var(--gold)',
-                fontSize: '1.2rem'
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 1.5,
+                py: 0.75,
+                borderRadius: '999px',
+                minWidth: 0,
+                opacity: i === step ? 1 : 0.75,
+                '&:hover': { backgroundColor: 'rgba(129,140,248,0.10)', opacity: 1 },
               }}
             >
-              Euclid Engine
-            </Typography>
-          </Box>
-        </Toolbar>
-      </AppBar>
+              <Box
+                sx={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.72rem',
+                  fontWeight: 900,
+                  flexShrink: 0,
+                  backgroundColor:
+                    i < step ? '#818cf8' : i === step ? '#fb923c' : '#252b40',
+                  color: i <= step ? '#14161f' : '#9aa0be',
+                  border: i === step ? 'none' : '1.5px solid #2c3247',
+                }}
+              >
+                {i < step ? '✓' : i + 1}
+              </Box>
+              <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: i === step ? '#f2f3fa' : '#9aa0be' }}>
+                {WIZARD_EMOJI[i]} {label}
+              </Typography>
+            </Button>
+          </React.Fragment>
+        ))}
+      </Box>
 
-      <Box sx={{ display: 'flex', flexGrow: 1, pt: '64px' }}>
-        {/* ── Control Panel Drawer ── */}
-        <Drawer
-          variant={isMobile ? 'temporary' : 'permanent'}
-          open={isMobile ? mobileOpen : true}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{ keepMounted: true }}
-          className="geometric-grid"
+      <Chip
+        label={`${problemCount} problem${problemCount === 1 ? '' : 's'}`}
+        sx={{
+          ml: { xs: 'auto', md: 0 },
+          fontWeight: 800,
+          fontSize: '0.72rem',
+          backgroundColor: 'rgba(129,140,248,0.13)',
+          color: '#818cf8',
+          border: '1px solid rgba(129,140,248,0.30)',
+        }}
+      />
+    </Box>
+  );
+}
+
+function WizardFooter({
+  step,
+  setStep,
+  canContinue,
+  summary,
+}: {
+  step: number;
+  setStep: (n: number) => void;
+  canContinue: boolean;
+  summary: string;
+}) {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        px: { xs: 2.5, md: 5 },
+        py: 2,
+        bgcolor: '#0f1119',
+        borderTop: '1px solid #2c3247',
+        flexShrink: 0,
+      }}
+    >
+      {step > 0 ? (
+        <Button
+          variant="outlined"
+          onClick={() => setStep(step - 1)}
           sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            [`& .MuiDrawer-paper`]: {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              pt: '80px',
-              backgroundColor: 'var(--glass-bg)',
-              backdropFilter: 'blur(16px)',
-              borderRight: '1px solid var(--glass-border)',
-            },
+            borderColor: '#2c3247',
+            color: '#f2f3fa',
+            borderRadius: '12px',
+            px: 2.5,
+            '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
           }}
         >
-          <Box sx={{ p: 2.5, overflowY: 'auto' }}>
-            <Box mb={3}>
-              <Typography
-                sx={{
-                  fontFamily: 'var(--font-playfair), serif',
-                  fontWeight: 700,
-                  color: 'var(--gold)',
-                  fontSize: '1.12rem',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                Control Panel
-              </Typography>
-              <Box
-                sx={{
-                  mt: 1,
-                  height: 2,
-                  width: 40,
-                  borderRadius: 1,
-                  backgroundColor: 'rgba(217,167,32,0.55)',
-                }}
-              />
-            </Box>
+          ← Back
+        </Button>
+      ) : (
+        <Box sx={{ width: 110 }} />
+      )}
+      <Typography
+        sx={{
+          mx: 'auto',
+          color: '#818cf8',
+          fontWeight: 800,
+          fontSize: '0.88rem',
+          textAlign: 'center',
+        }}
+      >
+        {summary}
+      </Typography>
+      <Tooltip title={canContinue ? '' : 'Pick at least one topic to continue'} arrow>
+        <span>
+          <Button
+            variant="contained"
+            color="secondary"
+            disabled={!canContinue}
+            onClick={() => setStep(step + 1)}
+            sx={{
+              borderRadius: '12px',
+              px: 3.5,
+              py: 1.25,
+              fontSize: '0.92rem',
+              boxShadow: '0 4px 16px rgba(251,146,60,.35)',
+              '&.Mui-disabled': {
+                backgroundColor: '#252b40',
+                color: '#5a6080',
+                boxShadow: 'none',
+              },
+            }}
+          >
+            Continue →
+          </Button>
+        </span>
+      </Tooltip>
+    </Box>
+  );
+}
 
-            {/* ── Document Mode ── */}
-            <PanelSection title="Document Mode">
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: 0.75,
-                }}
-              >
-                {DOC_MODES.map((m) => {
-                  const selected = docType === m.value;
-                  const Icon = m.icon;
-                  return (
-                    <Tooltip key={m.value} title={m.tip} placement="top" arrow>
-                      <Button
-                        onClick={() => setDocType(m.value)}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          py: 1.15,
-                          px: 0.5,
-                          borderRadius: 2,
-                          textTransform: 'none',
-                          border: '1px solid',
-                          borderColor: selected
-                            ? 'rgba(217,167,32,0.55)'
-                            : 'rgba(255,255,255,0.09)',
-                          backgroundColor: selected
-                            ? 'rgba(217,167,32,0.13)'
-                            : 'rgba(2,6,23,0.35)',
-                          color: selected ? '#d9a720' : 'rgba(148,163,184,0.92)',
-                          transition:
-                            'background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease',
-                          '&:hover': {
-                            borderColor: 'rgba(217,167,32,0.55)',
-                            backgroundColor: selected
-                              ? 'rgba(217,167,32,0.18)'
-                              : 'rgba(217,167,32,0.06)',
-                            color: '#d9a720',
-                          },
-                        }}
-                      >
-                        <Icon sx={{ fontSize: 19 }} />
-                        <Typography
-                          sx={{
-                            fontSize: '0.62rem',
-                            fontWeight: 600,
-                            letterSpacing: 0.3,
-                            lineHeight: 1.15,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {m.label}
-                        </Typography>
-                      </Button>
-                    </Tooltip>
-                  );
-                })}
-              </Box>
-            </PanelSection>
+// Shared scrollable step container
+const stepScrollSx = {
+  flex: 1,
+  overflowY: 'auto',
+  px: { xs: 2.5, md: 5 },
+  py: 4,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  background: 'radial-gradient(ellipse at 50% -10%, #1c2033 0%, #14161f 60%)',
+} as const;
 
-            {/* ── Curriculum Selection (multi-topic accordion) ── */}
-            <PanelSection
-              title={`Topics · ${selectedTopicIds.length} selected`}
-              action={
-                <Button
-                  size="small"
-                  onClick={allEffectiveExpanded ? collapseAllFiltered : expandAllFiltered}
-                  sx={{
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    color: 'rgba(148,163,184,0.9)',
-                    textTransform: 'none',
-                    letterSpacing: 0.2,
-                    minWidth: 0,
-                    px: 1,
-                    py: 0.25,
-                    '&:hover': {
-                      color: '#d9a720',
-                      backgroundColor: 'rgba(217,167,32,0.07)',
-                    },
-                  }}
-                >
-                  {allEffectiveExpanded ? 'Collapse all' : 'Expand all'}
-                </Button>
-              }
+function StepHeading({ emoji, title, sub }: { emoji: string; title: string; sub: string }) {
+  return (
+    <Box sx={{ textAlign: 'center', mb: 3 }}>
+      <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.75 }}>
+        {emoji} {title}
+      </Typography>
+      <Typography sx={{ color: '#9aa0be', fontWeight: 600, fontSize: '0.92rem', maxWidth: 560 }}>
+        {sub}
+      </Typography>
+    </Box>
+  );
+}
+
+// ── Step 1 · Format ───────────────────────────────────────────────────────────
+
+function StepFormat({
+  docType,
+  setDocType,
+  customTitle,
+  setCustomTitle,
+  defaultTitle,
+}: {
+  docType: DocumentType;
+  setDocType: (d: DocumentType) => void;
+  customTitle: string;
+  setCustomTitle: (s: string) => void;
+  defaultTitle: string;
+}) {
+  return (
+    <Box sx={stepScrollSx}>
+      <StepHeading
+        emoji="🎨"
+        title="What are you making?"
+        sub="Pick a format — you can always change it later."
+      />
+      <TextField
+        label="Document title"
+        placeholder={defaultTitle}
+        value={customTitle}
+        onChange={(e) => setCustomTitle(e.target.value)}
+        helperText="Leave blank to use the automatic title"
+        sx={{ width: '100%', maxWidth: 560, mb: 3.5 }}
+        FormHelperTextProps={{ sx: { color: '#9aa0be' } }}
+        InputLabelProps={{ sx: { color: '#9aa0be' } }}
+      />
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
+          gap: 1.75,
+          width: '100%',
+          maxWidth: 780,
+        }}
+      >
+        {DOC_MODES.map((m) => {
+          const selected = docType === m.value;
+          return (
+            <Button
+              key={m.value}
+              onClick={() => setDocType(m.value)}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                gap: 0.75,
+                p: 2.25,
+                borderRadius: '18px',
+                border: '2.5px solid',
+                borderColor: selected ? '#818cf8' : '#2c3247',
+                backgroundColor: selected ? 'rgba(129,140,248,0.13)' : '#1e2233',
+                transition: 'border-color .15s, background-color .15s, transform .15s',
+                '&:hover': {
+                  borderColor: '#818cf8',
+                  backgroundColor: selected ? 'rgba(129,140,248,0.18)' : '#252b40',
+                  transform: 'translateY(-2px)',
+                },
+              }}
             >
-              {/* ── Topic search ── */}
-              <TextField
-                size="small"
-                fullWidth
-                value={topicSearch}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search topics or TEKS…"
-                aria-label="Search topics"
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon
-                          sx={{ fontSize: 16, color: 'rgba(148,163,184,0.7)' }}
-                        />
-                      </InputAdornment>
-                    ),
-                    endAdornment: topicSearch ? (
-                      <InputAdornment position="end">
-                        <IconButton
-                          size="small"
-                          aria-label="Clear search"
-                          onClick={() => handleSearchChange('')}
-                          sx={{
-                            p: 0.4,
-                            color: 'rgba(148,163,184,0.7)',
-                            '&:hover': { color: '#d9a720' },
-                          }}
-                        >
-                          <ClearIcon sx={{ fontSize: 15 }} />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : undefined,
-                  },
-                }}
-                sx={{
-                  mb: 1,
-                  ...paramFieldSx,
-                  '& .MuiInputBase-input': {
-                    color: '#fbfbfb',
-                    py: 1,
-                    fontSize: '0.8rem',
-                    '&::placeholder': {
-                      color: 'rgba(148,163,184,0.55)',
-                      opacity: 1,
-                    },
-                  },
-                }}
-              />
-              {/* ── Filters ── */}
-              <Box sx={{ display: 'flex', gap: 0.75, mb: 1.5, alignItems: 'center' }}>
-                <Chip
-                  clickable
-                  label="Available only"
-                  aria-pressed={availableOnly}
-                  onClick={() => setAvailableOnly((v) => !v)}
-                  sx={{
-                    fontSize: '0.68rem',
-                    fontWeight: 600,
-                    height: 30,
-                    border: '1px solid',
-                    borderColor: availableOnly
-                      ? 'rgba(217,167,32,0.55)'
-                      : 'rgba(255,255,255,0.10)',
-                    backgroundColor: availableOnly
-                      ? 'rgba(217,167,32,0.13)'
-                      : 'rgba(2,6,23,0.35)',
-                    color: availableOnly
-                      ? '#d9a720'
-                      : 'rgba(148,163,184,0.92)',
-                    transition:
-                      'background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease',
-                    '&:hover': {
-                      borderColor: 'rgba(217,167,32,0.55)',
-                      backgroundColor: availableOnly
-                        ? 'rgba(217,167,32,0.18)'
-                        : 'rgba(217,167,32,0.06)',
-                      color: '#d9a720',
-                    },
-                  }}
-                />
-                <TextField
-                  select
+              <Typography sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{m.emoji}</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#f2f3fa' }}>
+                {m.label}
+              </Typography>
+              <Typography sx={{ fontSize: '0.76rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.45 }}>
+                {m.blurb}
+              </Typography>
+            </Button>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
+// ── Step 2 · Topics ───────────────────────────────────────────────────────────
+
+const topicCardSx = (checked: boolean) => ({
+  position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  textAlign: 'left',
+  gap: 0.6,
+  p: 1.75,
+  borderRadius: '14px',
+  border: '2px solid',
+  borderColor: checked ? '#818cf8' : '#2c3247',
+  backgroundColor: checked ? 'rgba(129,140,248,0.13)' : '#1e2233',
+  transition: 'border-color .12s, background-color .12s, transform .12s',
+  '&:hover': {
+    borderColor: '#818cf8',
+    transform: 'translateY(-1px)',
+  },
+  '&.Mui-disabled': {
+    opacity: 0.45,
+    borderColor: '#2c3247',
+    backgroundColor: '#1e2233',
+  },
+});
+
+function StepTopics({
+  topicSearch,
+  handleSearchChange,
+  clearTopicFilters,
+  isFiltering,
+  availableOnly,
+  setAvailableOnly,
+  subjectFilter,
+  setSubjectFilter,
+  subjectOptions,
+  effectiveGroups,
+  expandedGroups,
+  toggleGroup,
+  allEffectiveExpanded,
+  expandAllFiltered,
+  collapseAllFiltered,
+  selectedTopicIds,
+  toggleTopic,
+  count,
+  setCount,
+  difficulty,
+  setDifficulty,
+}: {
+  topicSearch: string;
+  handleSearchChange: (v: string) => void;
+  clearTopicFilters: () => void;
+  isFiltering: boolean;
+  availableOnly: boolean;
+  setAvailableOnly: (v: boolean | ((p: boolean) => boolean)) => void;
+  subjectFilter: string;
+  setSubjectFilter: (s: string) => void;
+  subjectOptions: string[];
+  effectiveGroups: [string, CurriculumEntry[]][];
+  expandedGroups: Set<string>;
+  toggleGroup: (t: string) => void;
+  allEffectiveExpanded: boolean;
+  expandAllFiltered: () => void;
+  collapseAllFiltered: () => void;
+  selectedTopicIds: string[];
+  toggleTopic: (id: string) => void;
+  count: number;
+  setCount: (n: number) => void;
+  difficulty: DifficultyLevel;
+  setDifficulty: (d: DifficultyLevel) => void;
+}) {
+  return (
+    <Box sx={stepScrollSx}>
+      <StepHeading
+        emoji="📚"
+        title="Which topics should it cover?"
+        sub="Tap to add — mix and match across subjects. We'll keep your TEKS covered."
+      />
+      <TextField
+        value={topicSearch}
+        onChange={(e) => handleSearchChange(e.target.value)}
+        placeholder="🔍 Search topics or TEKS…"
+        aria-label="Search topics"
+        sx={{ width: '100%', maxWidth: 520, mb: 1.5 }}
+        slotProps={{
+          input: {
+            endAdornment: topicSearch ? (
+              <InputAdornment position="end">
+                <IconButton
                   size="small"
-                  value={subjectFilter}
-                  aria-label="Filter by subject"
-                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  aria-label="Clear search"
+                  onClick={() => handleSearchChange('')}
+                  sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' } }}
+                >
+                  <ClearIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
+          },
+        }}
+      />
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 1,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          mb: 2.5,
+          maxWidth: 920,
+        }}
+      >
+        <Chip
+          clickable
+          label="Available only"
+          aria-pressed={availableOnly}
+          onClick={() => setAvailableOnly((v) => !v)}
+          sx={{
+            fontWeight: 800,
+            border: '1.5px solid',
+            borderColor: availableOnly ? '#818cf8' : '#2c3247',
+            backgroundColor: availableOnly ? 'rgba(129,140,248,0.15)' : '#1e2233',
+            color: availableOnly ? '#818cf8' : '#9aa0be',
+            '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
+          }}
+        />
+        {subjectOptions.map((s) => {
+          const active = subjectFilter === s;
+          return (
+            <Chip
+              key={s}
+              clickable
+              label={s === 'All' ? 'All subjects' : s}
+              onClick={() => setSubjectFilter(s)}
+              sx={{
+                fontWeight: 800,
+                border: '1.5px solid',
+                borderColor: active ? '#818cf8' : '#2c3247',
+                backgroundColor: active ? 'rgba(129,140,248,0.15)' : '#1e2233',
+                color: active ? '#818cf8' : '#9aa0be',
+                '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
+              }}
+            />
+          );
+        })}
+        {isFiltering && (
+          <Button
+            size="small"
+            onClick={clearTopicFilters}
+            sx={{ color: '#9aa0be', fontWeight: 800, '&:hover': { color: '#818cf8' } }}
+          >
+            Clear
+          </Button>
+        )}
+      </Box>
+
+      <Box sx={{ width: '100%', maxWidth: 920 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Button
+            size="small"
+            onClick={allEffectiveExpanded ? collapseAllFiltered : expandAllFiltered}
+            sx={{ color: '#9aa0be', fontWeight: 800, fontSize: '0.75rem', '&:hover': { color: '#818cf8' } }}
+          >
+            {allEffectiveExpanded ? 'Collapse all' : 'Expand all'}
+          </Button>
+        </Box>
+        {effectiveGroups.map(([groupTitle, entries]) => {
+          const open = expandedGroups.has(groupTitle);
+          const selectedCount = entries.filter((e) => selectedTopicIds.includes(e.id)).length;
+          return (
+            <Box
+              key={groupTitle}
+              sx={{
+                mb: 1.25,
+                borderRadius: '16px',
+                border: '1.5px solid #2c3247',
+                backgroundColor: '#1e2233',
+                overflow: 'hidden',
+              }}
+            >
+              <Button
+                fullWidth
+                onClick={() => toggleGroup(groupTitle)}
+                aria-expanded={open}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  px: 2,
+                  py: 1.25,
+                  borderRadius: 0,
+                  '&:hover': { backgroundColor: 'rgba(129,140,248,0.06)' },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                  <ExpandMore
+                    sx={{
+                      color: open ? '#818cf8' : '#9aa0be',
+                      transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+                      transition: 'transform .2s',
+                    }}
+                  />
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f2f3fa', textAlign: 'left' }}>
+                    {groupTitle}
+                  </Typography>
+                </Box>
+                {selectedCount > 0 && (
+                  <Chip
+                    size="small"
+                    label={`${selectedCount} selected`}
+                    sx={{ backgroundColor: 'rgba(129,140,248,0.15)', color: '#818cf8', fontWeight: 800 }}
+                  />
+                )}
+              </Button>
+              <Collapse in={open} timeout={220} unmountOnExit>
+                <Box
                   sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    ...paramFieldSx,
-                    '& .MuiInputBase-input': {
-                      color:
-                        subjectFilter === 'All'
-                          ? 'rgba(148,163,184,0.92)'
-                          : '#d9a720',
-                      py: 0.85,
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                    },
-                    '& .MuiSelect-icon': {
-                      color: 'rgba(148,163,184,0.7)',
-                    },
-                  }}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        sx: {
-                          backgroundColor: '#0b1226',
-                          border: '1px solid rgba(217,167,32,0.25)',
-                          '& .MuiMenuItem-root': {
-                            fontSize: '0.75rem',
-                            color: 'rgba(251,251,251,0.85)',
-                            '&.Mui-selected': {
-                              backgroundColor: 'rgba(217,167,32,0.14)',
-                              color: '#d9a720',
-                            },
-                            '&.Mui-selected:hover': {
-                              backgroundColor: 'rgba(217,167,32,0.20)',
-                            },
-                            '&:hover': {
-                              backgroundColor: 'rgba(217,167,32,0.07)',
-                            },
-                          },
-                        },
-                      },
-                    },
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                    gap: 1.25,
+                    p: 2,
+                    pt: 0.5,
                   }}
                 >
-                  {subjectOptions.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {s === 'All' ? 'All subjects' : s}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                {isFiltering && (
-                  <Button
-                    size="small"
-                    onClick={clearTopicFilters}
-                    sx={{
-                      fontSize: '0.65rem',
-                      fontWeight: 600,
-                      color: 'rgba(148,163,184,0.9)',
-                      textTransform: 'none',
-                      minWidth: 0,
-                      px: 1,
-                      py: 0.5,
-                      '&:hover': {
-                        color: '#d9a720',
-                        backgroundColor: 'rgba(217,167,32,0.07)',
-                      },
-                    }}
-                  >
-                    Clear
-                  </Button>
-                )}
-              </Box>
-              <Box>
-                {effectiveGroups.map(([groupTitle, entries]) => {
-                  const open = expandedGroups.has(groupTitle);
-                  const selectedCount = entries.filter((e) =>
-                    selectedTopicIds.includes(e.id)
-                  ).length;
-                  return (
-                    <Box
-                      key={groupTitle}
-                      sx={{
-                        mb: 0.75,
-                        borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: open
-                          ? 'rgba(217,167,32,0.20)'
-                          : 'rgba(255,255,255,0.06)',
-                        backgroundColor: open
-                          ? 'rgba(255,255,255,0.028)'
-                          : 'rgba(2,6,23,0.35)',
-                        overflow: 'hidden',
-                        transition:
-                          'background-color 0.25s ease, border-color 0.25s ease',
-                      }}
-                    >
+                  {entries.map((entry) => {
+                    const checked = selectedTopicIds.includes(entry.id);
+                    return (
                       <Button
-                        fullWidth
-                        onClick={() => toggleGroup(groupTitle)}
-                        aria-expanded={open}
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: 1,
-                          px: 1.1,
-                          py: 0.9,
-                          textTransform: 'none',
-                          borderRadius: 0,
-                          '&:hover': {
-                            backgroundColor: 'rgba(217,167,32,0.05)',
-                          },
-                        }}
+                        key={entry.id}
+                        disabled={entry.underConstruction}
+                        onClick={() => toggleTopic(entry.id)}
+                        title={entry.underConstruction ? 'Not available yet' : entry.description}
+                        sx={topicCardSx(checked)}
                       >
                         <Box
                           sx={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.8,
-                            minWidth: 0,
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 900,
+                            backgroundColor: checked ? '#818cf8' : 'transparent',
+                            border: '2px solid',
+                            borderColor: checked ? '#818cf8' : '#2c3247',
+                            color: checked ? '#14161f' : 'transparent',
                           }}
                         >
-                          <ExpandMore
-                            sx={{
-                              fontSize: 18,
-                              flexShrink: 0,
-                              color: open
-                                ? '#d9a720'
-                                : 'rgba(148,163,184,0.7)',
-                              transform: open
-                                ? 'rotate(0deg)'
-                                : 'rotate(-90deg)',
-                              transition: 'transform 0.25s ease, color 0.25s ease',
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              letterSpacing: 0.2,
-                              color: open
-                                ? '#d9a720'
-                                : 'rgba(251,251,251,0.88)',
-                              textAlign: 'left',
-                              lineHeight: 1.35,
-                              transition: 'color 0.25s ease',
-                            }}
-                          >
-                            {groupTitle}
+                          ✓
+                        </Box>
+                        <Typography
+                          sx={{
+                            fontSize: '0.64rem',
+                            fontWeight: 800,
+                            letterSpacing: 0.6,
+                            color: '#818cf8',
+                            backgroundColor: 'rgba(129,140,248,0.12)',
+                            px: 1,
+                            py: 0.35,
+                            borderRadius: '6px',
+                            pr: 4,
+                          }}
+                        >
+                          {entry.underConstruction ? 'COMING SOON' : entry.teks}
+                        </Typography>
+                        <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
+                          {entry.title}
+                        </Typography>
+                        {!entry.underConstruction && entry.story && (
+                          <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.4 }}>
+                            {entry.story}
                           </Typography>
-                        </Box>
-                        {selectedCount > 0 && (
-                          <Chip
-                            size="small"
-                            label={selectedCount}
-                            sx={{
-                              height: 20,
-                              minWidth: 22,
-                              fontSize: '0.66rem',
-                              fontWeight: 700,
-                              backgroundColor: 'rgba(217,167,32,0.16)',
-                              color: '#d9a720',
-                              '& .MuiChip-label': { px: 0.75 },
-                            }}
-                          />
                         )}
-                      </Button>
-                      <Collapse in={open} timeout={280} unmountOnExit>
-                        <Box sx={{ px: 0.75, pb: 0.9, pt: 0.25 }}>
-                          {entries.map((entry) => {
-                            const checked = selectedTopicIds.includes(entry.id);
-                            return (
-                              <FormControlLabel
-                                key={entry.id}
-                                control={
-                                  <Checkbox
-                                    size="small"
-                                    checked={checked}
-                                    onChange={() => toggleTopic(entry.id)}
-                                    disabled={entry.underConstruction}
-                                    sx={{
-                                      p: 0.45,
-                                      mr: 0.7,
-                                      color: 'rgba(255,255,255,0.28)',
-                                      '&:hover': {
-                                        backgroundColor:
-                                          'rgba(217,167,32,0.10)',
-                                      },
-                                      '&.Mui-checked': {
-                                        color: '#d9a720',
-                                      },
-                                      '&.Mui-disabled': {
-                                        color: 'rgba(255,255,255,0.12)',
-                                      },
-                                    }}
-                                  />
-                                }
-                                label={
-                                  <Box sx={{ py: 0.15 }}>
-                                    <Typography
-                                      variant="body2"
-                                      sx={{
-                                        fontSize: '0.79rem',
-                                        fontWeight: checked ? 600 : 400,
-                                        color: entry.underConstruction
-                                          ? 'rgba(255,255,255,0.30)'
-                                          : checked
-                                            ? '#fbfbfb'
-                                            : 'rgba(251,251,251,0.78)',
-                                        lineHeight: 1.3,
-                                      }}
-                                    >
-                                      {entry.title}
-                                    </Typography>
-                                    <Typography
-                                      component="span"
-                                      sx={{
-                                        display: 'inline-block',
-                                        fontSize: '0.60rem',
-                                        fontWeight: 500,
-                                        letterSpacing: 0.4,
-                                        lineHeight: 1.5,
-                                        px: 0.9,
-                                        mt: 0.3,
-                                        borderRadius: 1,
-                                        backgroundColor: entry.underConstruction
-                                          ? 'rgba(148,163,184,0.08)'
-                                          : 'rgba(148,163,184,0.10)',
-                                        color: 'rgba(148,163,184,0.80)',
-                                        border:
-                                          '1px solid rgba(148,163,184,0.14)',
-                                      }}
-                                    >
-                                      {entry.underConstruction
-                                        ? 'Coming soon'
-                                        : entry.teks}
-                                    </Typography>
-                                  </Box>
-                                }
-                                sx={{
-                                  m: 0,
-                                  width: '100%',
-                                  px: 0.75,
-                                  py: 0.3,
-                                  borderRadius: 1.5,
-                                  alignItems: 'flex-start',
-                                  cursor: entry.underConstruction
-                                    ? 'default'
-                                    : 'pointer',
-                                  transition: 'background-color 0.15s ease',
-                                  '&:hover': {
-                                    backgroundColor: entry.underConstruction
-                                      ? 'transparent'
-                                      : 'rgba(217,167,32,0.05)',
-                                  },
-                                }}
-                                title={
-                                  entry.underConstruction
-                                    ? 'Not available yet'
-                                    : entry.description
-                                }
-                              />
-                            );
-                          })}
-                        </Box>
-                      </Collapse>
-                    </Box>
-                  );
-                })}
-                {effectiveGroups.length === 0 && (
-                  <Box sx={{ textAlign: 'center', py: 3.5, px: 2 }}>
-                    <Typography
-                      sx={{
-                        fontSize: '0.8rem',
-                        color: 'rgba(251,251,251,0.65)',
-                        mb: 1.5,
-                      }}
-                    >
-                      No topics match your search.
-                    </Typography>
-                    <Button
-                      size="small"
-                      onClick={clearTopicFilters}
-                      sx={{
-                        color: '#d9a720',
-                        textTransform: 'none',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        '&:hover': {
-                          backgroundColor: 'rgba(217,167,32,0.07)',
-                        },
-                      }}
-                    >
-                      Clear search & filters
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </PanelSection>
-
-            {/* ── Parameters ── */}
-            <PanelSection title="Parameters">
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 0.5, color: 'rgba(148,163,184,0.9)', fontSize: '0.7rem', fontWeight: 600 }}
-              >
-                Document Title
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={title}
-                onChange={(e) => setCustomTitle(e.target.value)}
-                placeholder="Leave blank for auto title"
-                sx={{ mb: 2.25, ...paramFieldSx }}
-              />
-
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 0.5, color: 'rgba(148,163,184,0.9)', fontSize: '0.7rem', fontWeight: 600 }}
-              >
-                Problems per topic
-              </Typography>
-              <TextField
-                type="number"
-                size="small"
-                fullWidth
-                value={count}
-                inputProps={{ min: 1, max: 25 }}
-                onChange={(e) => {
-                  const v = Math.floor(Number(e.target.value));
-                  if (Number.isFinite(v)) setCount(Math.min(25, Math.max(1, v)));
-                }}
-                sx={{ mb: 2.25, ...paramFieldSx }}
-              />
-
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 0.75, color: 'rgba(148,163,184,0.9)', fontSize: '0.7rem', fontWeight: 600 }}
-              >
-                Difficulty
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75, mb: 2.25 }}>
-                {[
-                  { value: 1, label: 'Easy' },
-                  { value: 2, label: 'Medium' },
-                  { value: 3, label: 'Hard' },
-                ].map((d) => {
-                  const selected = difficulty === d.value;
-                  return (
-                    <Button
-                      key={d.value}
-                      onClick={() => setDifficulty(d.value as DifficultyLevel)}
-                      sx={{
-                        py: 0.85,
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        letterSpacing: 0.2,
-                        border: '1px solid',
-                        borderColor: selected
-                          ? 'rgba(217,167,32,0.55)'
-                          : 'rgba(255,255,255,0.09)',
-                        backgroundColor: selected
-                          ? 'rgba(217,167,32,0.13)'
-                          : 'rgba(2,6,23,0.35)',
-                        color: selected ? '#d9a720' : 'rgba(148,163,184,0.92)',
-                        transition: 'background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease',
-                        '&:hover': {
-                          borderColor: 'rgba(217,167,32,0.55)',
-                          backgroundColor: selected
-                            ? 'rgba(217,167,32,0.18)'
-                            : 'rgba(217,167,32,0.06)',
-                          color: '#d9a720',
-                        },
-                      }}
-                    >
-                      {d.label}
-                    </Button>
-                  );
-                })}
-              </Box>
-
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={includeAnswerKey}
-                    onChange={(e) => setIncludeAnswerKey(e.target.checked)}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: '#d9a720',
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: 'rgba(217,167,32,0.45)',
-                      },
-                      '& .MuiSwitch-track': {
-                        backgroundColor: 'rgba(255,255,255,0.14)',
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Typography sx={{ color: 'rgba(251,251,251,0.8)', fontSize: '0.78rem' }}>
-                    Include answer key in PDF
-                  </Typography>
-                }
-                sx={{ mb: 1.5, ml: 0 }}
-              />
-
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 0.5, color: 'rgba(148,163,184,0.9)', fontSize: '0.7rem', fontWeight: 600 }}
-              >
-                Problem Set Seed
-              </Typography>
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 0.75, color: 'rgba(148,163,184,0.55)', fontSize: '0.65rem' }}
-              >
-                Same seed reproduces the same problem set
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
-                <TextField
-                  type="number"
-                  size="small"
-                  fullWidth
-                  value={seed}
-                  onChange={(e) => setSeed(Math.floor(Number(e.target.value)) || 0)}
-                  sx={paramFieldSx}
-                />
-                <Tooltip title="Generate a fresh set of problems" arrow>
-                  <IconButton
-                    size="small"
-                    onClick={randomizeSeed}
-                    sx={{
-                      color: 'rgba(255,255,255,0.55)',
-                      border: '1px solid rgba(255,255,255,0.10)',
-                      borderRadius: 2,
-                      p: 1,
-                      '&:hover': {
-                        color: '#d9a720',
-                        borderColor: 'rgba(217,167,32,0.5)',
-                        backgroundColor: 'rgba(217,167,32,0.07)',
-                      },
-                    }}
-                  >
-                    <Casino fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </PanelSection>
-
-            {/* ── Accommodations (IEP generator) ── */}
-            <PanelSection
-              title="Accommodations"
-              action={
-                hasAccommodations ? (
-                  <Chip
-                    size="small"
-                    label={`${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'}`}
-                    data-testid="accom-group-count-chip"
-                    sx={{
-                      height: 20,
-                      fontSize: '0.64rem',
-                      fontWeight: 700,
-                      backgroundColor: 'rgba(217,167,32,0.16)',
-                      color: '#d9a720',
-                      '& .MuiChip-label': { px: 0.75 },
-                    }}
-                  />
-                ) : undefined
-              }
-            >
-              <AccommodationsPanel
-                list={accomList}
-                error={accomError}
-                onCreateList={(classLabel) =>
-                  handleAccomOp(() => {
-                    accomStore.createList(classLabel);
-                  })
-                }
-                onUpdateClassLabel={(listId, classLabel) =>
-                  handleAccomOp(() => {
-                    accomStore.updateClassLabel(listId, classLabel);
-                  }, listId)
-                }
-                onAddGroup={(listId, input: NewGroupInput) =>
-                  handleAccomOp(() => {
-                    accomStore.addGroup(listId, input);
-                  }, listId)
-                }
-                onUpdateGroup={(listId, groupId, patch) =>
-                  handleAccomOp(() => {
-                    accomStore.updateGroup(listId, groupId, patch);
-                  }, listId)
-                }
-                onRemoveGroup={(listId, groupId) =>
-                  handleAccomOp(() => {
-                    accomStore.removeGroup(listId, groupId);
-                  }, listId)
-                }
-              />
-            </PanelSection>
-
-            <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 2 }} />
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)', display: 'block', mb: 1 }}>
-              {advancedProblems.length} problem{advancedProblems.length === 1 ? '' : 's'} in this set
-            </Typography>
-          </Box>
-        </Drawer>
-
-        {/* ── Main Preview Area ── */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            bgcolor: '#1a1c1e',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            overflowY: 'auto',
-          }}
-        >
-          {/* Action buttons */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              width: '100%',
-              maxWidth: '8.5in',
-              px: 4,
-              pt: 3,
-              pb: 2,
-              gap: 2,
-              alignItems: 'center',
-            }}
-          >
-            <Button
-              variant="outlined"
-              startIcon={<Save />}
-              onClick={saveDraft}
-              sx={{
-                borderRadius: 8,
-                borderColor: 'rgba(255, 255, 255, 0.15)',
-                color: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(4px)',
-                '&:hover': {
-                  borderColor: '#d9a720',
-                  color: '#d9a720',
-                  backgroundColor: 'rgba(217, 167, 32, 0.05)',
-                }
-              }}
-            >
-              Save Draft
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<UploadFile />}
-              onClick={() => fileRef.current?.click()}
-              sx={{
-                borderRadius: 8,
-                borderColor: 'rgba(255, 255, 255, 0.15)',
-                color: 'rgba(255, 255, 255, 0.8)',
-                '&:hover': {
-                  borderColor: '#d9a720',
-                  color: '#d9a720',
-                  backgroundColor: 'rgba(217, 167, 32, 0.05)',
-                }
-              }}
-            >
-              Load Draft
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="application/json,.json"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) loadDraftFile(f);
-                e.target.value = '';
-              }}
-            />
-            {mounted && selectedModules.length > 0 && (
-              <PDFDownloadLink
-                document={
-                  hasAccommodations && accommodatedDocument ? (
-                    accommodatedDocument
-                  ) : (
-                    <PdfDocument
-                      title={title}
-                      questions={questions}
-                      advancedProblems={advancedProblems}
-                      docType={docType}
-                      standard={standards}
-                      includeAnswerKey={includeAnswerKey}
-                      logoSrc="/logo_light.png"
-                      classicalGroups={classicalGroups}
-                      seed={seed}
-                    />
-                  )
-                }
-                fileName={
-                  hasAccommodations
-                    ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
-                    : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`
-                }
-                style={{ textDecoration: 'none' }}
-              >
-                {({ loading }: { loading: boolean }) => (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<PictureAsPdf />}
-                    disabled={loading}
-                    sx={{ borderRadius: 8 }}
-                  >
-                    {loading ? 'Preparing PDF…' : 'Export to PDF'}
-                  </Button>
-                )}
-              </PDFDownloadLink>
-            )}
-          </Box>
-
-          {draftError && (
-            <Alert severity="error" sx={{ mb: 2, maxWidth: '8.5in', width: '100%' }}>
-              {draftError}
-            </Alert>
-          )}
-
-          {/* Preview */}
-          {selectedModules.length === 0 ? (
-            <Alert severity="info" sx={{ maxWidth: '8.5in', width: '100%', mt: 2 }}>
-              Select at least one topic from the control panel to build a worksheet.
-            </Alert>
-          ) : (
-            <>
-              {/* ── Version tabs (visible only when accommodation groups exist) ── */}
-              {hasAccommodations && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 1,
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    width: '100%',
-                    maxWidth: '8.5in',
-                    px: 4,
-                    pb: 1.5,
-                  }}
-                  data-testid="version-tab-strip"
-                >
-                  {versionPlan.all().map((v) => {
-                    const selected = v.versionId === activeVersion.versionId;
-                    return (
-                      <Button
-                        key={v.versionId}
-                        onClick={() => setActiveVersionId(v.versionId)}
-                        data-testid={`version-tab-${v.versionId}`}
-                        sx={{
-                          textTransform: 'none',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          borderRadius: 8,
-                          px: 2,
-                          py: 0.75,
-                          border: '1px solid',
-                          borderColor: selected
-                            ? 'rgba(217,167,32,0.55)'
-                            : 'rgba(255,255,255,0.12)',
-                          backgroundColor: selected
-                            ? 'rgba(217,167,32,0.13)'
-                            : 'rgba(2,6,23,0.35)',
-                          color: selected ? '#d9a720' : 'rgba(148,163,184,0.92)',
-                          '&:hover': {
-                            borderColor: 'rgba(217,167,32,0.55)',
-                            color: '#d9a720',
-                          },
-                        }}
-                      >
-                        {v.label}
-                        {v.kind === 'group' ? ` (${v.studentCount})` : ''}
                       </Button>
                     );
                   })}
-                  <Typography
-                    sx={{
-                      fontSize: '0.68rem',
-                      color: 'rgba(148,163,184,0.65)',
-                      ml: 0.5,
-                    }}
-                  >
-                    Previewing: {activeVersion.label}
-                    {activeVersion.accommodations.length > 0 &&
-                      ` — ${activeVersion.accommodations.join(', ')}`}
-                  </Typography>
                 </Box>
-              )}
-              <PreviewErrorBoundary key={errorBoundaryKey}>
-                <EuclidEngine
-                  problems={activeVersion.problems}
-                  mode={toOutputMode(docType)}
+              </Collapse>
+            </Box>
+          );
+        })}
+        {effectiveGroups.length === 0 && (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography sx={{ color: '#9aa0be', fontWeight: 700, mb: 2 }}>
+              No topics match your search. 🔍
+            </Typography>
+            <Button onClick={clearTopicFilters} sx={{ color: '#818cf8', fontWeight: 800 }}>
+              Clear search & filters
+            </Button>
+          </Box>
+        )}
+      </Box>
+
+      {/* ── Tuning ── */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2.5,
+          mt: 3,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          width: '100%',
+          maxWidth: 920,
+        }}
+      >
+        <Box sx={{ bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '16px', p: 2.25, minWidth: 220, flex: 1, maxWidth: 320 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Problems per topic 🔢</Typography>
+          <TextField
+            type="number"
+            value={count}
+            inputProps={{ min: 1, max: 25 }}
+            onChange={(e) => {
+              const v = Math.floor(Number(e.target.value));
+              if (Number.isFinite(v)) setCount(Math.min(25, Math.max(1, v)));
+            }}
+            sx={{ width: 120 }}
+          />
+        </Box>
+        <Box sx={{ bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '16px', p: 2.25, minWidth: 220, flex: 1, maxWidth: 320 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Difficulty 💪</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+            {[
+              { value: 1, label: 'Easy 😌' },
+              { value: 2, label: 'Medium 🙂' },
+              { value: 3, label: 'Hard 🥵' },
+            ].map((d) => {
+              const selected = difficulty === d.value;
+              return (
+                <Button
+                  key={d.value}
+                  onClick={() => setDifficulty(d.value as DifficultyLevel)}
+                  sx={{
+                    py: 1,
+                    borderRadius: '10px',
+                    fontSize: '0.78rem',
+                    border: '2px solid',
+                    borderColor: selected ? '#818cf8' : '#2c3247',
+                    backgroundColor: selected ? 'rgba(129,140,248,0.15)' : 'transparent',
+                    color: selected ? '#818cf8' : '#9aa0be',
+                    '&:hover': { borderColor: '#818cf8' },
+                  }}
+                >
+                  {d.label}
+                </Button>
+              );
+            })}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+// ── Step 3 · Accommodations ───────────────────────────────────────────────────
+
+function StepAccommodations({
+  accomList,
+  accomError,
+  handleAccomOp,
+  accomStore,
+  versionPlan,
+  hasAccommodations,
+}: {
+  accomList: ClassAccommodationList | null;
+  accomError: string | null;
+  handleAccomOp: (op: () => ClassAccommodationList | void, listId?: string) => void;
+  accomStore: ReturnType<typeof createAccommodationStore>;
+  versionPlan: ReturnType<typeof planVersions>;
+  hasAccommodations: boolean;
+}) {
+  return (
+    <Box sx={stepScrollSx}>
+      <StepHeading
+        emoji="♿"
+        title="Who needs a different version?"
+        sub="Set up anonymous groups once — every version shares the same math. Skip this step if everyone gets the same worksheet."
+      />
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 680,
+          bgcolor: '#1e2233',
+          border: '1.5px solid #2c3247',
+          borderRadius: '20px',
+          p: { xs: 2, md: 3 },
+        }}
+      >
+        <AccommodationsPanel
+          list={accomList}
+          error={accomError}
+          onCreateList={(classLabel) =>
+            handleAccomOp(() => {
+              accomStore.createList(classLabel);
+            })
+          }
+          onUpdateClassLabel={(listId, classLabel) =>
+            handleAccomOp(() => {
+              accomStore.updateClassLabel(listId, classLabel);
+            }, listId)
+          }
+          onAddGroup={(listId, input: NewGroupInput) =>
+            handleAccomOp(() => {
+              accomStore.addGroup(listId, input);
+            }, listId)
+          }
+          onUpdateGroup={(listId, groupId, patch) =>
+            handleAccomOp(() => {
+              accomStore.updateGroup(listId, groupId, patch);
+            }, listId)
+          }
+          onRemoveGroup={(listId, groupId) =>
+            handleAccomOp(() => {
+              accomStore.removeGroup(listId, groupId);
+            }, listId)
+          }
+        />
+      </Box>
+      {hasAccommodations && (
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center', mt: 2.5, maxWidth: 680 }}>
+          {versionPlan.all().map((v) => (
+            <Chip
+              key={v.versionId}
+              label={v.kind === 'base' ? `Base · ${v.problems.length}` : `${v.label} · ${v.problems.length}`}
+              sx={{
+                fontWeight: 800,
+                backgroundColor: 'rgba(129,140,248,0.13)',
+                color: '#818cf8',
+                border: '1px solid rgba(129,140,248,0.30)',
+              }}
+            />
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+// ── Step 4 · Review & Export ──────────────────────────────────────────────────
+
+function StepReview({
+  hasAccommodations,
+  accommodatedDocument,
+  questions,
+  advancedProblems,
+  docType,
+  title,
+  standards,
+  includeAnswerKey,
+  setIncludeAnswerKey,
+  classicalGroups,
+  seed,
+  setSeed,
+  randomizeSeed,
+  versionPlan,
+  activeVersion,
+  activeVersionId,
+  setActiveVersionId,
+  saveDraft,
+  fileRef,
+  mounted,
+  draftError,
+  proofDocMode,
+  selectedModules,
+  errorBoundaryKey,
+}: {
+  hasAccommodations: boolean;
+  accommodatedDocument: React.ReactElement | null;
+  questions: ReturnType<typeof problemToQuestion>[];
+  advancedProblems: MathProblem[];
+  docType: DocumentType;
+  title: string;
+  standards: string;
+  includeAnswerKey: boolean;
+  setIncludeAnswerKey: (b: boolean) => void;
+  classicalGroups: ClassicalGroup[] | undefined;
+  seed: number;
+  setSeed: (n: number) => void;
+  randomizeSeed: () => void;
+  versionPlan: ReturnType<typeof planVersions>;
+  activeVersion: ReturnType<typeof planVersions> extends never ? never : { versionId: string; label: string; kind: string; problems: MathProblem[]; accommodations: string[]; presentation: import('../lib/accommodations').Presentation; studentCount?: number };
+  activeVersionId: string;
+  setActiveVersionId: (id: string) => void;
+  saveDraft: () => void;
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  mounted: boolean;
+  draftError: string | null;
+  proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | undefined;
+  selectedModules: CurriculumEntry[];
+  errorBoundaryKey: string;
+}) {
+  void fileRef;
+  return (
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      {/* Action bar */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 1.25,
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: { xs: 2, md: 4 },
+          pt: 2.5,
+          pb: 1.5,
+          flexShrink: 0,
+        }}
+      >
+        <Button
+          variant="outlined"
+          startIcon={<Save />}
+          onClick={saveDraft}
+          sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '12px', '&:hover': { borderColor: '#818cf8', color: '#818cf8' } }}
+        >
+          Save draft
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<UploadFile />}
+          onClick={() => fileRef.current?.click()}
+          sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '12px', '&:hover': { borderColor: '#818cf8', color: '#818cf8' } }}
+        >
+          Load draft
+        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '12px', px: 1.5, py: 0.5 }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#9aa0be' }}>Seed</Typography>
+          <TextField
+            type="number"
+            size="small"
+            value={seed}
+            onChange={(e) => setSeed(Math.floor(Number(e.target.value)) || 0)}
+            sx={{ width: 92, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+          />
+          <Tooltip title="Fresh problem set 🎲" arrow>
+            <IconButton size="small" onClick={randomizeSeed} sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' } }}>
+              <Casino fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        <FormControlLabel
+          control={
+            <Switch
+              size="small"
+              checked={includeAnswerKey}
+              onChange={(e) => setIncludeAnswerKey(e.target.checked)}
+              sx={{
+                '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
+                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'rgba(129,140,248,0.45)' },
+              }}
+            />
+          }
+          label={<Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#f2f3fa' }}>Answer key</Typography>}
+          sx={{ ml: 0 }}
+        />
+        {mounted && selectedModules.length > 0 && (
+          <PDFDownloadLink
+            document={
+              hasAccommodations && accommodatedDocument ? (
+                accommodatedDocument
+              ) : (
+                <PdfDocument
                   title={title}
+                  questions={questions}
+                  advancedProblems={advancedProblems}
+                  docType={docType}
+                  standard={standards}
+                  includeAnswerKey={includeAnswerKey}
+                  logoSrc="/logo_light.png"
                   classicalGroups={classicalGroups}
                   seed={seed}
-                  proofDocMode={proofDocMode}
-                  standard={standards}
-                  presentation={activeVersion.presentation}
                 />
-              </PreviewErrorBoundary>
-            </>
-          )}
+              )
+            }
+            fileName={
+              hasAccommodations
+                ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
+                : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`
+            }
+            style={{ textDecoration: 'none' }}
+          >
+            {({ loading }: { loading: boolean }) => (
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={<PictureAsPdf />}
+                disabled={loading}
+                sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
+              >
+                {loading ? 'Preparing PDF…' : 'Export PDF 🎉'}
+              </Button>
+            )}
+          </PDFDownloadLink>
+        )}
+      </Box>
+
+      {draftError && (
+        <Alert severity="error" sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>
+          {draftError}
+        </Alert>
+      )}
+
+      {/* Version tabs */}
+      {hasAccommodations && (
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', px: 2, pb: 1, flexShrink: 0 }} data-testid="version-tab-strip">
+          {versionPlan.all().map((v) => {
+            const selected = v.versionId === activeVersionId;
+            return (
+              <Button
+                key={v.versionId}
+                onClick={() => setActiveVersionId(v.versionId)}
+                data-testid={`version-tab-${v.versionId}`}
+                sx={{
+                  fontSize: '0.78rem',
+                  borderRadius: '999px',
+                  px: 2.25,
+                  py: 0.85,
+                  border: '2px solid',
+                  borderColor: selected ? '#818cf8' : '#2c3247',
+                  backgroundColor: selected ? 'rgba(129,140,248,0.15)' : '#1e2233',
+                  color: selected ? '#818cf8' : '#9aa0be',
+                  '&:hover': { borderColor: '#818cf8' },
+                }}
+              >
+                {v.label}
+                {v.kind === 'group' && v.studentCount ? ` (${v.studentCount})` : ''}
+              </Button>
+            );
+          })}
+          <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, ml: 1 }}>
+            Previewing: {activeVersion.label}
+            {activeVersion.accommodations.length > 0 && ` — ${activeVersion.accommodations.join(', ')}`}
+          </Typography>
         </Box>
+      )}
+
+      {/* Preview */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          display: 'flex',
+          justifyContent: 'center',
+          py: 2,
+          px: 2,
+          background: 'radial-gradient(ellipse at 50% -10%, #1c2033 0%, #14161f 60%)',
+        }}
+      >
+        {selectedModules.length === 0 ? (
+          <Alert severity="info" sx={{ maxWidth: '8.5in', width: '100%', mt: 2, alignSelf: 'flex-start' }}>
+            Head back to Topics and pick at least one. 📚
+          </Alert>
+        ) : (
+          <PreviewErrorBoundary key={errorBoundaryKey}>
+            <EuclidEngine
+              problems={activeVersion.problems}
+              mode={toOutputMode(docType)}
+              title={title}
+              classicalGroups={classicalGroups}
+              seed={seed}
+              proofDocMode={proofDocMode}
+              standard={standards}
+              presentation={activeVersion.presentation}
+            />
+          </PreviewErrorBoundary>
+        )}
       </Box>
     </Box>
   );

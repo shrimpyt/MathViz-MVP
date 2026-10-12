@@ -195,7 +195,7 @@ export function EuclidEngine({
     mode === "Classical" && !!classicalGroups && classicalGroups.length > 0;
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-6 geometric-grid" style={{ backgroundColor: '#0F172A', ...previewZoom }}>
+    <div className="flex flex-col items-center min-h-screen py-6" style={{ backgroundColor: 'transparent', ...previewZoom }}>
       {/* GuidedNote reveal toggle */}
       {mode === "GuidedNote" && (
         <div className="mb-4 flex items-center gap-3">

@@ -1,72 +1,51 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold: #d9a720;
-  --color-oxford: #0f172a;
-  --color-slate-blue: #1e293b;
+  --color-indigo-glow: #818cf8;
+  --color-coral: #fb923c;
+  --color-night: #14161f;
+  --color-night-deep: #0f1119;
+  --color-card: #1e2233;
+  --color-card-2: #252b40;
+  --color-line: #2c3247;
+  --color-muted: #9aa0be;
   --font-sans: var(--font-inter), sans-serif;
   --font-serif: var(--font-playfair), serif;
+  --font-friendly: var(--font-nunito), sans-serif;
 }
 
 :root {
-  --background: #0f172a;
-  --foreground: #f8fafc; /* Slightly softer white */
-  --gold: #d9a720;
-  --glass-bg: rgba(15, 23, 42, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --deep-navy: #020617;
+  --background: #14161f;
+  --foreground: #f2f3fa;
+  --indigo: #818cf8;
+  --coral: #fb923c;
+  --card: #1e2233;
+  --line: #2c3247;
+  --muted: #9aa0be;
 }
 
 body {
   margin: 0;
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-nunito), var(--font-inter), sans-serif;
   background-color: var(--background);
   color: var(--foreground);
 }
 
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-}
-
-.glass-card {
-  background: rgba(30, 45, 69, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--glass-border);
-  /* No animations - removed transition */
-}
-
-.glass-card:hover {
-  border-color: var(--gold);
-  background: rgba(30, 45, 69, 0.6);
-}
-
-.logo-blend {
-  mix-blend-mode: lighten;
-}
-
-.scholarly-title {
-  font-family: var(--font-serif);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.geometric-grid {
-  background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
-  background-size: 40px 40px;
+.friendly {
+  font-family: var(--font-nunito), sans-serif;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e2d45;
-  border-radius: 4px;
+  background: #2c3247;
+  border-radius: 8px;
+  border: 2px solid #14161f;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold);
+  background: #818cf8;
 }
