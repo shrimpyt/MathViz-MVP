@@ -777,6 +777,14 @@ const RATIONAL_MULT_DIV: string[] = [
   "Factor First: The working rule of rational arithmetic — factor every numerator and denominator before canceling, because only factors, never terms, can be divided out.",
 ];
 
+const RATIONAL_ADD_SUB: string[] = [
+  "Least Common Denominator: The least expression that every denominator in a problem divides into; it is built from each distinct factor of the denominators, taken at the greatest power with which that factor appears in any one denominator.",
+  "Common Denominator: Any denominator that all the denominators of a problem divide into; rewriting an expression with a common denominator multiplies its numerator and denominator by the same factor, so the value of the expression does not change.",
+  "Adding and Subtracting with Like Denominators: When rational expressions share a denominator, add or subtract the numerators only and keep the denominator; in subtraction the whole of the second numerator is subtracted, so it is treated as a single grouped quantity.",
+  "Adding and Subtracting with Unlike Denominators: First rewrite each expression with the least common denominator, multiplying each numerator by the factor its denominator is missing; then combine the numerators. The denominators of an expression are never cleared away — clearing denominators is a move for equations, not for expressions.",
+  "Simplifying the Sum or Difference: After the numerators are combined, factor the resulting numerator and divide out any factor it shares with the denominator; the restrictions on the variable still come from every denominator in the original problem.",
+];
+
 const ASYMPTOTES_HOLES: string[] = [
   "Rational Function: A function that can be written as the quotient of two polynomial functions, f(x) = P(x)/Q(x), with Q(x) not the zero polynomial.",
   "Vertical Asymptote: A vertical line x = c that the graph of a function approaches but never touches, occurring at a zero of the denominator that does not cancel with the numerator.",
@@ -1764,6 +1772,7 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a2-11-2-mult-div": RATIONAL_MULT_DIV,
   "a2-11-3-asymptotes-holes": ASYMPTOTES_HOLES,
   "a2-11-4-solve-rational": RATIONAL_EQUATIONS,
+  "a2-11-5-add-subtract": RATIONAL_ADD_SUB,
   // Algebra 2 Topic 12 — data & regression
   "a2-12-1-analyzing-data": ANALYZING_DATA,
   "a2-12-2-regression": REGRESSION,

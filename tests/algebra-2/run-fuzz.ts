@@ -54,6 +54,15 @@ function domainInvariants(p: Algebra2Problem): string[] {
       // excluded x-values must not make the ORIGINAL denominators zero at test points
       break;
     }
+    case "AddSubtractRational": {
+      // unlike-denominator families with r/s poles need them distinct;
+      // factorFirst carries k instead, opposite/like carry only r.
+      if (typeof v["r"] === "number" && typeof v["s"] === "number" && num("r") === num("s"))
+        errs.push("unlike denominators share a pole");
+      if (v["kind"] === "opposite" && num("A") === num("B") && v["op"] === "add")
+        errs.push("opposite add with A === B gives a zero numerator");
+      break;
+    }
     case "LogEvaluate": {
       if (num("arg") <= 0) errs.push(`log argument ${num("arg")} not positive`);
       break;

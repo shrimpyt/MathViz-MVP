@@ -115,6 +115,30 @@ function iFactorStr(r: number, m: number): string {
 }
 const approx = (a: number, b: number) => Math.abs(a - b) < 1e-9;
 
+/**
+ * Independent expected answer for the RadicalDivide quotient family
+ * sqrt(a)/sqrt(b): reduce the fraction inside the radical, root-split the
+ * reduced numerator and denominator separately, cancel when the inside
+ * parts agree, otherwise rationalize the denominator radical.
+ */
+function expectedRadicalQuotient(a: number, b: number): { str: string; val: number } {
+  const g0 = iGcd(a, b);
+  const ap = a / g0, bp = b / g0;
+  const [s1, k1] = iRootSplit(ap, 2);
+  const [s2, k2] = iRootSplit(bp, 2);
+  if (k1 === k2) {
+    const [rn, rd] = iReduce(s1, s2);
+    return { str: rd === 1 ? `${rn}` : `${rn}/${rd}`, val: rn / rd };
+  }
+  const [s3, k3] = iRootSplit(k1 * k2, 2);
+  let numCoef = s1 * s3;
+  let den = s2 * k2;
+  const g = iGcd(numCoef, den);
+  numCoef /= g; den /= g;
+  const str = den === 1 ? iRadical(numCoef, k3, 2) : `${iRadical(numCoef, k3, 2)}/${den}`;
+  return { str, val: (numCoef * Math.sqrt(k3)) / den };
+}
+
 // ── Per-subtype independent checks ────────────────────────────────────────────
 
 type V = Record<string, number | number[] | string | string[] | boolean>;
@@ -246,26 +270,39 @@ function checkProblem(p: Algebra2Problem, tag: string): void {
     }
     case "RadicalDivide": {
       const kind = str("kind");
-      let givenVal: number, s: number, k: number, numCoef: number, den: number;
+      let givenVal: number, expected: string, ansVal: number;
       if (kind === "coefQuotient") {
         givenVal = (num("c") * Math.sqrt(num("a"))) / (num("d") * Math.sqrt(num("b")));
-        [s, k] = iRootSplit(num("a") * num("b"), 2);
-        numCoef = num("c") * s; den = num("d") * num("b");
+        const [s, k] = iRootSplit(num("a") * num("b"), 2);
+        let numCoef = num("c") * s;
+        let den = num("d") * num("b");
+        const g2 = iGcd(numCoef, den);
+        numCoef /= g2; den /= g2;
+        expected = den === 1 ? iRadical(numCoef, k, 2) : `${iRadical(numCoef, k, 2)}/${den}`;
+        ansVal = (numCoef * Math.sqrt(k)) / den;
       } else if (kind === "monomial") {
         givenVal = num("c") / Math.sqrt(num("b"));
-        [s, k] = iRootSplit(num("b"), 2);
-        numCoef = num("c") * s; den = num("b");
+        const [s, k] = iRootSplit(num("b"), 2);
+        let numCoef = num("c") * s;
+        let den = num("b");
+        const g2 = iGcd(numCoef, den);
+        numCoef /= g2; den /= g2;
+        expected = den === 1 ? iRadical(numCoef, k, 2) : `${iRadical(numCoef, k, 2)}/${den}`;
+        ansVal = (numCoef * Math.sqrt(k)) / den;
       } else {
+        // quotient sqrt(a)/sqrt(b): split the REDUCED numerator and
+        // denominator separately, cancel when the inside parts agree, else
+        // rationalize. (The previous shortcut — root-splitting the product
+        // (a/g)(b/g) and dividing by b/g — was flagged as a test-only
+        // expected-string bug, e.g. a=18, b=8 must give 3/2; this form
+        // recomputes the answer the way the math is actually done and is
+        // pinned by the regression cases below.)
         givenVal = Math.sqrt(num("a")) / Math.sqrt(num("b"));
-        const g = iGcd(num("a"), num("b"));
-        [s, k] = iRootSplit((num("a") / g) * (num("b") / g), 2);
-        numCoef = s; den = num("b") / g;
+        const exp = expectedRadicalQuotient(num("a"), num("b"));
+        expected = exp.str;
+        ansVal = exp.val;
       }
-      const g2 = iGcd(numCoef, den);
-      numCoef /= g2; den /= g2;
-      const ansVal = (numCoef * Math.sqrt(k)) / den;
       check(approx(givenVal, ansVal), `${tag}: values equal (${givenVal} vs ${ansVal})`);
-      const expected = den === 1 ? iRadical(numCoef, k, 2) : `${iRadical(numCoef, k, 2)}/${den}`;
       check(p.answer === expected, `${tag}: answer exact`);
       break;
     }
@@ -429,6 +466,28 @@ for (const lesson of lessons) {
   }
 }
 console.log(`problems verified: ${total}`);
+
+// ── RadicalDivide quotient regressions ────────────────────────────────────────
+// Pin the expected-string formula on cases the fixed matrix seeds may never
+// sample (notably a=18, b=8, the case flagged as a test-only bug).
+section("radicalDivide-quotient-regressions");
+{
+  const cases: [number, number, string][] = [
+    [18, 8, "3/2"],
+    [2, 8, "1/2"],
+    [8, 2, "2"],
+    [12, 3, "2"],
+    [6, 10, "\\sqrt{15}/5"],
+    [5, 15, "\\sqrt{3}/3"],
+    [20, 8, "\\sqrt{10}/2"],
+    [7, 7, "1"],
+  ];
+  for (const [a, b, want] of cases) {
+    const got = expectedRadicalQuotient(a, b);
+    check(got.str === want, `quotient sqrt(${a})/sqrt(${b}): string "${got.str}" === "${want}"`);
+    check(approx(got.val, Math.sqrt(a) / Math.sqrt(b)), `quotient sqrt(${a})/sqrt(${b}): value matches`);
+  }
+}
 
 // ── Sample worksheet PDFs (one per topic) ─────────────────────────────────────
 

@@ -306,6 +306,7 @@ export const a2_11_1_simplify = lesson(generateRationalProblems, ["SimplifyRatio
 export const a2_11_2_multDiv = lesson(generateRationalProblems, ["MultiplyDivideRational"]);
 export const a2_11_3_asymptotesHoles = lesson(generateRationalProblems, ["Asymptotes", "Holes"]);
 export const a2_11_4_solveRational = lesson(generateRationalProblems, ["SolveRationalEquation"]);
+export const a2_11_5_addSubtract = lesson(generateRationalProblems, ["AddSubtractRational"]);
 
 // ── T12 Data & regression (TEKS A2.12) ────────────────────────────────────────
 
@@ -401,6 +402,7 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-10-3", generate: a2_10_3_cuberootEquations, subtypes: ["CubeRootEquations"] },
   { id: "a2-11-1", generate: a2_11_1_simplify, subtypes: ["SimplifyRational"] },
   { id: "a2-11-2", generate: a2_11_2_multDiv, subtypes: ["MultiplyDivideRational"] },
+  { id: "a2-11-5", generate: a2_11_5_addSubtract, subtypes: ["AddSubtractRational"] },
   { id: "a2-11-3", generate: a2_11_3_asymptotesHoles, subtypes: ["Asymptotes", "Holes"] },
   { id: "a2-11-4", generate: a2_11_4_solveRational, subtypes: ["SolveRationalEquation"] },
   { id: "a2-12-1", generate: a2_12_1_analyzingData, subtypes: ["DataAnalyze"] },

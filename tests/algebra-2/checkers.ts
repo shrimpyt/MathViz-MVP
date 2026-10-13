@@ -555,6 +555,114 @@ function chkMultDiv(p: Algebra2Problem, v: Record<string, number | number[] | st
   return errs.length ? bad(expected, ...errs) : ok(expected);
 }
 
+function chkAddSubRational(p: Algebra2Problem, v: Record<string, number | number[] | string | string[] | boolean>): CheckResult {
+  const kind = v["kind"] as string;
+  const op = v["op"] as string;
+  const sgn = op === "add" ? 1 : -1;
+  const errs: string[] = [];
+  // Independent display helpers (mirror the documented answer format).
+  const linFactor = (r: number): string => (r === 0 ? "(x)" : r > 0 ? `(x - ${r})` : `(x + ${-r})`);
+  const fracStr = (num: number[], denDisplay: string): string => {
+    const terms = num.filter((c) => c !== 0).length;
+    const ns = fPoly(num);
+    return `${terms > 1 ? `(${ns})` : ns}/${denDisplay}`;
+  };
+  let num: number[] = [];
+  let denPoly: number[] = [];
+  let poles: number[] = [];
+  let expected = "";
+  // ansValOverride: value of the ANSWER (as opposed to num/den). Only
+  // likeCancel needs one, since its answer is the constant left after
+  // canceling, while num/den is the pre-cancel fraction.
+  let ansVal: (num: number[], den: number[], x: number) => number =
+    (n, d, x) => ipEval(n, x) / ipEval(d, x);
+  let orig: (x: number) => number = () => 0;
+  if (kind === "like" || kind === "likeCancel") {
+    const a = v["a"] as number, b = v["b"] as number, c = v["c"] as number,
+      d = v["d"] as number, r = v["r"] as number;
+    num = [a + sgn * c, b + sgn * d];
+    denPoly = [1, -r];
+    poles = [r];
+    orig = (x) => (a * x + b) / (x - r) + sgn * ((c * x + d) / (x - r));
+    if (kind === "like") {
+      if (ipEval(num, r) === 0) errs.push(`combined numerator vanishes at the pole x=${r} (would cancel)`);
+      expected = fracStr(num, linFactor(r));
+    } else {
+      const M = v["M"] as number;
+      if (!(num[0] === M && num[1] === -M * r)) errs.push(`combined numerator ${JSON.stringify(num)} is not ${M}(x - ${r})`);
+      expected = `${M}`;
+      ansVal = () => M;
+      // The numerator DOES vanish at the pole here, by design (it cancels);
+      // poles stays [r] so sample points still skip the excluded value.
+    }
+  } else if (kind === "unlikeSimple") {
+    const A = v["A"] as number, B = v["B"] as number, r = v["r"] as number, s = v["s"] as number;
+    if (r === s) errs.push(`unlike denominators must differ (r === s === ${r})`);
+    num = ipAddSub(ipMul([A], [1, -s]), ipMul([B], [1, -r]), sgn === 1 ? 1 : -1);
+    denPoly = ipMul([1, -r], [1, -s]);
+    poles = [r, s];
+    expected = fracStr(num, `(${fPoly(denPoly)})`);
+    orig = (x) => A / (x - r) + sgn * (B / (x - s));
+  } else if (kind === "unlikeShared") {
+    const A = v["A"] as number, B = v["B"] as number, r = v["r"] as number, s = v["s"] as number;
+    if (r === s) errs.push(`unlike denominators must differ (r === s === ${r})`);
+    num = ipAddSub(ipMul([A], [1, -s]), [B], sgn === 1 ? 1 : -1);
+    denPoly = ipMul([1, -r], [1, -s]);
+    poles = [r, s];
+    expected = fracStr(num, `(${fPoly(denPoly)})`);
+    orig = (x) => A / (x - r) + sgn * (B / ((x - r) * (x - s)));
+  } else if (kind === "unlikePoly") {
+    const a = v["a"] as number, b = v["b"] as number, C = v["C"] as number,
+      r = v["r"] as number, s = v["s"] as number;
+    if (r === s) errs.push(`unlike denominators must differ (r === s === ${r})`);
+    if (a * r + b === 0) errs.push(`first numerator vanishes at its own pole x=${r}`);
+    num = ipAddSub(ipMul([a, b], [1, -s]), ipMul([C], [1, -r]), sgn === 1 ? 1 : -1);
+    denPoly = ipMul([1, -r], [1, -s]);
+    poles = [r, s];
+    expected = fracStr(num, `(${fPoly(denPoly)})`);
+    orig = (x) => (a * x + b) / (x - r) + sgn * (C / (x - s));
+  } else if (kind === "factorFirst") {
+    const A = v["A"] as number, B = v["B"] as number, k = v["k"] as number;
+    num = ipAddSub([A], ipMul([B], [1, k]), sgn === 1 ? 1 : -1);
+    denPoly = [1, 0, -k * k];
+    poles = [k, -k];
+    expected = fracStr(num, `(${fPoly(denPoly)})`);
+    orig = (x) => A / (x * x - k * k) + sgn * (B / (x - k));
+  } else if (kind === "opposite") {
+    const A = v["A"] as number, B = v["B"] as number, r = v["r"] as number;
+    const M = sgn === 1 ? A - B : A + B;
+    if (M === 0) errs.push(`opposite-factors combination gives a zero numerator`);
+    num = [M];
+    denPoly = [1, -r];
+    poles = [r];
+    expected = fracStr(num, linFactor(r));
+    orig = (x) => A / (x - r) + sgn * (B / (r - x));
+  } else {
+    errs.push(`unknown AddSubtractRational kind "${kind}"`);
+    return bad("", ...errs);
+  }
+  // The numerator must not vanish at a pole (no hidden cancellation),
+  // except likeCancel, where canceling IS the point of the problem.
+  if (kind !== "likeCancel") {
+    for (const pole of poles) {
+      if (ipEval(num, pole) === 0) errs.push(`numerator vanishes at pole x=${pole} (would cancel)`);
+      if (ipEval(denPoly, pole) !== 0) errs.push(`denominator does not vanish at pole x=${pole}`);
+    }
+  } else if (ipEval(denPoly, poles[0]) !== 0) {
+    errs.push(`denominator does not vanish at pole x=${poles[0]}`);
+  }
+  // Numeric: the original expression and the answer must agree at sample
+  // points away from the poles.
+  for (const x0 of [0.5, 2.3, -3.7, 5.1, 11.25]) {
+    if (poles.some((pole) => Math.abs(x0 - pole) < 0.25)) continue;
+    const got = orig(x0);
+    const want = ansVal(num, denPoly, x0);
+    if (Math.abs(got - want) > 1e-8) errs.push(`numeric mismatch at x=${x0}: original ${got} vs answer ${want}`);
+  }
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
 function chkSolveRational(p: Algebra2Problem, v: Record<string, number | number[] | string | string[] | boolean>): CheckResult {
   const kind = v["kind"] as string;
   const errs: string[] = [];
@@ -2577,6 +2685,7 @@ export function verifyProblem(p: Algebra2Problem): CheckResult {
     case "Holes": return chkHoles(p, asNum);
     case "SimplifyRational": return chkSimplify(p, v);
     case "MultiplyDivideRational": return chkMultDiv(p, v);
+    case "AddSubtractRational": return chkAddSubRational(p, v);
     case "SolveRationalEquation": return chkSolveRational(p, v);
     case "LogEvaluate": return chkLogEvaluate(p, v);
     case "ExpandLog": return chkExpandLog(p, v);
