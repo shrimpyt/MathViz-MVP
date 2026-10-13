@@ -31,13 +31,13 @@ function lessonSubtypes(entryId: string): string[] {
 export function run(): void {
   resetCounters();
 
-  // sanity: 56 entries, ids unique, grouped by grade
+  // sanity: 80 entries, ids unique, grouped by grade
   const ids = MIDDLE_SCHOOL_ENTRIES.map((e) => e.id);
-  check(MIDDLE_SCHOOL_ENTRIES.length === 56, `expected 56 entries, got ${MIDDLE_SCHOOL_ENTRIES.length}`);
+  check(MIDDLE_SCHOOL_ENTRIES.length === 80, `expected 80 entries, got ${MIDDLE_SCHOOL_ENTRIES.length}`);
   check(new Set(ids).size === ids.length, "entry ids are unique");
-  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 30).length === 17, "17 grade-6 entries");
-  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 31).length === 31, "31 grade-7 entries");
-  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 32).length === 8, "8 grade-8 entries");
+  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 30).length === 24, "24 grade-6 entries");
+  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 31).length === 38, "38 grade-7 entries");
+  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 32).length === 18, "18 grade-8 entries");
 
   // every subtype in the unions is covered by at least one entry
   const covered = new Set<string>();

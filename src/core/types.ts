@@ -178,7 +178,7 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
       scaffolding:
         p.format === 'MCQ'
           ? p.options!.map((o) => ({ text: `(${o.option}) ${latexToText(o.label)}` }))
-          : [{ text: '[Student-produced response — grid-in]' }],
+          : [{ text: '[Student-produced response, grid-in]' }],
     };
   }
   if (p.type === 'PRECALC_MCQ') {

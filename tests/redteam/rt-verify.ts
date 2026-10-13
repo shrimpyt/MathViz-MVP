@@ -1,8 +1,8 @@
-// rt-verify.ts — INDEPENDENT answer verification.
+// rt-verify.ts, INDEPENDENT answer verification.
 // For every reachable problem we recompute the answer with OUR OWN math
 // (never calling the factory's answer path) and require:
 //   1. our recompute == the claimed key/answer
-//   2. for MCQs: every option is evaluated — a distractor that ALSO satisfies
+//   2. for MCQs: every option is evaluated, a distractor that ALSO satisfies
 //      the true condition is an accidentally-correct answer (critical).
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, report } from "./util";

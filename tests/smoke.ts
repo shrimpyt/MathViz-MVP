@@ -1,4 +1,4 @@
-// smoke.ts — integration smoke test for the Euclid Engine expansion.
+// smoke.ts, integration smoke test for the Euclid Engine expansion.
 // Imports the registry, generates 2 problems per entry in Test/Review/Classical
 // modes, and asserts: non-empty output, answers present (formatAnswer),
 // problemToQuestion produces text, and no generator throws.

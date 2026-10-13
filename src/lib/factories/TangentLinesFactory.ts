@@ -2,7 +2,7 @@
 // Lesson ch12-1: Tangent Lines (TEKS G.12(A)).
 // Built on the one fact everything else follows from: a radius drawn to the
 // point of tangency is PERPENDICULAR to the tangent line. That perpendicularity
-// is USED in the steps — it creates the right triangle for the Pythagorean
+// is USED in the steps, it creates the right triangle for the Pythagorean
 // tangent-length problems, the two right angles that make the external-angle /
 // central-angle quadrilateral sum work, and (with its converse) the
 // "is it tangent?" test. Two tangents from one external point are congruent;
@@ -122,14 +122,14 @@ function makeIsTangent(rng: RNG): GeometryProblem {
     find: "yes or no",
     answer: isT ? "Yes" : "No",
     steps: [
-      step("The line is tangent exactly when the radius to the point of contact is perpendicular to it — that is, when OT² + PT² = OP².", "Converse of the Radius-to-Tangent Perpendicularity (via the Converse of the Pythagorean Theorem)."),
+      step("The line is tangent exactly when the radius to the point of contact is perpendicular to it, that is, when OT² + PT² = OP².", "Converse of the Radius-to-Tangent Perpendicularity (via the Converse of the Pythagorean Theorem)."),
       step(`OT² + PT² = ${a}² + ${b}² = ${a * a + b * b}; OP² = ${hyp}² = ${hyp * hyp}.`, "Pythagorean check.", [
         { label: "sum", answer: String(a * a + b * b) },
       ]),
       step(
         isT
-          ? `The sums are equal, so the radius is perpendicular to the line at T — the line is tangent.`
-          : `The sums are not equal, so the radius is not perpendicular to the line at T — the line is not tangent.`,
+          ? `The sums are equal, so the radius is perpendicular to the line at T, the line is tangent.`
+          : `The sums are not equal, so the radius is not perpendicular to the line at T, the line is not tangent.`,
         "Converse of the Pythagorean Theorem."
       ),
       step(`Answer: ${isT ? "Yes" : "No"}.`, "Tangent test.", [{ label: "answer", answer: isT ? "Yes" : "No" }]),

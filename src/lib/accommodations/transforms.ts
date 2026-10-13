@@ -1,5 +1,5 @@
 // transforms.ts
-// Accommodation transforms — pure functions, no side effects.
+// Accommodation transforms, pure functions, no side effects.
 //
 // Pipeline shape (per AGENTS.md generate→render rule):
 //   { problems: MathProblem[], presentation: Presentation }
@@ -7,11 +7,11 @@
 //
 // Phase 1 transforms are renderer-level: they adjust the Presentation and
 // pass MathProblem[] through UNTOUCHED. They must never alter numbers, answers,
-// difficulty, problem count, or problem selection — presentation only. The
+// difficulty, problem count, or problem selection, presentation only. The
 // invariant "answers before == answers after" is asserted in __tests__.
 //
 // Phase 2 adds ONE content transform: reduced-count. It subsets the problem
-// list (25% reduction, TEKS coverage preserved — see selectReducedProblems)
+// list (25% reduction, TEKS coverage preserved, see selectReducedProblems)
 // and passes Presentation through. It always runs FIRST in the composition
 // order, so presentation transforms apply to the already-reduced list.
 // Reduced versions get their own answer keys derived from their own subset
@@ -35,7 +35,7 @@ export interface VersionInput {
 export type AccommodationTransform = (input: VersionInput) => VersionInput;
 
 function withPresentation(input: VersionInput, presentation: Presentation): VersionInput {
-  // New objects throughout — inputs are never mutated.
+  // New objects throughout, inputs are never mutated.
   return { problems: input.problems, presentation: { ...presentation } };
 }
 
@@ -91,10 +91,10 @@ export function reducedCountTarget(baseCount: number): number {
  * Every MathProblem carries its TEKS standard in `type` (e.g. "G.9A").
  * HARD CONSTRAINT: every TEKS present in the base list appears at least
  * once in the returned subset. Coverage beats the count: on tiny bases
- * (e.g. 3 problems across 3 TEKS) the subset can exceed the 75% target —
+ * (e.g. 3 problems across 3 TEKS) the subset can exceed the 75% target,
  * we never drop a standard to hit the number.
  *
- * Selection (deterministic — pure function of input order, no randomness):
+ * Selection (deterministic, pure function of input order, no randomness):
  *   1. Take the first problem of each TEKS, in base order (the guarantee).
  *   2. Fill remaining slots round-robin across TEKS groups (first-seen TEKS
  *      order), taking each group's next problem in base order.
@@ -111,7 +111,7 @@ export function selectReducedProblems(problems: MathProblem[]): MathProblem[] {
     if (g) g.push(i);
     else byTeks.set(key, [i]);
   }
-  const teksOrder = [...byTeks.keys()]; // first-seen order — deterministic
+  const teksOrder = [...byTeks.keys()]; // first-seen order, deterministic
   const target = reducedCountTarget(n);
 
   // Phase 1: one per TEKS (the coverage guarantee).
@@ -134,7 +134,7 @@ export function selectReducedProblems(problems: MathProblem[]): MathProblem[] {
           added = true;
         }
       }
-      if (!added) break; // every group exhausted — picked.length === n
+      if (!added) break; // every group exhausted, picked.length === n
     }
   }
 
@@ -154,7 +154,7 @@ export const reducedCount: AccommodationTransform = (input) => {
 
 /**
  * Word bank: pass-through in the transform pipeline. The pipeline's unit is
- * { problems, presentation } and a word bank is neither — it is derived data,
+ * { problems, presentation } and a word bank is neither, it is derived data,
  * built from the version's final problem list at planning time
  * (see versions.ts + wordbank.ts). Problems and presentation pass untouched.
  */

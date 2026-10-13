@@ -2,7 +2,7 @@
 // Topic 8: Transformational Geometry (TEKS G.3(A), G.3(B), G.3(C)).
 //
 // Lesson ch8-1: translations on the coordinate plane, always in proper
-// mapping notation (x, y) → (x + a, y + b) AND as vectors ⟨a, b⟩ — the two
+// mapping notation (x, y) → (x + a, y + b) AND as vectors ⟨a, b⟩, the two
 // descriptions are kept side by side so students connect them.
 // Chapter-test pool: reflections (coordinate rules), rotations about the
 // origin, line/rotational symmetry, compositions of rigid motions, and
@@ -100,7 +100,7 @@ function makeTranslateFigure(rng: RNG): GeometryProblem {
     answer,
     steps: [
       step(`The vector ⟨${a}, ${b}⟩ gives the rule ${ruleStr(a, b)}: ${wordsFor(a, b)}.`, "Translation vector ↔ mapping notation."),
-      step("Apply the rule to every vertex — a translation moves all points by the same vector.", "Translations are rigid motions (isometries)."),
+      step("Apply the rule to every vertex, a translation moves all points by the same vector.", "Translations are rigid motions (isometries)."),
       step(`Image vertices: ${answer}.`, "Apply the mapping.", [{ label: "image", answer }]),
     ],
     svgParams: {

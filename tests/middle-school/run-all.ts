@@ -1,4 +1,4 @@
-// run-all.ts — runs the full middle-school headless suite and totals the checks.
+// run-all.ts, runs the full middle-school headless suite and totals the checks.
 // Usage: npx tsx tests/middle-school/run-all.ts
 
 import { run as runMatrix } from "./01-matrix";

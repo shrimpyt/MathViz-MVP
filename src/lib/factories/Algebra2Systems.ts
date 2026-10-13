@@ -1,5 +1,5 @@
 // Algebra2Systems.ts
-// A2.8 — Nonlinear systems: line ∩ parabola (two intersections or tangent),
+// A2.8, Nonlinear systems: line ∩ parabola (two intersections or tangent),
 // line ∩ circle (two intersections or tangent). Systems are constructed from
 // chosen solution points so intersections are exact; tests substitute each
 // solution into BOTH original equations independently.
@@ -79,7 +79,7 @@ function makeLineParabola(rng: RNG, tangent: boolean): Algebra2Problem {
       },
       {
         instruction: tangent
-          ? "The quadratic has discriminant 0 — one (double) solution:"
+          ? "The quadratic has discriminant 0, one (double) solution:"
           : "Solve the quadratic for x, then find each y:",
         reason: tangent ? "Double root (tangent)" : "Solve quadratic, back-substitute",
         blanks: [{ label: "solutions", answer }],
@@ -161,7 +161,7 @@ function makeCircleLine(rng: RNG, tangent: boolean): Algebra2Problem {
       },
       {
         instruction: tangent
-          ? "The resulting quadratic has discriminant 0 — one solution:"
+          ? "The resulting quadratic has discriminant 0, one solution:"
           : "Solve for x, then find each y:",
         reason: tangent ? "Double root (tangent)" : "Solve quadratic, back-substitute",
         blanks: [{ label: "solutions", answer }],
@@ -180,7 +180,7 @@ function makeCircleLine(rng: RNG, tangent: boolean): Algebra2Problem {
 type Rel3 = "lt" | "le" | "gt" | "ge";
 const REL3_LATEX: Record<Rel3, string> = { lt: "<", le: "\\leq", gt: ">", ge: "\\geq" };
 
-/** "2x - 3y" / "x + y" / "-x" — left side a·x + b·y (no "= c"). */
+/** "2x - 3y" / "x + y" / "-x", left side a·x + b·y (no "= c"). */
 function linSide(a: number, b: number, v1 = "x", v2 = "y"): string {
   const t = (coef: number, v: string, first: boolean): string => {
     if (coef === 0) return "";
@@ -245,7 +245,7 @@ function makeSystemGraphSolve(rng: RNG): Algebra2Problem {
     answer: `(${x0}, ${y0})`,
     steps: [
       {
-        instruction: "The solution of a system is the point where the two graphs intersect — it is the one point that lies on both lines:",
+        instruction: "The solution of a system is the point where the two graphs intersect, it is the one point that lies on both lines:",
         reason: "Graphing method",
         blanks: [{ label: "intersection point", answer: `(${x0}, ${y0})` }],
       },
@@ -284,7 +284,7 @@ function makeSystemTableSolve(rng: RNG): Algebra2Problem {
         blanks: [{ label: "matching input", answer: `x = ${x0}` }],
       },
       {
-        instruction: `At x = ${x0} both functions output ${y0} — that shared point solves the system f(x) = g(x):`,
+        instruction: `At x = ${x0} both functions output ${y0}, that shared point solves the system f(x) = g(x):`,
         reason: "Solution of a system",
         blanks: [{ label: "common output", answer: `${y0}` }],
       },
@@ -307,7 +307,7 @@ function makeSystemClassify(rng: RNG): Algebra2Problem {
     const s = pick(rng, [2, 3, -2]);
     a2 = a * s; b2 = b * s; c2 = c1 * s;
     eq2 = stdEq(a2, b2, c2);
-    answer = "Infinitely many solutions — the equations describe the same line (dependent system)";
+    answer = "Infinitely many solutions, the equations describe the same line (dependent system)";
     verdict = "infinitely many solutions";
     svg = { kind: "FuncGraph", lines: [graphLine(a, b, c1)] };
   } else {
@@ -315,7 +315,7 @@ function makeSystemClassify(rng: RNG): Algebra2Problem {
     if (cDiff === 0) cDiff = 3;
     c2 = c1 + cDiff;
     eq2 = stdEq(a, b, c2);
-    answer = "No solution — the lines are parallel and never meet (inconsistent system)";
+    answer = "No solution, the lines are parallel and never meet (inconsistent system)";
     verdict = "no solution";
     svg = { kind: "FuncGraph", lines: [graphLine(a, b, c1), graphLine(a, b, c2)] };
   }
@@ -335,8 +335,8 @@ function makeSystemClassify(rng: RNG): Algebra2Problem {
       },
       {
         instruction: coincident
-          ? "Same slope AND same intercept — the two equations are the same line, so every point on the line is a solution:"
-          : "Same slope but different intercepts — the lines are parallel and distinct, so they never intersect:",
+          ? "Same slope AND same intercept, the two equations are the same line, so every point on the line is a solution:"
+          : "Same slope but different intercepts, the lines are parallel and distinct, so they never intersect:",
         reason: coincident ? "Dependent system" : "Inconsistent system",
         blanks: [{ label: "verdict", answer: verdict }],
       },
@@ -423,7 +423,7 @@ function makeSystemElimination(rng: RNG): Algebra2Problem {
         blanks: [{ label: "scaled equations", answer: `${scaled1}; ${scaled2}` }],
       },
       {
-        instruction: "Add the scaled equations — the x-terms cancel:",
+        instruction: "Add the scaled equations, the x-terms cancel:",
         reason: "Elimination: add the equations",
         blanks: [
           { label: "one-variable equation", answer: sumEq },
@@ -507,16 +507,16 @@ function makeSystemIneqTestPoint(rng: RNG): Algebra2Problem {
     given: { system: `${ineqText(l1)}; ${ineqText(l2)}`, point: `(${px}, ${py})` },
     find: "whether the point is a solution of the system",
     answer: isSol
-      ? `Yes — (${px}, ${py}) satisfies both inequalities`
-      : `No — (${px}, ${py}) fails ${!t1 && !t2 ? "both inequalities" : !t1 ? "the first inequality" : "the second inequality"}`,
+      ? `Yes, (${px}, ${py}) satisfies both inequalities`
+      : `No, (${px}, ${py}) fails ${!t1 && !t2 ? "both inequalities" : !t1 ? "the first inequality" : "the second inequality"}`,
     steps: [
       {
-        instruction: `Substitute (${px}, ${py}) into the first inequality: ${stmt(l1)} — this statement is ${t1}:`,
+        instruction: `Substitute (${px}, ${py}) into the first inequality: ${stmt(l1)}, this statement is ${t1}:`,
         reason: "Test point method",
         blanks: [{ label: "first inequality", answer: t1 ? "true" : "false" }],
       },
       {
-        instruction: `Substitute (${px}, ${py}) into the second inequality: ${stmt(l2)} — this statement is ${t2}:`,
+        instruction: `Substitute (${px}, ${py}) into the second inequality: ${stmt(l2)}, this statement is ${t2}:`,
         reason: "Test point method",
         blanks: [{ label: "second inequality", answer: t2 ? "true" : "false" }],
       },
@@ -557,7 +557,7 @@ function makeSystemIneqRead(rng: RNG): Algebra2Problem {
       describe(l1, 1),
       describe(l2, 2),
       {
-        instruction: "The solution set of the system is the overlap — the region shaded by both inequalities:",
+        instruction: "The solution set of the system is the overlap, the region shaded by both inequalities:",
         reason: "Intersection of half-planes",
         blanks: [{ label: "system", answer }],
       },
@@ -597,7 +597,7 @@ function makeSystemIneqCorner(rng: RNG): Algebra2Problem {
         blanks: [{ label: "intersection", answer: `(${x0}, ${y0})` }],
       },
       {
-        instruction: `Because both inequalities are non-strict (\\leq / \\geq), the corner point itself belongs to the feasible region — it gives equality in both:`,
+        instruction: `Because both inequalities are non-strict (\\leq / \\geq), the corner point itself belongs to the feasible region, it gives equality in both:`,
         reason: "Feasibility check",
         blanks: [{ label: "corner point", answer: `(${x0}, ${y0})` }],
       },
@@ -741,6 +741,296 @@ function stdEq3(row: number[], c: number): string {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
+// ── 3-6: test points in a system of inequalities (2A.3G) ────────────────────
+// Given a system and labeled candidate points, answer which labels satisfy
+// BOTH inequalities. Level 3 is a budget context with money points.
+
+interface BudgetContext {
+  story: string;
+  xItem: string;
+  yItem: string;
+  priceX: number;
+  priceY: number;
+  budget: number;
+  maxTotal: number;
+}
+
+const BUDGET_CONTEXTS: BudgetContext[] = [
+  { story: "A school club buys notebooks and pens for a fundraiser. Notebooks cost $2 each and pens cost $3 each. The club can spend at most $24 and can store at most 10 items in total.", xItem: "notebooks", yItem: "pens", priceX: 2, priceY: 3, budget: 24, maxTotal: 10 },
+  { story: "A team orders t-shirts and hats. T-shirts cost $12 each and hats cost $8 each. The team can spend at most $120 and needs at most 12 items in total.", xItem: "t-shirts", yItem: "hats", priceX: 12, priceY: 8, budget: 120, maxTotal: 12 },
+  { story: "A theater sells adult tickets and child tickets. Adult tickets cost $9 each and child tickets cost $5 each. A group can spend at most $90 and has at most 14 people in total.", xItem: "adult tickets", yItem: "child tickets", priceX: 9, priceY: 5, budget: 90, maxTotal: 14 },
+  { story: "A cafe buys smoothie mix and salad kits. Smoothie mix costs $6 per case and salad kits cost $7 per case. The cafe can spend at most $56 and has shelf room for at most 9 cases in total.", xItem: "smoothie mix cases", yItem: "salad kits", priceX: 6, priceY: 7, budget: 56, maxTotal: 9 },
+];
+
+function shuffleWith<R>(rng: RNG, arr: R[]): R[] {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function pickSpread<R>(rng: RNG, arr: R[], n: number): R[] {
+  if (arr.length <= n) return [...arr];
+  const idx = new Set<number>();
+  let guard = 0;
+  while (idx.size < n && guard++ < 200) idx.add(Math.floor(rng() * arr.length));
+  return [...idx].map((i) => arr[i]);
+}
+
+function makeSystemIneqPointLabels(rng: RNG, level: 1 | 2 | 3): Algebra2Problem {
+  const total = level === 1 ? 3 : 4;
+  const wantSat = level === 1 ? 1 : 2;
+  let l1: IneqLine = { a: 1, b: 0, c: 2, rel: "le" };
+  let l2: IneqLine = { a: 0, b: 1, c: 2, rel: "le" };
+  let ctx: BudgetContext | null = null;
+  let chosen: { x: number; y: number; ok: boolean }[] = [];
+  for (let attempt = 0; attempt < 12 && chosen.length < total; attempt++) {
+    if (level === 3) {
+      ctx = pick(rng, BUDGET_CONTEXTS);
+      l1 = { a: ctx.priceX, b: ctx.priceY, c: ctx.budget, rel: "le" };
+      l2 = { a: 1, b: 1, c: ctx.maxTotal, rel: "le" };
+    } else {
+      [l1, l2] = randomIneqPair(rng);
+    }
+    const sat: { x: number; y: number; ok: boolean }[] = [];
+    const fail: { x: number; y: number; ok: boolean }[] = [];
+    const lo = level === 3 ? 0 : -6;
+    const hi = level === 3 ? ctx!.maxTotal + 2 : 6;
+    for (let x = lo; x <= hi; x++) {
+      for (let y = lo; y <= hi; y++) {
+        const ok = satisfies(l1, x, y) && satisfies(l2, x, y);
+        (ok ? sat : fail).push({ x, y, ok });
+      }
+    }
+    if (sat.length >= wantSat && fail.length >= total - wantSat) {
+      chosen = shuffleWith(rng, [
+        ...pickSpread(rng, sat, wantSat),
+        ...pickSpread(rng, fail, total - wantSat),
+      ]);
+    }
+  }
+  if (chosen.length < total) {
+    // deterministic fallback system x <= 2, y <= 2 has plenty of both kinds
+    chosen = shuffleWith(rng, [
+      { x: 0, y: 0, ok: true },
+      { x: 1, y: -1, ok: true },
+      { x: 4, y: 0, ok: false },
+      { x: 0, y: 5, ok: false },
+    ].slice(0, total));
+    if (level === 1) chosen = [{ x: 0, y: 0, ok: true }, { x: 4, y: 0, ok: false }, { x: 0, y: 5, ok: false }];
+  }
+  const labels = ["A", "B", "C", "D"];
+  const ptsText = chosen.map((p, i) => `${labels[i]} (${p.x}, ${p.y})`).join(", ");
+  const answer = chosen.filter((p) => p.ok).map((p) => labels[chosen.indexOf(p)]).join(", ");
+  const steps: ProblemStep[] = chosen.map((p, i) => {
+    const t1 = satisfies(l1, p.x, p.y);
+    const t2 = satisfies(l2, p.x, p.y);
+    const failNote = !t1 && !t2 ? "fails both inequalities" : !t1 ? "fails the first inequality" : "fails the second inequality";
+    return {
+      instruction: `Test ${labels[i]} (${p.x}, ${p.y}): the first gives ${l1.a * p.x + l1.b * p.y} ${REL3_LATEX[l1.rel]} ${l1.c} (${t1}) and the second gives ${l2.a * p.x + l2.b * p.y} ${REL3_LATEX[l2.rel]} ${l2.c} (${t2}):`,
+      reason: "Test each point in both inequalities",
+      blanks: [{ label: labels[i], answer: p.ok ? "satisfies both" : failNote }],
+    };
+  });
+  steps.push({
+    instruction: "A point is a solution of the system only if it satisfies both inequalities at once:",
+    reason: "All conditions at once",
+    blanks: [{ label: "points that satisfy the system", answer }],
+  });
+  const base: Algebra2Problem = {
+    type: "A2.3",
+    subtype: "SystemIneqPointLabels",
+    given: level === 3 && ctx
+      ? { scenario: ctx.story, system: `${ineqText(l1)}; ${ineqText(l2)}`, points: ptsText }
+      : { system: `${ineqText(l1)}; ${ineqText(l2)}`, points: ptsText },
+    find: level === 3
+      ? `which labeled points are purchases that meet both constraints (x = ${ctx!.xItem}, y = ${ctx!.yItem})`
+      : "which labeled points are solutions of the system",
+    answer,
+    steps,
+    svgParams: {
+      kind: "FuncGraph",
+      lines: [graphLine(l1.a, l1.b, l1.c, l1.rel === "lt" || l1.rel === "gt"), graphLine(l2.a, l2.b, l2.c, l2.rel === "lt" || l2.rel === "gt")],
+      shade: [shadeFor(l1, l2)],
+      points: chosen.map((p) => ({ x: p.x, y: p.y })),
+    },
+    verify: {
+      kind: "labels",
+      l1: [l1.a, l1.b, l1.c],
+      l2: [l2.a, l2.b, l2.c],
+      rels: [l1.rel, l2.rel],
+      points: chosen.flatMap((p) => [p.x, p.y]),
+      context: level === 3 ? 1 : 0,
+    },
+  };
+  return base;
+}
+
+// ── 5-13: linear-quadratic systems in context (2A.3D) ────────────────────────
+// P(t) = -16t^2 + pB t + pC is a projectile height; the other model is a line
+// (constant height, a climbing drone, or a descending drone). Both algebraic
+// intersections are found; the physically impossible one is discarded with
+// the reason stated in the steps.
+
+function linQuadSteps(
+  setEqual: string,
+  factored: string,
+  smallStep: ProblemStep,
+  largeStep: ProblemStep,
+  finalAnswer: string,
+): ProblemStep[] {
+  return [
+    {
+      instruction: "Set the two height models equal and move everything to one side:",
+      reason: "Substitution: set the models equal",
+      blanks: [{ label: "set equal", answer: setEqual }],
+    },
+    {
+      instruction: "Divide by -16 and factor the resulting quadratic:",
+      reason: "Factor the difference equation",
+      blanks: [{ label: "factored", answer: factored }],
+    },
+    smallStep,
+    largeStep,
+    {
+      instruction: "State the physically meaningful answer:",
+      reason: "Interpret the solutions",
+      blanks: [{ label: "answer", answer: finalAnswer }],
+    },
+  ];
+}
+
+function makeLinQuadTower(rng: RNG): Algebra2Problem {
+  // Ball passes a fixed height H on the way up and again on the way down.
+  let t1 = 1, t2 = 4, H = 128;
+  for (let tries = 0; tries < 100; tries++) {
+    t1 = pick(rng, [1, 2]);
+    t2 = pick(rng, [3, 4, 5]);
+    H = pick(rng, [96, 112, 128, 144, 160]);
+    if (t2 > t1 && H - 16 * t1 * t2 >= 16) break;
+  }
+  const pB = 16 * (t1 + t2);
+  const pC = H - 16 * t1 * t2;
+  const answer = `t = ${t1} s on the way up and t = ${t2} s on the way down`;
+  const model = `h(t) = ${polyToLatex([-16, pB, pC], "t")}`;
+  return {
+    type: "A2.5",
+    subtype: "LinQuadContext",
+    given: {
+      scenario: "A ball is launched from a platform. A tower nearby has its top exactly level with a marker the ball passes.",
+      model,
+      level: `tower top height: ${H} feet`,
+    },
+    find: "the times when the ball is exactly at the height of the tower top, and what each time means",
+    answer,
+    steps: linQuadSteps(
+      `-16t^2 + ${pB}t + ${pC} = ${H}`,
+      `(t - ${t1})(t - ${t2}) = 0`,
+      {
+        instruction: `The smaller solution comes first, while the ball is still rising toward its peak:`,
+        reason: "Interpretation: rising",
+        blanks: [{ label: `t = ${t1}`, answer: "on the way up" }],
+      },
+      {
+        instruction: "The larger solution comes after the peak, while the ball is falling:",
+        reason: "Interpretation: falling",
+        blanks: [{ label: `t = ${t2}`, answer: "on the way down" }],
+      },
+      answer,
+    ),
+    verify: { kind: "towerHeight", pB, pC, H, t1, t2 },
+  };
+}
+
+function makeLinQuadCrossing(rng: RNG): Algebra2Problem {
+  // Ball meets a steadily climbing drone. The second algebraic solution has
+  // negative time, so it happened before the launch and is discarded.
+  const r1 = pick(rng, [-2, -1]);
+  const r2 = pick(rng, [3, 4, 5, 6]);
+  const m = pick(rng, [16, 24, 32]);
+  const b = pick(rng, [32, 48, 64]);
+  const pB = 16 * (r1 + r2) + m;
+  const pC = -16 * r1 * r2 + b;
+  const meetH = m * r2 + b;
+  const answer = `t = ${r2} s only; the solution t = ${r1} s is before the launch, so it is not a real meeting`;
+  const ball = `h(t) = ${polyToLatex([-16, pB, pC], "t")}`;
+  const drone = `d(t) = ${m}t + ${b}`;
+  return {
+    type: "A2.5",
+    subtype: "LinQuadContext",
+    given: {
+      scenario: "A ball is launched from a platform at the same moment a drone starts climbing at a steady rate.",
+      ball,
+      drone,
+    },
+    find: "the time when the ball and the drone are at the same height, interpreting both algebraic solutions",
+    answer,
+    steps: linQuadSteps(
+      `${polyToLatex([-16, pB, pC], "t")} = ${m}t + ${b}`,
+      `(t - ${r1 < 0 ? `(${r1})` : r1})(t - ${r2}) = 0`,
+      {
+        instruction: `One algebraic solution is t = ${r1}. Time in this model starts at the launch (t = 0), and ${r1} is negative:`,
+        reason: "Discard: negative time",
+        blanks: [{ label: `t = ${r1}`, answer: "rejected, negative time (before the launch)" }],
+      },
+      {
+        instruction: `The other solution is t = ${r2}, at height d(${r2}) = ${m}(${r2}) + ${b} = ${meetH} feet:`,
+        reason: "The real meeting",
+        blanks: [{ label: `t = ${r2}`, answer: `valid, both at ${meetH} feet` }],
+      },
+      answer,
+    ),
+    verify: { kind: "crossingPaths", lineM: m, lineB: b, pB, pC, r1, r2 },
+  };
+}
+
+function makeLinQuadLanding(rng: RNG): Algebra2Problem {
+  // Ball meets a descending drone once in the air; the second algebraic
+  // intersection is below ground, after both have landed, and is discarded.
+  const t1 = pick(rng, [1, 2, 3]);
+  const t2 = pick(rng, [5, 6, 7, 8]);
+  const w = t1 === 3 ? 4 : pick(rng, [3, 4]);
+  const j = pick(rng, [1, 2, 3]);
+  const lineM = -16 * w;
+  const lineB = 16 * (w * t2 - j);
+  const pB = 16 * (t1 + t2 - w);
+  const pC = 16 * (w * t2 - j - t1 * t2);
+  const meetH = lineM * t1 + lineB;
+  const negH = lineM * t2 + lineB;
+  const answer = `t = ${t1} s only; at t = ${t2} s the shared height would be ${negH} feet, below the ground, so it is impossible`;
+  const ball = `h(t) = ${polyToLatex([-16, pB, pC], "t")}`;
+  const drone = `d(t) = ${lineB} - ${-lineM}t`;
+  return {
+    type: "A2.5",
+    subtype: "LinQuadContext",
+    given: {
+      scenario: "A ball is launched from a platform while a drone descends steadily toward a landing pad on the ground.",
+      ball,
+      drone,
+    },
+    find: "the time when the ball and the drone are at the same height, interpreting both algebraic solutions",
+    answer,
+    steps: linQuadSteps(
+      `${polyToLatex([-16, pB, pC], "t")} = ${lineB} - ${-lineM}t`,
+      `(t - ${t1})(t - ${t2}) = 0`,
+      {
+        instruction: `The first solution is t = ${t1}, at height d(${t1}) = ${meetH} feet, which is above the ground:`,
+        reason: "The real meeting",
+        blanks: [{ label: `t = ${t1}`, answer: `valid, both at ${meetH} feet` }],
+      },
+      {
+        instruction: `The second algebraic solution is t = ${t2}, but there the shared height is d(${t2}) = ${negH} feet. Heights below the ground cannot occur; both objects land before then:`,
+        reason: "Discard: below ground",
+        blanks: [{ label: `t = ${t2}`, answer: `rejected, shared height ${negH} feet is below ground` }],
+      },
+      answer,
+    ),
+    verify: { kind: "afterLanding", lineM, lineB, pB, pC, t1, t2, sharedNeg: negH },
+  };
+}
+
 const MAKERS: Maker[] = [
   { minDifficulty: 1, make: (rng) => makeLineParabola(rng, false) },
   { minDifficulty: 1, make: makeSystemGraphSolve },
@@ -758,6 +1048,14 @@ const MAKERS: Maker[] = [
   { minDifficulty: 3, make: makeSystemElimination },
   { minDifficulty: 3, make: makeSystemIneqCorner },
   { minDifficulty: 3, make: (rng) => makeThreeVarSystem(rng, 2) },
+  // 3-6 labeled test points (2A.3G)
+  { minDifficulty: 1, make: (rng) => makeSystemIneqPointLabels(rng, 1) },
+  { minDifficulty: 2, make: (rng) => makeSystemIneqPointLabels(rng, 2) },
+  { minDifficulty: 3, make: (rng) => makeSystemIneqPointLabels(rng, 3) },
+  // 5-13 linear-quadratic systems in context (2A.3D)
+  { minDifficulty: 1, make: makeLinQuadTower },
+  { minDifficulty: 2, make: makeLinQuadCrossing },
+  { minDifficulty: 3, make: makeLinQuadLanding },
 ];
 
 /** Generate n A2.5/A2.C (nonlinear systems) problems at the given cumulative difficulty tier.

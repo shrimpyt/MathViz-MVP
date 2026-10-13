@@ -352,7 +352,12 @@ function verifyLinearInequality(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra
   const { m: mm, b, rel } = m;
   const strict = rel === "<" || rel === ">";
   const above = rel === ">" || rel === ">=";
-  checkAnswer(ctx, p, `${strict ? "dashed" : "solid"} boundary line; shade ${above ? "above" : "below"} the line`, "linear inequality");
+  if (p.subtype === "WriteLinearInequality") {
+    // The answer is the reconstructed inequality itself, not a graph description.
+    checkAnswer(ctx, p, `y ${vRel(rel)} ${vLinear(mm, b)}`, "write linear inequality");
+  } else {
+    checkAnswer(ctx, p, `${strict ? "dashed" : "solid"} boundary line; shade ${above ? "above" : "below"} the line`, "linear inequality");
+  }
   if (p.graph?.kind === "FunctionGraph") {
     const fn = p.graph.funcs[0];
     if (fn.fn === "line") {
@@ -653,6 +658,206 @@ function verifyRegression(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta,
   }
 }
 
+// ── Wave 3c verifiers (independent re-derivations) ─────────────────────────
+
+function verifyPolyDivision(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "polyDivision" }>): void {
+  // Independent polynomial long division (index = power), from scratch.
+  const divisor = m.divisor;
+  const dDeg = divisor.length - 1;
+  check(ctx, (divisor[dDeg] ?? 0) !== 0, "zero leading coefficient in divisor");
+  const rem = [...m.dividend];
+  while (rem.length > 1 && rem[rem.length - 1] === 0) rem.pop();
+  const quotient: number[] = new Array(Math.max(1, rem.length - dDeg)).fill(0);
+  for (let deg = rem.length - 1; deg >= dDeg; deg--) {
+    const coeff = rem[deg] / divisor[dDeg];
+    check(ctx, Number.isInteger(coeff), `non-integer quotient coefficient ${coeff} at degree ${deg}`);
+    quotient[deg - dDeg] = coeff;
+    for (let j = 0; j <= dDeg; j++) rem[deg - dDeg + j] -= coeff * divisor[j];
+  }
+  const remainder = rem[0] ?? 0;
+  for (let i = 1; i < dDeg; i++) {
+    check(ctx, Math.abs(rem[i] ?? 0) < 1e-9, `non-constant remainder term at degree ${i}`);
+  }
+  // Cross-check: dividend = divisor * quotient + remainder (independent convolution).
+  const rebuilt = vAdd(vMul(divisor, quotient), [remainder]);
+  const trim = (a: number[]) => { const c = [...a]; while (c.length > 1 && c[c.length - 1] === 0) c.pop(); return c; };
+  check(ctx, JSON.stringify(trim(rebuilt)) === JSON.stringify(trim(m.dividend)), "division does not reconstruct the dividend");
+  const q = vPoly(trim(quotient));
+  const d = vPoly(divisor);
+  const expected = remainder === 0
+    ? q
+    : remainder > 0
+      ? `${q} + \\frac{${remainder}}{${d}}`
+      : `${q} - \\frac{${-remainder}}{${d}}`;
+  checkAnswer(ctx, p, expected, "polynomial division");
+}
+
+function verifyDomainRange(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "domainRange" }>): void {
+  if (m.discrete !== null) {
+    const xs = [...m.discrete].sort((x, y) => x - y);
+    const ys = [...new Set(xs.map((x) => m.m * x + m.b))].sort((x, y) => x - y);
+    checkAnswer(ctx, p, `domain: \\{${xs.join(", ")}\\}; range: \\{${ys.join(", ")}\\}`, "discrete domain/range");
+    return;
+  }
+  if (m.lo === null || m.hi === null) {
+    check(ctx, m.m !== 0, "zero slope in unbounded domain/range problem");
+    checkAnswer(ctx, p, "domain: all real numbers; range: all real numbers", "unbounded domain/range");
+    return;
+  }
+  const yLo = m.m * m.lo + m.b;
+  const yHi = m.m * m.hi + m.b;
+  const rlo = Math.min(yLo, yHi);
+  const rhi = Math.max(yLo, yHi);
+  checkAnswer(ctx, p, `domain: ${m.lo} \\leq x \\leq ${m.hi}; range: ${rlo} \\leq y \\leq ${rhi}`, "bounded domain/range");
+}
+
+function verifyHVLine(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "hvLine" }>): void {
+  if (m.ask === "slope") {
+    checkAnswer(ctx, p, m.orientation === "horizontal" ? "0" : "no slope", "hv slope");
+  } else {
+    checkAnswer(ctx, p, m.orientation === "horizontal" ? `y = ${m.py}` : `x = ${m.px}`, "hv equation");
+  }
+}
+
+function vPearson(points: Array<[number, number]>): number {
+  const n = points.length;
+  const mx = points.reduce((s, q) => s + q[0], 0) / n;
+  const my = points.reduce((s, q) => s + q[1], 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (const [x, y] of points) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; syy += (y - my) ** 2; }
+  return sxy / Math.sqrt(sxx * syy);
+}
+
+function verifyCorrelation(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "correlation" }>): void {
+  check(ctx, m.points.length >= 5, "too few correlation points");
+  check(ctx, m.candidates.length === 3, "expected three r candidates");
+  const r = vPearson(m.points);
+  check(ctx, Math.abs(r) >= 0.2, `correlation too weak to classify (|r| = ${Math.abs(r)})`);
+  const dists = m.candidates.map((c) => Math.abs(c - r)).sort((x, y) => x - y);
+  check(ctx, dists[1] - dists[0] > 0.02, `ambiguous r candidates (distances ${dists})`);
+  const best = m.candidates.reduce((acc, c) => (Math.abs(c - r) < Math.abs(acc - r) ? c : acc), m.candidates[0]);
+  const a = Math.abs(r);
+  const strength = a >= 0.75 ? "strong" : a >= 0.45 ? "moderate" : "weak";
+  const direction = r > 0 ? "positive" : "negative";
+  checkAnswer(ctx, p, `r \\approx ${vNum(best)}; ${strength} ${direction} correlation`, "correlation");
+  if (p.graph?.kind === "ScatterPlot") {
+    check(ctx, p.graph.points.length === m.points.length, "scatter point count mismatch");
+  }
+}
+
+const V_CAUSATION_KEY: Record<string, string> = {
+  "ice-cream-drowning": "association only",
+  "shoe-size-reading": "association only",
+  "firefighters-damage": "association only",
+  "coffee-sleep": "association only",
+  "study-app-trial": "possible causation",
+  "fertilizer-trial": "possible causation",
+  "vitamin-trial": "possible causation",
+  "name-letters-birthday": "neither",
+  "phone-digit-height": "neither",
+  "wall-color-pencils": "neither",
+};
+
+function verifyCausation(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "causation" }>): void {
+  const want = V_CAUSATION_KEY[m.scenarioId];
+  check(ctx, want !== undefined, `unknown causation scenario id ${m.scenarioId}`);
+  if (want !== undefined) checkAnswer(ctx, p, want, "association vs causation");
+}
+
+function verifySystemEstimate(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "systemEstimate" }>): void {
+  check(ctx, m.m1 !== m.m2, "parallel lines in system estimate");
+  const x0 = (m.b2 - m.b1) / (m.m1 - m.m2);
+  const y0 = m.m1 * x0 + m.b1;
+  if (m.decimals === 0) {
+    check(ctx, Number.isInteger(x0) && Number.isInteger(y0), `non-integer estimate (${x0}, ${y0}) keyed as exact`);
+    checkAnswer(ctx, p, `(${x0}, ${y0})`, "system estimate");
+  } else {
+    const rx = Math.round(x0 * 10) / 10;
+    const ry = Math.round(y0 * 10) / 10;
+    checkAnswer(ctx, p, `(${vNum(rx)}, ${vNum(ry)})`, "system estimate (tenths)");
+  }
+  if (p.graph?.kind === "FunctionGraph") {
+    const [f1, f2] = p.graph.funcs;
+    if (f1?.fn === "line" && f2?.fn === "line") {
+      check(ctx, Math.abs(f1.m - m.m1) < 1e-9 && Math.abs(f1.b - m.b1) < 1e-9, "graph line 1 mismatch");
+      check(ctx, Math.abs(f2.m - m.m2) < 1e-9 && Math.abs(f2.b - m.b2) < 1e-9, "graph line 2 mismatch");
+    }
+    const sol = p.graph.solution;
+    if (sol) {
+      const rx = m.decimals === 1 ? Math.round(x0 * 10) / 10 : x0;
+      const ry = m.decimals === 1 ? Math.round(y0 * 10) / 10 : y0;
+      check(ctx, Math.abs(sol.x - rx) < 1e-9 && Math.abs(sol.y - ry) < 1e-9, "graph solution marker mismatch");
+    }
+  }
+}
+
+function verifyFactorsZeros(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "factorsZeros" }>): void {
+  const { a, r1, r2, variant } = m;
+  if (variant === "zeros") {
+    const [lo, hi] = r1 <= r2 ? [r1, r2] : [r2, r1];
+    checkAnswer(ctx, p, `x = ${lo} \\text{ or } x = ${hi}`, "zeros from factored form");
+    // Sanity: both values really are zeros of a(x - r1)(x - r2).
+    for (const z of [r1, r2]) check(ctx, a * (z - r1) * (z - r2) === 0, `${z} is not a zero`);
+  } else if (variant === "factored") {
+    checkAnswer(ctx, p, `f(x) = ${vFactored([vLinear(1, -r1), vLinear(1, -r2)])}`, "factored form from zeros");
+  } else if (variant === "standard") {
+    const poly = vMul([-r1, 1], [-r2, 1]).map((c) => c * a);
+    checkAnswer(ctx, p, `f(x) = ${vPoly(poly)}`, "standard form from intercepts");
+    check(ctx, Math.abs(a * r1 * r1 + poly[1] * r1 + poly[0]) < 1e-9, "r1 is not an intercept of the written function");
+  } else {
+    // multiplicity: r1 crosses (power 1), r2 touches (power 2)
+    check(ctx, r1 !== r2, "multiplicity zeros must differ");
+    checkAnswer(ctx, p, `f(x) = (${vLinear(1, -r1)})(${vLinear(1, -r2)})^{2}`, "multiplicity factored form");
+  }
+}
+
+function vBase(b: number): string {
+  if (Number.isInteger(b)) return `${b}`;
+  if (b < 1 && Number.isInteger(1 / b)) return `\\frac{1}{${Math.round(1 / b)}}`;
+  return `${Math.round(b * 100) / 100}`;
+}
+
+function verifyWriteExp(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "writeExp" }>): void {
+  check(ctx, m.a > 0 && m.b > 0 && m.b !== 1, `bad writeExp params a=${m.a} b=${m.b}`);
+  const kind = m.b > 1 ? "growth" : "decay";
+  checkAnswer(ctx, p, `${kind}; f(x) = ${m.a}(${vBase(m.b)})^{x}`, "write exponential");
+}
+
+function verifyExpFeatures(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "expFeatures" }>): void {
+  check(ctx, m.a > 0 && m.b > 0 && m.b !== 1, `bad expFeatures params a=${m.a} b=${m.b}`);
+  checkAnswer(
+    ctx, p,
+    `y-intercept: (0, ${m.a + m.k}); asymptote: y = ${m.k}; domain: all real numbers; range: y > ${m.k}`,
+    "exponential features"
+  );
+  if (p.graph?.kind === "FunctionGraph") {
+    const fn = p.graph.funcs[0];
+    if (fn.fn === "exponential") {
+      check(ctx, m.k === 0, "shifted exponential should not claim the unshifted graph");
+      check(ctx, Math.abs(fn.a - m.a) < 1e-9 && Math.abs(fn.b - m.b) < 1e-9, "graph exponential params mismatch");
+    }
+  }
+}
+
+function verifyQuadModel(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "quadModel" }>): void {
+  const f = (x: number) => m.a * x * x + m.b * x + m.c;
+  check(ctx, m.a !== 0, "zero leading coefficient in quad model");
+  if (m.residualX === null) {
+    const v = f(m.askX);
+    check(ctx, Number.isInteger(v), `non-integer model value ${v}`);
+    checkAnswer(ctx, p, `f(${m.askX}) = ${v}`, "quad model evaluation");
+  } else {
+    const pt = m.points.find(([x]) => x === m.residualX);
+    check(ctx, pt !== undefined, `residual x=${m.residualX} is not a data point`);
+    if (pt) {
+      const predicted = f(m.residualX);
+      check(ctx, Number.isInteger(predicted), `non-integer prediction ${predicted}`);
+      check(ctx, pt[1] !== predicted, "residual problem with zero residual");
+      checkAnswer(ctx, p, `predicted: ${predicted}; residual: ${pt[1] - predicted}`, "quad model residual");
+    }
+  }
+}
+
 // ── Diagram sanity (all kinds) ──────────────────────────────────────────────
 
 function verifyDiagram(ctx: Ctx, p: Algebra1Problem): void {
@@ -706,17 +911,22 @@ const META_BY_SUBTYPE: Record<string, string> = {
   PolyAddSub: "poly", FOIL: "poly", PolyMultiply: "poly",
   FactorGCF: "factored", FactorTrinomialBasic: "factored", FactorTrinomialAC: "factored",
   FactorDifferenceSquares: "factored", FactorByGrouping: "grouping",
-  SimplifyRationalExpression: "rationalSimplify",
+  SimplifyRationalExpression: "rationalSimplify", PolyDivision: "polyDivision",
   QuadraticAttributes: "quadAttributes", GraphQuadratic: "vertex",
   QuadraticTransformations: "quadTransform", VertexForm: "vertex",
   QuadraticFactoring: "quadratic", QuadraticFormula: "quadratic", QuadraticDiscriminant: "quadratic",
   CompleteSquare: "completeSquare", WriteQuadratic: "writeQuad",
+  FactorsZeros: "factorsZeros", QuadModelData: "quadModel",
   ExponentialGrowth: "exponential", ExponentialDecay: "exponential",
   ExponentialWordProblem: "exponential", GraphExponential: "exponential",
   ExponentialModeling: "expModel",
+  WriteExponential: "writeExp", ExponentialFeatures: "expFeatures",
   ArithmeticSequence: "sequence", GeometricSequence: "sequence", SequenceWordProblem: "sequence",
   RecursiveArithmetic: "recursive", RecursiveGeometric: "recursive",
   TwoWayTable: "twoway", LineOfBestFit: "regression",
+  DomainRangeLinear: "domainRange", HorizontalVerticalLines: "hvLine",
+  SlopeEveryForm: "slope", Correlation: "correlation", AssociationCausation: "causation",
+  WriteLinearInequality: "linearInequality", EstimateSystemSolution: "systemEstimate",
 };
 
 // ── Main entry ──────────────────────────────────────────────────────────────
@@ -779,6 +989,16 @@ export function verifyProblem(p: Algebra1Problem, id: string): VerifyResult {
     case "recursive": verifyRecursive(ctx, p, m); break;
     case "twoway": verifyTwoWay(ctx, p, m); break;
     case "regression": verifyRegression(ctx, p, m); break;
+    case "polyDivision": verifyPolyDivision(ctx, p, m); break;
+    case "domainRange": verifyDomainRange(ctx, p, m); break;
+    case "hvLine": verifyHVLine(ctx, p, m); break;
+    case "correlation": verifyCorrelation(ctx, p, m); break;
+    case "causation": verifyCausation(ctx, p, m); break;
+    case "systemEstimate": verifySystemEstimate(ctx, p, m); break;
+    case "factorsZeros": verifyFactorsZeros(ctx, p, m); break;
+    case "writeExp": verifyWriteExp(ctx, p, m); break;
+    case "expFeatures": verifyExpFeatures(ctx, p, m); break;
+    case "quadModel": verifyQuadModel(ctx, p, m); break;
     default: check(ctx, false, `unhandled meta kind ${(m as { kind: string }).kind}`);
   }
 

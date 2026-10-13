@@ -1,6 +1,6 @@
 // algebra-2.ts
-// Algebra II module — lesson-level generators aligned to CURRICULUM_SCOPE.md
-// ("Algebra II — Topics 2–12"). Each exported function wires one lesson row
+// Algebra II module, lesson-level generators aligned to CURRICULUM_SCOPE.md
+// ("Algebra II, Topics 2–12"). Each exported function wires one lesson row
 // to the appropriate factory with a subtype/family filter; lessons with no
 // generator yet use placeholderLesson (underConstruction in the registry).
 //
@@ -105,6 +105,10 @@ export const a2_2_6_absInequalities = lesson(generateFunctionProblems, [
   "AbsIneqSpecial",
 ]);
 
+export const a2_2_7_domainRangeNotations = lesson(generateFunctionProblems, [
+  "DomainRangeNotations",
+]);
+
 // ── T3 Systems (TEKS A2.3) ────────────────────────────────────────────────────
 
 export const a2_3_1_systemsGraphs = lesson(generateSystemProblems, [
@@ -123,6 +127,10 @@ export const a2_3_3_systemsInequalities = lesson(generateSystemProblems, [
 ]);
 export const a2_3_4_threeVariables = lesson(generateSystemProblems, ["ThreeVarSystem"]);
 export const a2_3_5_matricesSystems = lesson(generateMatrixProblems, ["MatrixSystemIntro"]);
+
+export const a2_3_6_inequalityTestPoints = lesson(generateSystemProblems, [
+  "SystemIneqPointLabels",
+]);
 
 // ── T4 Matrices (TEKS A2.4) ───────────────────────────────────────────────────
 
@@ -174,6 +182,9 @@ export const a2_5_10_quadInequalities = lesson(generateQuadraticProblems, [
 ]);
 export const a2_5_11_linQuadSystems = lesson(generateSystemProblems, ["LineParabola"]);
 
+export const a2_5_12_threePoints = lesson(generateQuadraticProblems, ["QuadFromThreePoints"]);
+export const a2_5_13_linQuadContext = lesson(generateSystemProblems, ["LinQuadContext"]);
+
 // ── T6 Square root functions, inverses, function operations (TEKS A2.6) ──────
 
 export const a2_6_1_functionOperations = lesson(generateRadicalProblems, [
@@ -206,6 +217,12 @@ export const a2_6_6_sqrtEquationsSolving = lesson(generateRadicalProblems, [
   "RadicalExtraneous",
   "RadicalTwoRadicals",
   "RadicalNoSolution",
+]);
+
+export const a2_6_7_radicalExtraneous = lesson(generateRadicalProblems, [
+  "RadicalCandidateCheck",
+  "RadicalExtraneousSolve",
+  "RadicalExtraneousNoSolution",
 ]);
 
 // ── T7 Exponentials & logarithms (TEKS A2.7) ──────────────────────────────────
@@ -246,6 +263,13 @@ export const a2_7_7_expLogEquations = lesson(generateExpLogProblems, [
   "SolveLogEquation",
 ]);
 
+export const a2_7_8_logReasonableness = lesson(generateExpLogProblems, [
+  "LogReasonableness",
+]);
+export const a2_7_9_expLogConversion = lesson(generateExpLogProblems, [
+  "ExpLogConvert",
+]);
+
 // ── T8 Polynomials (TEKS A2.8) ────────────────────────────────────────────────
 
 export const a2_8_1_polyAttributes = lesson(generatePolynomialProblems, [
@@ -271,6 +295,11 @@ export const a2_8_6_rootTheorems = lesson(generateFactoringProblems, ["RationalR
 export const a2_8_7_fta = lesson(generatePolynomialProblems, [
   "FTACountZeros",
   "FTAWritePoly",
+]);
+
+export const a2_8_8_sumDifferenceCubes = lesson(generateFactoringProblems, [
+  "SumDifferenceCubes",
+  "CubesByGrouping",
 ]);
 
 // ── T9 Radical expressions & rational exponents (TEKS A2.9) ───────────────────
@@ -307,6 +336,9 @@ export const a2_11_2_multDiv = lesson(generateRationalProblems, ["MultiplyDivide
 export const a2_11_3_asymptotesHoles = lesson(generateRationalProblems, ["Asymptotes", "Holes"]);
 export const a2_11_4_solveRational = lesson(generateRationalProblems, ["SolveRationalEquation"]);
 export const a2_11_5_addSubtract = lesson(generateRationalProblems, ["AddSubtractRational"]);
+
+export const a2_11_6_inverseVariation = lesson(generateRationalProblems, ["InverseVariation"]);
+export const a2_11_7_rationalWordProblems = lesson(generateRationalProblems, ["RationalWordProblem"]);
 
 // ── T12 Data & regression (TEKS A2.12) ────────────────────────────────────────
 
@@ -353,11 +385,13 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-2-4", generate: a2_2_4_absIneqGraph, subtypes: ["AbsIneqGraphDesc", "AbsIneqFromGraph", "AbsIneqPointCheck"] },
   { id: "a2-2-5", generate: a2_2_5_absEquations, subtypes: ["AbsEquation", "AbsEquationLinear", "AbsEquationCheck", "AbsEquationSpecial"] },
   { id: "a2-2-6", generate: a2_2_6_absInequalities, subtypes: ["AbsIneqAnd", "AbsIneqOr", "AbsIneqLinear", "AbsIneqSpecial"] },
+  { id: "a2-2-7", generate: a2_2_7_domainRangeNotations, subtypes: ["DomainRangeNotations"] },
   { id: "a2-3-1", generate: a2_3_1_systemsGraphs, subtypes: ["SystemGraphSolve", "SystemTableSolve", "SystemClassify"] },
   { id: "a2-3-2", generate: a2_3_2_systemsAlgebraic, subtypes: ["SystemSubstitution", "SystemElimination"] },
   { id: "a2-3-3", generate: a2_3_3_systemsInequalities, subtypes: ["SystemIneqTestPoint", "SystemIneqRead", "SystemIneqCorner"] },
   { id: "a2-3-4", generate: a2_3_4_threeVariables, subtypes: ["ThreeVarSystem"] },
   { id: "a2-3-5", generate: a2_3_5_matricesSystems, subtypes: ["MatrixSystemIntro"] },
+  { id: "a2-3-6", generate: a2_3_6_inequalityTestPoints, subtypes: ["SystemIneqPointLabels"] },
   { id: "a2-4-1", generate: a2_4_1_addSubtract, subtypes: ["MatrixAddSub"] },
   { id: "a2-4-2", generate: a2_4_2_multiply, subtypes: ["MatrixMultiply"] },
   { id: "a2-4-3", generate: a2_4_3_detInverse, subtypes: ["MatrixDetInverse"] },
@@ -373,12 +407,15 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-5-9", generate: a2_5_9_complexNumbers, subtypes: ["ComplexRoots"] },
   { id: "a2-5-10", generate: a2_5_10_quadInequalities, subtypes: ["QuadInequality", "QuadIneqNoCross"] },
   { id: "a2-5-11", generate: a2_5_11_linQuadSystems, subtypes: ["LineParabola"] },
+  { id: "a2-5-12", generate: a2_5_12_threePoints, subtypes: ["QuadFromThreePoints"] },
+  { id: "a2-5-13", generate: a2_5_13_linQuadContext, subtypes: ["LinQuadContext"] },
   { id: "a2-6-1", generate: a2_6_1_functionOperations, subtypes: ["FuncEvalOps", "FuncProduct", "FuncCompose", "FuncComposeEval"] },
   { id: "a2-6-2", generate: a2_6_2_inverseFunctions, subtypes: ["InversePoint", "InverseLinear", "InverseVerify", "InverseQuadratic"] },
   { id: "a2-6-3", generate: a2_6_3_sqrtTransformations, subtypes: ["SqrtAttributes", "SqrtTransformWrite"] },
   { id: "a2-6-4", generate: a2_6_4_sqrtAsInverses, subtypes: ["SqrtInverseOfSqrt", "SqrtRestrictInverse", "SqrtSwapDomainRange"] },
   { id: "a2-6-5", generate: a2_6_5_sqrtEquationsIntro, subtypes: ["RadicalBasic", "RadicalIsolate", "RadicalLinear"] },
   { id: "a2-6-6", generate: a2_6_6_sqrtEquationsSolving, subtypes: ["RadicalExtraneous", "RadicalTwoRadicals", "RadicalNoSolution"] },
+  { id: "a2-6-7", generate: a2_6_7_radicalExtraneous, subtypes: ["RadicalCandidateCheck", "RadicalExtraneousSolve", "RadicalExtraneousNoSolution"] },
   { id: "a2-7-1", generate: a2_7_1_expAttributes, subtypes: ["ExpGrowthDecay", "ExpEvaluate", "ExpAttributes", "ExpTransformWrite"] },
   { id: "a2-7-2", generate: a2_7_2_eToX, subtypes: ["EEvaluate", "ECompound", "EAttributes"] },
   { id: "a2-7-3", generate: a2_7_3_recursiveModels, subtypes: ["Recursive", "RecursiveModelWrite"] },
@@ -386,6 +423,8 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-7-5", generate: a2_7_5_naturalLog, subtypes: ["LnEvaluate", "LnApprox", "LnSolveTime"] },
   { id: "a2-7-6", generate: a2_7_6_logProperties, subtypes: ["LogEvaluate", "ExpandLog", "CondenseLog"] },
   { id: "a2-7-7", generate: a2_7_7_expLogEquations, subtypes: ["SolveExponential", "SolveLogEquation"] },
+  { id: "a2-7-8", generate: a2_7_8_logReasonableness, subtypes: ["LogReasonableness"] },
+  { id: "a2-7-9", generate: a2_7_9_expLogConversion, subtypes: ["ExpLogConvert"] },
   { id: "a2-8-1", generate: a2_8_1_polyAttributes, subtypes: ["PolyAttributes", "PolyAttributesEndBehavior", "PolyAttributesFactored"] },
   { id: "a2-8-2", generate: a2_8_2_linearFactorsZeros, subtypes: ["RationalRootTheorem", "FactorByGrouping", "SumDifferenceCubes"] },
   { id: "a2-8-3", generate: a2_8_3_polyAddSubMul, subtypes: ["PolyAddSub", "PolyMultiply"] },
@@ -393,6 +432,7 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-8-5", generate: a2_8_5_polyDivide, subtypes: ["LongDivision", "SyntheticDivision"] },
   { id: "a2-8-6", generate: a2_8_6_rootTheorems, subtypes: ["RationalRootTheorem"] },
   { id: "a2-8-7", generate: a2_8_7_fta, subtypes: ["FTACountZeros", "FTAWritePoly"] },
+  { id: "a2-8-8", generate: a2_8_8_sumDifferenceCubes, subtypes: ["SumDifferenceCubes", "CubesByGrouping"] },
   { id: "a2-9-1", generate: a2_9_1_rootsRadicals, subtypes: ["SimplifyRadical"] },
   { id: "a2-9-2", generate: a2_9_2_radicalMultDiv, subtypes: ["RadicalMultiply", "RadicalDivide"] },
   { id: "a2-9-3", generate: a2_9_3_binomialRadicals, subtypes: ["BinomialRadicals", "RationalizeBinomial"] },
@@ -405,6 +445,8 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-11-5", generate: a2_11_5_addSubtract, subtypes: ["AddSubtractRational"] },
   { id: "a2-11-3", generate: a2_11_3_asymptotesHoles, subtypes: ["Asymptotes", "Holes"] },
   { id: "a2-11-4", generate: a2_11_4_solveRational, subtypes: ["SolveRationalEquation"] },
+  { id: "a2-11-6", generate: a2_11_6_inverseVariation, subtypes: ["InverseVariation"] },
+  { id: "a2-11-7", generate: a2_11_7_rationalWordProblems, subtypes: ["RationalWordProblem"] },
   { id: "a2-12-1", generate: a2_12_1_analyzingData, subtypes: ["DataAnalyze"] },
   { id: "a2-12-2", generate: a2_12_2_regression, subtypes: ["DataRegression"] },
   { id: "a2-12-3", generate: a2_12_3_usingModels, subtypes: ["DataPredict"] },

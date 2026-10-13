@@ -1,12 +1,12 @@
 // ClassicalNotesPdf.tsx
-// PDF renderer for CLASSICAL NOTES document mode (own file — the coordinator
+// PDF renderer for CLASSICAL NOTES document mode (own file, the coordinator
 // routes `classical-notes` docType here from PdfDocument.tsx).
 //
 // Mirrors ClassicalNotesCard's four elements for print:
 //   1. DEFINITIONS block (full text, omitted gracefully when none exist),
 //   2. DEMONSTRATION steps shown with each reason blanked as a ruled line,
 //   3. Socratic margin prompts alongside steps (seeded rotation, no adjacent
-//      repeats — identical to the web preview for the same seed),
+//      repeats, identical to the web preview for the same seed),
 //   4. NARRATION box + error log once per section.
 //
 // All text goes through pdfSafeText (DejaVu fonts are embedded; the PDF
@@ -393,7 +393,7 @@ function PdfClassicalStep({
   );
 }
 
-// ── Answer-key line (reasons revealed — teacher use only) ─────────────────────
+// ── Answer-key line (reasons revealed, teacher use only) ─────────────────────
 
 /**
  * One-line printable answer for the classical-notes answer key. Unlike the
@@ -405,7 +405,7 @@ export function formatClassicalKeyLine(p: MathProblem): string {
     .filter((r): r is string => r !== null);
   const base = formatAnswer(p);
   return reasons.length > 0
-    ? `${base} — Reasons: ${reasons.join('; ')}`
+    ? `${base}, Reasons: ${reasons.join('; ')}`
     : base;
 }
 
@@ -450,7 +450,7 @@ export function ClassicalNotesPdfSection({
         <View style={styles.sectionHead}>
           <View style={styles.sectionRule} />
           <Text style={styles.sectionLabel}>
-            {pdfSafeText(teksBadge ? `${teksBadge} — ${sectionLabel ?? 'Classical Notes'}` : sectionLabel ?? 'Classical Notes')}
+            {pdfSafeText(teksBadge ? `${teksBadge}, ${sectionLabel ?? 'Classical Notes'}` : sectionLabel ?? 'Classical Notes')}
           </Text>
           <View style={styles.sectionRule} />
         </View>
@@ -572,7 +572,7 @@ export default function ClassicalNotesPdfDocument({
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>{standard}</Text>
       <Text style={styles.footerText}>
-        Euclid Engine — {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        Euclid Engine, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
       </Text>
     </View>
   );
@@ -628,7 +628,7 @@ export default function ClassicalNotesPdfDocument({
           <View style={styles.headerWrapper}>
             <View style={styles.headerRule}>
               <Text style={styles.keyTitle}>ANSWER KEY</Text>
-              <Text style={styles.keyWarning}>Do not distribute — teacher use only</Text>
+              <Text style={styles.keyWarning}>Do not distribute, teacher use only</Text>
               <Text style={styles.modeLabel}>{pdfSafeText(title)}</Text>
             </View>
           </View>

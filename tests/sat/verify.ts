@@ -2,7 +2,7 @@
 // HUNT WRONG ANSWERS.
 // For EVERY generated MCQ: independently recompute the keyed answer via the
 // solvers (a separate code path from the generators) and prove the key is
-// correct. Then try to prove each distractor ACCIDENTALLY CORRECT — any hit
+// correct. Then try to prove each distractor ACCIDENTALLY CORRECT, any hit
 // is a generator bug and fails the run.
 // For grid-ins: verify every accepted form parses to the key value exactly,
 // and reject ambiguous (unparseable) forms.

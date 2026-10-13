@@ -1,14 +1,14 @@
 // TriangleRelationsFactory.ts
 // Topic 5: Relationships Within Triangles (TEKS G.5(D), G.6(D)).
 //
-// Lesson ch5-1: the Triangle Midsegment Theorem stated precisely — the segment
+// Lesson ch5-1: the Triangle Midsegment Theorem stated precisely, the segment
 // joining the midpoints of two sides of a triangle is PARALLEL to the third
 // side and HALF as long. Both relationships are used (length problems and
 // parallel-angle problems), plus coordinate midpoints.
 // Chapter-test pool: perpendicular bisector theorem, angle bisector theorem,
 // points of concurrency (incenter/circumcenter/centroid/orthocenter) with
 // their equidistant properties, centroid 2:1 median split, triangle
-// inequality, and the Hinge Theorem — the chapter's actual scope.
+// inequality, and the Hinge Theorem, the chapter's actual scope.
 
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
@@ -117,7 +117,7 @@ function makeMedialPerimeter(rng: RNG): GeometryProblem {
     steps: [
       step("Each side of the medial triangle is a midsegment of △ABC.", "Definition of midsegment."),
       step("Each midsegment is half the side it parallels.", "Triangle Midsegment Theorem."),
-      step(`The midsegments are ${a / 2 === Math.floor(a / 2) ? a / 2 : a + "/2"}, ${b / 2 === Math.floor(b / 2) ? b / 2 : b + "/2"}, and ${c / 2 === Math.floor(c / 2) ? c / 2 : c + "/2"} — their sum is half the perimeter of △ABC.`, "Triangle Midsegment Theorem applied to all three sides."),
+      step(`The midsegments are ${a / 2 === Math.floor(a / 2) ? a / 2 : a + "/2"}, ${b / 2 === Math.floor(b / 2) ? b / 2 : b + "/2"}, and ${c / 2 === Math.floor(c / 2) ? c / 2 : c + "/2"}, their sum is half the perimeter of △ABC.`, "Triangle Midsegment Theorem applied to all three sides."),
       step(`Perimeter of DEF = ½ × (${a} + ${b} + ${c}) = ½ × ${per} = ${per / 2}.`, "Arithmetic.", [
         { label: "perimeter", answer: String(per / 2) },
       ]),

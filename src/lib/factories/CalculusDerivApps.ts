@@ -1,5 +1,5 @@
 // CalculusDerivApps.ts
-// AP Calculus — Applications of Derivatives generators (AP Calc AB).
+// AP Calculus, Applications of Derivatives generators (AP Calc AB).
 // Tangent & normal lines, increasing/decreasing & extrema, curve sketching,
 // optimization, related rates.
 //

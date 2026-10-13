@@ -1,7 +1,7 @@
 // recompute.ts
 // INDEPENDENT answer verification for middle-school problems.
 // Recomputes the expected answer from `given` using fresh implementations
-// (own gcd/fraction/rounding — not the generator's code path) and returns it
+// (own gcd/fraction/rounding, not the generator's code path) and returns it
 // for comparison against problem.answer. Throws on unhandled makers so the
 // matrix test surfaces gaps.
 
@@ -60,6 +60,31 @@ const PI = 3.14;
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
 
 // ── Grade 6 ───────────────────────────────────────────────────────────────────
+
+/** Numeric value of a displayed signed value: "3/4", "-2.6", or "-7". */
+function parseSignedText(text: string): number {
+  if (text.includes("/")) {
+    const [ns, ds] = text.split("/");
+    return Number(ns) / Number(ds);
+  }
+  return Number(text);
+}
+
+/** Negation or absolute value of a displayed signed value, reformatted. */
+function flipSignedText(text: string, mode: "neg" | "abs"): string {
+  if (text.includes("/")) {
+    const [ns, ds] = text.split("/");
+    const n = Number(ns);
+    const d = Number(ds);
+    return ifracStr(mode === "neg" ? -n : Math.abs(n), d);
+  }
+  if (text.includes(".")) {
+    const v = Number(text);
+    return ifmt(mode === "neg" ? -v : Math.abs(v));
+  }
+  const v = parseInt(text, 10);
+  return String(mode === "neg" ? -v : Math.abs(v));
+}
 
 function recompute6(p: MiddleSchoolProblem): string | number {
   const g = p.given;
@@ -131,6 +156,25 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       throw new Error(`unhandled IntegerOperations op=${op}`);
     }
     case "VariablesAndExpressions": {
+      if (istr(g, "kind") === "power") {
+        const base = inum(g, "base");
+        const exp = inum(g, "exp");
+        let v = 1;
+        for (let i = 0; i < exp; i++) v *= base;
+        return v;
+      }
+      if (istr(g, "kind") === "prime-factorization") {
+        let rest = inum(g, "n");
+        const factors: number[] = [];
+        for (let p = 2; p * p <= rest; p++) {
+          while (rest % p === 0) {
+            factors.push(p);
+            rest /= p;
+          }
+        }
+        if (rest > 1) factors.push(rest);
+        return factors.join(" × ");
+      }
       if (istr(g, "wordKind") === "expression") return `${inum(g, "price")}m + ${inum(g, "fee")}`;
       if (g.y !== undefined) return inum(g, "a") * inum(g, "x") + inum(g, "b") * inum(g, "y");
       return inum(g, "a") * inum(g, "x") + inum(g, "b");
@@ -190,6 +234,14 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       return l * w * h;
     }
     case "TriangleProperties": {
+      if (istr(g, "kind") === "inequality-check") {
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c");
+        return a + b > c && a + c > b && b + c > a ? "yes" : "no";
+      }
+      if (istr(g, "kind") === "inequality-range") {
+        const a = inum(g, "a"), b = inum(g, "b");
+        return `greater than ${Math.abs(b - a)} and less than ${a + b}`;
+      }
       if (istr(g, "kind") === "right" && inum(g, "known") + inum(g, "missing") !== 90) {
         throw new Error("right-triangle angle mismatch");
       }
@@ -203,6 +255,17 @@ function recompute6(p: MiddleSchoolProblem): string | number {
     }
     case "MeasuresOfCenterAndVariation": {
       const vals = istr(g, "values").split(",").map(Number);
+      if (p.find === "the interquartile range") {
+        // Median-of-halves: split the ordered data into lower and upper
+        // halves (median excluded), then IQR = Q3 - Q1.
+        const s = [...vals].sort((x, y) => x - y);
+        const mid = Math.floor(s.length / 2);
+        const med = (arr: number[]) =>
+          arr.length % 2 === 1
+            ? arr[(arr.length - 1) / 2]
+            : (arr[arr.length / 2 - 1] + arr[arr.length / 2]) / 2;
+        return ifmt(med(s.slice(s.length - mid)) - med(s.slice(0, mid)));
+      }
       if (p.find === "the mean" || p.find === "the mean score") {
         const m = vals.reduce((s, v) => s + v, 0) / vals.length;
         return p.find === "the mean score" ? Math.round(m) : m;
@@ -236,6 +299,142 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       }
       if (g.weeks === undefined) return `$${inum(g, "hourly") * inum(g, "hoursPerWeek")}`; // weekly pay
       return money(inum(g, "hourly") * inum(g, "hoursPerWeek") * inum(g, "weeks"));
+    }
+    case "CoordinateGraphing6": {
+      const kind = istr(g, "kind");
+      if (kind === "identify-point") return `(${inum(g, "x")}, ${inum(g, "y")})`;
+      if (kind === "quadrant") {
+        const x = inum(g, "x"), y = inum(g, "y");
+        if (x === 0 && y === 0) return "the origin";
+        if (x === 0) return "the y-axis";
+        if (y === 0) return "the x-axis";
+        if (x > 0 && y > 0) return "Quadrant I";
+        if (x < 0 && y > 0) return "Quadrant II";
+        if (x < 0 && y < 0) return "Quadrant III";
+        return "Quadrant IV";
+      }
+      if (kind === "grid-distance") {
+        const dx = Math.abs(inum(g, "x2") - inum(g, "x1"));
+        const dy = Math.abs(inum(g, "y2") - inum(g, "y1"));
+        if (dx !== 0 && dy !== 0) throw new Error("grid-distance points share neither coordinate");
+        if (dx + dy === 0) throw new Error("grid-distance points are identical");
+        return dx + dy;
+      }
+      if (kind === "reflect") {
+        const x = inum(g, "x"), y = inum(g, "y");
+        const axis = istr(g, "axis");
+        if (axis === "x-axis") return `(${x}, ${-y})`;
+        if (axis === "y-axis") return `(${-x}, ${y})`;
+        throw new Error(`unhandled reflect axis=${axis}`);
+      }
+      throw new Error(`unhandled CoordinateGraphing6 kind=${kind}`);
+    }
+    case "UnitConversion6": {
+      const kind = istr(g, "kind");
+      if (kind === "convert") {
+        const value = inum(g, "value"), per = inum(g, "per"), to = istr(g, "to");
+        if (istr(g, "op") === "mul") return `${value * per} ${to}`;
+        if (istr(g, "op") === "div") {
+          if (value % per !== 0) throw new Error("conversion does not divide evenly");
+          return `${value / per} ${to}`;
+        }
+        throw new Error(`unhandled convert op=${istr(g, "op")}`);
+      }
+      if (kind === "convert-chain") {
+        return `${inum(g, "value") * inum(g, "per1") * inum(g, "per2")} ${istr(g, "to")}`;
+      }
+      throw new Error(`unhandled UnitConversion6 kind=${kind}`);
+    }
+    case "NumberSets6": {
+      const kind = istr(g, "kind");
+      if (kind === "classify-set") {
+        const text = istr(g, "value");
+        if (text.includes("/")) {
+          const [ns, ds] = text.split("/");
+          const n = Number(ns), d = Number(ds);
+          if (n % d === 0) return n / d >= 0 ? "whole number" : "integer";
+          return "rational number";
+        }
+        if (text.includes(".")) return "rational number";
+        return Number(text) >= 0 ? "whole number" : "integer";
+      }
+      if (kind === "opposite") return flipSignedText(istr(g, "text"), "neg");
+      if (kind === "abs") return flipSignedText(istr(g, "text"), "abs");
+      if (kind === "compare-abs") {
+        const aText = istr(g, "aText"), bText = istr(g, "bText");
+        const av = Math.abs(parseSignedText(aText));
+        const bv = Math.abs(parseSignedText(bText));
+        if (av === bv) throw new Error("compare-abs tie");
+        return av > bv ? aText : bText;
+      }
+      throw new Error(`unhandled NumberSets6 kind=${kind}`);
+    }
+    case "FractionMultiplyEffect": {
+      const kind = istr(g, "kind");
+      if (kind === "predict") {
+        const n = inum(g, "n"), d = inum(g, "d");
+        return n > d ? "greater than" : n < d ? "less than" : "equal to";
+      }
+      if (kind === "predict-compute") return ifracStr(inum(g, "start") * inum(g, "n"), inum(g, "d"));
+      throw new Error(`unhandled FractionMultiplyEffect kind=${kind}`);
+    }
+    case "BenchmarkPercents": {
+      const kind = istr(g, "kind");
+      if (kind === "benchmark") return (inum(g, "base") * inum(g, "pct")) / 100;
+      if (kind === "benchmark-estimate") return `$${(inum(g, "base") * inum(g, "bench")) / 100}`;
+      throw new Error(`unhandled BenchmarkPercents kind=${kind}`);
+    }
+    case "CategoricalData6": {
+      const kind = istr(g, "kind");
+      if (kind === "rel-freq") {
+        const pct = (inum(g, "count") * 100) / inum(g, "total");
+        if (!Number.isInteger(pct)) throw new Error("relative frequency is not a whole percent");
+        return `${pct}%`;
+      }
+      if (kind === "count-from-pct") {
+        const count = (inum(g, "pct") * inum(g, "total")) / 100;
+        if (!Number.isInteger(count)) throw new Error("count from percent is not whole");
+        return count;
+      }
+      if (kind === "rel-freq-diff") {
+        const pct = ((inum(g, "countA") - inum(g, "countB")) * 100) / inum(g, "total");
+        if (!Number.isInteger(pct)) throw new Error("percent difference is not a whole percent");
+        return `${pct}%`;
+      }
+      throw new Error(`unhandled CategoricalData6 kind=${kind}`);
+    }
+    case "WriteProblem6": {
+      const form = istr(g, "form");
+      const a = inum(g, "a"), b = inum(g, "b");
+      const solution = (f: string): number => {
+        if (f === "add") return b - a;
+        if (f === "sub") return a + b;
+        if (f === "mul") {
+          if (b % a !== 0) throw new Error("mul situation has no whole-number solution");
+          return b / a;
+        }
+        if (f === "div") return a * b;
+        throw new Error(`unknown one-step form=${f}`);
+      };
+      const kind = istr(g, "kind");
+      if (kind === "match") {
+        const x = solution(form);
+        if (!Number.isInteger(x) || x <= 0) throw new Error("match equation has no positive whole-number solution");
+        const forms = istr(g, "options").split("|");
+        const idx = forms.indexOf(form);
+        if (idx === -1) throw new Error("match: correct form missing from options");
+        if (idx !== inum(g, "correctIndex")) throw new Error("match: correctIndex mismatch");
+        return "ABC"[idx];
+      }
+      if (kind === "write-eq-one") {
+        const x = solution(form);
+        if (!Number.isInteger(x) || x <= 0) throw new Error("write-eq-one has no positive whole-number solution");
+        if (form === "add") return `x + ${a} = ${b}`;
+        if (form === "sub") return `x − ${a} = ${b}`;
+        if (form === "mul") return `${a}x = ${b}`;
+        return `x/${a} = ${b}`;
+      }
+      throw new Error(`unhandled WriteProblem6 kind=${kind}`);
     }
     default:
       throw new Error(`unhandled grade-6 subtype ${(p as { subtype: string }).subtype}`);
@@ -390,6 +589,13 @@ function recompute7(p: MiddleSchoolProblem): string | number {
       return `y = ${inum(g, "m")}x + ${inum(g, "b")}`;
     }
     case "Percents": {
+      if (istr(g, "kind") === "percent-change") {
+        const old = inum(g, "old");
+        const nw = inum(g, "new");
+        if (nw === old) throw new Error("percent-change with no change");
+        const pct = Math.round((Math.abs(nw - old) / old) * 100);
+        return `${pct}% ${nw > old ? "increase" : "decrease"}`;
+      }
       if (istr(g, "wordKind") === "discount") {
         const discount = iround((inum(g, "pct") / 100) * inum(g, "price"), 2);
         return `$${ifmt(iround(inum(g, "price") - discount, 2))}`;
@@ -407,6 +613,12 @@ function recompute7(p: MiddleSchoolProblem): string | number {
       return `${higher} by ${Math.abs(a - b)} points`;
     }
     case "ProbabilityConcepts": {
+      if (g.kind !== undefined) {
+        const kind = istr(g, "kind");
+        if (kind === "complement-frac") return ifracStr(inum(g, "total") - inum(g, "fav"), inum(g, "total"));
+        if (kind === "complement-pct") return `${100 - inum(g, "pct")}%`;
+        throw new Error(`unhandled ProbabilityConcepts kind=${kind}`);
+      }
       if (g.trials !== undefined) return ifracStr(inum(g, "success"), inum(g, "trials"));
       if (g.sectors !== undefined) {
         const sectors = istr(g, "sectors").split(",");
@@ -429,6 +641,10 @@ function recompute7(p: MiddleSchoolProblem): string | number {
       return ifracStr(inum(g, "r1") * inum(g, "r2"), inum(g, "t1") * inum(g, "t2"));
     }
     case "EconomicThinking": {
+      if (istr(g, "kind") === "income-tax") {
+        const tax = ((inum(g, "gross") - inum(g, "deduction")) * inum(g, "rate")) / 100;
+        return `$${tax.toLocaleString("en-US")}`;
+      }
       if (g.tax !== undefined) return `$${ifmt(inum(g, "price") + inum(g, "tax"))}`;
       if (g.income !== undefined) {
         return `$${(inum(g, "income") - inum(g, "rent") - inum(g, "food") - inum(g, "other")).toLocaleString("en-US")}`;
@@ -452,6 +668,190 @@ function recompute7(p: MiddleSchoolProblem): string | number {
       return inum(g, "c") / inum(g, "a") - inum(g, "b");
     case "MultiStepInequalities":
       return `x ${istr(g, "dir")} ${inum(g, "boundary")}`;
+    case "SimilarFigures7": {
+      const kind = istr(g, "kind");
+      if (kind === "scale-factor") return ifracStr(inum(g, "sideB"), inum(g, "sideA"));
+      if (kind === "missing-side") {
+        const v = (inum(g, "side1") * inum(g, "known2")) / inum(g, "known1");
+        if (!Number.isInteger(v)) throw new Error("missing side not an integer");
+        return v;
+      }
+      if (kind === "scale-drawing") return `${ifmt(inum(g, "map") * inum(g, "per"))} ${istr(g, "unit")}`;
+      if (kind === "area-scale") {
+        const s1 = inum(g, "side1");
+        const s2 = inum(g, "side2");
+        const a2 = (inum(g, "area1") * s2 * s2) / (s1 * s1);
+        if (Math.abs(a2 - Math.round(a2)) > 1e-9) throw new Error("scaled area not an integer");
+        return `${ifmt(a2)} cm²`;
+      }
+      throw new Error(`unhandled SimilarFigures7 kind=${kind}`);
+    }
+    case "ConversionsBetweenSystems": {
+      const kind = istr(g, "kind");
+      const v = inum(g, "value");
+      const dir = istr(g, "dir");
+      if (kind === "in-cm") return dir === "to-cm" ? `${ifmt(iround(v * 2.54, 2))} cm` : `${ifmt(iround(v / 2.54, 2))} inches`;
+      if (kind === "mi-km") return dir === "to-km" ? `about ${ifmt(iround(v * 1.61, 2))} km` : `about ${ifmt(iround(v / 1.61, 2))} miles`;
+      if (kind === "gal-L") return dir === "to-L" ? `about ${ifmt(iround(v * 3.79, 2))} liters` : `about ${ifmt(iround(v / 3.79, 2))} gallons`;
+      if (kind === "lb-kg") return dir === "to-kg" ? `about ${ifmt(iround(v * 0.45, 2))} kg` : `about ${ifmt(iround(v / 0.45, 2))} pounds`;
+      if (kind === "m-yd") return dir === "to-yd" ? `about ${ifmt(iround(v * 1.09, 2))} yards` : `about ${ifmt(iround(v / 1.09, 2))} meters`;
+      if (kind === "ft-cm") return `${ifmt(iround(v * 12 * 2.54, 2))} cm`;
+      throw new Error(`unhandled ConversionsBetweenSystems kind=${kind}`);
+    }
+    case "Interest7": {
+      const kind = istr(g, "kind");
+      const P = inum(g, "P");
+      const r = inum(g, "r");
+      const t = inum(g, "t");
+      if (kind === "simple") return `$${((P * r * t) / 100).toFixed(2)}`;
+      if (kind === "simple-balance") return `$${(P + (P * r * t) / 100).toFixed(2)}`;
+      if (kind === "compound") return `$${iround(P * Math.pow(1 + r / 100, t), 2).toFixed(2)}`;
+      if (kind === "compare-simple-compound") {
+        const diff = P * Math.pow(1 + r / 100, t) - P - (P * r * t) / 100;
+        return `$${iround(diff, 2).toFixed(2)}`;
+      }
+      throw new Error(`unhandled Interest7 kind=${kind}`);
+    }
+    case "NetWorth7": {
+      const kind = istr(g, "kind");
+      if (kind === "classify") {
+        const table: Record<string, string> = {
+          "a house": "asset",
+          "a car": "asset",
+          "money in a savings account": "asset",
+          "a jewelry collection": "asset",
+          "an investment account": "asset",
+          "furniture and electronics": "asset",
+          "a mortgage": "liability",
+          "a credit card balance": "liability",
+          "a student loan": "liability",
+          "a car loan": "liability",
+          "a personal loan": "liability",
+          "money owed on a store credit card": "liability",
+        };
+        const expected = table[istr(g, "item")];
+        if (expected === undefined) throw new Error(`unknown net-worth item ${istr(g, "item")}`);
+        if (expected !== istr(g, "expected")) throw new Error("net-worth classify mismatch");
+        return expected;
+      }
+      if (kind === "net-worth") {
+        const sum = (csv: string) => csv.split(",").map(Number).reduce((a, b) => a + b, 0);
+        return `$${(sum(istr(g, "assets")) - sum(istr(g, "liabilities"))).toLocaleString("en-US")}`;
+      }
+      if (kind === "nw-change") {
+        const ev = istr(g, "event");
+        const amt = inum(g, "amount");
+        let d: number;
+        if (ev === "payoff" || ev === "asset-gain") d = amt;
+        else if (ev === "asset-drop" || ev === "new-debt-spent") d = -amt;
+        else throw new Error(`unknown nw-change event ${ev}`);
+        return `$${(inum(g, "start") + d).toLocaleString("en-US")}`;
+      }
+      throw new Error(`unhandled NetWorth7 kind=${kind}`);
+    }
+    case "FamilyBudgets7": {
+      const kind = istr(g, "kind");
+      const cats = () => inum(g, "rent") + inum(g, "food") + inum(g, "utilities") + inum(g, "transport") + inum(g, "other");
+      if (kind === "expense-total") return `$${cats().toLocaleString("en-US")}`;
+      if (kind === "min-income") return `$${(cats() + inum(g, "savings")).toLocaleString("en-US")}`;
+      if (kind === "hourly-wage") return `$${ifmt(inum(g, "monthly") / (4 * inum(g, "hoursPerWeek")))} per hour`;
+      if (kind === "category-percent") return `${Math.round((inum(g, "amount") / inum(g, "income")) * 100)}%`;
+      throw new Error(`unhandled FamilyBudgets7 kind=${kind}`);
+    }
+    case "ReadingGraphs7": {
+      const kind = istr(g, "kind");
+      if (kind === "circle-percent") return `${Math.round((inum(g, "count") / inum(g, "total")) * 100)}%`;
+      if (kind === "circle-count") return (inum(g, "pct") * inum(g, "total")) / 100;
+      if (kind === "compare-cats") {
+        const counts = istr(g, "counts").split(",").map(Number);
+        const i = inum(g, "i");
+        const j = inum(g, "j");
+        if (istr(g, "mode") === "diff") {
+          if (counts[i] <= counts[j]) throw new Error("compare-cats diff not positive");
+          return counts[i] - counts[j];
+        }
+        return ifracStr(counts[i], counts[j]);
+      }
+      if (kind === "dot-median" || kind === "dot-mode") {
+        const vals = istr(g, "data").split(",").map(Number).sort((a, b) => a - b);
+        if (kind === "dot-median") {
+          const n = vals.length;
+          const med = n % 2 === 1 ? vals[Math.floor(n / 2)] : (vals[n / 2 - 1] + vals[n / 2]) / 2;
+          return ifmt(med);
+        }
+        const freq = new Map<number, number>();
+        for (const v of vals) freq.set(v, (freq.get(v) ?? 0) + 1);
+        let best = -1;
+        let modeVal = vals[0];
+        for (const [v, c] of freq) {
+          if (c > best) {
+            best = c;
+            modeVal = v;
+          }
+        }
+        return modeVal;
+      }
+      throw new Error(`unhandled ReadingGraphs7 kind=${kind}`);
+    }
+    case "NumberSets7": {
+      const kind = istr(g, "kind");
+      const levelOf = (text: string): string => {
+        if (text.includes("...")) return "rational";
+        if (text.includes("/")) {
+          const parts = text.split("/");
+          const n = Number(parts[0]);
+          const d = Number(parts[1]);
+          if (n % d !== 0) return "rational";
+          const v = n / d;
+          return v > 0 ? "natural" : v === 0 ? "whole" : "integer";
+        }
+        if (text.includes(".")) return "rational";
+        const v = Number(text);
+        return v > 0 ? "natural" : v === 0 ? "whole" : "integer";
+      };
+      const label: Record<string, string> = {
+        natural: "natural number",
+        whole: "whole number",
+        integer: "integer",
+        rational: "rational number",
+      };
+      if (kind === "classify-set") return label[levelOf(istr(g, "value"))];
+      if (kind === "subset-statement") {
+        const table: Record<string, string> = {
+          "Every integer is a rational number": "true",
+          "Every rational number is an integer": "false",
+          "Every whole number is a natural number": "false",
+          "Every natural number is a whole number": "true",
+          "Every integer is a whole number": "false",
+          "Every whole number is an integer": "true",
+          "Every rational number is a whole number": "false",
+          "Every natural number is a rational number": "true",
+          "Every natural number is an integer": "true",
+          "Every integer is a natural number": "false",
+        };
+        const expected = table[istr(g, "statement")];
+        if (expected === undefined) throw new Error(`unknown subset statement ${istr(g, "statement")}`);
+        return expected;
+      }
+      if (kind === "all-sets") {
+        const lv = levelOf(istr(g, "value"));
+        if (lv === "natural") return "natural number, whole number, integer, rational number";
+        if (lv === "whole") return "whole number, integer, rational number";
+        if (lv === "integer") return "integer, rational number";
+        return "rational number";
+      }
+      if (kind === "count-in-set") {
+        const set = istr(g, "set");
+        const vals = istr(g, "values").split(",");
+        return vals.filter((v) => {
+          const lv = levelOf(v);
+          if (set === "natural numbers") return lv === "natural";
+          if (set === "whole numbers") return lv === "natural" || lv === "whole";
+          return lv !== "rational";
+        }).length;
+      }
+      throw new Error(`unhandled NumberSets7 kind=${kind}`);
+    }
     default:
       throw new Error(`unhandled grade-7 subtype ${(p as { subtype: string }).subtype}`);
   }
@@ -593,6 +993,273 @@ function recompute8(p: MiddleSchoolProblem): string | number {
           : "As the number of absences increases, grades decrease (negative association).";
       }
       return `$${inum(g, "slope") * inum(g, "x") + inum(g, "intercept")}`;
+    }
+    case "SlopeRateOfChange": {
+      const kind = istr(g, "kind");
+      if (kind === "table") {
+        const pts = istr(g, "table").match(/\(([^)]+)\)/g)!.map((t) => t.slice(1, -1).split(",").map(Number));
+        const [x1, y1] = pts[0];
+        const [x2, y2] = pts[pts.length - 1];
+        const m = (y2 - y1) / (x2 - x1);
+        if (m !== inum(g, "m")) throw new Error("table slope mismatch");
+        return m;
+      }
+      if (kind === "points") {
+        const m = (inum(g, "y2") - inum(g, "y1")) / (inum(g, "x2") - inum(g, "x1"));
+        if (!Number.isInteger(m)) throw new Error("points slope not an integer");
+        return m;
+      }
+      if (kind === "graph") {
+        if (inum(g, "m") === 0) throw new Error("graph slope cannot be zero");
+        return `m = ${inum(g, "m")}, b = ${inum(g, "b")}`;
+      }
+      if (kind === "unit-rate") return ifmt(inum(g, "total") / inum(g, "count"));
+      if (kind === "write-eq") {
+        const m = inum(g, "m"), b = inum(g, "b");
+        if (b === 0) return `y = ${m}x`;
+        return b > 0 ? `y = ${m}x + ${b}` : `y = ${m}x − ${-b}`;
+      }
+      throw new Error(`unhandled SlopeRateOfChange kind=${kind}`);
+    }
+    case "IrrationalNumbers": {
+      const kind = istr(g, "kind");
+      if (kind === "bracket") {
+        const n = inum(g, "n");
+        const lo = Math.floor(Math.sqrt(n));
+        if (!(lo * lo < n && n < (lo + 1) * (lo + 1))) throw new Error("bracket bounds wrong");
+        return `${lo} < √${n} < ${lo + 1}`;
+      }
+      if (kind === "classify") {
+        const table: Record<string, string> = {
+          "π": "irrational",
+          "√7": "irrational",
+          "√13": "irrational",
+          "0.12112111211112… (the pattern of 1s keeps growing)": "irrational",
+          "−4": "rational",
+          "3/4": "rational",
+          "0.666… (the 6 repeats forever)": "rational",
+          "−1.25": "rational",
+          "√16": "rational",
+          "22/7": "rational",
+        };
+        const expected = table[istr(g, "label")];
+        if (expected === undefined) throw new Error(`unknown classify label ${istr(g, "label")}`);
+        if (expected !== istr(g, "expected")) throw new Error("classify kind mismatch");
+        return expected;
+      }
+      if (kind === "approx") return ifmt(iround(Math.sqrt(inum(g, "n")), 1));
+      if (kind === "order") {
+        const labels = istr(g, "labels").split(",");
+        const values = istr(g, "values").split(",").map(Number);
+        if (labels.length !== values.length) throw new Error("order payload mismatch");
+        const pairs = labels.map((label, i) => ({ label, val: values[i] }));
+        pairs.sort((a, b) => a.val - b.val);
+        return pairs.map((x) => x.label).join(" < ");
+      }
+      throw new Error(`unhandled IrrationalNumbers kind=${kind}`);
+    }
+    case "MeanAbsoluteDeviation": {
+      const madFrom = (csv: string) => {
+        const vals = csv.split(",").map(Number);
+        const mean = vals.reduce((s2, v) => s2 + v, 0) / vals.length;
+        return vals.reduce((s2, v) => s2 + Math.abs(v - mean), 0) / vals.length;
+      };
+      const kind = istr(g, "kind");
+      if (kind === "mad") return ifmt(iround(madFrom(istr(g, "data")), 2));
+      if (kind === "mad-tenth") return ifmt(iround(madFrom(istr(g, "data")), 1));
+      if (kind === "compare-mad") {
+        const madA = madFrom(istr(g, "dataA"));
+        const madB = madFrom(istr(g, "dataB"));
+        return madB >= madA ? "Set B" : "Set A";
+      }
+      throw new Error(`unhandled MeanAbsoluteDeviation kind=${kind}`);
+    }
+    case "SurfaceArea8": {
+      const kind = istr(g, "kind");
+      if (kind === "rect-prism") {
+        const l = inum(g, "l"), w = inum(g, "w"), h = inum(g, "h");
+        return `${2 * (l * w + l * h + w * h)} cm²`;
+      }
+      if (kind === "cylinder-total") {
+        const r = inum(g, "r"), h = inum(g, "h");
+        return `${ifmt(iround(2 * PI * r * r + 2 * PI * r * h, 2))} cm²`;
+      }
+      if (kind === "tri-prism") {
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c"), L = inum(g, "L");
+        if (a * a + b * b !== c * c) throw new Error("tri-prism legs are not a right triangle");
+        return `${a * b + (a + b + c) * L} cm²`;
+      }
+      if (kind === "cylinder-lateral") {
+        const r = inum(g, "r"), h = inum(g, "h");
+        return `${ifmt(iround(2 * PI * r * h, 2))} cm²`;
+      }
+      throw new Error(`unhandled SurfaceArea8 kind=${kind}`);
+    }
+    case "InterestAndCredit": {
+      const kind = istr(g, "kind");
+      if (kind === "simple") return `$${((inum(g, "P") * inum(g, "r") * inum(g, "t")) / 100).toFixed(2)}`;
+      if (kind === "simple-balance") {
+        const P = inum(g, "P");
+        return `$${(P + (P * inum(g, "r") * inum(g, "t")) / 100).toFixed(2)}`;
+      }
+      if (kind === "compound") {
+        const A = inum(g, "P") * Math.pow(1 + inum(g, "r") / 100, inum(g, "t"));
+        return `$${iround(A, 2).toFixed(2)}`;
+      }
+      if (kind === "compare-loans") {
+        const P = inum(g, "P");
+        const IA = (P * inum(g, "rA") * inum(g, "tA")) / 100;
+        const IB = (P * inum(g, "rB") * inum(g, "tB")) / 100;
+        if (IA === IB) throw new Error("compare-loans tie");
+        return IB > IA ? "Loan B" : "Loan A";
+      }
+      throw new Error(`unhandled InterestAndCredit kind=${kind}`);
+    }
+    case "TransversalsSimilarity": {
+      const kind = istr(g, "kind");
+      if (kind === "transversal") {
+        const a = inum(g, "angle");
+        const rel = istr(g, "relation");
+        if (rel === "equal") return a;
+        if (rel === "supplementary") return 180 - a;
+        throw new Error(`bad transversal relation ${rel}`);
+      }
+      if (kind === "exterior-angle") {
+        const ext = inum(g, "r1") + inum(g, "r2");
+        if (ext >= 180) throw new Error("remote interiors sum too large");
+        return ext;
+      }
+      if (kind === "aa-similarity") {
+        const a = inum(g, "a"), b = inum(g, "b");
+        if (a + b >= 180) throw new Error("triangle angles impossible");
+        return 180 - a - b;
+      }
+      if (kind === "transversal-algebra") {
+        const m = inum(g, "m"), c = inum(g, "c");
+        const partner = inum(g, "partner");
+        const target = istr(g, "relation") === "equal" ? partner : 180 - partner;
+        const x = (target - c) / m;
+        if (!Number.isInteger(x) || x <= 0) throw new Error("algebra x not a positive integer");
+        const A = m * x + c;
+        if (A !== target) throw new Error("algebra angle mismatch");
+        return `x = ${x}, angle = ${A}°`;
+      }
+      throw new Error(`unhandled TransversalsSimilarity kind=${kind}`);
+    }
+    case "DilationsCoordinate": {
+      const kind = istr(g, "kind");
+      if (kind === "dilate-point") {
+        const x = inum(g, "x"), y = inum(g, "y"), kn = inum(g, "kn"), kd = inum(g, "kd");
+        if ((x * kn) % kd !== 0 || (y * kn) % kd !== 0) throw new Error("dilation image not integral");
+        return `(${(x * kn) / kd}, ${(y * kn) / kd})`;
+      }
+      if (kind === "find-k") {
+        const x = inum(g, "x"), y = inum(g, "y"), ix = inum(g, "ix"), iy = inum(g, "iy");
+        if (x === 0 || y === 0) throw new Error("find-k zero preimage coordinate");
+        const kx = ifracStr(ix, x);
+        const ky = ifracStr(iy, y);
+        if (kx !== ky) throw new Error("find-k inconsistent ratios");
+        return kx;
+      }
+      if (kind === "effect-length") {
+        const len = inum(g, "len"), kn = inum(g, "kn"), kd = inum(g, "kd");
+        if ((len * kn) % kd !== 0) throw new Error("effect-length not integral");
+        return (len * kn) / kd;
+      }
+      if (kind === "effect-area") {
+        const kn = inum(g, "kn"), kd = inum(g, "kd");
+        let area: number;
+        if (istr(g, "shape") === "rectangle") {
+          area = inum(g, "w") * inum(g, "h");
+        } else {
+          const prod = inum(g, "b") * inum(g, "h");
+          if (prod % 2 !== 0) throw new Error("triangle base times height is odd");
+          area = prod / 2;
+        }
+        const scaled = (area * kn * kn) / (kd * kd);
+        if (!Number.isInteger(scaled)) throw new Error("effect-area not integral");
+        return scaled;
+      }
+      throw new Error(`unhandled DilationsCoordinate kind=${kind}`);
+    }
+    case "PropVsNonProp": {
+      const kind = istr(g, "kind");
+      if (kind === "classify-eq") {
+        const eq = istr(g, "equation");
+        if (eq.includes("x²")) return "not linear";
+        const rhs = eq.replace(/^y = /, "");
+        const m = rhs.match(/^(-?[\d.]+)x(?: ([+−]) (\d+))?$/);
+        if (!m) throw new Error(`unparsable equation ${eq}`);
+        if (m[2] === undefined) return "proportional";
+        if (Number(m[3]) === 0) throw new Error("zero constant term in mxb form");
+        return "non-proportional";
+      }
+      if (kind === "classify-table") {
+        const pts = istr(g, "table").match(/\(([^)]+)\)/g)!.map((t) => t.slice(1, -1).split(",").map(Number));
+        const sample = pts.find((pt) => pt[0] !== 0);
+        if (!sample) throw new Error("table has no nonzero x");
+        const k = sample[1] / sample[0];
+        const prop = pts.every(([px, py]) => py === k * px);
+        return prop ? "proportional" : "non-proportional";
+      }
+      if (kind === "direct-variation") {
+        const k = inum(g, "y1") / inum(g, "x1");
+        return istr(g, "ask") === "k" ? k : k * inum(g, "x2");
+      }
+      if (kind === "classify-situation") {
+        if (inum(g, "rate") <= 0) throw new Error("situation rate must be positive");
+        return inum(g, "fee") === 0 ? "proportional" : "non-proportional";
+      }
+      throw new Error(`unhandled PropVsNonProp kind=${kind}`);
+    }
+    case "CollegeCosts": {
+      const kind = istr(g, "kind");
+      if (kind === "total-cost") return `$${(inum(g, "yearly") * inum(g, "years")).toFixed(2)}`;
+      if (kind === "savings-needed") {
+        const goal = inum(g, "goal"), contribution = inum(g, "contribution");
+        if (contribution >= goal) throw new Error("contribution must be less than the goal");
+        return `$${(goal - contribution).toFixed(2)}`;
+      }
+      if (kind === "monthly-savings") {
+        const amount = inum(g, "amount"), months = inum(g, "months");
+        if (amount % months !== 0) throw new Error("monthly savings not a whole dollar amount");
+        return `$${(amount / months).toFixed(2)}`;
+      }
+      if (kind === "compare-paths") {
+        const mA = (inum(g, "totalA") - inum(g, "contribA")) / inum(g, "monthsA");
+        const mB = (inum(g, "totalB") - inum(g, "contribB")) / inum(g, "monthsB");
+        if (!Number.isInteger(mA) || !Number.isInteger(mB)) throw new Error("compare-paths monthly not integral");
+        if (mA === mB) throw new Error("compare-paths tie");
+        return mA < mB ? "Plan A" : "Plan B";
+      }
+      throw new Error(`unhandled CollegeCosts kind=${kind}`);
+    }
+    case "WriteTheProblem8": {
+      const kind = istr(g, "kind");
+      if (kind === "match") {
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c"), d = inum(g, "d");
+        if (a === c || (d - b) % (a - c) !== 0 || (d - b) / (a - c) <= 0) {
+          throw new Error("match equation has no positive integer solution");
+        }
+        const opts = istr(g, "options").split("|").map((s) => s.split(",").map(Number));
+        const idx = opts.findIndex((o) => o[0] === a && o[1] === b && o[2] === c && o[3] === d);
+        if (idx === -1) throw new Error("match: correct option missing from options");
+        if (idx !== inum(g, "correctIndex")) throw new Error("match: correctIndex mismatch");
+        return "ABC"[idx];
+      }
+      if (kind === "write-eq-both") {
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c"), d = inum(g, "d");
+        if (a === c) throw new Error("write-eq-both: equal coefficients");
+        const x = (d - b) / (a - c);
+        if (!Number.isInteger(x) || x <= 0) throw new Error("write-eq-both: solution not a positive integer");
+        const side = (coef: number, konst: number): string => {
+          const t = coef === 1 ? "x" : `${coef}x`;
+          if (konst === 0) return t;
+          return konst > 0 ? `${t} + ${konst}` : `${t} − ${-konst}`;
+        };
+        return `${side(a, b)} = ${side(c, d)}`;
+      }
+      throw new Error(`unhandled WriteTheProblem8 kind=${kind}`);
     }
     default:
       throw new Error(`unhandled grade-8 subtype ${(p as { subtype: string }).subtype}`);

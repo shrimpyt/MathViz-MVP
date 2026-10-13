@@ -1,6 +1,6 @@
 // GeometryHelpers.ts
 // Small pure helpers shared by the Geometry factory files: number/fraction
-// formatting, step construction (every step carries a reason — Classical Notes
+// formatting, step construction (every step carries a reason, Classical Notes
 // and Guided Notes depend on it), and difficulty-tier pool selection.
 // Seeded RNG only; no Math.random anywhere in the geometry factories.
 
@@ -47,7 +47,7 @@ export function frac(p: number, q: number): string {
   return rq === 1 ? String(rp) : `${rp}/${rq}`;
 }
 
-/** Build one worked step. `reason` is the theorem/postulate/definition name —
+/** Build one worked step. `reason` is the theorem/postulate/definition name,
  *  required on every step in the geometry factories. */
 export function step(
   instruction: string,

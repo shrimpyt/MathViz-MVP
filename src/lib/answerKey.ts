@@ -2,7 +2,7 @@
 // Helpers for rendering math answers and instruction text as plain unicode.
 // Factories emit LaTeX-flavoured strings (e.g. "5\sqrt{2}", "\(sin \theta\)").
 // The web preview and the PDF both need human-readable text, and @react-pdf
-// cannot run KaTeX — so we convert to unicode instead of typesetting.
+// cannot run KaTeX, so we convert to unicode instead of typesetting.
 
 import type { MathProblem } from "./types";
 import type { PrecalcFRQ } from "./factories/PrecalcTypes";
@@ -101,7 +101,7 @@ function replaceRoots(s: string): string {
 
 /**
  * Convert a LaTeX-flavoured string to readable unicode text.
- * Safe to call on plain text — it passes through unchanged.
+ * Safe to call on plain text, it passes through unchanged.
  */
 export function latexToText(input: string | number | null | undefined): string {
   if (input === null || input === undefined) return "";
@@ -122,7 +122,7 @@ export function latexToText(input: string | number | null | undefined): string {
     s = s.replace(re, rep);
   }
 
-  // Subscripts written as _{xx} (e.g. x_{1}) — do before superscripts
+  // Subscripts written as _{xx} (e.g. x_{1}), do before superscripts
   s = s.replace(/_\{([^}]*)\}/g, (_m, g: string) => mapChars(g, SUBSCRIPT));
   s = s.replace(/_([0-9+\-nxieao()])/g, (_m, c: string) => SUBSCRIPT[c] ?? c);
 
@@ -202,14 +202,14 @@ export function formatAnswer(p: MathProblem): string {
     case "G.12B":
       return p.unit ? `${latexToText(p.answer)} ${p.unit}` : latexToText(p.answer);
     case "Proof": {
-      // The answer key must list each step's reason — a bare "I.1 — Q.E.D."
+      // The answer key must list each step's reason, a bare "I.1, Q.E.D."
       // is ungradeable for proof-fill-reasons worksheets. Mirrors the
       // "Reasons:" convention of formatClassicalKeyLine.
-      const header = p.elementsProposition ? `${p.elementsProposition} — Q.E.D.` : p.prove;
+      const header = p.elementsProposition ? `${p.elementsProposition}, Q.E.D.` : p.prove;
       const steps = Array.isArray(p.steps) ? p.steps.filter((s) => s.statement !== "Q.E.D.") : [];
       if (steps.length === 0) return header;
       const reasons = steps.map((s, i) => `Step ${i + 1}: ${s.reason}`).join("; ");
-      return `${header} — Reasons: ${reasons}`;
+      return `${header}, Reasons: ${reasons}`;
     }
     case "A.5A": case "A.5B": case "A.12E": case "A.3B": case "A.2B":
     case "A.2D": case "A.3C": case "A.2C": case "A.12A": case "A.2A":
@@ -219,6 +219,8 @@ export function formatAnswer(p: MathProblem): string {
     case "A.10B": case "A.10E": case "A.10F": case "A.6A": case "A.7A":
     case "A.7C": case "A.6B": case "A.8A": case "A.6C": case "A.9A":
     case "A.9B": case "A.9E":
+    case "A.10C": case "A.2H": case "A.2G": case "A.3A": case "A.3G":
+    case "A.7B": case "A.9C": case "A.9D": case "A.4A": case "A.8B":
       return formatAlgebra1Answer(p);
     case "A2.2": case "A2.3":
     case "A2.4": case "A2.5": case "A2.6": case "A2.7": case "A2.8":

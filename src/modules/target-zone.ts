@@ -1,5 +1,5 @@
 // target-zone.ts
-// TEKS G.13(B) — Area-Based Probability: Concentric Circles & Sector Spinners
+// TEKS G.13(B), Area-Based Probability: Concentric Circles & Sector Spinners
 //
 // Mathematical Truth Layer:
 //   • Seed variable: the outer circle's radius R (integer, 5–12 abstract units).
@@ -8,7 +8,7 @@
 //   • Sector angle is a multiple of 30° derived from R.
 //   • validate() enforces: r < R and sector angle ∈ (0°, 360°).
 //
-// SVG verification — bullseye (ConcentricCircles) coordinate logic:
+// SVG verification, bullseye (ConcentricCircles) coordinate logic:
 //   scale = SVG_R / R  (normalises outer radius to 70 SVG units)
 //   scaledOuter = R × scale = SVG_R  ← always fills the viewBox correctly
 //   scaledInner = r × scale          ← proportional to r/R (the real ratio)

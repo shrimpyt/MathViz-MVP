@@ -58,7 +58,7 @@ for (let li = 0; li < WIRED_LESSONS.length; li++) {
         problems++;
         const tag = `${lesson.id}#${pi} seed=${seed}`;
 
-        // — shape —
+        //, shape,
         check(!!p.type, `${tag}: type present`);
         if (isProof(p)) {
           check(!!p.family, `${tag}: family present`);
@@ -76,12 +76,12 @@ for (let li = 0; li < WIRED_LESSONS.length; li++) {
           );
           check(!!cp.verify && Object.keys(cp.verify).length > 0, `${tag}: verify payload present`);
 
-          // — independent math + exact answer —
+          //, independent math + exact answer,
           const res = verifyProblem(cp);
           check(res.errors.length === 0, `${tag}: math: ${res.errors.join("; ")}`);
           check(cp.answer === res.expectedAnswer, `${tag}: answer exact`);
 
-          // — answer key / text safety —
+          //, answer key / text safety,
           const key = formatAlgebra2Answer(cp);
           // formatAlgebra2Answer appends the problem's unit (when set) after
           // the converted answer; the checker's expectedAnswer is the raw
@@ -99,7 +99,7 @@ for (let li = 0; li < WIRED_LESSONS.length; li++) {
           }
         }
 
-        // — rendering in all modes —
+        //, rendering in all modes,
         for (const mode of MODES) {
           let html = "";
           try {

@@ -1,5 +1,5 @@
 // CalculusDerivatives.ts
-// AP Calculus — Derivative Rules generators (AP Calc AB).
+// AP Calculus, Derivative Rules generators (AP Calc AB).
 // Power, product, quotient, chain rules and trig derivatives.
 //
 // Difficulty tiers (cumulative):
@@ -126,7 +126,7 @@ function trigDerivative(rng: RNG): CalcMCQProblem {
         blanks: [{ label: "f′(x)", answer: base === "sin" ? "cos(x)" : "−sin(x)" }],
       },
       {
-        instruction: `Evaluate at x = ${angleText} (no calculator — use the unit circle):`,
+        instruction: `Evaluate at x = ${angleText} (no calculator, use the unit circle):`,
         blanks: [{ label: "answer", answer: ans }],
       },
     ],
@@ -276,7 +276,7 @@ function chainTrig(rng: RNG): CalcMCQProblem {
         blanks: [{ label: "f′(x)", answer: fnToText(dfn) }],
       },
       {
-        instruction: "Evaluate at x = 0 (no calculator — use the unit circle):",
+        instruction: "Evaluate at x = 0 (no calculator, use the unit circle):",
         blanks: [{ label: "answer", answer: ans }],
       },
     ],

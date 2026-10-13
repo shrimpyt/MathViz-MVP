@@ -1,6 +1,6 @@
 // Algebra2Proofs.ts
-// A2.P — Algebra 2 proofs: step-scaffolded "prove the identity" problems.
-// Parameterized TEMPLATES ONLY — no free-form generation. Every template
+// A2.P, Algebra 2 proofs: step-scaffolded "prove the identity" problems.
+// Parameterized TEMPLATES ONLY, no free-form generation. Every template
 // produces ordered steps that are LOGICALLY VALID as listed: each statement
 // follows from the givens + previous steps, and each reason justifies its
 // statement. Statements use a restricted canonical grammar (documented in

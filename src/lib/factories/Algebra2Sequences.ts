@@ -1,5 +1,5 @@
 // Algebra2Sequences.ts
-// A2.6 — Sequences & series: explicit arithmetic/geometric formulas, solving
+// A2.6, Sequences & series: explicit arithmetic/geometric formulas, solving
 // for n / a1 / d / r, recursive evaluation, finite arithmetic and geometric
 // sums. Every value is constructed from chosen parameters so terms are exact;
 // tests recompute terms by independent iteration and sums by direct addition.

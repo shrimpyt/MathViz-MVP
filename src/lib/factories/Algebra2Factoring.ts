@@ -1,5 +1,5 @@
 // Algebra2Factoring.ts
-// A2.3 — Factoring: rational root theorem (list possible ±p/q, find actual
+// A2.3, Factoring: rational root theorem (list possible ±p/q, find actual
 // roots), factor by grouping, sum/difference of cubes. Polynomials are built
 // from their factors so roots are exact by construction; tests verify by
 // independent evaluation (P(root) = 0) and re-multiplication.
@@ -10,7 +10,7 @@ import type { ProblemStep } from "../types";
 import type { Algebra2Problem } from "./Algebra2Types";
 import { randSigned, randNonZero, polyMul, polyToLatex, linearFactor, selectMakers } from "./Algebra2Helpers";
 
-export type FactoringSubtype = "RationalRootTheorem" | "FactorByGrouping" | "SumDifferenceCubes";
+export type FactoringSubtype = "RationalRootTheorem" | "FactorByGrouping" | "SumDifferenceCubes" | "CubesByGrouping";
 
 interface Maker {
   minDifficulty: 1 | 2 | 3;
@@ -148,6 +148,55 @@ function makeSumDiffCubes(rng: RNG, hard: boolean): Algebra2Problem {
   };
 }
 
+// ── 8-8 D3: grouping combined with sum/difference of cubes (2A.7E) ───────────
+// Sum form:      x^3 + m x^2 + mk x + k^3 = (x + k)(x^2 + (m - k)x + k^2)
+// Difference form: x^3 + m x^2 - mk x - k^3 = (x - k)(x^2 + (m + k)x + k^2)
+// Grouping splits the polynomial into a cubes pair and an m x (x +/- k) pair
+// that share the binomial factor.
+
+function makeCubesByGrouping(rng: RNG): Algebra2Problem {
+  const m = randInt(rng, 1, 5);
+  const k = randInt(rng, 2, 4);
+  const isSum = rng() < 0.5;
+  const kCubed = k * k * k;
+  const mText = m === 1 ? "" : `${m}`;
+  const poly = isSum ? [1, m, m * k, kCubed] : [1, m, -m * k, -kCubed];
+  const sign = isSum ? "+" : "-";
+  const factored = isSum
+    ? `(x + ${k})(${polyToLatex([1, m - k, k * k])})`
+    : `(x - ${k})(${polyToLatex([1, m + k, k * k])})`;
+  const cubesFactored = isSum
+    ? `(x + ${k})(x^2 - ${k}x + ${k * k})`
+    : `(x - ${k})(x^2 + ${k}x + ${k * k})`;
+  return {
+    type: "A2.8",
+    subtype: "CubesByGrouping",
+    given: { polynomial: polyToLatex(poly) },
+    find: isSum ? "factored form (grouping with a sum of cubes)" : "factored form (grouping with a difference of cubes)",
+    answer: factored,
+    steps: [
+      {
+        instruction: `Group the terms so the first pair is ${isSum ? "a sum" : "a difference"} of cubes and the second pair has the common factor ${mText}x:`,
+        reason: "Group to expose the cubes pattern",
+        blanks: [{ label: "grouped", answer: `(x^3 ${sign} ${kCubed}) + ${mText}x(x ${sign} ${k})` }],
+      },
+      {
+        instruction: isSum
+          ? "Factor the cubes group with A^3 + B^3 = (A + B)(A^2 - AB + B^2):"
+          : "Factor the cubes group with A^3 - B^3 = (A - B)(A^2 + AB + B^2):",
+        reason: isSum ? "Sum of cubes formula" : "Difference of cubes formula",
+        blanks: [{ label: "cubes group factored", answer: `${cubesFactored} + ${mText}x(x ${sign} ${k})` }],
+      },
+      {
+        instruction: `Both groups now contain the common binomial (x ${sign} ${k}); factor it out and combine the remaining terms:`,
+        reason: "Factor out the shared binomial",
+        blanks: [{ label: "factored form", answer: factored }],
+      },
+    ],
+    verify: { kind: "cubesGrouping", m, k, isSum },
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 const MAKERS: Maker[] = [
@@ -158,6 +207,7 @@ const MAKERS: Maker[] = [
   { minDifficulty: 2, make: (rng) => makeSumDiffCubes(rng, true) },
   { minDifficulty: 3, make: (rng) => makeRationalRootTheorem(rng, 3) },
   { minDifficulty: 3, make: makeFactorByGrouping },
+  { minDifficulty: 3, make: makeCubesByGrouping },
 ];
 
 /** Generate n A2.8 (T8 polynomials) problems at the given cumulative difficulty tier.

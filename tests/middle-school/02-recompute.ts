@@ -1,4 +1,4 @@
-// 02-recompute.ts — independent answer recomputation across the full matrix.
+// 02-recompute.ts, independent answer recomputation across the full matrix.
 // Every problem's answer is recomputed from its `given` bundle by a separate
 // code path (recompute.ts, which does not share the generators' arithmetic)
 // and asserted equal to the generated answer.

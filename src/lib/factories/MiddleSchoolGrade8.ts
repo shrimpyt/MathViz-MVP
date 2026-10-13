@@ -20,6 +20,7 @@ import type {
 } from "./MiddleSchoolTypes";
 import {
   fmt,
+  fmtFixed,
   roundTo,
   randNonZero,
   shuffled,
@@ -310,8 +311,8 @@ function makeLinearVsNonlinear(rng: RNG): Grade8Problem {
     [
       {
         instruction: nonlinear
-          ? `First differences of y: ${ys[1] - ys[0]}, ${ys[2] - ys[1]}, ${ys[3] - ys[2]} — not constant.`
-          : `First differences of y: ${ys[1] - ys[0]}, ${ys[2] - ys[1]}, ${ys[3] - ys[2]} — constant.`,
+          ? `First differences of y: ${ys[1] - ys[0]}, ${ys[2] - ys[1]}, ${ys[3] - ys[2]}, not constant.`
+          : `First differences of y: ${ys[1] - ys[0]}, ${ys[2] - ys[1]}, ${ys[3] - ys[2]}, constant.`,
         blanks: [{ label: "differences constant?", answer: nonlinear ? "no" : "yes" }],
       },
       {
@@ -1039,6 +1040,1266 @@ function makeScatterWord(rng: RNG): Grade8Problem {
 
 // ── Maker table with difficulty tiers ─────────────────────────────────────────
 
+
+// ── Slope & rate of change (TEKS 8.4B, 8.4C, 8.5I) ─────────────────────────
+
+function slopeAnswer(m: number): string {
+  return fmt(m);
+}
+
+function makeSlopeFromTable(rng: RNG): Grade8Problem {
+  const m = pick(rng, [-3, -2, -1, 1, 2, 3, 4]);
+  const b = randInt(rng, -5, 8);
+  const xs = [0, 1, 2, 3];
+  const table = xs.map((x) => `(${x}, ${m * x + b})`).join(", ");
+  return build(
+    "SlopeRateOfChange",
+    `The table shows a linear relationship: ${table}. Find the slope of the line.`,
+    "the slope",
+    m,
+    [
+      {
+        instruction: "Slope is the change in y divided by the change in x between two points.",
+        blanks: [{ label: "change in y", answer: String(m) }, { label: "change in x", answer: "1" }],
+      },
+      { instruction: "So the slope is:", blanks: [{ label: "answer", answer: slopeAnswer(m) }] },
+    ],
+    { kind: "table", m, b, table }
+  );
+}
+
+function makeSlopeFromPoints(rng: RNG): Grade8Problem {
+  const m = pick(rng, [-4, -3, -2, -1, 1, 2, 3, 4, 5]);
+  const x1 = randInt(rng, -4, 4);
+  const dx = pick(rng, [1, 2, 3]);
+  const x2 = x1 + dx;
+  const y1 = randInt(rng, -6, 6);
+  const y2 = y1 + m * dx;
+  return build(
+    "SlopeRateOfChange",
+    `Find the slope of the line through (${x1}, ${y1}) and (${x2}, ${y2}).`,
+    "the slope",
+    m,
+    [
+      {
+        instruction: `Slope = (y2 − y1) / (x2 − x1) = (${y2} − ${y1}) / (${x2} − ${x1}) = ${y2 - y1} / ${dx}.`,
+        blanks: [{ label: "slope", answer: slopeAnswer(m) }],
+      },
+      { instruction: "So the slope is:", blanks: [{ label: "answer", answer: slopeAnswer(m) }] },
+    ],
+    { kind: "points", x1, y1, x2, y2 }
+  );
+}
+
+function makeSlopeInterceptGraph(rng: RNG): Grade8Problem {
+  const m = pick(rng, [-2, -1, 1, 2]);
+  const b = randInt(rng, -4, 4);
+  const ans = `m = ${m}, b = ${b}`;
+  const ep = lineBoxEndpoints(m, b);
+  return build(
+    "SlopeRateOfChange",
+    "The graph shows a line. Find its slope and y-intercept.",
+    "the slope and y-intercept",
+    ans,
+    [
+      {
+        instruction: `The line crosses the y-axis at ${b}, so the y-intercept is ${b}.`,
+        blanks: [{ label: "y-intercept", answer: String(b) }],
+      },
+      {
+        instruction: "Count rise over run between two lattice points on the line.",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "graph", m, b },
+    grid(
+      [
+        { x: 0, y: b, label: `(0, ${b})` },
+        { x: 2, y: 2 * m + b, label: `(2, ${2 * m + b})` },
+      ],
+      [{ x1: ep.x1, y1: ep.y1, x2: ep.x2, y2: ep.y2 }]
+    )
+  );
+}
+
+function makeUnitRateSlope(rng: RNG): Grade8Problem {
+  const contexts: { item: string; unit: string; rates: number[] }[] = [
+    { item: "notebooks", unit: "notebook", rates: [1.5, 2, 2.5, 3, 4] },
+    { item: "pounds of apples", unit: "pound", rates: [1.5, 2, 2.5, 3] },
+    { item: "movie tickets", unit: "ticket", rates: [8, 9, 10, 12] },
+    { item: "gallons of gas", unit: "gallon", rates: [2.5, 3, 3.5, 4] },
+  ];
+  const c = pick(rng, contexts);
+  const rate = pick(rng, c.rates);
+  const count = randInt(rng, 3, 9);
+  const total = rate * count;
+  return build(
+    "SlopeRateOfChange",
+    `${count} ${c.item} cost $${fmtFixed(total, 2)} in total, and the cost is proportional to the amount. What is the unit rate, which is also the slope of the graph of this relationship?`,
+    "the unit rate (slope)",
+    rate,
+    [
+      {
+        instruction: `Unit rate = total cost ÷ amount = ${fmtFixed(total, 2)} ÷ ${count}.`,
+        blanks: [{ label: "answer", answer: fmt(rate) }],
+      },
+      {
+        instruction: `So each ${c.unit} costs $${fmt(rate)}, and the slope of the graph is ${fmt(rate)}.`,
+        blanks: [{ label: "slope", answer: fmt(rate) }],
+      },
+    ],
+    { kind: "unit-rate", total, count }
+  );
+}
+
+function linearEqStr(m: number, b: number): string {
+  if (b === 0) return `y = ${m}x`;
+  return b > 0 ? `y = ${m}x + ${b}` : `y = ${m}x − ${-b}`;
+}
+
+function makeWriteLinearEquation(rng: RNG): Grade8Problem {
+  const contexts = [
+    { who: "A gym", baseName: "sign-up fee", perName: "each month", unit: "months" },
+    { who: "A taxi service", baseName: "pickup charge", perName: "each mile", unit: "miles" },
+    { who: "A plumber", baseName: "service call fee", perName: "each hour of work", unit: "hours" },
+    { who: "A streaming plan", baseName: "activation fee", perName: "each month", unit: "months" },
+  ];
+  const c = pick(rng, contexts);
+  const b = pick(rng, [10, 15, 20, 25, 30, 40, 50]);
+  const m = randInt(rng, 2, 15);
+  const ans = linearEqStr(m, b);
+  return build(
+    "SlopeRateOfChange",
+    `${c.who} charges a $${b} ${c.baseName} plus $${m} for ${c.perName}. Write an equation in the form y = mx + b for the total cost y after x ${c.unit}.`,
+    "the equation",
+    ans,
+    [
+      {
+        instruction: `The slope m is the charge per unit: ${m}. The y-intercept b is the one-time fee: ${b}.`,
+        blanks: [{ label: "m", answer: String(m) }, { label: "b", answer: String(b) }],
+      },
+      { instruction: "So the equation is:", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "write-eq", m, b }
+  );
+}
+
+// ── Irrational numbers & estimation (TEKS 8.2A, 8.2B, 8.2D) ────────────────
+
+const NONSQUARES = [2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 19, 21, 24, 26, 29, 31, 33, 38, 41, 47, 50, 53, 57, 61, 65, 72, 77, 82, 90, 97, 101, 110, 122, 133, 145, 157, 170, 185, 197];
+
+function makeBracketSqrt(rng: RNG): Grade8Problem {
+  const n = pick(rng, NONSQUARES);
+  const lo = Math.floor(Math.sqrt(n));
+  const hi = lo + 1;
+  const ans = `${lo} < √${n} < ${hi}`;
+  return build(
+    "IrrationalNumbers",
+    `Between which two consecutive integers does √${n} lie?`,
+    "the two integers",
+    ans,
+    [
+      {
+        instruction: `${lo}² = ${lo * lo} and ${hi}² = ${hi * hi}, and ${n} is between ${lo * lo} and ${hi * hi}.`,
+        blanks: [{ label: "lower square", answer: String(lo * lo) }, { label: "upper square", answer: String(hi * hi) }],
+      },
+      { instruction: "So:", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "bracket", n }
+  );
+}
+
+const CLASSIFY_POOL: { label: string; kind: "rational" | "irrational" }[] = [
+  { label: "π", kind: "irrational" },
+  { label: "√7", kind: "irrational" },
+  { label: "√13", kind: "irrational" },
+  { label: "0.12112111211112… (the pattern of 1s keeps growing)", kind: "irrational" },
+  { label: "−4", kind: "rational" },
+  { label: "3/4", kind: "rational" },
+  { label: "0.666… (the 6 repeats forever)", kind: "rational" },
+  { label: "−1.25", kind: "rational" },
+  { label: "√16", kind: "rational" },
+  { label: "22/7", kind: "rational" },
+];
+
+function makeClassifyReal(rng: RNG): Grade8Problem {
+  const c = pick(rng, CLASSIFY_POOL);
+  return build(
+    "IrrationalNumbers",
+    `Is ${c.label} a rational number or an irrational number?`,
+    "rational or irrational",
+    c.kind,
+    [
+      {
+        instruction:
+          c.kind === "irrational"
+            ? "Irrational numbers cannot be written as a simple fraction; their decimals never end and never repeat."
+            : "Rational numbers can be written as a simple fraction of two integers; their decimals end or repeat.",
+        blanks: [{ label: "answer", answer: c.kind }],
+      },
+    ],
+    { kind: "classify", label: c.label, expected: c.kind }
+  );
+}
+
+function makeApproxSqrtTenth(rng: RNG): Grade8Problem {
+  const n = pick(rng, NONSQUARES);
+  const approx = roundTo(Math.sqrt(n), 1);
+  const ans = fmt(approx);
+  const lo = Math.floor(Math.sqrt(n));
+  return build(
+    "IrrationalNumbers",
+    `Approximate √${n} to the nearest tenth.`,
+    "the approximation",
+    ans,
+    [
+      {
+        instruction: `√${n} is between ${lo} and ${lo + 1}. Check tenths: ${lo}.5² = ${fmt((lo + 0.5) * (lo + 0.5))}.`,
+        blanks: [{ label: "between", answer: `${lo} and ${lo + 1}` }],
+      },
+      { instruction: `The tenth closest to √${n} is:`, blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "approx", n }
+  );
+}
+
+const ORDER_POOL: { label: string; val: number }[] = [
+  { label: "π", val: 3.141592653589793 },
+  { label: "√10", val: 3.1622776601683795 },
+  { label: "3.2", val: 3.2 },
+  { label: "7/2", val: 3.5 },
+  { label: "√3", val: 1.7320508075688772 },
+  { label: "1.7", val: 1.7 },
+  { label: "−√5", val: -2.23606797749979 },
+  { label: "−2", val: -2 },
+  { label: "5/2", val: 2.5 },
+  { label: "√6", val: 2.449489742783178 },
+];
+
+function makeOrderReals(rng: RNG): Grade8Problem {
+  const chosen = shuffled(rng, ORDER_POOL).slice(0, 4);
+  const shown = shuffled(rng, chosen);
+  const sorted = [...chosen].sort((a, b) => a.val - b.val);
+  const ans = sorted.map((c) => c.label).join(" < ");
+  return build(
+    "IrrationalNumbers",
+    `Order the numbers from least to greatest: ${shown.map((c) => c.label).join(", ")}.`,
+    "the order, least to greatest",
+    ans,
+    [
+      {
+        instruction: "Write each number as a decimal approximation, then compare the decimals.",
+        blanks: chosen.map((c) => ({ label: c.label, answer: fmt(roundTo(c.val, 3)) })),
+      },
+      { instruction: "From least to greatest:", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    {
+      kind: "order",
+      labels: chosen.map((c) => c.label).join(","),
+      values: chosen.map((c) => String(c.val)).join(","),
+    }
+  );
+}
+
+// ── Mean absolute deviation (TEKS 8.11B) ────────────────────────────────────
+
+function madOf(vals: number[]): number {
+  const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+  return vals.reduce((s, v) => s + Math.abs(v - mean), 0) / vals.length;
+}
+
+function makeMadBasic(rng: RNG): Grade8Problem {
+  const vals = Array.from({ length: 5 }, () => randInt(rng, 2, 15));
+  const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+  const ans = fmt(roundTo(madOf(vals), 2));
+  return build(
+    "MeanAbsoluteDeviation",
+    `Find the mean absolute deviation (MAD) of the data set: ${vals.join(", ")}.`,
+    "the MAD",
+    ans,
+    [
+      { instruction: `First find the mean: ${fmt(roundTo(mean, 2))}.`, blanks: [{ label: "mean", answer: fmt(roundTo(mean, 2)) }] },
+      {
+        instruction: "Then find the distance from each value to the mean, and average those distances.",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "mad", data: vals.join(",") }
+  );
+}
+
+function makeMadContext(rng: RNG): Grade8Problem {
+  const contexts = [
+    { who: "A basketball player scored", unit: "points in 6 games" },
+    { who: "The daily high temperatures were", unit: "degrees over 6 days" },
+    { who: "A student read for", unit: "minutes on 6 days" },
+  ];
+  const c = pick(rng, contexts);
+  const vals = Array.from({ length: 6 }, () => randInt(rng, 4, 30));
+  const ans = fmt(roundTo(madOf(vals), 1));
+  return build(
+    "MeanAbsoluteDeviation",
+    `${c.who} ${vals.join(", ")} ${c.unit}. Find the mean absolute deviation, rounded to the nearest tenth.`,
+    "the MAD",
+    ans,
+    [
+      { instruction: "Find the mean, then average the absolute differences from the mean.", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "mad-tenth", data: vals.join(",") }
+  );
+}
+
+function makeCompareMad(rng: RNG): Grade8Problem {
+  const a = Array.from({ length: 5 }, () => randInt(rng, 8, 12));
+  const b = Array.from({ length: 5 }, () => randInt(rng, 2, 20));
+  const madA = madOf(a);
+  const madB = madOf(b);
+  const greater = madB >= madA ? "B" : "A";
+  const ans = `Set ${greater}`;
+  return build(
+    "MeanAbsoluteDeviation",
+    `Set A: ${a.join(", ")}. Set B: ${b.join(", ")}. Which data set has the greater mean absolute deviation?`,
+    "the set with the greater MAD",
+    ans,
+    [
+      {
+        instruction: `MAD of Set A is about ${fmt(roundTo(madA, 2))}; MAD of Set B is about ${fmt(roundTo(madB, 2))}.`,
+        blanks: [{ label: "MAD of A", answer: fmt(roundTo(madA, 2)) }, { label: "MAD of B", answer: fmt(roundTo(madB, 2)) }],
+      },
+      { instruction: "The greater MAD belongs to:", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "compare-mad", dataA: a.join(","), dataB: b.join(",") }
+  );
+}
+
+// ── Surface area of prisms & cylinders (TEKS 8.7B) ───────────────────────────
+
+function makeRectPrismSA(rng: RNG): Grade8Problem {
+  const l = randInt(rng, 2, 12);
+  const w = randInt(rng, 2, 10);
+  const h = randInt(rng, 2, 9);
+  const sa = 2 * (l * w + l * h + w * h);
+  const ans = `${sa} cm²`;
+  return build(
+    "SurfaceArea8",
+    `Find the total surface area of a rectangular prism with length ${l} cm, width ${w} cm, and height ${h} cm.`,
+    "the total surface area",
+    ans,
+    [
+      {
+        instruction: `SA = 2(lw + lh + wh) = 2(${l * w} + ${l * h} + ${w * h}).`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "rect-prism", l, w, h },
+    undefined,
+    "cm²"
+  );
+}
+
+function makeCylinderSA(rng: RNG): Grade8Problem {
+  const r = randInt(rng, 2, 9);
+  const h = randInt(rng, 3, 12);
+  const sa = roundTo(2 * 3.14 * r * r + 2 * 3.14 * r * h, 2);
+  const ans = `${fmt(sa)} cm²`;
+  return build(
+    "SurfaceArea8",
+    `Find the total surface area of a cylinder with radius ${r} cm and height ${h} cm. Use 3.14 for π.`,
+    "the total surface area",
+    ans,
+    [
+      {
+        instruction: `SA = 2πr² + 2πrh = 2(3.14)(${r})² + 2(3.14)(${r})(${h}).`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "cylinder-total", r, h },
+    { kind: "MSGeometryFigure", figure: "cylinder", dims: { radius: r, height: h } },
+    "cm²"
+  );
+}
+
+function makeTriPrismSA(rng: RNG): Grade8Problem {
+  const triples: [number, number, number][] = [[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17]];
+  const [a, b, c] = pick(rng, triples);
+  const L = randInt(rng, 4, 14);
+  const sa = a * b + (a + b + c) * L;
+  const ans = `${sa} cm²`;
+  return build(
+    "SurfaceArea8",
+    `Find the total surface area of a triangular prism. The triangular base has legs ${a} cm and ${b} cm and hypotenuse ${c} cm, and the prism is ${L} cm long.`,
+    "the total surface area",
+    ans,
+    [
+      {
+        instruction: `Two triangular faces: 2 × (1/2 × ${a} × ${b}) = ${a * b}. Three rectangular faces have total area (${a} + ${b} + ${c}) × ${L} = ${(a + b + c) * L}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "tri-prism", a, b, c, L },
+    undefined,
+    "cm²"
+  );
+}
+
+function makeCylinderLateral(rng: RNG): Grade8Problem {
+  const r = randInt(rng, 2, 8);
+  const h = randInt(rng, 4, 15);
+  const lsa = roundTo(2 * 3.14 * r * h, 2);
+  const ans = `${fmt(lsa)} cm²`;
+  return build(
+    "SurfaceArea8",
+    `A label wraps around the side of a can with radius ${r} cm and height ${h} cm, covering only the curved surface (not the top or bottom). Find the lateral surface area. Use 3.14 for π.`,
+    "the lateral surface area",
+    ans,
+    [
+      {
+        instruction: `Lateral SA = 2πrh = 2(3.14)(${r})(${h}).`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "cylinder-lateral", r, h },
+    { kind: "MSGeometryFigure", figure: "cylinder", dims: { radius: r, height: h } },
+    "cm²"
+  );
+}
+
+// ── Simple & compound interest (TEKS 8.12A, 8.12D) ──────────────────────────
+
+function money(n: number): string {
+  return `$${fmtFixed(n, 2)}`;
+}
+
+function makeSimpleInterest(rng: RNG): Grade8Problem {
+  const P = pick(rng, [200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]);
+  const r = pick(rng, [2, 3, 4, 5, 6]);
+  const t = randInt(rng, 1, 5);
+  const I = (P * r * t) / 100;
+  const ans = money(I);
+  return build(
+    "InterestAndCredit",
+    `You deposit $${P} into an account that pays ${r}% simple interest per year. How much interest will you earn in ${t} year${t === 1 ? "" : "s"}?`,
+    "the interest earned",
+    ans,
+    [
+      {
+        instruction: `I = Prt = ${P} × 0.0${r} × ${t}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "simple", P, r, t },
+    undefined,
+    "dollars"
+  );
+}
+
+function makeSimpleBalance(rng: RNG): Grade8Problem {
+  const P = pick(rng, [250, 400, 500, 750, 900, 1000, 1600]);
+  const r = pick(rng, [2, 3, 4, 5]);
+  const t = randInt(rng, 2, 6);
+  const A = P + (P * r * t) / 100;
+  const ans = money(A);
+  return build(
+    "InterestAndCredit",
+    `A savings account starts with $${P} and earns ${r}% simple interest each year. What is the balance after ${t} years if no money is added or taken out?`,
+    "the balance",
+    ans,
+    [
+      {
+        instruction: `Interest = ${P} × 0.0${r} × ${t} = ${money((P * r * t) / 100)}. Add it to the principal.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "simple-balance", P, r, t },
+    undefined,
+    "dollars"
+  );
+}
+
+function makeCompoundInterest(rng: RNG): Grade8Problem {
+  const P = pick(rng, [200, 400, 500, 800, 1000]);
+  const r = pick(rng, [2, 3, 4, 5]);
+  const t = randInt(rng, 2, 4);
+  const A = P * Math.pow(1 + r / 100, t);
+  const ans = money(A);
+  return build(
+    "InterestAndCredit",
+    `You invest $${P} at ${r}% interest compounded yearly. What is the balance after ${t} years? Round to the nearest cent.`,
+    "the balance",
+    ans,
+    [
+      {
+        instruction: `Each year the balance is multiplied by ${fmt(1 + r / 100)}. After ${t} years the balance is ${P} multiplied by ${fmt(1 + r / 100)} a total of ${t} times.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "compound", P, r, t },
+    undefined,
+    "dollars"
+  );
+}
+
+function makeCompareLoans(rng: RNG): Grade8Problem {
+  const P = pick(rng, [1000, 1500, 2000, 3000, 5000]);
+  const rA = pick(rng, [4, 5, 6, 8]);
+  const tA = pick(rng, [2, 3, 4]);
+  let rB = pick(rng, [4, 5, 6, 8, 10]);
+  let tB = pick(rng, [2, 3, 4, 5]);
+  // Ensure the two simple-interest totals actually differ.
+  if ((P * rA * tA) / 100 === (P * rB * tB) / 100) { tB = tB + 1; }
+  const IA = (P * rA * tA) / 100;
+  const IB = (P * rB * tB) / 100;
+  const ans = IB > IA ? "Loan B" : "Loan A";
+  return build(
+    "InterestAndCredit",
+    `You borrow $${P} and are choosing between two loans that charge simple interest. Loan A charges ${rA}% per year for ${tA} years. Loan B charges ${rB}% per year for ${tB} years. Which loan costs more in total interest?`,
+    "the loan that costs more interest",
+    ans,
+    [
+      {
+        instruction: `Loan A interest: ${P} × 0.0${rA} × ${tA} = ${money(IA)}. Loan B interest: ${P} × 0.0${rB} × ${tB} = ${money(IB)}.`,
+        blanks: [
+          { label: "Loan A interest", answer: money(IA) },
+          { label: "Loan B interest", answer: money(IB) },
+        ],
+      },
+      { instruction: "The loan costing more interest is:", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "compare-loans", P, rA, tA, rB, tB },
+    undefined,
+    "dollars"
+  );
+}
+
+// ── Angle relationships & similar triangles (TEKS 8.8D) ─────────────────────
+
+function makeTransversalAngle(rng: RNG): Grade8Problem {
+  const angle = pick(rng, [35, 40, 48, 55, 62, 70, 75, 82, 95, 105, 112, 120, 128, 135, 142, 150]);
+  const positions = [
+    { name: "corresponding", relation: "equal" },
+    { name: "alternate interior", relation: "equal" },
+    { name: "alternate exterior", relation: "equal" },
+    { name: "vertical", relation: "equal" },
+    { name: "same-side interior", relation: "supplementary" },
+    { name: "same-side exterior", relation: "supplementary" },
+  ];
+  const pos = pick(rng, positions);
+  const ans = pos.relation === "equal" ? angle : 180 - angle;
+  const steps: Grade8Problem["steps"] =
+    pos.relation === "equal"
+      ? [
+          {
+            instruction: `When parallel lines are cut by a transversal, ${pos.name} angles have equal measures.`,
+            blanks: [{ label: "answer", answer: String(ans) }],
+          },
+        ]
+      : [
+          {
+            instruction: `Same-side angles formed by parallel lines are supplementary, so the measures add to 180°. Subtract: 180 − ${angle} = ${ans}.`,
+            blanks: [{ label: "answer", answer: String(ans) }],
+          },
+        ];
+  return build(
+    "TransversalsSimilarity",
+    `Two parallel lines are cut by a transversal. One angle measures ${angle}°. Find the measure of the ${pos.name} angle.`,
+    "the angle measure",
+    ans,
+    steps,
+    { kind: "transversal", angle, relation: pos.relation },
+    undefined,
+    "degrees"
+  );
+}
+
+function makeExteriorAngle(rng: RNG): Grade8Problem {
+  const r1 = pick(rng, [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]);
+  let r2 = pick(rng, [25, 30, 35, 40, 45, 50, 55, 60, 70, 80]);
+  if (r1 + r2 >= 175) r2 = 30;
+  const ext = r1 + r2;
+  return build(
+    "TransversalsSimilarity",
+    `In a triangle, the two remote interior angles for one exterior angle measure ${r1}° and ${r2}°. What is the measure of that exterior angle?`,
+    "the exterior angle measure",
+    ext,
+    [
+      {
+        instruction: "The measure of an exterior angle of a triangle equals the sum of the two remote interior angles.",
+        blanks: [{ label: "sum of remote interiors", answer: String(ext) }],
+      },
+      { instruction: "So the exterior angle measures:", blanks: [{ label: "answer", answer: `${ext}°` }] },
+    ],
+    { kind: "exterior-angle", r1, r2 },
+    undefined,
+    "degrees"
+  );
+}
+
+function makeAASimilarity(rng: RNG): Grade8Problem {
+  const a = pick(rng, [30, 35, 40, 45, 50, 55, 60, 65]);
+  let b = pick(rng, [40, 45, 50, 55, 60, 70, 75, 80]);
+  if (a + b >= 150) b = 40;
+  const third = 180 - a - b;
+  return build(
+    "TransversalsSimilarity",
+    `Triangle ABC has two angles measuring ${a}° and ${b}°. Triangle DEF also has two angles measuring ${a}° and ${b}°, so the triangles are similar by the AA criterion. What is the measure of the third angle in each triangle?`,
+    "the third angle measure",
+    third,
+    [
+      {
+        instruction: "AA similarity: two pairs of congruent angles guarantee that the triangles have the same shape.",
+        blanks: [{ label: "criterion", answer: "AA" }],
+      },
+      {
+        instruction: `The angles of a triangle add to 180°, so the third angle is 180 − ${a} − ${b}.`,
+        blanks: [{ label: "answer", answer: String(third) }],
+      },
+    ],
+    { kind: "aa-similarity", a, b },
+    undefined,
+    "degrees"
+  );
+}
+
+function makeTransversalAlgebra(rng: RNG): Grade8Problem {
+  let m = 4;
+  let x = 10;
+  let c = 8;
+  let A = 48;
+  for (let tries = 0; tries < 40; tries++) {
+    const tm = pick(rng, [2, 3, 4, 5]);
+    const tx = randInt(rng, 5, 14);
+    const tc = pick(rng, [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]);
+    const tA = tm * tx + tc;
+    if (tA >= 40 && tA <= 160) {
+      m = tm;
+      x = tx;
+      c = tc;
+      A = tA;
+      break;
+    }
+  }
+  const relation = pick(rng, ["equal", "supplementary"] as const);
+  const partner = relation === "equal" ? A : 180 - A;
+  const posName = relation === "equal" ? "alternate interior" : "same-side interior";
+  const ans = `x = ${x}, angle = ${A}°`;
+  return build(
+    "TransversalsSimilarity",
+    `Two parallel lines are cut by a transversal. A ${posName} angle measures (${m}x + ${c})°, and the angle it pairs with measures ${partner}°. The two angles are ${relation === "equal" ? "congruent" : "supplementary"}. Find the value of x and the measure of the first angle.`,
+    "x and the angle measure",
+    ans,
+    [
+      {
+        instruction:
+          relation === "equal"
+            ? `Congruent angles have equal measures, so ${m}x + ${c} = ${partner}. Solve for x.`
+            : `Supplementary angles add to 180°, so ${m}x + ${c} = 180 − ${partner} = ${A}. Solve for x.`,
+        blanks: [{ label: "x", answer: String(x) }],
+      },
+      {
+        instruction: `Substitute x back into ${m}x + ${c} to get the angle measure.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "transversal-algebra", m, c, relation, partner },
+    undefined,
+    "degrees"
+  );
+}
+
+// ── Dilations on the coordinate plane (TEKS 8.3A, 8.3B, 8.3C) ──────────────
+
+/** Reduce kn/kd and display as "3" or "3/2". */
+function fracValueStr(kn: number, kd: number): string {
+  let a = Math.abs(kn);
+  let b = Math.abs(kd);
+  while (b) {
+    const t = b;
+    b = a % b;
+    a = t;
+  }
+  const g = a || 1;
+  const n = kn / g;
+  const d = kd / g;
+  return d === 1 ? String(n) : `${n}/${d}`;
+}
+
+function dilatePointProblem(rng: RNG, kn: number, kd: number, coords: number[]): Grade8Problem {
+  const x = pick(rng, coords);
+  const y = pick(rng, coords);
+  const ix = (x * kn) / kd;
+  const iy = (y * kn) / kd;
+  const kStr = fracValueStr(kn, kd);
+  return build(
+    "DilationsCoordinate",
+    `Point A(${x}, ${y}) is dilated from the origin by a scale factor of ${kStr}. What are the coordinates of the image A′?`,
+    "the image coordinates",
+    `(${ix}, ${iy})`,
+    [
+      {
+        instruction: `Multiply the x-coordinate by the scale factor: ${x} × ${kStr} = ${ix}.`,
+        blanks: [{ label: "x′", answer: String(ix) }],
+      },
+      {
+        instruction: `Multiply the y-coordinate by the scale factor: ${y} × ${kStr} = ${iy}.`,
+        blanks: [{ label: "A′", answer: `(${ix}, ${iy})` }],
+      },
+    ],
+    { kind: "dilate-point", x, y, kn, kd },
+    grid(
+      [
+        { x, y, label: "A", filled: true },
+        { x: ix, y: iy, label: "A′" },
+      ],
+      [{ x1: x, y1: y, x2: ix, y2: iy, dashed: true }]
+    )
+  );
+}
+
+function makeDilatePointInt(rng: RNG): Grade8Problem {
+  const cfg = pick(rng, [
+    { k: 2, coords: [-4, -3, -2, -1, 1, 2, 3, 4] },
+    { k: 3, coords: [-3, -2, -1, 1, 2, 3] },
+  ]);
+  return dilatePointProblem(rng, cfg.k, 1, cfg.coords);
+}
+
+function makeDilatePointFraction(rng: RNG): Grade8Problem {
+  const cfg = pick(rng, [
+    { kn: 1, kd: 2, coords: [-8, -6, -4, -2, 2, 4, 6, 8] },
+    { kn: 1, kd: 3, coords: [-9, -6, -3, 3, 6, 9] },
+    { kn: 3, kd: 2, coords: [-6, -4, -2, 2, 4, 6] },
+  ]);
+  return dilatePointProblem(rng, cfg.kn, cfg.kd, cfg.coords);
+}
+
+function makeFindScaleFactor(rng: RNG): Grade8Problem {
+  const cfg = pick(rng, [
+    { kn: 2, kd: 1, base: [-4, -3, -2, -1, 1, 2, 3, 4] },
+    { kn: 3, kd: 1, base: [-3, -2, -1, 1, 2, 3] },
+    { kn: 1, kd: 2, base: [-8, -6, -4, -2, 2, 4, 6, 8] },
+    { kn: 1, kd: 3, base: [-9, -6, -3, 3, 6, 9] },
+    { kn: 3, kd: 2, base: [-6, -4, -2, 2, 4, 6] },
+    { kn: 2, kd: 3, base: [-9, -6, -3, 3, 6, 9] },
+  ]);
+  const x = pick(rng, cfg.base);
+  const y = pick(rng, cfg.base);
+  const ix = (x * cfg.kn) / cfg.kd;
+  const iy = (y * cfg.kn) / cfg.kd;
+  const ans = fracValueStr(cfg.kn, cfg.kd);
+  return build(
+    "DilationsCoordinate",
+    `A dilation centered at the origin maps point P(${x}, ${y}) to P′(${ix}, ${iy}). What is the scale factor of the dilation?`,
+    "the scale factor",
+    ans,
+    [
+      {
+        instruction: `Divide an image coordinate by the matching preimage coordinate: ${ix} ÷ ${x} = ${ans}.`,
+        blanks: [{ label: "scale factor from x", answer: ans }],
+      },
+      {
+        instruction: `Check with the y-coordinates: ${iy} ÷ ${y} = ${ans}. Both quotients agree.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "find-k", x, y, ix, iy },
+    grid(
+      [
+        { x, y, label: "P", filled: true },
+        { x: ix, y: iy, label: "P′" },
+      ],
+      [{ x1: x, y1: y, x2: ix, y2: iy, dashed: true }]
+    )
+  );
+}
+
+function makeDilationEffectLength(rng: RNG): Grade8Problem {
+  const kf = pick(rng, [
+    { kn: 2, kd: 1 },
+    { kn: 3, kd: 1 },
+    { kn: 1, kd: 2 },
+  ]);
+  const dims = kf.kd === 2 ? [4, 6, 8, 10, 12] : [2, 3, 4, 5, 6, 7, 8, 9];
+  const w = pick(rng, dims);
+  const h = pick(rng, dims);
+  const sideName = pick(rng, ["width", "height"] as const);
+  const len = sideName === "width" ? w : h;
+  const newLen = (len * kf.kn) / kf.kd;
+  const kStr = fracValueStr(kf.kn, kf.kd);
+  return build(
+    "DilationsCoordinate",
+    `A rectangle has a width of ${w} cm and a height of ${h} cm. The rectangle is dilated by a scale factor of ${kStr}. What is the ${sideName} of the image?`,
+    `the new ${sideName}`,
+    newLen,
+    [
+      {
+        instruction: `In a dilation, every length is multiplied by the scale factor: ${len} × ${kStr} = ${newLen}.`,
+        blanks: [{ label: "answer", answer: String(newLen) }],
+      },
+    ],
+    { kind: "effect-length", len, kn: kf.kn, kd: kf.kd },
+    undefined,
+    "cm"
+  );
+}
+
+function makeDilationEffectArea(rng: RNG): Grade8Problem {
+  const shape = pick(rng, ["rectangle", "triangle"] as const);
+  const k = pick(rng, [2, 3]);
+  if (shape === "rectangle") {
+    const w = randInt(rng, 2, 9);
+    const h = randInt(rng, 2, 9);
+    const area = w * h;
+    const ans = area * k * k;
+    return build(
+      "DilationsCoordinate",
+      `A rectangle measuring ${w} cm by ${h} cm is dilated by a scale factor of ${k}. What is the area of the image?`,
+      "the area of the image",
+      ans,
+      [
+        {
+          instruction: `The original area is ${w} × ${h} = ${area} cm². Areas grow by the square of the scale factor: ${area} × ${k}² = ${ans}.`,
+          blanks: [{ label: "answer", answer: String(ans) }],
+        },
+      ],
+      { kind: "effect-area", shape, w, h, kn: k, kd: 1 },
+      undefined,
+      "cm²"
+    );
+  }
+  const b = pick(rng, [4, 6, 8, 10, 12]);
+  const h = randInt(rng, 3, 9);
+  const area = (b * h) / 2;
+  const ans = area * k * k;
+  return build(
+    "DilationsCoordinate",
+    `A triangle with a base of ${b} cm and a height of ${h} cm is dilated by a scale factor of ${k}. What is the area of the image?`,
+    "the area of the image",
+    ans,
+    [
+      {
+        instruction: `The original area is (1/2) × ${b} × ${h} = ${area} cm². Areas grow by the square of the scale factor: ${area} × ${k}² = ${ans}.`,
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "effect-area", shape, b, h, kn: k, kd: 1 },
+    undefined,
+    "cm²"
+  );
+}
+
+// ── Proportional vs. non-proportional (TEKS 8.5A, 8.5E, 8.5F, 8.5H) ───────
+
+function makeClassifyEquation(rng: RNG): Grade8Problem {
+  const form = pick(rng, ["kx", "mxb", "quad"] as const);
+  let equation: string;
+  let note: string;
+  let ans: string;
+  if (form === "kx") {
+    const k = pick(rng, [2, 3, 4, 5, 6, 7, 8, 9]);
+    equation = `y = ${k}x`;
+    ans = "proportional";
+    note = "The equation has the form y = kx with nothing added, so its graph is a line through the origin.";
+  } else if (form === "mxb") {
+    const m = pick(rng, [2, 3, 4, 5, 6, 7]);
+    const b = randInt(rng, 1, 12);
+    equation = pick(rng, [linearEqStr(m, b), linearEqStr(m, -b)]);
+    ans = "non-proportional";
+    note = "The equation is linear, but a constant is added or subtracted, so its graph does not pass through the origin.";
+  } else {
+    const a = pick(rng, [1, 2, 3]);
+    const b = pick(rng, [0, 2, 3, 5]);
+    const sq = a === 1 ? "x²" : `${a}x²`;
+    equation = b === 0 ? `y = ${sq}` : `y = ${sq} + ${b}`;
+    ans = "not linear";
+    note = "The equation has an x² term, so its graph is a curve instead of a line.";
+  }
+  return build(
+    "PropVsNonProp",
+    `Classify the relationship shown by the equation ${equation}. Is it proportional, non-proportional, or not linear?`,
+    "the classification",
+    ans,
+    [{ instruction: note, blanks: [{ label: "answer", answer: ans }] }],
+    { kind: "classify-eq", equation }
+  );
+}
+
+function makeClassifyTableProp(rng: RNG): Grade8Problem {
+  const proportional = rng() < 0.5;
+  const xs = [0, 1, 2, 3];
+  let table: string;
+  let ans: string;
+  let note: string;
+  if (proportional) {
+    const k = pick(rng, [2, 3, 4, 5, 6]);
+    table = xs.map((x) => `(${x}, ${k * x})`).join(", ");
+    ans = "proportional";
+    note = `Every y value is ${k} times the matching x value, and the pairs include (0, 0).`;
+  } else {
+    const m = pick(rng, [2, 3, 4, 5]);
+    const b = randInt(rng, 1, 9);
+    table = xs.map((x) => `(${x}, ${m * x + b})`).join(", ");
+    ans = "non-proportional";
+    note = `When x is 0, y is ${b} instead of 0, so the graph does not pass through the origin.`;
+  }
+  return build(
+    "PropVsNonProp",
+    `A relationship between x and y is shown by the pairs ${table}. Is the relationship proportional or non-proportional?`,
+    "the classification",
+    ans,
+    [{ instruction: note, blanks: [{ label: "answer", answer: ans }] }],
+    { kind: "classify-table", table }
+  );
+}
+
+interface DVContext {
+  ks: number[];
+  promptK: (x1: number, y1: number) => string;
+  promptY: (x1: number, y1: number, x2: number) => string;
+}
+
+const DV_CONTEXTS: DVContext[] = [
+  {
+    ks: [2, 3, 4, 5],
+    promptK: (x1, y1) =>
+      `${x1} pounds of grapes cost $${y1}. The cost y in dollars is proportional to the weight x in pounds, so y = kx. Find the constant of proportionality k.`,
+    promptY: (x1, y1, x2) =>
+      `${x1} pounds of grapes cost $${y1}, and the cost is proportional to the weight. How much do ${x2} pounds of grapes cost?`,
+  },
+  {
+    ks: [40, 45, 50, 55, 60],
+    promptK: (x1, y1) =>
+      `A car travels ${y1} miles in ${x1} hours at a constant speed. The distance y in miles is proportional to the time x in hours, so y = kx. Find the constant of proportionality k.`,
+    promptY: (x1, y1, x2) =>
+      `A car travels ${y1} miles in ${x1} hours at a constant speed. How far does the car travel in ${x2} hours?`,
+  },
+  {
+    ks: [10, 12, 15, 18, 20, 25],
+    promptK: (x1, y1) =>
+      `Sam earns $${y1} for ${x1} hours of work, and the pay is proportional to the hours worked. With pay as y and hours as x, y = kx. Find the constant of proportionality k.`,
+    promptY: (x1, y1, x2) =>
+      `Sam earns $${y1} for ${x1} hours of work, and the pay is proportional to the hours worked. How much does Sam earn for ${x2} hours of work?`,
+  },
+];
+
+function makeDirectVariation(rng: RNG): Grade8Problem {
+  const ctx = pick(rng, DV_CONTEXTS);
+  const k = pick(rng, ctx.ks);
+  const x1 = randInt(rng, 2, 6);
+  const y1 = k * x1;
+  let x2 = randInt(rng, 2, 9);
+  if (x2 === x1) x2 = x1 + 1;
+  const ask = pick(rng, ["k", "y"] as const);
+  const ans = ask === "k" ? k : k * x2;
+  const steps: Grade8Problem["steps"] = [
+    {
+      instruction: `The constant of proportionality is k = y ÷ x = ${y1} ÷ ${x1} = ${k}.`,
+      blanks: [{ label: "k", answer: String(k) }],
+    },
+  ];
+  if (ask === "y") {
+    steps.push({
+      instruction: `Multiply k by the new x value: ${k} × ${x2} = ${ans}.`,
+      blanks: [{ label: "answer", answer: String(ans) }],
+    });
+  }
+  return build(
+    "PropVsNonProp",
+    ask === "k" ? ctx.promptK(x1, y1) : ctx.promptY(x1, y1, x2),
+    ask === "k" ? "the constant of proportionality" : "the missing value",
+    ans,
+    steps,
+    { kind: "direct-variation", x1, y1, x2, ask }
+  );
+}
+
+function makeClassifySituation(rng: RNG): Grade8Problem {
+  const feeBased = rng() < 0.5;
+  if (!feeBased) {
+    const rate = pick(rng, [2, 3, 4, 5, 6, 8]);
+    const text = pick(rng, [
+      `A store sells notebooks for $${rate} each, with no other charges. The total cost depends on how many notebooks are bought.`,
+      `A farmer sells eggs for $${rate} per dozen. The total cost depends on how many dozen eggs are bought.`,
+    ]);
+    return build(
+      "PropVsNonProp",
+      `${text} Is the relationship between the amount bought and the total cost proportional or non-proportional?`,
+      "the classification",
+      "proportional",
+      [
+        {
+          instruction: "There is no starting fee, and the total is always the rate times the amount, so the graph passes through the origin.",
+          blanks: [{ label: "answer", answer: "proportional" }],
+        },
+      ],
+      { kind: "classify-situation", fee: 0, rate }
+    );
+  }
+  const fee = pick(rng, [10, 15, 20, 25, 30, 40]);
+  const rate = pick(rng, [5, 8, 10, 12, 15, 20]);
+  const text = pick(rng, [
+    `A gym charges a joining fee of $${fee} plus $${rate} per month. The total cost depends on how many months you belong.`,
+    `A taxi company charges a pickup fee of $${fee} plus $${rate} per mile. The total fare depends on how many miles you ride.`,
+  ]);
+  return build(
+    "PropVsNonProp",
+    `${text} Is the relationship between the amount used and the total cost proportional or non-proportional?`,
+    "the classification",
+    "non-proportional",
+    [
+      {
+        instruction: `The fee of $${fee} is charged even when the amount is 0, so the graph does not pass through the origin.`,
+        blanks: [{ label: "answer", answer: "non-proportional" }],
+      },
+    ],
+    { kind: "classify-situation", fee, rate }
+  );
+}
+
+// ── College costs & savings plans (TEKS 8.12G) ──────────────────────────────
+
+function makeTotalCollegeCost(rng: RNG): Grade8Problem {
+  const years = pick(rng, [2, 4]);
+  const yearly = pick(rng, [6000, 7500, 8000, 9000, 10000, 11000, 12000, 14000, 15000, 18000, 20000]);
+  const total = yearly * years;
+  const ans = money(total);
+  const school = years === 4 ? "a four-year university" : "a two-year college";
+  return build(
+    "CollegeCosts",
+    `Attending ${school} costs about $${yearly} per year for tuition, fees, and housing. What is the total cost for ${years} years?`,
+    "the total cost",
+    ans,
+    [
+      {
+        instruction: `Multiply the yearly cost by the number of years: ${yearly} × ${years} = ${total}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "total-cost", yearly, years },
+    undefined,
+    "dollars"
+  );
+}
+
+function makeSavingsNeeded(rng: RNG): Grade8Problem {
+  const goal = pick(rng, [12000, 15000, 18000, 20000, 24000, 30000, 36000, 40000]);
+  const options = [1500, 2000, 2500, 3000, 4000, 5000, 6000, 7500, 8000, 10000].filter((v) => v < goal);
+  const contribution = pick(rng, options);
+  const need = goal - contribution;
+  const ans = money(need);
+  return build(
+    "CollegeCosts",
+    `The total cost of a college program is $${goal}. Your family can contribute $${contribution} toward the cost. How much do you still need to save?`,
+    "the amount still needed",
+    ans,
+    [
+      {
+        instruction: `Subtract the family contribution from the total cost: ${goal} − ${contribution} = ${need}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "savings-needed", goal, contribution },
+    undefined,
+    "dollars"
+  );
+}
+
+function makeMonthlySavings(rng: RNG): Grade8Problem {
+  const months = pick(rng, [12, 24, 36, 48, 60]);
+  const monthly = pick(rng, [25, 40, 50, 60, 75, 80, 100, 125, 150, 200, 250, 300]);
+  const amount = monthly * months;
+  const years = months / 12;
+  const ans = money(monthly);
+  return build(
+    "CollegeCosts",
+    `You want to save $${amount} in ${years} year${years === 1 ? "" : "s"} before starting college. That is ${months} months of saving. If you save the same amount each month, how much should you save per month?`,
+    "the monthly savings amount",
+    ans,
+    [
+      {
+        instruction: `Divide the goal by the number of months: ${amount} ÷ ${months} = ${monthly}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "monthly-savings", amount, months },
+    undefined,
+    "dollars"
+  );
+}
+
+function makeCompareCollegePaths(rng: RNG): Grade8Problem {
+  const combos = [
+    { monthly: 125, months: 48 },
+    { monthly: 150, months: 60 },
+    { monthly: 200, months: 48 },
+    { monthly: 250, months: 36 },
+    { monthly: 300, months: 48 },
+  ];
+  const [comboA, comboB] = shuffled(rng, combos).slice(0, 2);
+  const programs = [
+    { yearly: 15000, years: 2 },
+    { yearly: 9000, years: 4 },
+    { yearly: 10000, years: 4 },
+    { yearly: 12000, years: 4 },
+    { yearly: 16000, years: 2 },
+    { yearly: 20000, years: 2 },
+    { yearly: 15000, years: 4 },
+  ];
+  const progA = pick(rng, programs);
+  const progB = pick(rng, programs);
+  const totalA = progA.yearly * progA.years;
+  const totalB = progB.yearly * progB.years;
+  const needA = comboA.monthly * comboA.months;
+  const needB = comboB.monthly * comboB.months;
+  const contribA = totalA - needA;
+  const contribB = totalB - needB;
+  const ans = comboA.monthly < comboB.monthly ? "Plan A" : "Plan B";
+  return build(
+    "CollegeCosts",
+    `Plan A: A ${progA.years}-year program costs $${progA.yearly} per year. Your family will contribute $${contribA}, and you have ${comboA.months} months to save the rest. Plan B: A ${progB.years}-year program costs $${progB.yearly} per year. Your family will contribute $${contribB}, and you have ${comboB.months} months to save the rest. Which plan requires the smaller amount of savings each month?`,
+    "the plan with the smaller monthly savings",
+    ans,
+    [
+      {
+        instruction: `Plan A leaves ${totalA} − ${contribA} = ${needA} to save, which is ${needA} ÷ ${comboA.months} = $${comboA.monthly} per month.`,
+        blanks: [{ label: "Plan A per month", answer: money(comboA.monthly) }],
+      },
+      {
+        instruction: `Plan B leaves ${totalB} − ${contribB} = ${needB} to save, which is ${needB} ÷ ${comboB.months} = $${comboB.monthly} per month.`,
+        blanks: [{ label: "Plan B per month", answer: money(comboB.monthly) }],
+      },
+      { instruction: "The plan with the smaller monthly savings is:", blanks: [{ label: "answer", answer: ans }] },
+    ],
+    { kind: "compare-paths", totalA, contribA, monthsA: comboA.months, totalB, contribB, monthsB: comboB.months },
+    undefined,
+    "dollars"
+  );
+}
+
+// ── Writing problems for equations (TEKS 8.8B) ──────────────────────────────
+
+interface MatchParts {
+  r1: number;
+  s1: number;
+  r2: number;
+  s2: number;
+}
+
+interface MatchTemplate {
+  unit: string;
+  text: (t: MatchParts) => string;
+}
+
+const MATCH_GYM: MatchTemplate = {
+  unit: "months",
+  text: (t) =>
+    `Gym A charges a sign-up fee of $${t.s1} plus $${t.r1} per month. Gym B charges a sign-up fee of $${t.s2} plus $${t.r2} per month.`,
+};
+
+const MATCH_SAVINGS: MatchTemplate = {
+  unit: "weeks",
+  text: (t) =>
+    `Lena starts with $${t.s1} in a savings account and deposits $${t.r1} each week. Marco starts with $${t.s2} in a savings account and deposits $${t.r2} each week.`,
+};
+
+function matchSituationProblem(rng: RNG, template: MatchTemplate): Grade8Problem {
+  const r1 = randInt(rng, 5, 12);
+  const r2 = randInt(rng, 1, r1 - 1);
+  const x = randInt(rng, 2, 10);
+  const s1 = pick(rng, [0, 5, 10, 15, 20, 25, 30]);
+  const s2 = s1 + (r1 - r2) * x;
+  const correct: MatchParts = { r1, s1, r2, s2 };
+  const feeSwap: MatchParts = { r1, s1: s2, r2, s2: s1 };
+  const rateSwap: MatchParts = { r1: r2, s1, r2: r1, s2 };
+  const options = shuffled(rng, [correct, feeSwap, rateSwap]);
+  const correctIndex = options.indexOf(correct);
+  const letters = ["A", "B", "C"];
+  const letter = letters[correctIndex];
+  const eq = linearEquation(r1, s1, r2, s2);
+  const optionsText = options.map((o, i) => `${letters[i]}. ${template.text(o)}`).join(" ");
+  return build(
+    "WriteTheProblem8",
+    `Which situation can be represented by the equation ${eq}, where x is the number of ${template.unit}? ${optionsText}`,
+    "the matching situation",
+    letter,
+    [
+      {
+        instruction: `The left side of the equation multiplies x by ${r1} and then adds ${s1}. Look for the situation that uses ${r1} as the rate and ${s1} as the starting value, in that order.`,
+        blanks: [
+          { label: "rate on the left", answer: String(r1) },
+          { label: "starting value on the left", answer: String(s1) },
+        ],
+      },
+      { instruction: "The situation that matches the equation is option:", blanks: [{ label: "answer", answer: letter }] },
+    ],
+    {
+      kind: "match",
+      a: r1,
+      b: s1,
+      c: r2,
+      d: s2,
+      options: options.map((o) => `${o.r1},${o.s1},${o.r2},${o.s2}`).join("|"),
+      correctIndex,
+    }
+  );
+}
+
+function makeMatchGym(rng: RNG): Grade8Problem {
+  return matchSituationProblem(rng, MATCH_GYM);
+}
+
+function makeMatchSavings(rng: RNG): Grade8Problem {
+  return matchSituationProblem(rng, MATCH_SAVINGS);
+}
+
+function makeWriteEquationBoth(rng: RNG): Grade8Problem {
+  const variant = pick(rng, ["gym", "elevator"] as const);
+  const a = randInt(rng, 5, 12);
+  const c = randInt(rng, 1, a - 1);
+  const x = randInt(rng, 2, 10);
+  if (variant === "gym") {
+    const B = pick(rng, [0, 10, 20, 30, 40]);
+    const D = B + (a - c) * x;
+    const eq = linearEquation(a, B, c, D);
+    return build(
+      "WriteTheProblem8",
+      `Gym A charges a sign-up fee of $${B} plus $${a} per month. Gym B charges a sign-up fee of $${D} plus $${c} per month. Write an equation that can be used to find the number of months x when the total costs of the two gyms are equal.`,
+      "the equation",
+      eq,
+      [
+        {
+          instruction: "Write each total cost as a rate times x plus a starting fee, then set the two expressions equal.",
+          blanks: [
+            { label: "rate for Gym A", answer: String(a) },
+            { label: "rate for Gym B", answer: String(c) },
+          ],
+        },
+        { instruction: "The equation is:", blanks: [{ label: "answer", answer: eq }] },
+      ],
+      { kind: "write-eq-both", a, b: B, c, d: D }
+    );
+  }
+  const depth2 = pick(rng, [10, 20, 30, 40, 50, 60]);
+  const depth1 = depth2 + (a - c) * x;
+  const eq = linearEquation(a, -depth1, c, -depth2);
+  return build(
+    "WriteTheProblem8",
+    `Elevator A starts ${depth1} feet below ground level and rises ${a} feet per second. Elevator B starts ${depth2} feet below ground level and rises ${c} feet per second. Positions below ground are negative, and ground level is position 0. Write an equation that can be used to find the number of seconds x when the two elevators are at the same position.`,
+    "the equation",
+    eq,
+    [
+      {
+        instruction: "Write each position as a rate times x plus a starting position, then set the two expressions equal.",
+        blanks: [
+          { label: "starting position of A", answer: String(-depth1) },
+          { label: "starting position of B", answer: String(-depth2) },
+        ],
+      },
+      { instruction: "The equation is:", blanks: [{ label: "answer", answer: eq }] },
+    ],
+    { kind: "write-eq-both", a, b: -depth1, c, d: -depth2 }
+  );
+}
+
 const MAKERS: MakerEntry[] = [
   // Linear equations (variables on both sides)
   { tier: 1, subtype: "LinearEquations", make: makeVariablesBothSides },
@@ -1079,6 +2340,56 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "ScatterPlots", make: makeScatterTrend },
   { tier: 2, subtype: "ScatterPlots", make: makeScatterPredict },
   { tier: 3, subtype: "ScatterPlots", make: makeScatterWord },
+  // Slope & rate of change
+  { tier: 1, subtype: "SlopeRateOfChange", make: makeSlopeFromTable },
+  { tier: 1, subtype: "SlopeRateOfChange", make: makeSlopeFromPoints },
+  { tier: 2, subtype: "SlopeRateOfChange", make: makeSlopeInterceptGraph },
+  { tier: 2, subtype: "SlopeRateOfChange", make: makeUnitRateSlope },
+  { tier: 3, subtype: "SlopeRateOfChange", make: makeWriteLinearEquation },
+  // Irrational numbers & estimation
+  { tier: 1, subtype: "IrrationalNumbers", make: makeBracketSqrt },
+  { tier: 1, subtype: "IrrationalNumbers", make: makeClassifyReal },
+  { tier: 2, subtype: "IrrationalNumbers", make: makeApproxSqrtTenth },
+  { tier: 3, subtype: "IrrationalNumbers", make: makeOrderReals },
+  // Mean absolute deviation
+  { tier: 1, subtype: "MeanAbsoluteDeviation", make: makeMadBasic },
+  { tier: 2, subtype: "MeanAbsoluteDeviation", make: makeMadContext },
+  { tier: 3, subtype: "MeanAbsoluteDeviation", make: makeCompareMad },
+  // Surface area of prisms & cylinders
+  { tier: 1, subtype: "SurfaceArea8", make: makeRectPrismSA },
+  { tier: 2, subtype: "SurfaceArea8", make: makeCylinderSA },
+  { tier: 2, subtype: "SurfaceArea8", make: makeTriPrismSA },
+  { tier: 3, subtype: "SurfaceArea8", make: makeCylinderLateral },
+  // Simple & compound interest
+  { tier: 1, subtype: "InterestAndCredit", make: makeSimpleInterest },
+  { tier: 2, subtype: "InterestAndCredit", make: makeSimpleBalance },
+  { tier: 2, subtype: "InterestAndCredit", make: makeCompoundInterest },
+  { tier: 3, subtype: "InterestAndCredit", make: makeCompareLoans },
+  // Angle relationships & similar triangles
+  { tier: 1, subtype: "TransversalsSimilarity", make: makeTransversalAngle },
+  { tier: 2, subtype: "TransversalsSimilarity", make: makeExteriorAngle },
+  { tier: 2, subtype: "TransversalsSimilarity", make: makeAASimilarity },
+  { tier: 3, subtype: "TransversalsSimilarity", make: makeTransversalAlgebra },
+  // Dilations on the coordinate plane
+  { tier: 1, subtype: "DilationsCoordinate", make: makeDilatePointInt },
+  { tier: 2, subtype: "DilationsCoordinate", make: makeDilatePointFraction },
+  { tier: 2, subtype: "DilationsCoordinate", make: makeFindScaleFactor },
+  { tier: 3, subtype: "DilationsCoordinate", make: makeDilationEffectLength },
+  { tier: 3, subtype: "DilationsCoordinate", make: makeDilationEffectArea },
+  // Proportional vs. non-proportional
+  { tier: 1, subtype: "PropVsNonProp", make: makeClassifyEquation },
+  { tier: 1, subtype: "PropVsNonProp", make: makeClassifyTableProp },
+  { tier: 2, subtype: "PropVsNonProp", make: makeDirectVariation },
+  { tier: 3, subtype: "PropVsNonProp", make: makeClassifySituation },
+  // College costs & savings plans
+  { tier: 1, subtype: "CollegeCosts", make: makeTotalCollegeCost },
+  { tier: 2, subtype: "CollegeCosts", make: makeSavingsNeeded },
+  { tier: 2, subtype: "CollegeCosts", make: makeMonthlySavings },
+  { tier: 3, subtype: "CollegeCosts", make: makeCompareCollegePaths },
+  // Writing problems for equations
+  { tier: 1, subtype: "WriteTheProblem8", make: makeMatchGym },
+  { tier: 2, subtype: "WriteTheProblem8", make: makeMatchSavings },
+  { tier: 3, subtype: "WriteTheProblem8", make: makeWriteEquationBoth },
 ];
 
 /** Makers unlocked at the given difficulty tier (cumulative). */
@@ -1095,6 +2406,16 @@ export const GRADE8_SUBTYPES: Grade8Subtype[] = [
   "ScientificNotation",
   "Volume3D",
   "ScatterPlots",
+  "SlopeRateOfChange",
+  "IrrationalNumbers",
+  "MeanAbsoluteDeviation",
+  "SurfaceArea8",
+  "InterestAndCredit",
+  "TransversalsSimilarity",
+  "DilationsCoordinate",
+  "PropVsNonProp",
+  "CollegeCosts",
+  "WriteTheProblem8",
 ];
 
 /**

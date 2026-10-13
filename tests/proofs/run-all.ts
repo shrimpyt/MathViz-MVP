@@ -1,7 +1,7 @@
 // run-all.ts
 // Full geometry-proofs test run:
 //   1. Full matrix: every proof family/unit × student mode × difficulty 1–3
-//      × counts {1,3,12,25} — validateProofShape + per-family logical
+//      × counts {1,3,12,25}, validateProofShape + per-family logical
 //      checkers + diagram recomputation + degeneracy + blanking discipline.
 //   2. Fuzz: thousands of random seeds hunting crashes/degenerate figures.
 //   3. Seed reproducibility: same seed → identical problems.
@@ -31,6 +31,16 @@ import {
 } from "@/lib/factories/ProofCircleTheoremsFactory";
 import { generateSimilarityProofs } from "@/lib/factories/ProofSimilarityFactory";
 import {
+  generateQuadrilateralProofs,
+  QUADRILATERAL_FAMILIES,
+  type QuadrilateralFamily,
+} from "@/lib/factories/ProofQuadrilateralFactory";
+import {
+  generateAngleProofs,
+  ANGLE_PROOF_VARIANTS,
+  type AngleProofVariant,
+} from "@/lib/factories/ProofAngleProofsFactory";
+import {
   generateElementsProofs,
   makeElementsProof,
   ELEMENTS_PROPOSITIONS,
@@ -46,6 +56,8 @@ import {
   checkCircleProof,
   checkSimilarityProof,
   checkElementsProof,
+  checkQuadrilateralProof,
+  checkAngleProof,
 } from "./checkers-families";
 import * as fs from "fs";
 import * as path from "path";
@@ -98,6 +110,16 @@ const UNITS: Unit[] = [
       Array.from({ length: n }, () => makeElementsProof(rng, pr as ElementsProposition, m)),
     check: (ctx, p, tag) => checkElementsProof(ctx, p, tag),
   })),
+  ...QUADRILATERAL_FAMILIES.map((f): Unit => ({
+    name: `quadrilateral-${f}`,
+    generate: (rng, n, d, m) => generateQuadrilateralProofs(rng, n, d, m, [f as QuadrilateralFamily]),
+    check: (ctx, p, tag) => checkQuadrilateralProof(ctx, p, f as QuadrilateralFamily, tag),
+  })),
+  {
+    name: "angle-proofs",
+    generate: (rng, n, d, m) => generateAngleProofs(rng, n, d, m, [...ANGLE_PROOF_VARIANTS]),
+    check: (ctx, p, tag) => checkAngleProof(ctx, p, tag),
+  },
 ];
 
 function fullCheck(ctx: Ctx, unit: Unit, p: ProofProblem, mode: ProofStudentMode, tag: string): void {
@@ -109,7 +131,7 @@ function fullCheck(ctx: Ctx, unit: Unit, p: ProofProblem, mode: ProofStudentMode
 // ── Answer-key mirror (the exact logic proposed in WIRING.md) ─────────────────
 
 function proofFormatAnswer(p: ProofProblem): string {
-  return p.elementsProposition ? `${p.elementsProposition} — Q.E.D.` : p.prove;
+  return p.elementsProposition ? `${p.elementsProposition}, Q.E.D.` : p.prove;
 }
 
 async function main(): Promise<void> {
@@ -189,6 +211,9 @@ async function main(): Promise<void> {
     { name: "similarity", params: { kind: "ProofSimilarity", angleMarks: [true, true, false] } },
     { name: "circle-inscribed", params: { kind: "ProofCircle", figure: "inscribed", arc: 100, angle: 50 } },
     { name: "circle-tangent", params: { kind: "ProofCircle", figure: "tangent", arc: 120, angle: 60 } },
+    { name: "quadrilateral", params: { kind: "ProofQuadrilateral", diagonal: "both", sideMarks: [0, 0, 0, 0], parallelMarks: [], diagMarks: [1, 2] } },
+    { name: "angle-vertical", params: { kind: "ProofAngleFigure", figure: "vertical", markPair: 0 } },
+    { name: "angle-perp-bisector", params: { kind: "ProofAngleFigure", figure: "perpBisector", markMidpoint: true, markSlants: true } },
     ...ELEMENTS_PROPOSITIONS.map((pr) => ({
       name: `elements-${pr}`,
       params: { kind: "ProofElements", prop: pr, a: 6, b: 8 } as ProofProblem["svgParams"],
@@ -230,7 +255,7 @@ async function main(): Promise<void> {
         const problems = unit.generate(rng, 2, d, "complete");
         for (const p of problems) {
           const key = proofFormatAnswer(p);
-          const expected = p.elementsProposition ? `${p.elementsProposition} — Q.E.D.` : p.prove;
+          const expected = p.elementsProposition ? `${p.elementsProposition}, Q.E.D.` : p.prove;
           check(ctx, key === expected && key.length > 0,
             `answerkey ${unit.name}/d${d}: key "${key}" ≠ expected "${expected}"`);
           keyProblems++;
@@ -281,15 +306,25 @@ async function main(): Promise<void> {
     "wiring similarity");
   check(ctx, wiring.proofElementsProblems("Classical", 1, { count: 1 })[0]?.presentation === "elements",
     "wiring elements");
+  const wQuad = wiring.proofQuadrilateralProblems(["DiagonalsBisect"], "Test", 11, { count: 2 });
+  check(ctx, wQuad.length === 2 && wQuad.every((p) => p.family === "Quadrilateral:DiagonalsBisect"),
+    "wiring quadrilateral family filter");
+  check(ctx, wQuad.every((p) => p.studentMode === "supply-reasons"),
+    "wiring quadrilateral studentMode");
+  const wAng = wiring.proofAngleProofProblems(["VerticalAngles"], "Classical", 13, { count: 2 });
+  check(ctx, wAng.length === 2 && wAng.every((p) => p.family === "AngleProofs:VerticalAngles"),
+    "wiring angle-proofs variant filter");
+  check(ctx, wAng.every((p) => p.studentMode === "complete"),
+    "wiring angle-proofs Classical studentMode");
 
   // ── Report ──────────────────────────────────────────────────────────────
   const ms = Date.now() - t0;
   const lines: string[] = [];
-  lines.push("# Geometry Proofs — Test Report");
+  lines.push("# Geometry Proofs, Test Report");
   lines.push("");
   lines.push(`Ran: ${new Date().toISOString()}`);
   lines.push("");
-  lines.push(`- Matrix problems: ${matrixProblems} (21 units × 4 modes × 3 difficulties × counts {1,3,12,25})`);
+  lines.push(`- Matrix problems: ${matrixProblems} (${UNITS.length} units × 4 modes × 3 difficulties × counts {1,3,12,25})`);
   lines.push(`- Fuzz problems: ${FUZZ}`);
   lines.push(`- Reproducibility samples: ${REPRO}`);
   lines.push(`- PDF samples: ${pdfSamples.length}`);
@@ -331,7 +366,7 @@ async function main(): Promise<void> {
   } else {
     lines.push("## Failures");
     lines.push("");
-    lines.push("None — all checks passed.");
+    lines.push("None, all checks passed.");
     lines.push("");
   }
   const reportPath = path.join(__dirname, "TEST_REPORT.md");

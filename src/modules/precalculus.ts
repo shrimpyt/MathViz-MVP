@@ -57,7 +57,7 @@ export const PRECALCULUS_ENTRIES: CurriculumEntry[] = [
   precalcEntry(
     "precalc-vectors",
     "Vectors",
-    "Add, scale, and dot vectors — magnitude, direction, and orthogonality.",
+    "Add, scale, and dot vectors, magnitude, direction, and orthogonality.",
     "vectors",
     "AP-style multiple choice on vector operations, magnitude, dot product, unit vectors, and the angle between vectors. Calculator-active items are flagged."
   ),
@@ -73,7 +73,7 @@ export const PRECALCULUS_ENTRIES: CurriculumEntry[] = [
     "Conic Sections",
     "Read centers, foci, and vertices straight from standard form.",
     "conics",
-    "AP-style multiple choice identifying conics and finding centers, radii, vertices, foci, and directrices — including completing the square."
+    "AP-style multiple choice identifying conics and finding centers, radii, vertices, foci, and directrices, including completing the square."
   ),
   precalcEntry(
     "precalc-trig",
@@ -101,7 +101,7 @@ export const PRECALCULUS_ENTRIES: CurriculumEntry[] = [
     "AP FRQ Practice",
     "Stimulus-based free response: one graph, table, or scenario per question.",
     "frq",
-    "Multi-part free-response questions (a)-(d) built around a single stimulus — graph, table, or verbal scenario — with AP-style justifications in the key."
+    "Multi-part free-response questions (a)-(d) built around a single stimulus, graph, table, or verbal scenario, with AP-style justifications in the key."
   ),
 ];
 

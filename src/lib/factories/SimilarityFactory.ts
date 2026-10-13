@@ -1,5 +1,5 @@
 // SimilarityFactory.ts
-// Topic 9: Similarity (TEKS G.7(A), G.7(B)) — chapter-test pool (Topic 9 has
+// Topic 9: Similarity (TEKS G.7(A), G.7(B)), chapter-test pool (Topic 9 has
 // no separate placeholder lesson). Weighted toward the chapter's core:
 // proportions in similar figures, AA/SAS/SSS similarity used computationally,
 // the Triangle Proportionality Theorem, geometric mean in right triangles,
@@ -228,7 +228,7 @@ function makeSimilarityStatement(rng: RNG): GeometryProblem {
     {
       q: "Two triangles have two pairs of congruent angles. Which theorem proves the triangles similar?",
       answer: "AA Similarity Theorem",
-      why: "Two pairs of congruent angles are enough — the third pair is forced by the angle sum.",
+      why: "Two pairs of congruent angles are enough, the third pair is forced by the angle sum.",
     },
     {
       q: "Two triangles have two pairs of proportional sides with the included angles congruent. Which theorem proves the triangles similar?",

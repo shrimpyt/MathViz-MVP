@@ -1,5 +1,5 @@
 // Algebra2Matrices.ts
-// T4 (TEKS A2.4) — Matrices: addition/subtraction, multiplication,
+// T4 (TEKS A2.4), Matrices: addition/subtraction, multiplication,
 // determinants & inverses (2x2), solving linear systems with matrices.
 // Entries are small integers; inverses are constructed with determinant ±1
 // so they stay exact. Tests recompute every result with independent code.
@@ -214,7 +214,7 @@ function makeSolveSystem(rng: RNG): Algebra2Problem {
 // reading a matrix back as a system, solving with inverse matrices, and
 // recognizing the singular cases (det A = 0 → no solution or dependent).
 
-/** "[2, 1 | 5; 1, -1 | 1]" — augmented matrix display (last column = constants). */
+/** "[2, 1 | 5; 1, -1 | 1]", augmented matrix display (last column = constants). */
 function augLatex(rows: number[][]): string {
   return `[${rows.map((r) => `${r.slice(0, -1).join(", ")} | ${r[r.length - 1]}`).join("; ")}]`;
 }
@@ -355,8 +355,8 @@ function makeMatrixClassifyIntro(rng: RNG): Algebra2Problem {
   if (!dependent) c2 += pick(rng, [1, 2, -1]);
   const eqs = `${sysEq([a, b], c1, ["x", "y"])}; ${sysEq([k * a, k * b], c2, ["x", "y"])}`;
   const answer = dependent
-    ? "Infinitely many solutions — det(A) = 0 and the equations are the same line (dependent)"
-    : "No solution — det(A) = 0 and the equations are parallel lines (inconsistent)";
+    ? "Infinitely many solutions, det(A) = 0 and the equations are the same line (dependent)"
+    : "No solution, det(A) = 0 and the equations are parallel lines (inconsistent)";
   return {
     type: "A2.3",
     subtype: "MatrixSystemIntro",
@@ -371,7 +371,7 @@ function makeMatrixClassifyIntro(rng: RNG): Algebra2Problem {
       },
       {
         instruction: dependent
-          ? `det(A) = 0, so A^-1 does not exist. Comparing the equations, the second is exactly ${k} times the first — same line, so every point on it is a solution:`
+          ? `det(A) = 0, so A^-1 does not exist. Comparing the equations, the second is exactly ${k} times the first, same line, so every point on it is a solution:`
           : `det(A) = 0, so A^-1 does not exist. The left sides are proportional (second = ${k} × first) but the constants are not, so the lines are parallel and distinct:`,
         reason: dependent ? "Dependent system" : "Inconsistent system",
         blanks: [{ label: "number of solutions", answer: dependent ? "infinitely many" : "none" }],

@@ -1,4 +1,4 @@
-// fuzz.ts — Geometry generation fuzz.
+// fuzz.ts, Geometry generation fuzz.
 // 300 seeds × every entry × difficulty 3 (all branches unlocked): generation
 // must never throw, must return the requested count, and every problem must
 // keep the structural contract (prompt, answer, steps with reasons, blanks).

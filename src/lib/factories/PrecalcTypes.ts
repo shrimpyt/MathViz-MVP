@@ -5,7 +5,7 @@
 //
 // CONVENTIONS (same as the rest of the codebase):
 // - All display strings are PDF-safe plain text (unicode math like θ π √ ≤
-//   is fine — DejaVu Serif covers it). No raw LaTeX commands; latexToText()
+//   is fine, DejaVu Serif covers it). No raw LaTeX commands; latexToText()
 //   is still applied at render time as a safety net.
 // - Difficulty tiers 1|2|3 are cumulative and live in the factories.
 
@@ -63,7 +63,7 @@ export interface PrecalcMCQ {
   subtype: string;
   /** The question stem. PDF-safe plain text. */
   stem: string;
-  /** Numeric inputs keyed by name — the independent verification path
+  /** Numeric inputs keyed by name, the independent verification path
    *  recomputes the answer from these alone. */
   givens: Record<string, number>;
   /** Four answer choices, rendered A–D. */
@@ -328,7 +328,7 @@ export interface MCQSpec {
  * Build a PrecalcMCQ: dedupe + filter the distractor pool, pick 3 with the
  * seeded rng, shuffle the 4 choices, and record correctIndex/answerLetter.
  * Throws loudly (never silently) if the pool cannot supply 3 distinct
- * distractors — the fuzz tests treat that as a factory bug.
+ * distractors, the fuzz tests treat that as a factory bug.
  */
 export function assembleMCQ(rng: RNG, spec: MCQSpec): PrecalcMCQ {
   const seen = new Set<string>([spec.correct]);
@@ -364,7 +364,7 @@ export function assembleMCQ(rng: RNG, spec: MCQSpec): PrecalcMCQ {
   };
 }
 
-/** All-distinct exact trig value strings — handy distractor pool. */
+/** All-distinct exact trig value strings, handy distractor pool. */
 export function trigValuePool(): string[] {
   const s = new Set<string>();
   for (const e of EXACT_TRIG) {

@@ -24,13 +24,13 @@ import {
 
 // ── small formatters ──────────────────────────────────────────────────────────
 
-/** "2x", "−x", "3y" — sign-aware single term. */
+/** "2x", "−x", "3y", sign-aware single term. */
 function term(c: number, v: string): string {
   const body = Math.abs(c) === 1 ? v : `${Math.abs(c)}${v}`;
   return c < 0 ? `−${body}` : body;
 }
 
-/** "2x + 3y", "−x − 4y", "5x" — left side of a linear equation. */
+/** "2x + 3y", "−x − 4y", "5x", left side of a linear equation. */
 function linLeft(a: number, b: number): string {
   if (b === 0) return term(a, "x");
   const sep = b < 0 ? "−" : "+";
@@ -61,7 +61,7 @@ function makeLinearEquation1Var(rng: RNG, difficulty: SATDifficulty): SATProblem
     c = a * x + b;
     distributed = false;
   } else {
-    // a(x + b) = c — must divide before subtracting
+    // a(x + b) = c, must divide before subtracting
     a = randInt(rng, 2, 6);
     x = randInt(rng, 2, 9);
     b = randInt(rng, 1, 6);
@@ -97,7 +97,7 @@ function makeLinearEquation1Var(rng: RNG, difficulty: SATDifficulty): SATProblem
           label: qLabel(q(c - b, a)),
           value: qVal(q(c - b, a)),
           misconception: "order-of-operations",
-          note: "Distributed incorrectly — treated it as ax + b = c.",
+          note: "Distributed incorrectly, treated it as ax + b = c.",
         },
         {
           label: qLabel(q(x - 1)),
@@ -134,7 +134,7 @@ function makeLinearEquation1Var(rng: RNG, difficulty: SATDifficulty): SATProblem
       ];
 
   // Guard: tier-2 negatives can theoretically collide (e.g. x+1 === -x when
-  // x = -1/2 — impossible here since x is a nonzero integer; (c+b)/a vs x
+  // x = -1/2, impossible here since x is a nonzero integer; (c+b)/a vs x
   // differ because b ≠ 0). buildMCQ double-checks and throws regardless.
   if (format === "MCQ") {
     const { options, keyIndex } = buildMCQ(rng, key, pickDistractors(rng, key.value, pool));
@@ -306,7 +306,7 @@ function makeSystem2x2(rng: RNG, difficulty: SATDifficulty): SATProblem {
   });
 }
 
-// ── Maker 3: linear inequalities (H.A.2) — MCQ only ────────────────────────────
+// ── Maker 3: linear inequalities (H.A.2), MCQ only ────────────────────────────
 
 const INEQUALITY_OPS = ["<", ">", "≤", "≥"] as const;
 
@@ -429,7 +429,7 @@ function makeLinearFunction(rng: RNG, difficulty: SATDifficulty): SATProblem {
         label: qLabel(q(rate * (g + base))),
         value: rate * (g + base),
         misconception: "order-of-operations",
-        note: "Multiplied the rate by the fee too — added before multiplying.",
+        note: "Multiplied the rate by the fee too, added before multiplying.",
       },
       {
         label: qLabel(q(cost + rate)),

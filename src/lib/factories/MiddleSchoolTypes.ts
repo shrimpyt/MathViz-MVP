@@ -44,7 +44,14 @@ export type Grade6Subtype =
   | "DataDisplays"
   | "MeasuresOfCenterAndVariation"
   | "BankingAndCredit"
-  | "CollegeAndSalaries";
+  | "CollegeAndSalaries"
+  | "CoordinateGraphing6"
+  | "UnitConversion6"
+  | "NumberSets6"
+  | "FractionMultiplyEffect"
+  | "BenchmarkPercents"
+  | "CategoricalData6"
+  | "WriteProblem6";
 
 export interface Grade6Problem extends MiddleSchoolProblemBase {
   type: "MS.6";
@@ -82,7 +89,14 @@ export type Grade7Subtype =
   | "PercentError"
   | "ExpandingAndFactoring"
   | "DistributiveEquations"
-  | "MultiStepInequalities";
+  | "MultiStepInequalities"
+  | "SimilarFigures7"
+  | "ConversionsBetweenSystems"
+  | "Interest7"
+  | "NetWorth7"
+  | "FamilyBudgets7"
+  | "ReadingGraphs7"
+  | "NumberSets7";
 
 export interface Grade7Problem extends MiddleSchoolProblemBase {
   type: "MS.7";
@@ -97,7 +111,17 @@ export type Grade8Subtype =
   | "Transformations"
   | "ScientificNotation"
   | "Volume3D"
-  | "ScatterPlots";
+  | "ScatterPlots"
+  | "SlopeRateOfChange"
+  | "IrrationalNumbers"
+  | "MeanAbsoluteDeviation"
+  | "SurfaceArea8"
+  | "InterestAndCredit"
+  | "TransversalsSimilarity"
+  | "DilationsCoordinate"
+  | "PropVsNonProp"
+  | "CollegeCosts"
+  | "WriteTheProblem8";
 
 export interface Grade8Problem extends MiddleSchoolProblemBase {
   type: "MS.8";

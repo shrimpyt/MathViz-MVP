@@ -1,4 +1,4 @@
-// rt-verify2.ts — independent verification for geometry / A2 / calc / precalc / MS.
+// rt-verify2.ts, independent verification for geometry / A2 / calc / precalc / MS.
 // Same doctrine as rt-verify.ts: recompute with OUR OWN math.
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, report } from "./util";
@@ -41,7 +41,7 @@ for (const id of ["trig-1-ratios", "trig-2-sides", "trig-3-angles", "elevation-d
       const hits = cands.filter((c) => Math.round(c) === ans);
       bump();
       if (hits.length !== 1) fail("G9A-SIDE", id, "Test", s, `angle=${g.angle} ${kname}=${K} ratio=${rt} answer=${ans} candidates=${cands.map((c) => c.toFixed(3))} hits=${hits.length}`);
-      // rounding honesty: the exact value must be within 0.5 of the rounded answer (always true) —
+      // rounding honesty: the exact value must be within 0.5 of the rounded answer (always true),
       // stronger: check the generator rounded, not truncated: |exact - ans| < 0.5 AND Math.round(exact)===ans
       if (hits.length === 1 && Math.round(hits[0]) !== ans) fail("G9A-SIDE-ROUND", id, "Test", s, `not properly rounded`);
     } else if (p.subtype === "SolveForAngle") {

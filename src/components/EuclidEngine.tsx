@@ -1,6 +1,6 @@
 "use client";
 // EuclidEngine.tsx
-// Orchestrator — filters problems by type, calculates offsets, renders cards.
+// Orchestrator, filters problems by type, calculates offsets, renders cards.
 // All visual components live in ./problem-cards/.
 
 import React, { useState } from "react";
@@ -70,7 +70,7 @@ interface EuclidEngineProps {
   title?: string;
   /** Per-entry problem groups for Classical Notes mode (built by WorksheetGenerator). */
   classicalGroups?: ClassicalGroup[];
-  /** Worksheet seed — drives deterministic margin-prompt rotation in Classical mode. */
+  /** Worksheet seed, drives deterministic margin-prompt rotation in Classical mode. */
   seed?: number;
   /** Proof document flavor: controls two-column vs Elements presentation. */
   proofDocMode?: "proof-two-column" | "proof-fill-reasons" | "proof-elements";
@@ -283,10 +283,10 @@ export function EuclidEngine({
         ) : (
           <>
 
-        {/* G.12(A) — Circles */}
+        {/* G.12(A), Circles */}
         {circleProblems.length > 0 && (
           <>
-            <SectionDivider label="G.12(A) — Circle Relationships" />
+            <SectionDivider label="G.12(A), Circle Relationships" />
             {circleProblems.map((p, i) => (
               <CircleProblemCard
                 key={i}
@@ -299,10 +299,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* G.12(B) — Circle Measurement */}
+        {/* G.12(B), Circle Measurement */}
         {measurementProblems.length > 0 && (
           <>
-            <SectionDivider label="G.12(B) — Circle Measurement" />
+            <SectionDivider label="G.12(B), Circle Measurement" />
             {measurementProblems.map((p, i) => (
               <MeasurementProblemCard
                 key={i}
@@ -315,10 +315,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* G.13(B) — Probability */}
+        {/* G.13(B), Probability */}
         {probProblems.length > 0 && (
           <>
-            <SectionDivider label="G.13(B) — Geometric Probability" />
+            <SectionDivider label="G.13(B), Geometric Probability" />
             {probProblems.map((p, i) => (
               <ProbabilityProblemCard
                 key={i}
@@ -331,10 +331,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* G.6(B) — Triangle Congruence */}
+        {/* G.6(B), Triangle Congruence */}
         {congruenceProblems.length > 0 && (
           <>
-            <SectionDivider label="G.6(B) — Triangle Congruence" />
+            <SectionDivider label="G.6(B), Triangle Congruence" />
             {congruenceProblems.map((p, i) => (
               <CongruenceProblemCard
                 key={i}
@@ -347,10 +347,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* G.2(B) — Coordinate Geometry */}
+        {/* G.2(B), Coordinate Geometry */}
         {coordinateProblems.length > 0 && (
           <>
-            <SectionDivider label="G.2(B) — Coordinate Geometry" />
+            <SectionDivider label="G.2(B), Coordinate Geometry" />
             {coordinateProblems.map((p, i) => (
               <CoordinateProblemCard
                 key={i}
@@ -363,10 +363,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* G.9(A) — Right Triangles & Trigonometry */}
+        {/* G.9(A), Right Triangles & Trigonometry */}
         {trigProblems.length > 0 && (
           <>
-            <SectionDivider label="G.9(A) — Right Triangles & Trigonometry" />
+            <SectionDivider label="G.9(A), Right Triangles & Trigonometry" />
             {trigProblems.map((p, i) => (
               <TrigProblemCard
                 key={i}
@@ -379,10 +379,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* G.9(B) — Special Right Triangles */}
+        {/* G.9(B), Special Right Triangles */}
         {specialProblems.length > 0 && (
           <>
-            <SectionDivider label="G.9(B) — Special Right Triangles" />
+            <SectionDivider label="G.9(B), Special Right Triangles" />
             {specialProblems.map((p, i) => (
               <TrigProblemCard
                 key={i}
@@ -418,10 +418,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* Algebra 2 — Proofs */}
+        {/* Algebra 2, Proofs */}
         {a2ProofProblems.length > 0 && (
           <>
-            <SectionDivider label="Algebra 2 — Proofs" />
+            <SectionDivider label="Algebra 2, Proofs" />
             {a2ProofProblems.map((p, i) => (
               <Algebra2ProofCard
                 key={i}
@@ -530,10 +530,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* AP Precalculus — Multiple Choice */}
+        {/* AP Precalculus, Multiple Choice */}
         {precalcMCQs.length > 0 && (
           <>
-            <SectionDivider label="AP Precalculus — Multiple Choice" />
+            <SectionDivider label="AP Precalculus, Multiple Choice" />
             {precalcMCQs.map((p, i) => (
               <PrecalcMCQCard
                 key={i}
@@ -546,10 +546,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* AP Precalculus — Free Response */}
+        {/* AP Precalculus, Free Response */}
         {precalcFRQs.length > 0 && (
           <>
-            <SectionDivider label="AP Precalculus — Free Response" />
+            <SectionDivider label="AP Precalculus, Free Response" />
             {precalcFRQs.map((p, i) => (
               <PrecalcFRQCard
                 key={i}
@@ -562,10 +562,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* AP Calculus — Multiple Choice */}
+        {/* AP Calculus, Multiple Choice */}
         {calcMCQs.length > 0 && (
           <>
-            <SectionDivider label="AP Calculus — Multiple Choice" />
+            <SectionDivider label="AP Calculus, Multiple Choice" />
             {calcMCQs.map((p, i) => (
               <CalculusMCQCard
                 key={i}
@@ -578,10 +578,10 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* AP Calculus — Free Response */}
+        {/* AP Calculus, Free Response */}
         {calcFRQs.length > 0 && (
           <>
-            <SectionDivider label="AP Calculus — Free Response" />
+            <SectionDivider label="AP Calculus, Free Response" />
             {calcFRQs.map((p, i) => (
               <CalculusFRQCard
                 key={i}
@@ -594,7 +594,7 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* Geometry — Lessons & Chapter Tests (GEO.*) */}
+        {/* Geometry, Lessons & Chapter Tests (GEO.*) */}
         {geometryProblems.length > 0 && (
           <>
             <SectionDivider label="Geometry" />
@@ -621,7 +621,7 @@ export function EuclidEngine({
           </div>
           <div className="flex items-center gap-1">
             <span className="font-serif italic">Euclid Engine</span>
-            <span>—</span>
+            <span>·</span>
             <span>{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
         </div>

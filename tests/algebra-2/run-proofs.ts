@@ -134,7 +134,7 @@ for (const family of FAMILIES) {
 
   // difficulty filtering: without `only`, a family appears iff difficulty >= minDifficulty.
   // (With an explicit family request, the lesson filter widens rather than
-  // returning zero — a lesson never yields no problems.)
+  // returning zero, a lesson never yields no problems.)
   for (const d of [1, 2, 3] as const) {
     const set = generateProofProblems(mulberry32(99), 200, d);
     const appears = set.some((p) => p.family === family);

@@ -1,5 +1,5 @@
 // Algebra2Radicals.ts
-// A2.6 — Topic 6: function operations & composition, inverse functions
+// A2.6, Topic 6: function operations & composition, inverse functions
 // (one-to-one, horizontal line test, domain restriction), square root
 // functions (attributes & transformations WITH domain/range restrictions),
 // and radical equations (isolate → square → CHECK for extraneous roots).
@@ -41,7 +41,11 @@ export type RadicalSubtype =
   | "RadicalLinear"
   | "RadicalExtraneous"
   | "RadicalTwoRadicals"
-  | "RadicalNoSolution";
+  | "RadicalNoSolution"
+  // Lesson 6-7 (2A.4G: extraneous solutions focus)
+  | "RadicalCandidateCheck"
+  | "RadicalExtraneousSolve"
+  | "RadicalExtraneousNoSolution";
 
 interface Maker {
   minDifficulty: 1 | 2 | 3;
@@ -141,7 +145,7 @@ function makeFuncEvalOps(rng: RNG): Algebra2Problem {
         blanks: [{ label: `g(${x0})`, answer: `${gVal}` }],
       },
       {
-        instruction: `(f ${opSym} g)(${x0}) means f(${x0}) ${opSym} g(${x0}) — combine the two values:`,
+        instruction: `(f ${opSym} g)(${x0}) means f(${x0}) ${opSym} g(${x0}), combine the two values:`,
         reason: "Operation on functions (pointwise)",
         blanks: [{ label: `(f ${opSym} g)(${x0})`, answer: `${result}` }],
       },
@@ -456,7 +460,7 @@ function makeSqrtAttributes(rng: RNG, level: "basic" | "full"): Algebra2Problem 
         blanks: [{ label: "range", answer: range }],
       },
       {
-        instruction: "The endpoint is where the radicand equals 0 — the graph starts there:",
+        instruction: "The endpoint is where the radicand equals 0, the graph starts there:",
         reason: "Endpoint (starting point)",
         blanks: [{ label: "endpoint", answer: `(${h}, ${k})` }],
       },
@@ -534,7 +538,7 @@ function makeSqrtInverseOfSqrt(rng: RNG): Algebra2Problem {
         blanks: [{ label: "squared equation", answer: `${quadVertexBody(k, 0)} = ${xPlus(-h, "y")}` }],
       },
       {
-        instruction: "Solve for y — the inverse of a square root function is a quadratic:",
+        instruction: "Solve for y, the inverse of a square root function is a quadratic:",
         reason: "Inverse of square root is quadratic",
         blanks: [{ label: "inverse", answer: `g^{-1}(x) = ${invBody}` }],
       },
@@ -561,7 +565,7 @@ function makeSqrtRestrictInverse(rng: RNG): Algebra2Problem {
     answer,
     steps: [
       {
-        instruction: "As written, the parabola fails the horizontal line test — most outputs come from two different inputs:",
+        instruction: "As written, the parabola fails the horizontal line test, most outputs come from two different inputs:",
         reason: "Horizontal line test",
         blanks: [{ label: "one-to-one as written?", answer: "No" }],
       },
@@ -640,7 +644,7 @@ function makeRadicalBasic(rng: RNG): Algebra2Problem {
         blanks: [{ label: "solution", answer: `x = ${x}` }],
       },
       {
-        instruction: `Check: substitute x = ${x} into the original equation — the radicand becomes ${x + b} and its square root must equal ${c}:`,
+        instruction: `Check: substitute x = ${x} into the original equation, the radicand becomes ${x + b} and its square root must equal ${c}:`,
         reason: "Check the solution",
         blanks: [{ label: "check", answer: `\\sqrt{${x + b}} = ${c} ✓` }],
       },
@@ -788,7 +792,7 @@ function makeRadicalExtraneous(rng: RNG, hard: boolean): Algebra2Problem {
       {
         instruction: `CHECK x = ${r2} in the ORIGINAL equation: the left side is \\sqrt{${r2 + a}} = ${sqrtAtR2}, but the right side is ${r2} - ${b} = ${r2 - b}. A square root can never equal a negative number:`,
         reason: "Reject the extraneous root",
-        blanks: [{ label: `x = ${r2}`, answer: `${sqrtAtR2} \\neq ${r2 - b} — reject` }],
+        blanks: [{ label: `x = ${r2}`, answer: `${sqrtAtR2} \\neq ${r2 - b}, reject` }],
       },
       {
         instruction: `CHECK x = ${r}: the left side is \\sqrt{${r + a}} = ${r - b} and the right side is ${r} - ${b} = ${r - b}. It checks:`,
@@ -817,7 +821,7 @@ function makeRadicalTwoRadicals(rng: RNG): Algebra2Problem {
     answer: `x = ${x0}`,
     steps: [
       {
-        instruction: "Square both sides. The right side is a binomial — square it fully, keeping the middle term with the remaining radical:",
+        instruction: "Square both sides. The right side is a binomial, square it fully, keeping the middle term with the remaining radical:",
         reason: "Square both sides (binomial)",
         blanks: [
           {
@@ -873,6 +877,149 @@ function makeRadicalNoSolution(rng: RNG): Algebra2Problem {
   };
 }
 
+// ── 6-7: extraneous solutions of radical equations (2A.4G) ───────────────────
+// The family sqrt(x + a) = x - b is built backwards from two roots of the
+// squared equation: r2 < b fails the check (its right side is negative) and
+// r = 2b + 1 - r2 is the true solution. D1 tests one candidate, D2 solves
+// and states the solution set, D3 covers the two no-solution mechanisms.
+
+function extraneousFamily(rng: RNG, bMax: number): { a: number; b: number; r: number; r2: number } {
+  const b = pick(rng, [2, 3, 4].filter((v) => v <= bMax));
+  const r2 = randInt(rng, 0, b - 1);
+  const r = 2 * b + 1 - r2;
+  const a = b * b - r * r2;
+  return { a, b, r, r2 };
+}
+
+function makeRadicalCandidateCheck(rng: RNG): Algebra2Problem {
+  const { a, b, r, r2 } = extraneousFamily(rng, 3);
+  const cand = rng() < 0.5 ? r : r2;
+  const isValid = cand === r;
+  const sqrtVal = isValid ? r - b : b - r2;
+  const answer = `x = ${cand} is ${isValid ? "a solution" : "extraneous"}`;
+  return {
+    type: "A2.6",
+    subtype: "RadicalCandidateCheck",
+    given: { equation: `\\sqrt{${xPlus(a)}} = x - ${b}`, candidate: `x = ${cand}` },
+    find: "whether the candidate is a solution of the equation or an extraneous solution",
+    answer,
+    steps: [
+      {
+        instruction: `Substitute x = ${cand} into the ORIGINAL equation and evaluate each side separately:`,
+        reason: "Check in the original equation",
+        blanks: [
+          { label: "left side", answer: `${sqrtVal}` },
+          { label: "right side", answer: `${cand - b}` },
+        ],
+      },
+      {
+        instruction: isValid
+          ? "The two sides are equal, so the candidate checks:"
+          : "The two sides are NOT equal (a square root is never negative, but the right side is), so the candidate does not check:",
+        reason: isValid ? "The candidate is a true solution" : "Extraneous: fails the check",
+        blanks: [{ label: "verdict", answer }],
+      },
+    ],
+    verify: { kind: "candidate", a, b, cand },
+  };
+}
+
+function makeRadicalExtraneousSolve(rng: RNG): Algebra2Problem {
+  const { a, b, r, r2 } = extraneousFamily(rng, 4);
+  const answer = `{${r}}`;
+  return {
+    type: "A2.6",
+    subtype: "RadicalExtraneousSolve",
+    given: { equation: `\\sqrt{${xPlus(a)}} = x - ${b}` },
+    find: "the solution set, checking every candidate for extraneous solutions",
+    answer,
+    steps: [
+      {
+        instruction: "Square both sides (squaring can introduce extraneous solutions, so the final check is mandatory):",
+        reason: "Square both sides",
+        blanks: [{ label: "squared equation", answer: `${xPlus(a)} = ${polyToLatex([1, -2 * b, b * b])}` }],
+      },
+      {
+        instruction: "Move everything to one side and factor:",
+        reason: "Factor the quadratic",
+        blanks: [
+          { label: "factored form", answer: `${linearFactor(r2)}${linearFactor(r)} = 0` },
+          { label: "candidates", answer: `x = ${r2} or x = ${r}` },
+        ],
+      },
+      {
+        instruction: `CHECK x = ${r2} in the original equation: the left side is \\sqrt{${r2 + a}} = ${b - r2}, but the right side is ${r2 - b}, which is negative. A square root can never equal a negative number:`,
+        reason: "Reject the extraneous root",
+        blanks: [{ label: `x = ${r2}`, answer: `${b - r2} \\neq ${r2 - b}, extraneous` }],
+      },
+      {
+        instruction: `CHECK x = ${r}: the left side is \\sqrt{${r + a}} = ${r - b} and the right side is ${r - b}. It checks, so the solution set is:`,
+        reason: "State the true solution set",
+        blanks: [{ label: "solution set", answer }],
+      },
+    ],
+    verify: { kind: "solve", a, b, validRoot: r, extraneousRoot: r2 },
+  };
+}
+
+function makeRadicalExtraneousNoSolution(rng: RNG): Algebra2Problem {
+  if (rng() < 0.5) {
+    // Squared equation has a negative discriminant: no candidates at all.
+    const b = pick(rng, [2, 3, 4]);
+    const a = -(b + 1) - randInt(rng, 0, 3);
+    const disc = 4 * b + 1 + 4 * a;
+    return {
+      type: "A2.6",
+      subtype: "RadicalExtraneousNoSolution",
+      given: { equation: `\\sqrt{${xPlus(a)}} = x - ${b}` },
+      find: "the solution set, checking for extraneous solutions",
+      answer: "no solution",
+      steps: [
+        {
+          instruction: "Square both sides and move everything to one side:",
+          reason: "Square both sides",
+          blanks: [{ label: "squared equation", answer: `${polyToLatex([1, -(2 * b + 1), b * b - a])} = 0` }],
+        },
+        {
+          instruction: "Compute the discriminant of the squared equation, (2b + 1)^2 - 4(1)(b^2 - a) with these values:",
+          reason: "Discriminant test",
+          blanks: [{ label: "discriminant", answer: `${disc}` }],
+        },
+        {
+          instruction: "The discriminant is negative, so even the squared equation has no real roots. There are no candidates to check, and the original equation has an empty solution set:",
+          reason: "No candidates survive",
+          blanks: [{ label: "solution set", answer: "no solution" }],
+        },
+      ],
+      verify: { kind: "negDisc", a, b },
+    };
+  }
+  // sqrt(x + a) = sqrt(x + b2) with a != b2 can never hold.
+  let a = randInt(rng, -4, 8);
+  let b2 = randInt(rng, -4, 8);
+  if (b2 === a) b2 = a + 3;
+  return {
+    type: "A2.6",
+    subtype: "RadicalExtraneousNoSolution",
+    given: { equation: `\\sqrt{${xPlus(a)}} = \\sqrt{${xPlus(b2)}}` },
+    find: "the solution set, checking for extraneous solutions",
+    answer: "no solution",
+    steps: [
+      {
+        instruction: "Square both sides:",
+        reason: "Square both sides",
+        blanks: [{ label: "squared equation", answer: `${xPlus(a)} = ${xPlus(b2)}` }],
+      },
+      {
+        instruction: `Simplifying the squared equation gives ${a} = ${b2}, which is false. The squared equation has no solution, so the original equation cannot have one either (squaring never removes solutions, it can only add them):`,
+        reason: "False statement after squaring",
+        blanks: [{ label: "solution set", answer: "no solution" }],
+      },
+    ],
+    verify: { kind: "equalRadicals", a, b2 },
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 const MAKERS: Maker[] = [
@@ -900,6 +1047,10 @@ const MAKERS: Maker[] = [
   { minDifficulty: 3, make: (rng) => makeRadicalExtraneous(rng, true) },
   { minDifficulty: 3, make: makeRadicalTwoRadicals },
   { minDifficulty: 3, make: makeRadicalNoSolution },
+  // 6-7 extraneous solutions focus (2A.4G)
+  { minDifficulty: 1, make: makeRadicalCandidateCheck },
+  { minDifficulty: 2, make: makeRadicalExtraneousSolve },
+  { minDifficulty: 3, make: makeRadicalExtraneousNoSolution },
 ];
 
 /** Generate n A2.6 (T6 function operations, inverses, square roots, radical

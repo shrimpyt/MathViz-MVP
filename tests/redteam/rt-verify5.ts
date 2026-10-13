@@ -1,4 +1,4 @@
-// rt-verify5.ts — Algebra 1 batch 2: parse prompts independently, verify answers.
+// rt-verify5.ts, Algebra 1 batch 2: parse prompts independently, verify answers.
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, counter, report } from "./util";
 

@@ -485,7 +485,7 @@ export function makeCongruenceProof(
     case "HL": proof = buildHL(rng, difficulty); break;
   }
 
-  // Diagram marks computed from the established facts — never hand-written.
+  // Diagram marks computed from the established facts, never hand-written.
   // (The right-angle vertex gets a right-angle mark, not a congruence arc.)
   const rightAngleAt = family === "HL" ? 2 : proof.rightAngles && family === "SAS" ? 1 : -1;
   const sideMarks: [number, number, number] = [0, 0, 0];
@@ -622,7 +622,7 @@ export function generateCPCTCProofs(
  * Prove the base angles of an isosceles triangle congruent (d1: bisector +
  * SAS; d2: median + SSS), or prove the converse (d3: equal base angles ⟹
  * equal legs, via AAS). Each proof constructs the auxiliary segment AM
- * explicitly — no hidden steps.
+ * explicitly, no hidden steps.
  */
 export function makeIsoscelesProof(
   rng: RNG,

@@ -7,7 +7,7 @@
 // own transformed presentation and its own answer key.
 //
 // Invariant (spec §4): an answer key is ALWAYS derived from its version's own
-// final problem list — never from the base version. Phase 1 transforms are
+// final problem list, never from the base version. Phase 1 transforms are
 // presentation-only so problems are identical across those versions, but each
 // version still gets its own key; content transforms (reduced-count) subset
 // the problems, and their keys are built from the subset, so keys can never
@@ -37,7 +37,7 @@ export interface PlannedVersion {
   versionId: string;
   /** Display label: 'Base' or the group's anonymous label. */
   label: string;
-  /** Students in this group (0 for base — base covers everyone else). */
+  /** Students in this group (0 for base, base covers everyone else). */
   studentCount: number;
   /**
    * Copies the teacher should print for this version's divider page.
@@ -50,12 +50,12 @@ export interface PlannedVersion {
   presentation: Presentation;
   /**
    * Word bank terms for this version (only when the group's wordBank flag is
-   * on; [] otherwise). Derived from this version's OWN final problem list —
-   * after reduced-count subsetting — so the bank never offers answers to
+   * on; [] otherwise). Derived from this version's OWN final problem list,
+   * after reduced-count subsetting, so the bank never offers answers to
    * problems the version doesn't contain.
    */
   wordBank: string[];
-  /** Divider-page line, e.g. "Group A — Large print · 3 students · print 3 copies". */
+  /** Divider-page line, e.g. "Group A, Large print · 3 students · print 3 copies". */
   dividerText: string;
   /** Answer-key section header for this version. */
   answerKeyLabel: string;
@@ -75,19 +75,19 @@ function describeAccommodations(group: AccommodationGroup): string {
 
 function dividerTextFor(kind: 'base' | 'group', group?: AccommodationGroup): string {
   if (kind === 'base' || !group) {
-    return 'Base version — print for students without accommodations';
+    return 'Base version, print for students without accommodations';
   }
   const desc = describeAccommodations(group);
   const copies =
     group.studentCount === 0
-      ? '0 students — no copies needed'
+      ? '0 students, no copies needed'
       : `${group.studentCount} student${group.studentCount === 1 ? '' : 's'} · print ${group.studentCount} ${group.studentCount === 1 ? 'copy' : 'copies'}`;
-  return `${group.label} — ${desc} · ${copies}`;
+  return `${group.label}, ${desc} · ${copies}`;
 }
 
 function answerKeyLabelFor(kind: 'base' | 'group', group?: AccommodationGroup): string {
   if (kind === 'base' || !group) return 'Answer Key';
-  return `Answer Key — ${group.label} (${describeAccommodations(group)})`;
+  return `Answer Key, ${group.label} (${describeAccommodations(group)})`;
 }
 
 function toPlannedVersion(
@@ -154,8 +154,8 @@ export function buildAnswerKey(
 /**
  * Assert the presentation-only invariant: every version whose transforms are
  * presentation-only has a key identical to the base key entry-for-entry.
- * Versions with content transforms (reduced-count) are EXPECTED to differ —
- * they have fewer problems by design — and are skipped here; their keys are
+ * Versions with content transforms (reduced-count) are EXPECTED to differ,
+ * they have fewer problems by design, and are skipped here; their keys are
  * verified per-version instead (each key is built from its own problem list
  * via buildAnswerKey, so key and version can never drift).
  * Returns the list of mismatches (empty = invariant holds).
@@ -168,7 +168,7 @@ export function findKeyMismatches(
   const baseKey = buildAnswerKey(plan.base.problems, formatAnswer);
   for (const v of plan.groups) {
     // Content-transformed versions (reduced-count) intentionally differ from
-    // base — their keys are verified per-version, not against base.
+    // base, their keys are verified per-version, not against base.
     if (v.accommodations.includes('reduced-count')) continue;
     const key = buildAnswerKey(v.problems, formatAnswer);
     const n = Math.max(baseKey.length, key.length);

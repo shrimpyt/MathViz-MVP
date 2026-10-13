@@ -1,5 +1,5 @@
 // Algebra2Conics.ts
-// A2.7 — Conic basics: circle equations (standard form ⇄ center/radius,
+// A2.7, Conic basics: circle equations (standard form ⇄ center/radius,
 // completing the square from general form) and parabola equations (vertex
 // form, focus/directrix, solving for `a` through a point). Includes ConicGraph
 // diagram params (circle + parabola on a coordinate grid) for the

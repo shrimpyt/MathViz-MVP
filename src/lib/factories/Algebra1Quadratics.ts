@@ -3,7 +3,7 @@
 //      A.7A (graphing), A.6B (vertex form).
 // Subtypes: QuadraticFactoring, QuadraticFormula, GraphQuadratic, VertexForm.
 //
-// Generation strategy: choose the roots (or vertex) FIRST, then expand —
+// Generation strategy: choose the roots (or vertex) FIRST, then expand,
 // so discriminants are never accidentally negative and factored forms
 // always multiply out exactly.
 
@@ -22,9 +22,9 @@ import {
 } from "./Algebra1Format";
 
 export const QUADRATIC_BY_DIFFICULTY: Record<DifficultyLevel, readonly Algebra1Subtype[]> = {
-  1: ["QuadraticFactoring", "QuadraticAttributes"],
-  2: ["QuadraticFactoring", "QuadraticAttributes", "GraphQuadratic", "QuadraticDiscriminant"],
-  3: ["QuadraticFactoring", "QuadraticAttributes", "GraphQuadratic", "QuadraticTransformations", "VertexForm", "QuadraticFormula", "QuadraticDiscriminant", "CompleteSquare", "WriteQuadratic"],
+  1: ["QuadraticFactoring", "QuadraticAttributes", "FactorsZeros"],
+  2: ["QuadraticFactoring", "QuadraticAttributes", "GraphQuadratic", "QuadraticDiscriminant", "FactorsZeros"],
+  3: ["QuadraticFactoring", "QuadraticAttributes", "GraphQuadratic", "QuadraticTransformations", "VertexForm", "QuadraticFormula", "QuadraticDiscriminant", "CompleteSquare", "WriteQuadratic", "FactorsZeros", "QuadModelData"],
 };
 
 const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
@@ -37,6 +37,8 @@ const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
   "QuadraticDiscriminant",
   "CompleteSquare",
   "WriteQuadratic",
+  "FactorsZeros",
+  "QuadModelData",
 ];
 
 function isPerfectSquare(n: number): boolean {
@@ -461,10 +463,185 @@ function makeWriteQuadratic(rng: RNG): Algebra1Problem {
   };
 }
 
+// ── Factors & zeros of quadratics (A.7B) ──────────────────────────────────
+// The factor theorem runs in both directions: factored form reveals the
+// zeros, and the zeros (the graph's x-intercepts) rebuild the function.
+
+function makeFactorsZeros(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
+  let r1 = randInt(rng, -6, 6);
+  let r2 = randInt(rng, -6, 6);
+  if (r2 === r1) r2 = r1 + pick(rng, [-3, 3] as const);
+  const variant = difficulty === 1
+    ? pick(rng, ["zeros", "factored"] as const)
+    : difficulty === 2
+      ? pick(rng, ["zeros", "factored", "standard"] as const)
+      : pick(rng, ["zeros", "factored", "standard", "multiplicity"] as const);
+
+  if (variant === "zeros") {
+    const a = difficulty >= 2 && rng() < 0.5 ? pick(rng, [2, 3] as const) : 1;
+    const aText = a === 1 ? "" : `${a}`;
+    const prompt = `Find the zeros of \\(f(x) = ${aText}${fmtFactored([fmtLinear(1, -r1), fmtLinear(1, -r2)])}\\).`;
+    const [lo, hi] = r1 <= r2 ? [r1, r2] : [r2, r1];
+    const answer = `x = ${lo} \\text{ or } x = ${hi}`;
+    return {
+      type: "A.7B",
+      subtype: "FactorsZeros",
+      prompt,
+      answer,
+      steps: [
+        {
+          instruction: "Set each factor equal to zero (zero product property):",
+          reason: "A zero of f is where a factor vanishes",
+          blanks: [{ label: "zeros", answer: `x = ${r1} or x = ${r2}` }],
+        },
+        {
+          instruction: "The zeros are:",
+          blanks: [{ label: "answer", answer: `x = ${lo} or x = ${hi}` }],
+        },
+      ],
+      meta: { kind: "factorsZeros", a, r1, r2, variant },
+    };
+  }
+
+  if (variant === "factored") {
+    const prompt = `A quadratic function has zeros at \\(x = ${r1}\\) and \\(x = ${r2}\\). Write the function in factored form.`;
+    const answer = `f(x) = ${fmtFactored([fmtLinear(1, -r1), fmtLinear(1, -r2)])}`;
+    return {
+      type: "A.7B",
+      subtype: "FactorsZeros",
+      prompt,
+      answer,
+      steps: [
+        {
+          instruction: "Each zero r gives a factor (x - r):",
+          reason: "Factor theorem",
+          blanks: [{ label: "answer", answer }],
+        },
+      ],
+      meta: { kind: "factorsZeros", a: 1, r1, r2, variant },
+    };
+  }
+
+  if (variant === "standard") {
+    const a = difficulty >= 3 ? pick(rng, [-2, -1, 1, 2, 3] as const) : 1;
+    const poly = polyMul([-r1, 1], [-r2, 1]).map((c) => c * a);
+    const prompt =
+      `The graph of a quadratic function crosses the x-axis at \\(x = ${r1}\\) and \\(x = ${r2}\\)` +
+      (a === 1 ? "" : ` and has leading coefficient ${a}`) +
+      `. Write the function in standard form.`;
+    const answer = `f(x) = ${fmtPoly(poly)}`;
+    return {
+      type: "A.7B",
+      subtype: "FactorsZeros",
+      prompt,
+      answer,
+      steps: [
+        {
+          instruction: "The x-intercepts are the zeros, so start from the factored form:",
+          reason: "Zeros and intercepts are the same points",
+          blanks: [{ label: "factored", answer: `f(x) = ${a === 1 ? "" : a}${fmtFactored([fmtLinear(1, -r1), fmtLinear(1, -r2)])}` }],
+        },
+        {
+          instruction: "Multiply out:",
+          blanks: [{ label: "answer", answer }],
+        },
+      ],
+      meta: { kind: "factorsZeros", a, r1, r2, variant },
+    };
+  }
+
+  // multiplicity: the graph touches at r2 (repeated zero) and crosses at r1.
+  const prompt =
+    `The graph of a quadratic function touches the x-axis at \\(x = ${r2}\\) and crosses the x-axis at \\(x = ${r1}\\). ` +
+    `Write the function in factored form.`;
+  const answer = `f(x) = ${fmtFactored([fmtLinear(1, -r1)])}(${fmtLinear(1, -r2)})^{2}`;
+  return {
+    type: "A.7B",
+    subtype: "FactorsZeros",
+    prompt,
+    answer,
+    steps: [
+      {
+        instruction: "Touching the axis means a repeated zero, so its factor appears twice; crossing means the factor appears once:",
+        reason: "Multiplicity: even multiplicity touches, odd crosses",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    meta: { kind: "factorsZeros", a: 1, r1, r2, variant },
+  };
+}
+
+// ── Quadratic models from data (A.8B) ─────────────────────────────────────
+// The best-fit model is stated in the prompt; the work is evaluating it,
+// predicting with it, and (tier 3) measuring a residual against real data.
+
+function makeQuadModelData(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
+  const a = pick(rng, [-2, -1, 1, 2] as const);
+  const b = randInt(rng, -6, 8);
+  const c = randInt(rng, 0, 20);
+  const f = (x: number) => a * x * x + b * x + c;
+  const noiseAt = difficulty >= 3 ? randInt(rng, 1, 4) : -1;
+  const points: Array<[number, number]> = [];
+  for (let x = 0; x <= 4; x++) {
+    const noise = x === noiseAt ? pick(rng, [-3, -2, 2, 3] as const) : 0;
+    points.push([x, f(x) + noise]);
+  }
+  const table = `\\(\\begin{array}{c|ccccc} x & ${points.map((p) => p[0]).join(" & ")} \\\\ \\hline y & ${points.map((p) => p[1]).join(" & ")} \\end{array}\\)`;
+  const modelText = `f(x) = ${fmtPoly([c, b, a])}`;
+  if (difficulty >= 3) {
+    const rx = noiseAt;
+    const actual = points[rx][1];
+    const predicted = f(rx);
+    const answer = `predicted: ${predicted}; residual: ${actual - predicted}`;
+    return {
+      type: "A.8B",
+      subtype: "QuadModelData",
+      prompt:
+        `The table shows data modeled by the quadratic function \\(${modelText}\\). ${table} ` +
+        `Find the model's prediction for x = ${rx} and the residual for that data point (residual = actual - predicted).`,
+      answer,
+      steps: [
+        {
+          instruction: `Evaluate the model at x = ${rx}:`,
+          reason: "Model prediction",
+          blanks: [{ label: "predicted", answer: `${predicted}` }],
+        },
+        {
+          instruction: "Subtract: residual = actual value - predicted value:",
+          reason: "A residual measures how far the model misses the data",
+          blanks: [{ label: "answer", answer: `residual: ${actual - predicted}` }],
+        },
+      ],
+      meta: { kind: "quadModel", a, b, c, points, askX: rx, residualX: rx },
+    };
+  }
+  const askX = difficulty === 1 ? randInt(rng, 2, 4) : pick(rng, [5, 6] as const);
+  const value = f(askX);
+  const answer = `f(${askX}) = ${value}`;
+  return {
+    type: "A.8B",
+    subtype: "QuadModelData",
+    prompt:
+      `The table shows data modeled by the quadratic function \\(${modelText}\\). ${table} ` +
+      `Use the model to ${askX > 4 ? "predict" : "find"} the value at x = ${askX}.`,
+    answer,
+    steps: [
+      {
+        instruction: `Substitute x = ${askX} into the model:`,
+        reason: "Evaluating a model makes a prediction",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    meta: { kind: "quadModel", a, b, c, points, askX, residualX: null },
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 const MAKERS: Record<string, (rng: RNG, difficulty: DifficultyLevel) => Algebra1Problem> = {
   QuadraticAttributes: (rng) => makeQuadraticAttributes(rng),
+  FactorsZeros: makeFactorsZeros,
+  QuadModelData: makeQuadModelData,
   GraphQuadratic: makeGraphQuadratic,
   QuadraticTransformations: (rng) => makeQuadraticTransformations(rng),
   VertexForm: makeVertexForm,

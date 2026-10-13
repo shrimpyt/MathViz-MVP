@@ -1,7 +1,7 @@
 "use client";
 // SatWebDiagrams.tsx
 // Web (SVG/HTML) diagrams for SAT problems. PDF counterparts live in
-// SatPdfDiagrams.tsx — the two must stay visually parallel.
+// SatPdfDiagrams.tsx, the two must stay visually parallel.
 
 import React from "react";
 import type { SATDiagramParams } from "@/lib/satTypes";

@@ -1,5 +1,5 @@
 // Algebra2ExpLog.ts
-// A2.5 — Exponentials & logarithms: evaluating logs, expanding/condensing
+// A2.5, Exponentials & logarithms: evaluating logs, expanding/condensing
 // logarithmic expressions, solving exponential equations (exact + approximate),
 // solving logarithmic equations with domain checks (extraneous roots are
 // rejected). Tests substitute solutions back into the ORIGINAL equation and
@@ -33,7 +33,10 @@ export type ExpLogSubtype =
   | "LogInversePair"
   | "LnEvaluate"
   | "LnApprox"
-  | "LnSolveTime";
+  | "LnSolveTime"
+  // Lesson 7-8 (2A.5E reasonableness) and 7-9 (2A.5C conversion drill)
+  | "LogReasonableness"
+  | "ExpLogConvert";
 
 interface Maker {
   minDifficulty: 1 | 2 | 3;
@@ -358,7 +361,7 @@ function makeExpGrowthDecay(rng: RNG): Algebra2Problem {
         blanks: [{ label: "factor", answer: bStr }],
       },
       {
-        instruction: "The initial value is f(0) — the coefficient in front:",
+        instruction: "The initial value is f(0), the coefficient in front:",
         reason: "Initial value at x = 0",
         blanks: [{ label: "initial value", answer: `${A}` }],
       },
@@ -544,7 +547,7 @@ function makeExpTransformWrite(rng: RNG): Algebra2Problem {
   };
 }
 
-// ── 7-2: the number e — evaluation, continuous compounding, attributes ──────
+// ── 7-2: the number e, evaluation, continuous compounding, attributes ──────
 
 function makeEEvaluate(rng: RNG): Algebra2Problem {
   const form = pick(rng, ["pure", "scaled"] as const);
@@ -581,7 +584,7 @@ function makeEEvaluate(rng: RNG): Algebra2Problem {
         blanks: [{ label: "substituted", answer: subStr }],
       },
       {
-        instruction: "Use e \\approx 2.71828 (the natural base — the limit of (1 + 1/n)^n as n grows) and round to the nearest hundredth:",
+        instruction: "Use e \\approx 2.71828 (the natural base, the limit of (1 + 1/n)^n as n grows) and round to the nearest hundredth:",
         reason: "The number e",
         blanks: [{ label: `f(${x0})`, answer: `\\approx ${approx}` }],
       },
@@ -646,7 +649,7 @@ function makeEAttributes(rng: RNG, hard: boolean): Algebra2Problem {
   const h = randInt(rng, -2, 2);
   const k = randSigned(rng, 4);
   const body = `${aPrefixFrac(a, 1)}e^{${xPlus(-h)}}${plusConst(k)}`;
-  // y-intercept: a·e^(−h) + k — exact when h = 0, else nearest hundredth
+  // y-intercept: a·e^(−h) + k, exact when h = 0, else nearest hundredth
   const yVal = a * Math.exp(-h) + k;
   const yExact = h === 0;
   const yInt = yExact ? `${a + k}` : yVal.toFixed(2);
@@ -714,7 +717,7 @@ function recursiveModelProblem(
     answer: `${an}`,
     steps: [
       {
-        instruction: "Apply the recursive rule one term at a time — each term is the previous term times the common ratio:",
+        instruction: "Apply the recursive rule one term at a time, each term is the previous term times the common ratio:",
         reason: "Recursive evaluation",
         blanks: termBlanks,
       },
@@ -788,7 +791,7 @@ function makeRecursiveModelWrite(rng: RNG): Algebra2Problem {
         blanks: [{ label: "recursive rule", answer: `a_1 = ${A}, a_n = ${rStr} \\cdot a_{n-1}` }],
       },
       {
-        instruction: "The explicit formula applies the ratio (n - 1) times to the first term — this is exactly an exponential function of n:",
+        instruction: "The explicit formula applies the ratio (n - 1) times to the first term, this is exactly an exponential function of n:",
         reason: "Recursive → explicit (exponential)",
         blanks: [{ label: "explicit formula", answer: `a_n = ${A} \\cdot ${explicitR}` }],
       },
@@ -811,7 +814,7 @@ function makeLogDomain(rng: RNG): Algebra2Problem {
     answer: `x > ${h}`,
     steps: [
       {
-        instruction: "A logarithm accepts only positive inputs — its argument must be > 0 (this mirrors the range of its inverse, the exponential):",
+        instruction: "A logarithm accepts only positive inputs, its argument must be > 0 (this mirrors the range of its inverse, the exponential):",
         reason: "Logarithm argument must be positive",
         blanks: [{ label: "argument condition", answer: `${xPlus(-h)} > 0` }],
       },
@@ -851,7 +854,7 @@ function makeLogAttributes(rng: RNG): Algebra2Problem {
     answer,
     steps: [
       {
-        instruction: "The argument must be positive — the mirror image of the exponential's range:",
+        instruction: "The argument must be positive, the mirror image of the exponential's range:",
         reason: "Domain from the argument",
         blanks: [{ label: "domain", answer: `x > ${h}` }],
       },
@@ -861,7 +864,7 @@ function makeLogAttributes(rng: RNG): Algebra2Problem {
         blanks: [{ label: "range", answer: "all real numbers" }],
       },
       {
-        instruction: `As x approaches ${h} from the right, the graph ${a > 0 ? "plunges down" : "shoots up"} without bound — the vertical line it hugs is:`,
+        instruction: `As x approaches ${h} from the right, the graph ${a > 0 ? "plunges down" : "shoots up"} without bound, the vertical line it hugs is:`,
         reason: "Vertical asymptote",
         blanks: [{ label: "asymptote", answer: `x = ${h}` }],
       },
@@ -900,7 +903,7 @@ function makeLogTransformWrite(rng: RNG): Algebra2Problem {
         blanks: [{ label: "a", answer: `${a}` }],
       },
       {
-        instruction: "The shifts give h (inside the argument — it also moves the vertical asymptote to x = h) and k (outside):",
+        instruction: "The shifts give h (inside the argument, it also moves the vertical asymptote to x = h) and k (outside):",
         reason: "Shifts from h and k",
         blanks: [
           { label: "h", answer: `${h}` },
@@ -936,7 +939,7 @@ function makeLogInversePair(rng: RNG): Algebra2Problem {
           blanks: [{ label: "swapped", answer: `x${plusConst(-k)} = ${b}^y` }],
         },
         {
-          instruction: "Rewrite in logarithmic form — the inverse of an exponential is a logarithm:",
+          instruction: "Rewrite in logarithmic form, the inverse of an exponential is a logarithm:",
           reason: "Definition of logarithm",
           blanks: [{ label: "inverse", answer: `f^{-1}(x) = ${inv}` }],
         },
@@ -964,7 +967,7 @@ function makeLogInversePair(rng: RNG): Algebra2Problem {
         blanks: [{ label: "swapped", answer: `x = ${b}^{${xPlus(-h, "y")}}` }],
       },
       {
-        instruction: "Rewrite in logarithmic form and solve for y — the inverse of an exponential is a logarithm:",
+        instruction: "Rewrite in logarithmic form and solve for y, the inverse of an exponential is a logarithm:",
         reason: "Definition of logarithm",
         blanks: [{ label: "inverse", answer: `f^{-1}(x) = ${inv}` }],
       },
@@ -1042,7 +1045,7 @@ function makeLnApprox(rng: RNG): Algebra2Problem {
     answer: `\\ln(${N}) \\approx ${approx}`,
     steps: [
       {
-        instruction: `\\ln(${N}) asks "e to what power gives ${N}?" — ${N} is not a clean power of e, so evaluate with a calculator:`,
+        instruction: `\\ln(${N}) asks "e to what power gives ${N}?", ${N} is not a clean power of e, so evaluate with a calculator:`,
         reason: "Definition of natural log",
         blanks: [{ label: "approximate value", answer: `\\approx ${approx}` }],
       },
@@ -1087,7 +1090,7 @@ function makeLnSolveTime(rng: RNG): Algebra2Problem {
         blanks: [{ label: "isolated", answer: `e^{${r}t} = ${fracToLatex(A, P)}` }],
       },
       {
-        instruction: "Take the natural log of both sides — ln undoes e^(...):",
+        instruction: "Take the natural log of both sides, ln undoes e^(...):",
         reason: "Natural log is the inverse of e^x",
         blanks: [{ label: "after ln", answer: `${r}t = \\ln(${fracToLatex(A, P)})` }],
       },
@@ -1102,6 +1105,253 @@ function makeLnSolveTime(rng: RNG): Algebra2Problem {
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
+
+// ── 7-8: reasonableness of logarithmic solutions (2A.5E) ─────────────────────
+// A candidate or a full equation is tested against argument positivity:
+// log arguments must be positive, so a root that makes any argument zero or
+// negative is extraneous even though it solves the cleared equation.
+
+function logPairParams(rng: RNG): { base: number; mExp: number; B: number; s: number; t: number; k: number } {
+  // Same construction as SolveLogEquation: x(x - k) = B with roots s > 0
+  // (valid) and t < 0 (extraneous), where k = s + t.
+  const base = pick(rng, [2, 3]);
+  const mExp = pick(rng, [2, 3]);
+  const B = Math.pow(base, mExp);
+  const divs: number[] = [];
+  for (let d = 1; d <= B; d++) if (B % d === 0) divs.push(d);
+  const s = pick(rng, divs.filter((d) => d !== B));
+  const t = -(B / s);
+  const k = s + t;
+  return { base, mExp, B, s, t, k };
+}
+
+function makeLogReasonablenessCandidate(rng: RNG): Algebra2Problem {
+  const { base, mExp, s, t, k } = logPairParams(rng);
+  const options: ("valid" | "root" | "trap")[] = ["valid", "root"];
+  if (k > 0) options.push("trap");
+  const which = pick(rng, options);
+  const cand = which === "valid" ? s : which === "root" ? t : Math.max(1, Math.ceil(k / 2));
+  const arg2At = cand - k;
+  const verdict = cand > 0 && arg2At > 0 ? "valid" : "extraneous";
+  const equation = `${logLatex(base, "x")} + ${logLatex(base, xPlus(-k))} = ${mExp}`;
+  const why = verdict === "valid"
+    ? `Both arguments are positive at x = ${cand}, and substitution gives log values that add to ${mExp}:`
+    : which === "root"
+      ? `The first argument at x = ${cand} is ${cand}, which is not positive. A logarithm is defined only for positive arguments, so this candidate cannot be a solution:`
+      : `The candidate x = ${cand} is positive, but the second argument there is ${arg2At}, which is not positive. A logarithm is defined only for positive arguments:`;
+  return {
+    type: "A2.7",
+    subtype: "LogReasonableness",
+    given: { equation, candidate: `x = ${cand}` },
+    find: "whether the candidate is a valid solution or extraneous",
+    answer: verdict,
+    steps: [
+      {
+        instruction: `Evaluate both log arguments at the candidate x = ${cand}:`,
+        reason: "Arguments must be positive",
+        blanks: [
+          { label: "first argument", answer: `${cand}` },
+          { label: "second argument", answer: `${arg2At}` },
+        ],
+      },
+      {
+        instruction: why,
+        reason: "Domain check decides validity",
+        blanks: [{ label: "verdict", answer: verdict }],
+      },
+    ],
+    verify: { kind: "candidate", base, mExp, k, cand },
+  };
+}
+
+function makeLogReasonablenessSolvePlus(rng: RNG): Algebra2Problem {
+  // log_b(x) + log_b(x + k) = m with k > 0: roots s (valid) and t = -B/s
+  // (extraneous, since t < 0 already breaks the first argument).
+  let base = 2, mExp = 3, B = 8, s = 2, t = -4, k = 2;
+  for (let tries = 0; tries < 100; tries++) {
+    const p = logPairParams(rng);
+    if (p.s * p.s < p.B) {
+      base = p.base; mExp = p.mExp; B = p.B; s = p.s; t = p.t; k = -(p.s + p.t);
+      break;
+    }
+  }
+  const answer = `x = ${s}`;
+  const equation = `${logLatex(base, "x")} + ${logLatex(base, `x + ${k}`)} = ${mExp}`;
+  return {
+    type: "A2.7",
+    subtype: "LogReasonableness",
+    given: { equation },
+    find: "x, checking each candidate against the domain of the logarithms",
+    answer,
+    steps: [
+      {
+        instruction: "Condense with the product rule and convert to exponential form:",
+        reason: "Product rule, exponential form",
+        blanks: [{ label: "exponential form", answer: `x(x + ${k}) = ${B}` }],
+      },
+      {
+        instruction: "Solve the quadratic for the two algebraic candidates:",
+        reason: "Solve the cleared equation",
+        blanks: [{ label: "candidates", answer: `x = ${s} or x = ${t}` }],
+      },
+      {
+        instruction: `Check the candidates in the ORIGINAL equation. At x = ${t} the first argument is ${t}, not positive, so that root is extraneous; at x = ${s} both arguments are positive and the equation checks:`,
+        reason: "Exactly one root survives the domain check",
+        blanks: [
+          { label: "extraneous root", answer: `${t}` },
+          { label: "solution", answer },
+        ],
+      },
+    ],
+    verify: { kind: "solvePlus", base, mExp, k, s, t },
+  };
+}
+
+const LOG_PM_TRIPLES: [number, number, number, number][] = [
+  // (base, a, B, mExp): log_b(x + a) + log_b(x - a) = mExp, roots +/-sqrt(B + a^2)
+  [2, 3, 16, 4], [2, 2, 32, 5], [2, 7, 32, 5], [2, 6, 64, 6], [3, 4, 9, 2], [5, 10, 125, 3],
+];
+
+function makeLogReasonablenessSolvePM(rng: RNG): Algebra2Problem {
+  const [base, a, B, mExp] = pick(rng, LOG_PM_TRIPLES);
+  const r = Math.round(Math.sqrt(B + a * a));
+  const answer = `x = ${r}`;
+  const equation = `${logLatex(base, `x + ${a}`)} + ${logLatex(base, `x - ${a}`)} = ${mExp}`;
+  return {
+    type: "A2.7",
+    subtype: "LogReasonableness",
+    given: { equation },
+    find: "x, checking each candidate against the domain of the logarithms",
+    answer,
+    steps: [
+      {
+        instruction: "Condense with the product rule: the arguments multiply to (x + a)(x - a) = x^2 - a^2. Convert to exponential form:",
+        reason: "Product rule, exponential form",
+        blanks: [{ label: "exponential form", answer: `x^2 - ${a * a} = ${B}` }],
+      },
+      {
+        instruction: "Solve x^2 = B + a^2 for the two algebraic candidates:",
+        reason: "Solve the cleared equation",
+        blanks: [{ label: "candidates", answer: `x = ${r} or x = ${-r}` }],
+      },
+      {
+        instruction: `Check the domain: the arguments require x - ${a} > 0, so x must exceed ${a}. The candidate x = ${-r} fails this (its second argument is ${-r - a}), so it is extraneous; x = ${r} keeps both arguments positive:`,
+        reason: "Exactly one root survives the domain check",
+        blanks: [
+          { label: "extraneous root", answer: `${-r}` },
+          { label: "solution", answer },
+        ],
+      },
+    ],
+    verify: { kind: "solvePlusMinus", base, mExp, a, r },
+  };
+}
+
+// ── 7-9: exponential and logarithmic conversion drill (2A.5C) ────────────────
+// b^e = N and log_b(N) = e are the same statement. verify carries the value
+// as exact fractions: base^(eNum/eDen) = nNum/nDen.
+
+function convParts(e: number, base: number): { eNum: number; eDen: number; nNum: number; nDen: number; nStr: string } {
+  if (e >= 0) {
+    const N = Math.pow(base, e);
+    return { eNum: e, eDen: 1, nNum: N, nDen: 1, nStr: `${N}` };
+  }
+  const D = Math.pow(base, -e);
+  return { eNum: e, eDen: 1, nNum: 1, nDen: D, nStr: `1/${D}` };
+}
+
+function makeExpLogConvert(rng: RNG, dir: "expToLog" | "logToExp"): Algebra2Problem {
+  const base = pick(rng, [2, 3, 4, 5, 10]);
+  const e = pick(rng, [-3, -2, -1, 2, 3, 4]);
+  const { eNum, eDen, nNum, nDen, nStr } = convParts(e, base);
+  const expForm = `${base}^{${e}} = ${nStr}`;
+  const logForm = `${logLatex(base, nStr)} = ${e}`;
+  const answer = dir === "expToLog" ? logForm : expForm;
+  return {
+    type: "A2.7",
+    subtype: "ExpLogConvert",
+    given: { equation: dir === "expToLog" ? expForm : logForm },
+    find: dir === "expToLog" ? "the same equation in logarithmic form" : "the same equation in exponential form",
+    answer,
+    steps: [
+      {
+        instruction: `By definition, log_b(N) is the exponent that b must be raised to in order to get N. Here the base is ${base} and the exponent is ${e}:`,
+        reason: "Definition of a logarithm",
+        blanks: [{ label: "converted form", answer }],
+      },
+    ],
+    verify: { kind: dir, base, eNum, eDen, nNum, nDen },
+  };
+}
+
+const FRAC_EXP_TRIPLES: [number, number, number, number][] = [
+  // (base, eNum, eDen, value): base^(eNum/eDen) = value exactly
+  [4, 1, 2, 2], [9, 1, 2, 3], [8, 1, 3, 2], [27, 1, 3, 3], [16, 1, 4, 2],
+  [25, 1, 2, 5], [32, 1, 5, 2], [81, 1, 4, 3], [8, 2, 3, 4], [9, 3, 2, 27],
+  [4, 3, 2, 8], [27, 2, 3, 9],
+];
+
+function makeExpLogConvertFrac(rng: RNG): Algebra2Problem {
+  const [base, eNum, eDen, value] = pick(rng, FRAC_EXP_TRIPLES);
+  const eStr = `${eNum}/${eDen}`;
+  const expForm = `${base}^{${eStr}} = ${value}`;
+  const logForm = `${logLatex(base, `${value}`)} = ${eStr}`;
+  const dir = rng() < 0.5 ? "expToLog" : "logToExp";
+  const answer = dir === "expToLog" ? logForm : expForm;
+  return {
+    type: "A2.7",
+    subtype: "ExpLogConvert",
+    given: { equation: dir === "expToLog" ? expForm : logForm },
+    find: dir === "expToLog" ? "the same equation in logarithmic form" : "the same equation in exponential form",
+    answer,
+    steps: [
+      {
+        instruction: `The exponent in this statement is the fraction ${eStr}; the definition of a logarithm keeps the same base, value, and exponent, only rearranged:`,
+        reason: "Definition of a logarithm",
+        blanks: [{ label: "converted form", answer }],
+      },
+    ],
+    verify: { kind: dir, base, eNum, eDen, nNum: value, nDen: 1 },
+  };
+}
+
+function makeExpLogEval(rng: RNG, kind: "evalLog" | "evalExp"): Algebra2Problem {
+  const base = pick(rng, [2, 3, 4, 5, 10]);
+  const e = pick(rng, [-2, -1, 2, 3, 4]);
+  const { eNum, eDen, nNum, nDen, nStr } = convParts(e, base);
+  if (kind === "evalLog") {
+    return {
+      type: "A2.7",
+      subtype: "ExpLogConvert",
+      given: { expression: logLatex(base, nStr) },
+      find: "the value of the logarithm",
+      answer: `${e}`,
+      steps: [
+        {
+          instruction: `Convert to exponential form: the value is the exponent e with ${base}^e = ${nStr}. Since ${base}^{${e}} = ${nStr}:`,
+          reason: "Evaluate through the conversion",
+          blanks: [{ label: "value", answer: `${e}` }],
+        },
+      ],
+      verify: { kind, base, eNum, eDen, nNum, nDen },
+    };
+  }
+  return {
+    type: "A2.7",
+    subtype: "ExpLogConvert",
+    given: { equation: `${base}^x = ${nStr}` },
+    find: "x",
+    answer: `x = ${e}`,
+    steps: [
+      {
+        instruction: `Convert to logarithmic form: x = ${logLatex(base, nStr)}. The value ${nStr} is the perfect power ${base}^{${e}}:`,
+        reason: "Evaluate through the conversion",
+        blanks: [{ label: "x", answer: `x = ${e}` }],
+      },
+    ],
+    verify: { kind, base, eNum, eDen, nNum, nDen },
+  };
+}
 
 const MAKERS: Maker[] = [
   { minDifficulty: 1, make: makeLogEvaluate },
@@ -1140,6 +1390,16 @@ const MAKERS: Maker[] = [
   { minDifficulty: 1, make: makeLnEvaluate },
   { minDifficulty: 2, make: makeLnApprox },
   { minDifficulty: 3, make: makeLnSolveTime },
+  // 7-8 reasonableness of log solutions (2A.5E)
+  { minDifficulty: 1, make: makeLogReasonablenessCandidate },
+  { minDifficulty: 2, make: makeLogReasonablenessSolvePlus },
+  { minDifficulty: 3, make: makeLogReasonablenessSolvePM },
+  // 7-9 exp/log conversion drill (2A.5C)
+  { minDifficulty: 1, make: (rng) => makeExpLogConvert(rng, "expToLog") },
+  { minDifficulty: 1, make: (rng) => makeExpLogConvert(rng, "logToExp") },
+  { minDifficulty: 2, make: makeExpLogConvertFrac },
+  { minDifficulty: 3, make: (rng) => makeExpLogEval(rng, "evalLog") },
+  { minDifficulty: 3, make: (rng) => makeExpLogEval(rng, "evalExp") },
 ];
 
 /** Generate n A2.7 (T7 exponentials & logs) problems at the given cumulative difficulty tier.

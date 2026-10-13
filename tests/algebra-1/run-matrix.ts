@@ -1,6 +1,6 @@
 // run-matrix.ts
 // Full coverage matrix: every lesson × doc mode × difficulty 1–3 × count {1,3,12,25}.
-// (Classical is excluded per contract — the coordinator verifies it at integration.)
+// (Classical is excluded per contract, the coordinator verifies it at integration.)
 // Every problem is independently verified via verify.ts.
 //
 // Run: npx tsx tests/algebra-1/run-matrix.ts

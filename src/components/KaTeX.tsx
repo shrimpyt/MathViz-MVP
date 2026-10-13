@@ -2,7 +2,7 @@
 
 /**
  * KaTeX renderer backed by vendored local files in /public/vendor/katex/.
- * No network requests — safe for offline/sandboxed environments.
+ * No network requests, safe for offline/sandboxed environments.
  */
 
 import React, { useEffect, useRef, useState } from "react";

@@ -1,5 +1,5 @@
 // Algebra2RadicalExpressions.ts
-// A2.9 — Radical expressions & rational exponents (9-1..9-4): simplifying
+// A2.9, Radical expressions & rational exponents (9-1..9-4): simplifying
 // nth roots, multiplying/dividing radicals with rationalized denominators,
 // binomial radical expressions (including conjugates), and rational exponents
 // as a second notation for roots. Every answer is computed from the generated

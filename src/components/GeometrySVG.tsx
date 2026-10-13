@@ -1,5 +1,5 @@
 "use client";
-// GeometrySVG.tsx — coordinate-accurate SVG renderers for circle theorems,
+// GeometrySVG.tsx, coordinate-accurate SVG renderers for circle theorems,
 // area-based probability diagrams, and triangle congruence proofs.
 
 import React from "react";
@@ -290,9 +290,9 @@ export function TwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: num
 
 // ── Concentric Circles SVG (Target Zone bullseye) ─────────────────────────────
 // SVG coordinate logic verification:
-//   scale  = SVG_R / outerR           — normalise outer to 70px
-//   scaledOuter = outerR × scale = 70 — always fills viewBox
-//   scaledInner = innerR × scale      — proportional to innerR/outerR
+//   scale  = SVG_R / outerR          , normalise outer to 70px
+//   scaledOuter = outerR × scale = 70, always fills viewBox
+//   scaledInner = innerR × scale     , proportional to innerR/outerR
 //   On-screen area ratio = scaledInner²/70² = innerR²/outerR² = P ✓
 //
 // Labels use two different angles to prevent text collision:
@@ -325,12 +325,12 @@ export function ConcentricCirclesSVG({
         fill="#3b82f6" fillOpacity={0.55}
         stroke="#1d4ed8" strokeWidth={1.5}
       />
-      {/* Inner radius line — horizontal, 0° */}
+      {/* Inner radius line, horizontal, 0° */}
       <line
         x1={CX} y1={CY} x2={CX + scaledInner} y2={CY}
         stroke="#1d4ed8" strokeWidth={1} strokeDasharray="3 2"
       />
-      {/* Outer radius line — diagonal, 45° */}
+      {/* Outer radius line, diagonal, 45° */}
       <line
         x1={CX} y1={CY} x2={oxEnd} y2={oyEnd}
         stroke="#64748b" strokeWidth={1} strokeDasharray="3 2"

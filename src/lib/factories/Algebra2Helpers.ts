@@ -218,7 +218,7 @@ export interface MakerLike {
  * Select makers for a generate() call. Cumulative difficulty filtering, plus
  * an optional `only` subtype restriction for lesson wiring. Mirrors the
  * registry's filterAllowed philosophy: a lesson never generates zero
- * problems — if no maker at this difficulty can produce the requested
+ * problems, if no maker at this difficulty can produce the requested
  * subtypes, the difficulty filter is widened (the lesson's subtypes win).
  * Selection is deterministic and consumes no caller RNG (probes use throwaway
  * seeds), so seed reproducibility is preserved.

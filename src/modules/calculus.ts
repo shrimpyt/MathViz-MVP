@@ -1,5 +1,5 @@
 // calculus.ts
-// AP Calculus AB/BC — module wiring for the Euclid Engine.
+// AP Calculus AB/BC, module wiring for the Euclid Engine.
 //
 // Each entry follows the CurriculumEntry shape from CurriculumRegistry.ts.
 // Generators are pure + seeded (mulberry32); difficulty tiers are cumulative
@@ -66,7 +66,7 @@ function mixedProblems(mode: OutputMode, seed: number, options?: GenerateOptions
 /**
  * Calculus entries for the curriculum registry (Topic 21: AP Calculus).
  * The registry snippet in tests/calculus/REGISTRY_SNIPPET.md shows how these
- * are spliced into CURRICULUM_REGISTRY. No placeholder ids are replaced —
+ * are spliced into CURRICULUM_REGISTRY. No placeholder ids are replaced,
  * all six entries are new.
  */
 export const CALCULUS_ENTRIES: CurriculumEntry[] = [
@@ -75,7 +75,7 @@ export const CALCULUS_ENTRIES: CurriculumEntry[] = [
     topic: 21,
     topicTitle: "Topic 21: AP Calculus AB",
     title: "Limits & Continuity",
-    story: "Read limits from graphs, tables, and algebra — including one-sided and infinite limits.",
+    story: "Read limits from graphs, tables, and algebra, including one-sided and infinite limits.",
     teks: "AP Calculus AB",
     description: "Graphical, numerical, and algebraic limits: removable and jump discontinuities, one-sided limits, infinite limits, end behavior, and difference quotients.",
     generate: drillEntry(generateLimitProblems),

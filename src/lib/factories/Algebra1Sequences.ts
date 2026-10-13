@@ -1,5 +1,5 @@
 // Algebra1Sequences.ts
-// TEKS A.12D — Arithmetic and geometric sequences.
+// TEKS A.12D, Arithmetic and geometric sequences.
 // Subtypes: ArithmeticSequence, GeometricSequence, SequenceWordProblem.
 
 import type { RNG } from "../math-utils";

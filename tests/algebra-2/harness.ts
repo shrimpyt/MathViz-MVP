@@ -27,7 +27,7 @@ export function summary(): { checks: number; failures: number } {
 
 export function report(name: string): void {
   const s = summary();
-  console.log(`— ${name}: ${s.checks} checks, ${s.failures} failures`);
+  console.log(`${name}: ${s.checks} checks, ${s.failures} failures`);
   if (s.failures > 0) {
     console.log("FAILURES (first 30):");
     for (const f of failures.slice(0, 30)) console.log("  ✗ " + f);

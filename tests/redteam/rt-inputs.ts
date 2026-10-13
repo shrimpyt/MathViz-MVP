@@ -1,4 +1,4 @@
-// rt-inputs.ts — hostile input attacks (OOM-safe: dangerous counts run in a
+// rt-inputs.ts, hostile input attacks (OOM-safe: dangerous counts run in a
 // sandboxed child process with timeout + memory cap).
 import { spawnSync } from "child_process";
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";

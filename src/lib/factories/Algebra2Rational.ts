@@ -1,5 +1,5 @@
 // Algebra2Rational.ts
-// A2.4 — Rational functions & equations: vertical/horizontal asymptotes,
+// A2.4, Rational functions & equations: vertical/horizontal asymptotes,
 // holes (removable discontinuities), solving rational equations (including
 // extraneous/no-solution cases). Denominators are guarded against being
 // identically zero and against hidden common factors except in the Holes
@@ -7,11 +7,12 @@
 // solutions into the ORIGINAL equation.
 
 import type { RNG } from "../math-utils";
+import { randInt, pick } from "../math-utils";
 import type { ProblemStep } from "../types";
 import type { Algebra2Problem, Algebra2RationalSVGParams } from "./Algebra2Types";
 import { randSigned, randNonZero, reduceFrac, fracToLatex, polyToLatex, linearFactor, selectMakers } from "./Algebra2Helpers";
 
-export type RationalSubtype = "SimplifyRational" | "MultiplyDivideRational" | "AddSubtractRational" | "Asymptotes" | "Holes" | "SolveRationalEquation";
+export type RationalSubtype = "SimplifyRational" | "MultiplyDivideRational" | "AddSubtractRational" | "Asymptotes" | "Holes" | "SolveRationalEquation" | "InverseVariation" | "RationalWordProblem";
 
 interface Maker {
   minDifficulty: 1 | 2 | 3;
@@ -232,7 +233,7 @@ function makeMultiplyDivideRational(rng: RNG): Algebra2Problem {
 
 // ── Add / subtract rational expressions ──────────────────────────────────────
 // Constructive families by tier (spec: topic-11-add-subtract-spec.md).
-// Except for likeCancel — where canceling is the point of the problem —
+// Except for likeCancel, where canceling is the point of the problem,
 // every family builds its combined numerator so it does NOT vanish at a
 // pole, so no factor cancels and the answer is exactly
 // (combined numerator)/(common denominator):
@@ -324,7 +325,7 @@ function makeAddSubtractUnlikeSimple(rng: RNG): Algebra2Problem {
     steps: [
       {
         instruction: "Find the least common denominator of the two denominators:",
-        reason: "LCD of distinct linear factors is their product (the LCD rewrites fractions; it never clears them — clearing is a move for equations)",
+        reason: "LCD of distinct linear factors is their product (the LCD rewrites fractions; it never clears them, clearing is a move for equations)",
         blanks: [{ label: "LCD", answer: lcd }],
       },
       {
@@ -438,8 +439,8 @@ function makeAddSubtractUnlikeShared(rng: RNG): Algebra2Problem {
     answer,
     steps: [
       {
-        instruction: `The second denominator factors as ${linearFactor(r)}${linearFactor(s)}, so the LCD is ${linearFactor(r)}${linearFactor(s)} — the first fraction is missing the factor ${linearFactor(s)}:`,
-        reason: "Build the LCD from the factored denominators (the LCD rewrites fractions; it never clears them — clearing is a move for equations)",
+        instruction: `The second denominator factors as ${linearFactor(r)}${linearFactor(s)}, so the LCD is ${linearFactor(r)}${linearFactor(s)}, the first fraction is missing the factor ${linearFactor(s)}:`,
+        reason: "Build the LCD from the factored denominators (the LCD rewrites fractions; it never clears them, clearing is a move for equations)",
         blanks: [{ label: "LCD", answer: `${linearFactor(r)}${linearFactor(s)}` }],
       },
       {
@@ -623,6 +624,346 @@ function makeSolveRational(rng: RNG, level: 1 | 2 | 3): Algebra2Problem {
   };
 }
 
+// ── 11-6: inverse variation (2A.6L) ──────────────────────────────────────────
+// y = k/x formulated from a context pair; find k, predict values, read a
+// table; at level 3, y varies inversely as the SQUARE of x.
+
+interface InvCtx { yv: string; xv: string; phrase: string }
+
+const INV_CTX: InvCtx[] = [
+  { yv: "y", xv: "x", phrase: "y varies inversely as x" },
+  { yv: "P", xv: "V", phrase: "The pressure P of a fixed amount of gas varies inversely as its volume V" },
+  { yv: "t", xv: "n", phrase: "The time t needed to finish a job varies inversely as the number of workers n" },
+  { yv: "I", xv: "R", phrase: "The current I in a circuit varies inversely as the resistance R" },
+  { yv: "s", xv: "t", phrase: "For a trip of fixed distance, the average speed s varies inversely as the travel time t" },
+];
+
+function makeInverseVariationFindK(rng: RNG): Algebra2Problem {
+  const ctx = pick(rng, INV_CTX);
+  const x0 = randInt(rng, 2, 9);
+  const y0 = randInt(rng, 2, 12);
+  const k = x0 * y0;
+  const answer = `k = ${k}; ${ctx.yv} = ${k}/${ctx.xv}`;
+  return {
+    type: "A2.11",
+    subtype: "InverseVariation",
+    given: { relationship: ctx.phrase, pair: `when ${ctx.xv} = ${x0}, ${ctx.yv} = ${y0}` },
+    find: "the constant of variation k and the inverse variation equation",
+    answer,
+    steps: [
+      {
+        instruction: `Inverse variation means ${ctx.yv}${ctx.xv} = k. Substitute the known pair ${ctx.xv} = ${x0}, ${ctx.yv} = ${y0}:`,
+        reason: "Inverse variation model xy = k",
+        blanks: [{ label: "k", answer: `${k}` }],
+      },
+      {
+        instruction: "Write the equation with this value of k:",
+        reason: "Inverse variation equation",
+        blanks: [{ label: "equation", answer: `${ctx.yv} = ${k}/${ctx.xv}` }],
+      },
+    ],
+    verify: { kind: "findK", x0, y0, k, yv: ctx.yv, xv: ctx.xv },
+  };
+}
+
+function divisorsOf(k: number, lo: number, hi: number): number[] {
+  const out: number[] = [];
+  for (let d = lo; d <= hi; d++) if (k % d === 0) out.push(d);
+  return out;
+}
+
+function makeInverseVariationPredict(rng: RNG): Algebra2Problem {
+  const ctx = pick(rng, INV_CTX);
+  const k = pick(rng, [24, 36, 48, 60, 72, 96, 120]);
+  const divs = divisorsOf(k, 2, 12);
+  const x0 = pick(rng, divs);
+  const y0 = k / x0;
+  const askY = rng() < 0.5;
+  let at: number;
+  if (rng() < 0.5) {
+    const options = divs.filter((d) => d !== (askY ? x0 : y0));
+    at = options.length > 0 ? pick(rng, options) : x0 + 1;
+  } else {
+    at = randInt(rng, 2, 16);
+  }
+  const [an, ad] = reduceFrac(k, at);
+  const ansVal = fracToLatex(k, at);
+  const answer = askY ? `${ctx.yv} = ${ansVal}` : `${ctx.xv} = ${ansVal}`;
+  return {
+    type: "A2.11",
+    subtype: "InverseVariation",
+    given: {
+      relationship: ctx.phrase,
+      pair: `when ${ctx.xv} = ${x0}, ${ctx.yv} = ${y0}`,
+      query: askY ? `${ctx.xv} = ${at}` : `${ctx.yv} = ${at}`,
+    },
+    find: askY ? `${ctx.yv} when ${ctx.xv} = ${at}` : `${ctx.xv} when ${ctx.yv} = ${at}`,
+    answer,
+    steps: [
+      {
+        instruction: `First find k from the known pair: k = ${ctx.xv}${ctx.yv} = ${x0}(${y0}):`,
+        reason: "Constant of variation",
+        blanks: [{ label: "k", answer: `${k}` }],
+      },
+      {
+        instruction: askY
+          ? `Use ${ctx.yv} = k/${ctx.xv} with ${ctx.xv} = ${at}:`
+          : `Use ${ctx.xv} = k/${ctx.yv} with ${ctx.yv} = ${at}:`,
+        reason: "Predict with the model",
+        blanks: [{ label: "prediction", answer }],
+      },
+    ],
+    verify: { kind: "predict", k, ask: askY ? "y" : "x", at, ansNum: an, ansDen: ad, yv: ctx.yv, xv: ctx.xv },
+  };
+}
+
+function makeInverseVariationTable(rng: RNG): Algebra2Problem {
+  const k = pick(rng, [12, 18, 20, 24, 30, 36, 40, 48, 60]);
+  const divs = divisorsOf(k, 2, 12);
+  const xs = [...divs].sort((m, n) => m - n).slice(0, 4);
+  const ys = xs.map((x) => k / x);
+  const hideIdx = randInt(rng, 1, xs.length - 1);
+  const yText = ys.map((y, i) => (i === hideIdx ? "?" : `${y}`)).join(", ");
+  const firstComplete = hideIdx === 0 ? 1 : 0;
+  return {
+    type: "A2.11",
+    subtype: "InverseVariation",
+    given: { relationship: "y varies inversely as x", table: `x: ${xs.join(", ")}; y: ${yText}` },
+    find: "the missing value in the table",
+    answer: `${ys[hideIdx]}`,
+    steps: [
+      {
+        instruction: `Every complete pair in the table has the same product xy. Using x = ${xs[firstComplete]}, y = ${ys[firstComplete]}:`,
+        reason: "Constant product xy = k",
+        blanks: [{ label: "k", answer: `${k}` }],
+      },
+      {
+        instruction: `At x = ${xs[hideIdx]}, y = k/x = ${k}/${xs[hideIdx]}:`,
+        reason: "Solve for the missing value",
+        blanks: [{ label: "missing y", answer: `${ys[hideIdx]}` }],
+      },
+    ],
+    verify: { kind: "table", k, xs, ys, hideIdx },
+  };
+}
+
+const INV_SQ_TRIPLES: [number, number, number][] = [
+  // (d0, y0, d1): k = y0 * d0^2; predicted y1 = k / d1^2 stays clean
+  [2, 60, 4], [3, 40, 6], [2, 90, 3], [4, 45, 6], [5, 12, 10],
+  [3, 200, 5], [4, 30, 8], [6, 25, 3], [2, 150, 5], [5, 32, 10],
+];
+
+const INV_SQ_CTX: InvCtx[] = [
+  { yv: "I", xv: "d", phrase: "The intensity I of a light varies inversely as the square of the distance d from the source" },
+  { yv: "F", xv: "d", phrase: "The gravitational force F between two objects varies inversely as the square of the distance d between them" },
+  { yv: "L", xv: "d", phrase: "The loudness L of a sound varies inversely as the square of the distance d from the speaker" },
+];
+
+function makeInverseVariationSquare(rng: RNG): Algebra2Problem {
+  const ctx = pick(rng, INV_SQ_CTX);
+  const [d0, y0, d1] = pick(rng, INV_SQ_TRIPLES);
+  const k = y0 * d0 * d0;
+  const [an, ad] = reduceFrac(k, d1 * d1);
+  const answer = `${ctx.yv} = ${fracToLatex(k, d1 * d1)}`;
+  return {
+    type: "A2.11",
+    subtype: "InverseVariation",
+    given: {
+      relationship: ctx.phrase,
+      pair: `when ${ctx.xv} = ${d0}, ${ctx.yv} = ${y0}`,
+      query: `${ctx.xv} = ${d1}`,
+    },
+    find: `${ctx.yv} when ${ctx.xv} = ${d1}`,
+    answer,
+    steps: [
+      {
+        instruction: `Inverse-square variation means ${ctx.yv}${ctx.xv}^2 = k. Substitute the known pair: k = ${y0}(${d0})^2:`,
+        reason: "Inverse-square model yx^2 = k",
+        blanks: [{ label: "k", answer: `${k}` }],
+      },
+      {
+        instruction: `Use ${ctx.yv} = k/${ctx.xv}^2 with ${ctx.xv} = ${d1}:`,
+        reason: "Predict with the model",
+        blanks: [{ label: "prediction", answer }],
+      },
+    ],
+    verify: { kind: "square", d0, y0, k, d1, ansNum: an, ansDen: ad, yv: ctx.yv },
+  };
+}
+
+// ── 11-7: rational equation word problems (2A.6H, 2A.6J) ─────────────────────
+// Combined work and cost-sharing contexts. Steps formulate the rational
+// equation, solve it, and explicitly reject the excluded or non-physical
+// candidate where one exists.
+
+function makeWorkTogether(rng: RNG): Algebra2Problem {
+  const [a, b] = pick(rng, [[3, 6], [4, 12], [6, 12], [2, 6], [4, 6], [6, 10], [8, 12], [3, 12], [5, 5], [6, 6]] as [number, number][]);
+  const who = pick(rng, [
+    { n1: "Mia", n2: "Noah", job: "paint a room" },
+    { n1: "Pipe A", n2: "Pipe B", job: "fill a tank" },
+    { n1: "Machine A", n2: "Machine B", job: "finish an order" },
+    { n1: "Lena", n2: "Omar", job: "rake a yard" },
+  ]);
+  const T = fracToLatex(a * b, a + b);
+  const answer = `${T} hours`;
+  return {
+    type: "A2.11",
+    subtype: "RationalWordProblem",
+    given: { scenario: `${who.n1} can ${who.job} alone in ${a} hours, and ${who.n2} can ${who.job} alone in ${b} hours.` },
+    find: "how long it takes working together",
+    answer,
+    steps: [
+      {
+        instruction: `In one hour ${who.n1} completes 1/${a} of the job and ${who.n2} completes 1/${b}. If together they take T hours, the rate equation is:`,
+        reason: "Work rates add",
+        blanks: [{ label: "equation", answer: `1/${a} + 1/${b} = 1/T` }],
+      },
+      {
+        instruction: `Add the rates: 1/${a} + 1/${b} = ${fracToLatex(a + b, a * b)}, so 1/T = ${fracToLatex(a + b, a * b)} and T is the reciprocal:`,
+        reason: "Solve the rational equation",
+        blanks: [{ label: "T", answer }],
+      },
+      {
+        instruction: `Check reasonableness: ${T} hours is positive and less than either solo time (${a} and ${b} hours), as a combined time must be, and T = 0 is excluded because 1/T would be undefined:`,
+        reason: "Check excluded and non-physical values",
+        blanks: [{ label: "verdict", answer: "reasonable, no rejection needed" }],
+      },
+    ],
+    verify: { kind: "workTogether", a, b },
+  };
+}
+
+function makeWorkFindOther(rng: RNG): Algebra2Problem {
+  const [a, T, b] = pick(rng, [[6, 2, 3], [12, 3, 4], [12, 4, 6], [20, 4, 5], [30, 5, 6], [24, 6, 8], [18, 6, 9]] as [number, number, number][]);
+  const who = pick(rng, [
+    { n1: "A gardener", n2: "a helper", job: "landscape a yard" },
+    { n1: "One hose", n2: "a second hose", job: "fill a pool" },
+    { n1: "A printer", n2: "a second printer", job: "print a yearbook run" },
+  ]);
+  const answer = `${b} hours`;
+  return {
+    type: "A2.11",
+    subtype: "RationalWordProblem",
+    given: { scenario: `${who.n1} can ${who.job} alone in ${a} hours. Working with ${who.n2}, the job takes ${T} hours.` },
+    find: `how long ${who.n2} takes alone`,
+    answer,
+    steps: [
+      {
+        instruction: `Let t be the solo time for ${who.n2}. The rate equation is:`,
+        reason: "Work rates add",
+        blanks: [{ label: "equation", answer: `1/${a} + 1/t = 1/${T}` }],
+      },
+      {
+        instruction: `Subtract 1/${a}: 1/t = 1/${T} - 1/${a} = ${fracToLatex(a - T, a * T)}, then take the reciprocal:`,
+        reason: "Solve the rational equation",
+        blanks: [{ label: "t", answer }],
+      },
+      {
+        instruction: `The value t = 0 is excluded (1/t is undefined there), and the solution is positive, so it is a physically possible time:`,
+        reason: "Check excluded and non-physical values",
+        blanks: [{ label: "verdict", answer: "accepted" }],
+      },
+    ],
+    verify: { kind: "workFindOther", a, T, b },
+  };
+}
+
+function makeVanShare(rng: RNG): Algebra2Problem {
+  let n = 20, e = 4, d = 2;
+  for (let tries = 0; tries < 200; tries++) {
+    n = pick(rng, [10, 12, 15, 16, 20, 24, 30]);
+    e = pick(rng, [2, 3, 4, 5, 6, 8]);
+    d = randInt(rng, 1, 5);
+    const C = (d * n * (n + e)) / e;
+    if (Number.isInteger(C) && C >= 100 && C <= 2000) break;
+  }
+  if (!Number.isInteger((d * n * (n + e)) / e) || (d * n * (n + e)) / e < 100 || (d * n * (n + e)) / e > 2000) {
+    n = 12; e = 3; d = 2; // C = 120 exactly
+  }
+  const C = (d * n * (n + e)) / e;
+  const other = -(n + e);
+  const answer = `${n} students`;
+  return {
+    type: "A2.11",
+    subtype: "RationalWordProblem",
+    given: { scenario: `A class rents a bus for a field trip at a total cost of $${C}. If ${e} more students had signed up, each student would have paid $${d} less.` },
+    find: "how many students signed up",
+    answer,
+    steps: [
+      {
+        instruction: `Let n be the number of students. The cost per student is C/n now and C/(n + ${e}) with the extra students, and the drop is $${d}:`,
+        reason: "Formulate the rational equation",
+        blanks: [{ label: "equation", answer: `${C}/n - ${C}/(n + ${e}) = ${d}` }],
+      },
+      {
+        instruction: `Clear denominators and simplify to a quadratic: n^2 + ${e}n - ${n * (n + e)} = 0, which factors as (n - ${n})(n + ${n + e}) = 0, giving two algebraic candidates:`,
+        reason: "Solve; note both candidates",
+        blanks: [
+          { label: "candidate 1", answer: `${n}` },
+          { label: "candidate 2", answer: `${other}` },
+        ],
+      },
+      {
+        instruction: `The candidate n = ${other} would mean a negative number of students, which is impossible in this context, so it is rejected even though it satisfies the equation (note n = 0 and n = ${-e} are excluded values of the original equation):`,
+        reason: "Reject the non-physical solution",
+        blanks: [{ label: "rejected", answer: `${other}` }],
+      },
+      {
+        instruction: "State the answer:",
+        reason: "Interpret the solution",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    verify: { kind: "vanShare", n, e, d, C },
+  };
+}
+
+function makeWorkDifference(rng: RNG): Algebra2Problem {
+  const [u, v] = pick(rng, [[3, 6], [4, 12], [6, 12], [5, 20], [8, 24], [10, 15], [12, 24]] as [number, number][]);
+  const d = v - u;
+  const T = fracToLatex(u * v, u + v);
+  // second root of u^2 + (d - 2T)u - Td = 0, always a negative integer here
+  const negRoot = -(v * d) / (u + v);
+  const answer = `${u} hours and ${v} hours`;
+  const who = pick(rng, [
+    { n1: "One painter", n2: "another painter", job: "paint a house" },
+    { n1: "One pump", n2: "another pump", job: "drain a pond" },
+  ]);
+  return {
+    type: "A2.11",
+    subtype: "RationalWordProblem",
+    given: { scenario: `Working together, ${who.n1} and ${who.n2} can ${who.job} in ${T} hours. Alone, ${who.n2} takes ${d} hours longer than ${who.n1}.` },
+    find: "each solo time",
+    answer,
+    steps: [
+      {
+        instruction: `Let u be the faster solo time; the slower time is u + ${d}. The rate equation is:`,
+        reason: "Work rates add",
+        blanks: [{ label: "equation", answer: `1/u + 1/(u + ${d}) = ${fracToLatex(u + v, u * v)}` }],
+      },
+      {
+        instruction: "Clearing denominators gives a quadratic with two algebraic candidates, one positive and one negative:",
+        reason: "Solve the rational equation",
+        blanks: [
+          { label: "candidate 1", answer: `${u}` },
+          { label: "candidate 2", answer: `${negRoot}` },
+        ],
+      },
+      {
+        instruction: `A negative time is not physically possible (and u = 0 and u = ${-d} are excluded values of the original equation), so the candidate u = ${negRoot} is rejected:`,
+        reason: "Reject the non-physical solution",
+        blanks: [{ label: "u", answer: `${u}` }],
+      },
+      {
+        instruction: `Then the slower time is u + ${d} = ${v}:`,
+        reason: "Interpret the solution",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    verify: { kind: "workDifference", u, v, d, tNum: u * v, tDen: u + v },
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 const MAKERS: Maker[] = [
@@ -647,6 +988,16 @@ const MAKERS: Maker[] = [
   { minDifficulty: 3, make: makeAddSubtractFactorFirst },
   { minDifficulty: 3, make: makeAddSubtractOpposite },
   { minDifficulty: 3, make: (rng) => makeSolveRational(rng, 3) },
+  // 11-6 inverse variation (2A.6L)
+  { minDifficulty: 1, make: makeInverseVariationFindK },
+  { minDifficulty: 2, make: makeInverseVariationPredict },
+  { minDifficulty: 2, make: makeInverseVariationTable },
+  { minDifficulty: 3, make: makeInverseVariationSquare },
+  // 11-7 rational word problems (2A.6H, 2A.6J)
+  { minDifficulty: 1, make: makeWorkTogether },
+  { minDifficulty: 2, make: makeWorkFindOther },
+  { minDifficulty: 2, make: makeVanShare },
+  { minDifficulty: 3, make: makeWorkDifference },
 ];
 
 /**

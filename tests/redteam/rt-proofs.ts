@@ -1,4 +1,4 @@
-// rt-proofs.ts — adversarial proof checks beyond tests/proofs/checkers.ts:
+// rt-proofs.ts, adversarial proof checks beyond tests/proofs/checkers.ts:
 // 1. proof-two-column vs proof-fill-reasons map to different OutputModes
 // 2. PDF answer key for proofs lists each step's reason
 // 3. reason/statement logical consistency per family (independent of checkers)
@@ -27,7 +27,7 @@ for (const id of proofIds) {
   // Simulate the two docTypes: both call generate("Test", seed + i*7919, {count, difficulty})
   if (a !== b) fail("PROOF-DOCTYPE-DIFF", id, "Test", 4242, `unreachable`);
 }
-// The real check: toOutputMode mapping — the two docTypes must differ
+// The real check: toOutputMode mapping, the two docTypes must differ
 bump();
 if (toOutputMode("proof-two-column") === toOutputMode("proof-fill-reasons"))
   fail("PROOF-DOCTYPE-IDENTICAL", "docTypes", "proof-two-column/proof-fill-reasons", 0,
@@ -41,7 +41,7 @@ for (const id of proofIds.slice(0, 8)) {
     const reasons = (p.steps ?? []).map((s: any) => s.reason).join(" ");
     if (!/Given/i.test(key) && reasons.length > 20 && key.length < reasons.length / 3)
       fail("PROOF-KEY-NO-REASONS", id, "Test", 7,
-        `PDF answer key line is just "${key}" — none of the ${p.steps.length} reasons appear in the key; a printed proof-fill-reasons key is ungradeable`);
+        `PDF answer key line is just "${key}", none of the ${p.steps.length} reasons appear in the key; a printed proof-fill-reasons key is ungradeable`);
     break;
   }
 }

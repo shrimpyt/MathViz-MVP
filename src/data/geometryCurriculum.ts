@@ -5,7 +5,7 @@ import { LogicOfCongruence } from '../modules/logic-of-congruence';
 import { generateTrigProblems } from '@/lib/factories/TrigonometryFactory';
 import type { MathProblem, OutputMode } from '@/lib/ProblemFactory';
 
-// Seeded PRNG — imported from canonical source
+// Seeded PRNG, imported from canonical source
 import { mulberry32 } from '@/lib/math-utils';
 
 // Helper for consistent pseudo-random generation to avoid React hydration issues
@@ -204,7 +204,7 @@ export const geometryCurriculum: Curriculum = {
       lessons: [
         {
           id: 'lesson-g12a',
-          title: 'Circle Theorems — Full Survey',
+          title: 'Circle Theorems, Full Survey',
           standard: 'G.12(A) TEKS',
           generateProblems: (mode: OutputMode, seed: number): MathProblem[] => {
             const rng = mulberry32(seed);
@@ -225,7 +225,7 @@ export const geometryCurriculum: Curriculum = {
       id: 'mod-target-zone',
       title: 'Target Zone',
       description:
-        'Calculate the probability a dart hits the bullseye — or a spinner lands on the shaded region.',
+        'Calculate the probability a dart hits the bullseye, or a spinner lands on the shaded region.',
       lessons: [
         {
           id: 'lesson-g13b',

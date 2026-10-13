@@ -1,4 +1,4 @@
-// rt-fuzz.ts — adversarial fuzz across ALL registry entries.
+// rt-fuzz.ts, adversarial fuzz across ALL registry entries.
 // Tactics: crash hunt (throws), invalid problems (NaN/Inf/undefined in answer
 // fields), SVG param sanity (negative radius, degenerate angles), determinism,
 // formatAnswer robustness, and prefix-consistency across counts.
@@ -78,7 +78,7 @@ for (const entry of CURRICULUM_REGISTRY) {
   }
 }
 
-// ── Phase 2: determinism — same seed+mode+options ⇒ byte-identical JSON ──────
+// ── Phase 2: determinism, same seed+mode+options ⇒ byte-identical JSON ──────
 for (const entry of CURRICULUM_REGISTRY.slice(0, 252)) {
   for (const mode of MODES) {
     for (const seed of [7, 424242]) {
@@ -90,7 +90,7 @@ for (const entry of CURRICULUM_REGISTRY.slice(0, 252)) {
   }
 }
 
-// ── Phase 3: prefix consistency — count=2 output is a prefix of count=6 ──────
+// ── Phase 3: prefix consistency, count=2 output is a prefix of count=6 ──────
 // (same seed must draw the same underlying stream regardless of count)
 for (const entry of CURRICULUM_REGISTRY) {
   for (const mode of MODES) {
@@ -104,12 +104,12 @@ for (const entry of CURRICULUM_REGISTRY) {
     const b = JSON.stringify(big.slice(0, small.length));
     if (s !== b && small.length > 0) {
       fail("COUNT-NOT-PREFIX", entry.id, mode, 31337,
-        `count=2 output differs from count=6 prefix — cross-mode/key alignment suspect`);
+        `count=2 output differs from count=6 prefix, cross-mode/key alignment suspect`);
     }
   }
 }
 
-// ── Phase 4: difficulty sweep — difficulty 1/3 shouldn't crash or empty ──────
+// ── Phase 4: difficulty sweep, difficulty 1/3 shouldn't crash or empty ──────
 for (const entry of CURRICULUM_REGISTRY) {
   for (const d of [1, 3] as const) {
     let problems: unknown;

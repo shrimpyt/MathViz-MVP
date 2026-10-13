@@ -1,10 +1,10 @@
 // logic-of-congruence.ts
-// TEKS G.6(B) — Triangle Congruence Proofs: SSS, SAS, ASA, AAS, HL
+// TEKS G.6(B), Triangle Congruence Proofs: SSS, SAS, ASA, AAS, HL
 //
 // Mathematical Truth Layer:
 //   • Seed variable: base side length a (integer, 5–12 abstract units).
-//   • Second side b = roundToHalf(a × 1.25) — longer side.
-//   • Third side c = roundToHalf(a × 0.80) — shorter side.
+//   • Second side b = roundToHalf(a × 1.25), longer side.
+//   • Third side c = roundToHalf(a × 0.80), shorter side.
 //   • Angles derived via Law of Cosines so they are geometrically real:
 //       cos(B) = (a² + c² − b²) / (2ac)
 //       cos(C) = (a² + b² − c²) / (2ab)
@@ -31,7 +31,7 @@ const T1 = {
   C: { x: 88, y: 148 },
 };
 
-/** Fixed SVG triangle 2 vertex positions (right half — horizontally mirrored) */
+/** Fixed SVG triangle 2 vertex positions (right half, horizontally mirrored) */
 const T2 = {
   D: { x: 150, y: 38 },
   E: { x: 182, y: 148 },
@@ -101,7 +101,7 @@ export class LogicOfCongruence extends BaseGeometryModule {
 
   /**
    * Return the six triangle vertices as SVG Cartesian points.
-   * (These are the fixed display coordinates, not scaled from side lengths —
+   * (These are the fixed display coordinates, not scaled from side lengths,
    *  the labels carry the true measurements.)
    */
   calculateCoordinates(): CartesianPoint[] {

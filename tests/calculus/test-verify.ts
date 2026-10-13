@@ -2,7 +2,7 @@
 // Independent answer verification for every MCQ maker.
 //
 // For each maker × seed, the answer is recomputed with the harness's OWN
-// numeric routines (central differences, numeric limits, composite Simpson —
+// numeric routines (central differences, numeric limits, composite Simpson,
 // reimplemented in harness.ts, never imported from the factories) and
 // compared against the factory's stored answer. Graph features (holes,
 // asymptotes, tangent slopes, shade bounds) are checked against computed

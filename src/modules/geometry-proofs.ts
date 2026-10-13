@@ -30,6 +30,14 @@ import {
 } from "@/lib/factories/ProofCircleTheoremsFactory";
 import { generateSimilarityProofs } from "@/lib/factories/ProofSimilarityFactory";
 import { generateElementsProofs } from "@/lib/factories/ProofElementsFactory";
+import {
+  generateQuadrilateralProofs,
+  type QuadrilateralFamily,
+} from "@/lib/factories/ProofQuadrilateralFactory";
+import {
+  generateAngleProofs,
+  type AngleProofVariant,
+} from "@/lib/factories/ProofAngleProofsFactory";
 
 export type ProofDifficulty = 1 | 2 | 3;
 
@@ -62,7 +70,7 @@ function proofCountOf(mode: OutputMode, options: ProofGenerateOptions | undefine
 
 // ── T4: Congruent Triangles ──────────────────────────────────────────────────
 
-/** 4-2 / 4-3 / 4-6 — two-column congruence proofs for the given families. */
+/** 4-2 / 4-3 / 4-6, two-column congruence proofs for the given families. */
 export function proofCongruenceProblems(
   families: readonly CongruenceFamily[],
   mode: OutputMode,
@@ -79,7 +87,7 @@ export function proofCongruenceProblems(
   );
 }
 
-/** 4-4 — CPCTC proofs. */
+/** 4-4, CPCTC proofs. */
 export function proofCPCTCProblems(
   mode: OutputMode,
   seed: number,
@@ -94,7 +102,7 @@ export function proofCPCTCProblems(
   );
 }
 
-/** 4-5 — isosceles / equilateral triangle proofs. */
+/** 4-5, isosceles / equilateral triangle proofs. */
 export function proofIsoscelesProblems(
   mode: OutputMode,
   seed: number,
@@ -111,7 +119,7 @@ export function proofIsoscelesProblems(
 
 // ── T3: Parallel & Perpendicular Lines ───────────────────────────────────────
 
-/** 3-2 (tiers 1–2) and 3-3 (tier 3) — parallel-line proofs. */
+/** 3-2 (tiers 1–2) and 3-3 (tier 3), parallel-line proofs. */
 export function proofParallelLineProblems(
   tiers: readonly (1 | 2 | 3)[],
   mode: OutputMode,
@@ -130,7 +138,7 @@ export function proofParallelLineProblems(
 
 // ── T9: Similarity ───────────────────────────────────────────────────────────
 
-/** 9-3 — AA similarity proofs. */
+/** 9-3, AA similarity proofs. */
 export function proofSimilarityProblems(
   mode: OutputMode,
   seed: number,
@@ -147,7 +155,7 @@ export function proofSimilarityProblems(
 
 // ── T12: Circle Theorems ─────────────────────────────────────────────────────
 
-/** 12-1 / 12-3 — inscribed-angle and tangent-chord proofs. */
+/** 12-1 / 12-3, inscribed-angle and tangent-chord proofs. */
 export function proofCircleTheoremProblems(
   families: readonly CircleTheoremFamily[],
   mode: OutputMode,
@@ -166,7 +174,7 @@ export function proofCircleTheoremProblems(
 
 // ── T2: Reasoning & Proof ────────────────────────────────────────────────────
 
-/** 2-4 — Euclid's Elements flagship propositions. */
+/** 2-4, Euclid's Elements flagship propositions. */
 export function proofElementsProblems(
   mode: OutputMode,
   seed: number,
@@ -178,5 +186,43 @@ export function proofElementsProblems(
     proofCountOf(mode, options, 2),
     proofDifficultyOf(options),
     proofStudentModeOf(mode)
+  );
+}
+
+// ── T6: Polygons and Quadrilaterals ──────────────────────────────────────────
+
+/** 6-2, proofs that a quadrilateral is a parallelogram, by family. */
+export function proofQuadrilateralProblems(
+  families: readonly QuadrilateralFamily[],
+  mode: OutputMode,
+  seed: number,
+  options?: ProofGenerateOptions
+): ProofProblem[] {
+  const rng = mulberry32(seed);
+  return generateQuadrilateralProofs(
+    rng,
+    proofCountOf(mode, options, 2),
+    proofDifficultyOf(options),
+    proofStudentModeOf(mode),
+    families
+  );
+}
+
+// ── T3: Angle Proofs ─────────────────────────────────────────────────────────
+
+/** 3-4, vertical-angle and perpendicular-bisector proofs, by variant. */
+export function proofAngleProofProblems(
+  variants: readonly AngleProofVariant[],
+  mode: OutputMode,
+  seed: number,
+  options?: ProofGenerateOptions
+): ProofProblem[] {
+  const rng = mulberry32(seed);
+  return generateAngleProofs(
+    rng,
+    proofCountOf(mode, options, 2),
+    proofDifficultyOf(options),
+    proofStudentModeOf(mode),
+    variants
   );
 }

@@ -233,7 +233,7 @@ function pdfPromptsInOrder(sectionEl: React.ReactElement): string[] {
 // ── Group A: generation sweep ─────────────────────────────────────────────────
 
 function groupAGeneration(): void {
-  group("A — generation sweep (all entries x difficulties x counts)");
+  group("A, generation sweep (all entries x difficulties x counts)");
   for (const entry of CURRICULUM_REGISTRY) {
     for (const difficulty of DIFFICULTIES) {
       for (const count of COUNTS) {
@@ -280,7 +280,7 @@ function groupAGeneration(): void {
 // ── Group B: Classical treated like Review ────────────────────────────────────
 
 function groupBReviewEquivalence(): void {
-  group("B — Classical generation treated like Review (same seed => identical)");
+  group("B, Classical generation treated like Review (same seed => identical)");
   for (const { id } of TYPE_ENTRIES) {
     const entry = getEntry(id);
     for (const difficulty of DIFFICULTIES) {
@@ -310,7 +310,7 @@ const DEJAVU_EXTRA = new Set(
 );
 
 function groupCDefinitions(): void {
-  group("C — definitions keyed by entry id");
+  group("C, definitions keyed by entry id");
   for (const entry of CURRICULUM_REGISTRY) {
     const defs = getClassicalDefinitions(entry.id);
     if (REAL_IDS.has(entry.id)) {
@@ -348,7 +348,7 @@ function groupCDefinitions(): void {
 // ── Group D: web rendering per real entry ─────────────────────────────────────
 
 function groupDWebRender(): void {
-  group("D — web render (ClassicalNotesCard) per real entry");
+  group("D, web render (ClassicalNotesCard) per real entry");
   let i = 0;
   for (const id of REAL_IDS) {
     i++;
@@ -432,7 +432,7 @@ function groupDWebRender(): void {
 // ── Group E: reason blanking with synthetic reasons ───────────────────────────
 
 function groupEReasonBlanking(): MathProblem[] {
-  group("E — reason blanking (synthetic reasons)");
+  group("E, reason blanking (synthetic reasons)");
   const entry = getEntry("anatomy-of-a-circle");
   const ps = entry.generate("Classical" as OutputMode, 99, {
     count: 3,
@@ -474,7 +474,7 @@ function groupEReasonBlanking(): MathProblem[] {
 // ── Group F: graceful degradation ─────────────────────────────────────────────
 
 function groupFGraceful(): void {
-  group("F — graceful handling (unknown ids, empty worksheets)");
+  group("F, graceful handling (unknown ids, empty worksheets)");
   // Unknown entry id with real problems: no definitions block, no crash.
   const entry = getEntry("target-zone");
   const ps = entry.generate("Classical" as OutputMode, 5, { count: 2 });
@@ -517,7 +517,7 @@ function groupFGraceful(): void {
 // ── Group G: PDF byte verification ────────────────────────────────────────────
 
 async function groupGPdfBytes(): Promise<void> {
-  group("G — PDF byte verification (%PDF) across all problem types");
+  group("G, PDF byte verification (%PDF) across all problem types");
   for (const { type, id } of TYPE_ENTRIES) {
     const entry = getEntry(id);
     const ps = entry.generate("Classical" as OutputMode, 4242, {
@@ -552,7 +552,7 @@ async function groupGPdfBytes(): Promise<void> {
 // ── Group H: PDF structural checks (element-tree walk) ─────────────────────────
 
 function groupHPdfStructure(synthProblems: MathProblem[]): void {
-  group("H — PDF structure (tree walk: reasons absent, prompts sane)");
+  group("H, PDF structure (tree walk: reasons absent, prompts sane)");
   const sectionEl = ClassicalNotesPdfSection({
     entryId: "anatomy-of-a-circle",
     problems: synthProblems,
@@ -600,7 +600,7 @@ function groupHPdfStructure(synthProblems: MathProblem[]): void {
 // ── Group I: prompt-bank unit tests ───────────────────────────────────────────
 
 function groupIPrompts(): void {
-  group("I — margin-prompt rotation unit tests");
+  group("I, margin-prompt rotation unit tests");
   const a = assignMarginPrompts(123, 50);
   const b = assignMarginPrompts(123, 50);
   check("deterministic for the same seed", JSON.stringify(a) === JSON.stringify(b));
@@ -639,7 +639,7 @@ function mulberry(seed: number): () => number {
 }
 
 function groupJFuzz(): void {
-  group("J — fuzz (30 random seeds: generate + web render + pdf walk)");
+  group("J, fuzz (30 random seeds: generate + web render + pdf walk)");
   const realIds = [...REAL_IDS];
   const rng = mulberry(20261010);
   for (let i = 0; i < 30; i++) {
@@ -677,7 +677,7 @@ function groupJFuzz(): void {
     }
   }
 
-  group("K — seed reproducibility");
+  group("K, seed reproducibility");
   const entry = getEntry("target-zone");
   const p1 = entry.generate("Classical" as OutputMode, 555, { count: 3, difficulty: 2 });
   const p2 = entry.generate("Classical" as OutputMode, 555, { count: 3, difficulty: 2 });
@@ -697,7 +697,7 @@ function writeReport(): void {
   const totalFailed = groups.reduce((n, g) => n + g.failed, 0);
   const total = totalPassed + totalFailed;
   const lines: string[] = [
-    "# Classical Notes — Test Report",
+    "# Classical Notes, Test Report",
     "",
     `Generated: ${new Date().toISOString()}`,
     `Runner: \`npx tsx tests/classical-notes/run-classical-tests.tsx\``,
@@ -727,7 +727,7 @@ function writeReport(): void {
   lines.push("- Fuzz: 30 random (entry, seed, difficulty, count) combos; generate + web render + PDF tree walk.");
   lines.push("", "## Failures", "");
   if (failures.length === 0) {
-    lines.push("None — all checks passed.");
+    lines.push("None, all checks passed.");
   } else {
     for (const f of failures) lines.push(`- ${f}`);
   }
@@ -739,7 +739,7 @@ function writeReport(): void {
     "TEST_REPORT.md"
   );
   fs.writeFileSync(outPath, lines.join("\n"));
-  console.log(`\nTOTAL: ${total} checks — ${totalPassed} passed, ${totalFailed} failed.`);
+  console.log(`\nTOTAL: ${total} checks, ${totalPassed} passed, ${totalFailed} failed.`);
   console.log(`Report: ${outPath}`);
   if (failures.length > 0) {
     console.log("\nFAILURES:");

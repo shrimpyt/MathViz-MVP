@@ -1,17 +1,17 @@
-# Geometry Proofs — Test Report
+# Geometry Proofs, Test Report
 
-Ran: 2026-10-11T00:34:06.792Z
+Ran: 2026-10-13T23:29:21.557Z
 
-- Matrix problems: 10332 (21 units × 4 modes × 3 difficulties × counts {1,3,12,25})
+- Matrix problems: 12300 (25 units × 4 modes × 3 difficulties × counts {1,3,12,25})
 - Fuzz problems: 3000
 - Reproducibility samples: 160
-- PDF samples: 16
-- Answer-key problems: 378
-- Duration: 1.6s
+- PDF samples: 19
+- Answer-key problems: 450
+- Duration: 1.3s
 
 ## Totals
 
-- **Total checks: 439485**
+- **Total checks: 501001**
 - **Failures: 0**
 
 ## What was checked
@@ -52,7 +52,11 @@ Ran: 2026-10-11T00:34:06.792Z
 | elements-I_32 | 492 | 15300 |
 | elements-I_47 | 492 | 16284 |
 | elements-I_48 | 492 | 13824 |
+| quadrilateral-OnePairBoth | 492 | 15300 |
+| quadrilateral-OppositeSidesCongruent | 492 | 15792 |
+| quadrilateral-DiagonalsBisect | 492 | 15792 |
+| angle-proofs | 492 | 15028 |
 
 ## Failures
 
-None — all checks passed.
+None, all checks passed.

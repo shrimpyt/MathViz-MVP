@@ -1,5 +1,5 @@
-// rt-frq.ts — AP FRQ internal consistency: recompute every subpart answer
-// from the stimulus alone (no verify payloads exist — fully independent).
+// rt-frq.ts, AP FRQ internal consistency: recompute every subpart answer
+// from the stimulus alone (no verify payloads exist, fully independent).
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, counter, report } from "./util";
 
@@ -84,7 +84,7 @@ let frqN = 0;
       const x0m = st.text.match(/x\(0\)\s*=\s*(-?[\d.]+)/);
       if (!vm || !x0m) continue;
       bump();
-      // parse polynomial "-t^2 + 6t - 8" — normalize to coeffs by evaluation trick:
+      // parse polynomial "-t^2 + 6t - 8", normalize to coeffs by evaluation trick:
       // sample v at t=0,1,2,3 and fit quadratic
       const expr = vm[1];
       const veval = (t: number) => {

@@ -1,6 +1,6 @@
 // AreaFactory.ts
 // Topic 13: Area (TEKS G.11(B)).
-// Lesson ch13-1: area of parallelograms and triangles — including the classic
+// Lesson ch13-1: area of parallelograms and triangles, including the classic
 // trap (the slanted side is NOT the height) and coordinate-geometry scenarios
 // from the registry description. Working backwards (area → missing dimension)
 // is tier 2.
@@ -40,7 +40,7 @@ function makeParallelogramArea(rng: RNG): GeometryProblem {
     unit: "square units",
     steps: [
       step("Area of a parallelogram is base times the VERTICAL height: A = b·h.", "Area of a Parallelogram Theorem."),
-      step(`Use the height ${h}, not the slanted side ${slant} — the height must be perpendicular to the base.`, "The height is measured perpendicular to the base."),
+      step(`Use the height ${h}, not the slanted side ${slant}, the height must be perpendicular to the base.`, "The height is measured perpendicular to the base."),
       step(`A = ${b} × ${h} = ${area}.`, "Substitution.", [{ label: "A", answer: String(area) }]),
     ],
     svgParams: {
@@ -187,7 +187,7 @@ function makeTrapezoidArea(rng: RNG): GeometryProblem {
     answer: num(area),
     unit: "square units",
     steps: [
-      step("Area of a trapezoid: A = ½·h·(b₁ + b₂) — the height times the average of the bases.", "Area of a Trapezoid Theorem."),
+      step("Area of a trapezoid: A = ½·h·(b₁ + b₂), the height times the average of the bases.", "Area of a Trapezoid Theorem."),
       step(`A = ½ × ${h} × (${b1} + ${b2}) = ${num(area)}.`, "Substitution.", [{ label: "A", answer: num(area) }]),
     ],
     svgParams: {

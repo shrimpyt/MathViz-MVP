@@ -64,7 +64,7 @@ function makeQuadraticRoots(rng: RNG, difficulty: SATDifficulty): SATProblem {
         label: qLabel(q(-r2)),
         value: -r2,
         misconception: "root-sign-error",
-        note: "Sign error when factoring — negated the root.",
+        note: "Sign error when factoring, negated the root.",
       },
       {
         label: qLabel(q(r1)),
@@ -168,7 +168,7 @@ function makeEquivalentExpressions(rng: RNG, difficulty: SATDifficulty): SATProb
   const format = chooseFormat(rng);
 
   if (t === 3) {
-    // (2x + a)(x + b) = 2x² + (a + 2b)x + ab — ask for the middle coefficient.
+    // (2x + a)(x + b) = 2x² + (a + 2b)x + ab, ask for the middle coefficient.
     const a = randIntAvoid(rng, -6, 6, [0]);
     const b = randIntAvoid(rng, -6, 6, [0]);
     const mid = a + 2 * b;
@@ -185,7 +185,7 @@ function makeEquivalentExpressions(rng: RNG, difficulty: SATDifficulty): SATProb
         label: qLabel(q(a + b)),
         value: a + b,
         misconception: "foil-error",
-        note: "Treated it as (x + a)(x + b) — ignored the leading 2.",
+        note: "Treated it as (x + a)(x + b), ignored the leading 2.",
       },
       {
         label: qLabel(q(2 * (a + b))),

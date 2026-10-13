@@ -4,7 +4,7 @@
 //
 // Design rule (from the Oct 10 agreement): groups are ANONYMOUS by construction.
 // The only per-group datum is an integer student count. There is no field for a
-// name, ID, or any other student-identifying value — so there is nothing to leak.
+// name, ID, or any other student-identifying value, so there is nothing to leak.
 
 /** Phase 1 accommodation catalog (renderer-level, presentation-only). */
 export const PHASE1_ACCOMMODATION_IDS = [
@@ -51,7 +51,7 @@ export const ACCOMMODATION_COMPOSITION_ORDER: readonly AccommodationId[] = [
 
 /** Plain-language display names for UI labels and divider pages. */
 export const ACCOMMODATION_DISPLAY_NAMES: Record<AccommodationId, string> = {
-  'reduced-count': 'Fewer problems — 25% reduction, TEKS coverage kept',
+  'reduced-count': 'Fewer problems, 25% reduction, TEKS coverage kept',
   'word-bank': 'Word bank',
   'large-print': 'Large print',
   'sans-serif-font': 'Sans-serif font',
@@ -59,7 +59,7 @@ export const ACCOMMODATION_DISPLAY_NAMES: Record<AccommodationId, string> = {
   'fewer-per-page': 'Fewer per page',
 };
 
-/** Set of accommodation flags on a group. A set — each flag applies at most once. */
+/** Set of accommodation flags on a group. A set, each flag applies at most once. */
 export interface AccommodationFlags {
   largePrint: boolean;
   sansSerif: boolean;
@@ -68,12 +68,12 @@ export interface AccommodationFlags {
   /**
    * Reduced problem count: target 75% of base, with a HARD guarantee that
    * every TEKS standard in the base version keeps ≥1 problem (coverage wins
-   * over the count on tiny bases — see selectReducedProblems).
+   * over the count on tiny bases, see selectReducedProblems).
    */
   reducedCount: boolean;
   /**
    * Word bank: the version carries a bank of its fill-in blank answers
-   * (deduped, deterministically shuffled — see buildWordBank) printed at the
+   * (deduped, deterministically shuffled, see buildWordBank) printed at the
    * top of the worksheet, so students select answers instead of recalling
    * them cold. Derived from the version's own final problem list; the
    * problems themselves are unchanged.
@@ -134,7 +134,7 @@ export interface AccommodationGroup {
 export interface ClassAccommodationList {
   /** uuid, generated client-side. */
   id: string;
-  /** e.g. "Algebra 2 — Period 3". Free text; UI warns against student info. */
+  /** e.g. "Algebra 2, Period 3". Free text; UI warns against student info. */
   classLabel: string;
   groups: AccommodationGroup[];
   /** ISO timestamp of last mutation. */
@@ -151,7 +151,7 @@ export interface NewGroupInput {
 /**
  * Renderer-level presentation overrides produced by Phase 1 transforms.
  * Consumed later by the PDF renderer (PdfDocument `presentation` prop) and the
- * web preview. Presentation only — never carries math content.
+ * web preview. Presentation only, never carries math content.
  */
 export interface Presentation {
   /** Multiplier for text/diagram sizing. 1 = default. */

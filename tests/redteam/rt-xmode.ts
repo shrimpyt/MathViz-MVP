@@ -1,4 +1,4 @@
-// rt-xmode.ts — cross-mode consistency: same seed must give the same underlying
+// rt-xmode.ts, cross-mode consistency: same seed must give the same underlying
 // problems across modes; answer keys must match problems in every combination.
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { formatAnswer } from "@/lib/answerKey";

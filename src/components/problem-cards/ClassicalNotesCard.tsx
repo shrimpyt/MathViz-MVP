@@ -3,19 +3,19 @@
 //
 // Spectrum: guided notes (fill blanks) -> classical notes (structure given,
 // reasoning student's) -> blank. Per topic section this renders:
-//   1. DEFINITIONS block — terms/theorems printed IN FULL for students to
+//   1. DEFINITIONS block, terms/theorems printed IN FULL for students to
 //      copy (grammar stage needs exact text). Omitted gracefully when the
 //      entry id has no seeded definitions.
-//   2. DEMONSTRATION area — worked steps are SHOWN, but each step's
+//   2. DEMONSTRATION area, worked steps are SHOWN, but each step's
 //      reason/justification is blanked as a ruled line for the student to
 //      fill in. Steps without a `reason` render normally; the reason slot
 //      holds a generic margin prompt instead.
-//   3. MARGIN prompts — one Socratic question printed alongside every step,
+//   3. MARGIN prompts, one Socratic question printed alongside every step,
 //      rotated from a seeded prompt bank with no adjacent repeats.
 //   4. NARRATION box + error log at the bottom of the section.
 //
 // Generation contract: factories treat OutputMode "Classical" like "Review"
-// (full steps, answers visible) — this renderer never reaches into factories.
+// (full steps, answers visible), this renderer never reaches into factories.
 
 import React from "react";
 import type { MathProblem, OutputMode, ProblemStep } from "@/lib/ProblemFactory";
@@ -70,18 +70,18 @@ function classicalDiagram(p: MathProblem): { kind: string } | undefined {
 }
 
 export interface ClassicalNotesCardProps {
-  /** Registry entry id — used to look up the DEFINITIONS block. */
+  /** Registry entry id, used to look up the DEFINITIONS block. */
   entryId: string;
   /** Problems for this topic section. */
   problems: MathProblem[];
   mode: OutputMode;
-  /** Worksheet seed — drives deterministic margin-prompt rotation. */
+  /** Worksheet seed, drives deterministic margin-prompt rotation. */
   seed?: number;
   /** Global problem number offset (continuous numbering across sections). */
   startIndex?: number;
   /** Accepted for interface compatibility; Classical mode has no reveal toggle. */
   revealed?: boolean;
-  /** Section heading, e.g. "G.12(A) — Circle Relationships". */
+  /** Section heading, e.g. "G.12(A), Circle Relationships". */
   sectionLabel?: string;
   /** TEKS badge text, e.g. "G.12(A)". */
   teksBadge?: string;
@@ -209,7 +209,7 @@ export function ClassicalNotesCard({
       </div>
 
       <div className="p-6">
-        {/* 1. DEFINITIONS block — printed in full, students copy the exact text */}
+        {/* 1. DEFINITIONS block, printed in full, students copy the exact text */}
         {definitions && definitions.length > 0 && (
           <div
             data-testid="definitions-block"
@@ -294,7 +294,7 @@ export function ClassicalNotesCard({
           })}
         </div>
 
-        {/* 4. NARRATION box + error log — once per section */}
+        {/* 4. NARRATION box + error log, once per section */}
         <div
           data-testid="narration-box"
           className="mt-10 border-2 border-[#111] p-5 break-inside-avoid"

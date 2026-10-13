@@ -1,4 +1,4 @@
-// helpers.ts — shared harness for the precalculus test suites.
+// helpers.ts, shared harness for the precalculus test suites.
 // Every check() call counts as one headless check.
 
 export interface SuiteResult {

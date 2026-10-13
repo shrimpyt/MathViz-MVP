@@ -1,4 +1,4 @@
-// rt-verify3.ts — independent verification: Algebra 2, calculus, precalc, MS.
+// rt-verify3.ts, independent verification: Algebra 2, calculus, precalc, MS.
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, report } from "./util";
 
@@ -222,7 +222,7 @@ function synth(dividend: number[], r: number): { q: number[]; rem: number } {
     const { q, rem } = synth(v.dividend, v.r);
     if (!q.every((x, i) => x === v.quotient[i]) || q.length !== v.quotient.length || rem !== v.remainder)
       fail("A2-POLYDIV", "a2-8-5-poly-divide", "Test", s, `mine q=[${q}] r=${rem} vs verify q=[${v.quotient}] r=${v.remainder}`);
-    // fundamental theorem: (x - r)*Q(x) + R == dividend — check at x=7
+    // fundamental theorem: (x - r)*Q(x) + R == dividend, check at x=7
     bump();
     const x = 7;
     const Q = polyEval(v.quotient, x), D = polyEval(v.dividend, x);

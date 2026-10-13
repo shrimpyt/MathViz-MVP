@@ -5,7 +5,7 @@
 // Contents:
 //   - CalcFunction: a JSON-serializable function ADT (polynomial, rational,
 //     trig, exponential, piecewise-linear). Graphs are SAMPLED from this data
-//     by the renderers — shapes are never hardcoded.
+//     by the renderers, shapes are never hardcoded.
 //   - evalCalcFn / derivCalcFn: evaluation and symbolic differentiation.
 //   - fmtNum / polyToText / fnToText: PDF-safe display formatting.
 //   - CalcGraphParams: JSON-serializable graph description (web + PDF duality).

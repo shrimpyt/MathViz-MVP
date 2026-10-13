@@ -1,14 +1,14 @@
 // CalculusFRQ.ts
-// AP Calculus — stimulus-based AP-style Free-Response Questions (AB/BC).
+// AP Calculus, stimulus-based AP-style Free-Response Questions (AB/BC).
 //
 // Each FRQ is built around ONE stimulus (graph, table, or verbal scenario),
 // exactly like the AP exam, with subparts (a)–(d). Uses BaseFRQProblem from
 // @/lib/apTypes with subject "calc".
 //
 // Templates:
-//   1. Graph stimulus: the graph of f' (piecewise linear) — no calculator.
-//   2. Table stimulus: water flow rates into a tank — calculator active.
-//   3. Scenario stimulus: particle motion with v(t) — calculator active.
+//   1. Graph stimulus: the graph of f' (piecewise linear), no calculator.
+//   2. Table stimulus: water flow rates into a tank, calculator active.
+//   3. Scenario stimulus: particle motion with v(t), calculator active.
 //
 // Stimulus consistency is structural: table cells are formatted evaluations of
 // the underlying function, graph areas are trapezoid sums of the stored points,

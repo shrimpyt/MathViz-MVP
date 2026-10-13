@@ -82,7 +82,7 @@ function makePercentChange(rng: RNG, difficulty: SATDifficulty): SATProblem {
       label: qLabel(q(increase ? 2 * pct : -2 * pct)),
       value: increase ? 2 * pct : -2 * pct,
       misconception: "order-of-operations",
-      note: "Doubled the percent change — arithmetic slip.",
+      note: "Doubled the percent change, arithmetic slip.",
     },
   ];
 
@@ -133,13 +133,13 @@ function makeRatioProportion(rng: RNG, difficulty: SATDifficulty): SATProblem {
     explanation = `Set up the proportion ${a}/${b} = x/${c}; cross-multiplying gives ${b}x = ${a * c}, so x = ${x}.`;
   } else {
     // Avoid from = b², which would make the "inverted ratio" distractor
-    // numerically equal to the key (buildMCQ would throw — see fuzz).
+    // numerically equal to the key (buildMCQ would throw, see fuzz).
     const from = randIntAvoid(rng, 2, 6, [b * b]);
     stem =
       `On a map, ${from} centimeters represents ${b * from} kilometers. ` +
       `If two cities are ${c * from} centimeters apart on the map, what is the actual distance, in kilometers?`;
     // scale: from cm : b*from km → 1 cm : b km; map dist c*from cm → b*c*from... keep numbers consistent:
-    // actual = (c*from / from) * b = c*b = x*? — recompute cleanly below.
+    // actual = (c*from / from) * b = c*b = x*?, recompute cleanly below.
     const mapCm = c * from;
     const actual = mapCm * b; // 1 cm : b km, so mapCm cm → b·mapCm km
     const aFrac = q(actual);
@@ -202,7 +202,7 @@ function makeRatioProportion(rng: RNG, difficulty: SATDifficulty): SATProblem {
       label: qLabel(q(a * b, c)),
       value: qVal(q(a * b, c)),
       misconception: "inverted-ratio",
-      note: "Multiplied the wrong pair — set up the proportion backwards.",
+      note: "Multiplied the wrong pair, set up the proportion backwards.",
     },
     {
       label: qLabel(q(b)),
@@ -434,7 +434,7 @@ function makeProbability(rng: RNG, difficulty: SATDifficulty): SATProblem {
         label: qLabel(q(n2, total)),
         value: n2 / total,
         misconception: "complement-error",
-        note: "Found P(not chosen color) — the complement.",
+        note: "Found P(not chosen color), the complement.",
       },
       {
         label: qLabel(q(n1, total + 1)),

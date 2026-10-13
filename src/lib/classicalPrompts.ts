@@ -5,7 +5,7 @@
 // The margin prompt is the dialectic margin made structural: each demonstration
 // step gets one printed question "alongside" it. Rotation is seeded
 // (mulberry32) so the web preview and the PDF export assign identical prompts
-// for the same worksheet seed — reproducibility is part of the contract.
+// for the same worksheet seed, reproducibility is part of the contract.
 
 import { mulberry32 } from "./math-utils";
 
@@ -26,7 +26,7 @@ export const CLASSICAL_MARGIN_PROMPTS: string[] = [
  * dialectic weight instead of a blanked reason line.
  */
 export const GENERIC_MARGIN_PROMPT =
-  "What is this step doing — and what justifies it?";
+  "What is this step doing, and what justifies it?";
 
 function shuffled<T>(items: T[], rng: () => number): T[] {
   const a = [...items];

@@ -1,13 +1,13 @@
 // proofDiagrams.ts
 // Parameter types for geometry-proof diagrams, plus the ProofProblem shape.
 //
-// Pure data — no JSX. Web rendering lives in
+// Pure data, no JSX. Web rendering lives in
 // src/components/diagrams/ProofDiagrams.tsx; PDF rendering lives in
 // src/components/diagrams/PdfProofSVG.tsx. Both dispatch on the `kind`
 // discriminant, mirroring the GeometrySVG / PdfGeometrySVG duality.
 //
 // All display strings follow the proofTypes.ts conventions: plain unicode
-// text (≅ in statements — the PDF renderer maps it to ≃ via pdfSafeText).
+// text (≅ in statements, the PDF renderer maps it to ≃ via pdfSafeText).
 
 import type { BaseProofProblem, ProofPresentation } from "./proofTypes";
 
@@ -89,13 +89,42 @@ export interface ProofCircleSVGParams {
   angle: number;
 }
 
+/** Quadrilateral proof figure: parallelogram ABCD (A bottom-left, B
+ *  bottom-right, C top-right, D top-left) with optional diagonals. */
+export interface ProofQuadrilateralSVGParams {
+  kind: "ProofQuadrilateral";
+  /** Which diagonals are drawn. */
+  diagonal: "AC" | "BD" | "both" | "none";
+  /** Tick counts for sides AB, BC, CD, DA (0 = unmarked). */
+  sideMarks: [number, number, number, number];
+  /** Sides carrying parallel arrow marks, as side names. */
+  parallelMarks: string[];
+  /** Tick counts for the diagonal halves: [AC halves AM/MC, BD halves BM/MD]. */
+  diagMarks: [number, number];
+}
+
+/** Angle-proof figure: vertical angles at an intersection, or a point on
+ *  the perpendicular bisector of a segment. */
+export interface ProofAngleFigureSVGParams {
+  kind: "ProofAngleFigure";
+  figure: "vertical" | "perpBisector";
+  /** Vertical only: the marked vertical pair, 0 = AEC/DEB, 1 = AED/BEC. */
+  markPair?: 0 | 1;
+  /** Perp bisector only: tick the midpoint halves AM and MB. */
+  markMidpoint?: boolean;
+  /** Perp bisector only: tick PA and PB (shown when given congruent). */
+  markSlants?: boolean;
+}
+
 export type ProofSVGParams =
   | ProofCongruenceSVGParams
   | ProofIsoscelesSVGParams
   | ProofParallelLinesSVGParams
   | ProofSimilaritySVGParams
   | ProofElementsSVGParams
-  | ProofCircleSVGParams;
+  | ProofCircleSVGParams
+  | ProofQuadrilateralSVGParams
+  | ProofAngleFigureSVGParams;
 
 /**
  * A generated geometry proof problem. Extends BaseProofProblem with the

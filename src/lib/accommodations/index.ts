@@ -1,4 +1,4 @@
-// index.ts — public surface of the accommodations module (Phase 1).
+// index.ts, public surface of the accommodations module (Phase 1).
 // Pure logic only: types, transforms, version planner, localStorage store.
 // No JSX, no side effects at import time.
 

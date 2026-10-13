@@ -1,5 +1,5 @@
 // PrecalcComplexFactory.ts
-// AP Precalculus: complex numbers — operations, modulus, conjugate,
+// AP Precalculus: complex numbers, operations, modulus, conjugate,
 // powers of i, rectangular ↔ polar form, De Moivre.
 // Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 

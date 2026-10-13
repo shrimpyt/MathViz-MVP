@@ -1,4 +1,4 @@
-// helpers.ts — shared harness for the middle-school test suites.
+// helpers.ts, shared harness for the middle-school test suites.
 // Every check() call counts as one headless check.
 
 export interface SuiteResult {

@@ -1,7 +1,7 @@
 // Algebra2PdfDiagrams.tsx
 // PDF (@react-pdf/renderer) twins of the Algebra 2 web diagrams. Same plot
 // math (plotMath.ts), react-pdf primitives. Wiring: PdfDocument's diagram
-// switch needs `case` branches for the "ConicGraph"/"RationalGraph" kinds —
+// switch needs `case` branches for the "ConicGraph"/"RationalGraph" kinds,
 // see tests/algebra-2/WIRING.md.
 
 import React from "react";

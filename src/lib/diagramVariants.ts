@@ -10,7 +10,7 @@
 // problem's svgParams AFTER generation. Renderers read `variant` to pick
 // among presentation alternatives (rotation, mirror, skew direction, scale,
 // label placement). The variant NEVER changes the math: dims, coordinates,
-// arc measures, and answers are untouched — only how the figure is drawn.
+// arc measures, and answers are untouched, only how the figure is drawn.
 //
 // De-dup: within one generation run we track visual signatures
 // (`kind:figure:variant`) and re-roll the variant (cap MAX_REROLLS) when a
@@ -27,7 +27,7 @@ export const DIAGRAM_VARIANT_COUNT = 24;
 /** Visual identity of a diagram ignoring its variant: two problems with the
  *  same signature would look identical on the page. Includes the data that
  *  actually changes the drawing (arc measures, marks, ratios); excludes data
- *  that only changes labels (dims on MS figures are label text — the drawn
+ *  that only changes labels (dims on MS figures are label text, the drawn
  *  shape is fixed, so dims are deliberately NOT part of the signature). */
 /** Exported for verification tooling. */
 export function diagramSignature(sp: Record<string, unknown>): string | null {
@@ -139,7 +139,7 @@ export function assignDiagramVariants(problems: MathProblem[], rng: RNG): MathPr
     if (used.has(key)) {
       // Deterministic walk over all raw values: guarantees a free visual
       // state is found when one exists (a duplicate is only accepted at the
-      // true pigeonhole limit — more problems than visual states).
+      // true pigeonhole limit, more problems than visual states).
       for (let t = 1; t < DIAGRAM_VARIANT_COUNT && used.has(key); t++) {
         variant = (variant + 1) % DIAGRAM_VARIANT_COUNT;
         key = `${base}:e${effectiveVariant(sp, variant)}`;

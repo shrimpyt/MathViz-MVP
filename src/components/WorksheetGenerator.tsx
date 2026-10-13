@@ -84,7 +84,7 @@ const DOC_MODES: {
   { value: 'test', label: 'Test', emoji: '✅', blurb: 'Formal assessment, no hints' },
   { value: 'worksheet', label: 'Worksheet', emoji: '📄', blurb: 'Everyday practice set' },
   { value: 'classical-notes', label: 'Classical Notes', emoji: '🏛️', blurb: 'Definitions printed, reasoning yours' },
-  { value: 'proof-two-column', label: 'Two-Column Proofs', emoji: '⚖️', blurb: 'Full proofs — statement + reason' },
+  { value: 'proof-two-column', label: 'Two-Column Proofs', emoji: '⚖️', blurb: 'Full proofs, statement + reason' },
   { value: 'proof-fill-reasons', label: 'Fill Reasons', emoji: '✏️', blurb: 'Statements given, reasons blanked' },
   { value: 'proof-elements', label: 'Elements', emoji: '📜', blurb: "Euclid's Elements, enunciation to Q.E.D." },
   { value: 'sat-practice', label: 'SAT Practice', emoji: '⏱️', blurb: 'Timed SAT-style module' },
@@ -210,6 +210,7 @@ export default function WorksheetGenerator() {
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
   // ── Wizard step: 0 Format · 1 Topics · 2 Accommodations · 3 Review ──
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -233,7 +234,7 @@ export default function WorksheetGenerator() {
         setAccomList(latest);
       }
     } catch {
-      // localStorage unavailable — the feature simply stays hidden.
+      // localStorage unavailable, the feature simply stays hidden.
     }
   }, [accomStore]);
 
@@ -477,6 +478,7 @@ export default function WorksheetGenerator() {
     [advancedProblems, accomList]
   );
   const hasAccommodations = versionPlan.groups.length > 0;
+
   const activeVersion = useMemo(
     () =>
       versionPlan.all().find((v) => v.versionId === activeVersionId) ??
@@ -497,8 +499,8 @@ export default function WorksheetGenerator() {
   const defaultTitle = useMemo(() => {
     if (selectedModules.length === 0) return 'Geometry Practice';
     const word = modeWord(docType);
-    if (selectedModules.length === 1) return `${selectedModules[0].title} — ${word}`;
-    return `${selectedModules[0].title} + ${selectedModules.length - 1} more — ${word}`;
+    if (selectedModules.length === 1) return `${selectedModules[0].title}, ${word}`;
+    return `${selectedModules[0].title} + ${selectedModules.length - 1} more, ${word}`;
   }, [selectedModules, docType]);
   const title = customTitle || defaultTitle;
 
@@ -526,7 +528,7 @@ export default function WorksheetGenerator() {
           nodes.push(
             <PdfVersionPages
               key={v.versionId}
-              title={v.kind === 'base' ? title : `${title} — ${v.label}`}
+              title={v.kind === 'base' ? title : `${title}, ${v.label}`}
               questions={versionQuestions.get(v.versionId) ?? []}
               advancedProblems={v.problems}
               docType={docType}
@@ -647,7 +649,7 @@ export default function WorksheetGenerator() {
     if (hasAccommodations) {
       return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready 🎉`;
     }
-    return 'No accommodations — everyone gets the base version 👍';
+    return 'No accommodations, everyone gets the base version 👍';
   }, [step, docType, selectedTopicIds.length, advancedProblems.length, teksSelected, teksTotal, hasAccommodations, versionPlan]);
 
   // Topbar step jumps follow the footer's Continue rule: steps past Topics
@@ -662,10 +664,15 @@ export default function WorksheetGenerator() {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
+        '@supports (height: 100dvh)': { height: '100dvh' },
         bgcolor: '#14161f',
       }}
     >
-      <WizardTopbar step={step} goTo={goToStep} problemCount={advancedProblems.length} />
+      <WizardTopbar
+        step={step}
+        goTo={goToStep}
+        problemCount={advancedProblems.length}
+      />
 
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {step === 0 && (
@@ -742,14 +749,12 @@ export default function WorksheetGenerator() {
         )}
       </Box>
 
-      {step < 3 && (
-        <WizardFooter
-          step={step}
-          setStep={setStep}
-          canContinue={step === 0 || selectedTopicIds.length > 0}
-          summary={footerSummary}
-        />
-      )}
+      <WizardFooter
+        step={step}
+        setStep={setStep}
+        canContinue={step === 0 || selectedTopicIds.length > 0}
+        summary={footerSummary}
+      />
 
       {/* Hidden draft file input */}
       <input
@@ -763,6 +768,54 @@ export default function WorksheetGenerator() {
           e.target.value = '';
         }}
       />
+    </Box>
+  );
+}
+
+// ── Wizard chrome ─────────────────────────────────────────────────────────────
+
+// Scales the fixed-width (816px) worksheet page down to fit narrow
+// screens. Measures the rendered page and applies a CSS transform scale
+// with height compensation; at desktop widths the scale is 1 and nothing
+// changes. Fixes the mobile preview overflow (audit Oct 13, 2026).
+function ScaledPreview({ children }: { children: React.ReactNode }) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const outer = outerRef.current;
+    const inner = innerRef.current;
+    if (!outer || !inner) return;
+    const measure = () => {
+      const contentW = inner.scrollWidth;
+      const availW = outer.clientWidth;
+      if (contentW <= 0 || availW <= 0) return;
+      const s = Math.min(1, availW / contentW);
+      setScale(s);
+      setHeight(s < 1 ? inner.scrollHeight * s : undefined);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(outer);
+    ro.observe(inner);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <Box ref={outerRef} sx={{ width: '100%', height, overflow: 'hidden' }}>
+      <Box
+        ref={innerRef}
+        sx={{
+          width: 'fit-content',
+          mx: scale < 1 ? 0 : 'auto',
+          transform: scale < 1 ? `scale(${scale})` : undefined,
+          transformOrigin: 'top left',
+        }}
+      >
+        {children}
+      </Box>
     </Box>
   );
 }
@@ -814,6 +867,17 @@ function WizardTopbar({
       </Box>
       <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', whiteSpace: 'nowrap' }}>
         Euclid <Box component="span" sx={{ color: '#818cf8' }}>Engine</Box>
+      </Typography>
+      <Typography
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          fontSize: '0.72rem',
+          fontWeight: 800,
+          color: '#9aa0be',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {step + 1} / 4 · {WIZARD_STEPS[step]}
       </Typography>
 
       <Box
@@ -937,6 +1001,7 @@ function WizardFooter({
       >
         {summary}
       </Typography>
+      {step < 3 ? (
       <Tooltip title={canContinue ? '' : 'Pick at least one topic to continue'} arrow>
         <span>
           <Button
@@ -961,6 +1026,9 @@ function WizardFooter({
           </Button>
         </span>
       </Tooltip>
+      ) : (
+        <Box sx={{ width: 132 }} />
+      )}
     </Box>
   );
 }
@@ -1010,7 +1078,7 @@ function StepFormat({
       <StepHeading
         emoji="🎨"
         title="What are you making?"
-        sub="Pick a format — you can always change it later."
+        sub="Pick a format, you can always change it later."
       />
       <TextField
         label="Document title"
@@ -1147,7 +1215,7 @@ function StepTopics({
       <StepHeading
         emoji="📚"
         title="Which topics should it cover?"
-        sub="Tap to add — mix and match across subjects. We'll keep your TEKS covered."
+        sub="Tap to add, mix and match across subjects. We'll keep your TEKS covered."
       />
       <TextField
         value={topicSearch}
@@ -1450,7 +1518,7 @@ function StepAccommodations({
       <StepHeading
         emoji="♿"
         title="Who needs a different version?"
-        sub="Set up anonymous groups once — every version shares the same math. Skip this step if everyone gets the same worksheet."
+        sub="Set up anonymous groups once, every version shares the same math. Skip this step if everyone gets the same worksheet."
       />
       <Box
         sx={{
@@ -1628,7 +1696,7 @@ function StepReview({
           label={<Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#f2f3fa' }}>Answer key</Typography>}
           sx={{ ml: 0 }}
         />
-        {mounted && selectedModules.length > 0 && (
+        {mounted && selectedModules.length > 0 ? (
           <PDFDownloadLink
             document={
               hasAccommodations && accommodatedDocument ? (
@@ -1666,7 +1734,7 @@ function StepReview({
               </Button>
             )}
           </PDFDownloadLink>
-        )}
+        ) : null}
       </Box>
 
       {draftError && (
@@ -1704,7 +1772,7 @@ function StepReview({
           })}
           <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, ml: 1 }}>
             Previewing: {activeVersion.label}
-            {activeVersion.accommodations.length > 0 && ` — ${activeVersion.accommodations.join(', ')}`}
+            {activeVersion.accommodations.length > 0 && `, ${activeVersion.accommodations.join(', ')}`}
           </Typography>
         </Box>
       )}
@@ -1727,6 +1795,7 @@ function StepReview({
           </Alert>
         ) : (
           <PreviewErrorBoundary key={errorBoundaryKey}>
+            <ScaledPreview>
             <EuclidEngine
               problems={activeVersion.problems}
               mode={toOutputMode(docType)}
@@ -1738,6 +1807,7 @@ function StepReview({
               presentation={activeVersion.presentation}
               wordBank={activeVersion.wordBank}
             />
+            </ScaledPreview>
           </PreviewErrorBoundary>
         )}
       </Box>

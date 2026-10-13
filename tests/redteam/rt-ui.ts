@@ -1,4 +1,4 @@
-// rt-ui.ts — SSR-render preview components with hostile props (no browser).
+// rt-ui.ts, SSR-render preview components with hostile props (no browser).
 // EuclidEngine + problem cards via react-dom/server renderToStaticMarkup.
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";

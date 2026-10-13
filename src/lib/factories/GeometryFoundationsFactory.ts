@@ -4,7 +4,7 @@
 // Lesson ch1-1: the registry entry is "1-1: Nets and Drawings" AND Topic 1's
 // only lesson slot, so the generator carries both halves of the chapter's
 // foundation: (a) nets / orthographic drawings of solids, and (b) the
-// points-lines-planes language the whole course is built on — undefined
+// points-lines-planes language the whole course is built on, undefined
 // terms, collinear/coplanar, intersections, stated with correct postulate
 // language. The chapter-test pool adds measuring segments/angles, angle
 // pairs, and basic constructions (the registry's ch1-test description:
@@ -467,7 +467,7 @@ function makeVerticalLinear(rng: RNG): GeometryProblem {
     steps: [
       step(
         vertical
-          ? "Vertical angles — the opposite angles formed by two intersecting lines — are congruent."
+          ? "Vertical angles, the opposite angles formed by two intersecting lines, are congruent."
           : "A linear pair is supplementary: the two angles form a straight line.",
         vertical ? "Vertical Angles Theorem." : "Linear Pair Postulate (supplementary angles)."
       ),

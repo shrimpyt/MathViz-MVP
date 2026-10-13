@@ -16,9 +16,9 @@ import {
 } from "./Algebra1Format";
 
 export const LINEAR_BY_DIFFICULTY: Record<DifficultyLevel, readonly Algebra1Subtype[]> = {
-  1: ["SlopeFromPoints", "GraphLine", "FunctionNotation"],
-  2: ["SlopeFromPoints", "GraphLine", "FunctionNotation", "WriteSlopeIntercept", "DirectVariation", "StandardToSlopeIntercept", "RelationsFunctions"],
-  3: ["SlopeFromPoints", "GraphLine", "FunctionNotation", "LinearWordProblem", "WriteSlopeIntercept", "DirectVariation", "WritePointSlope", "StandardToSlopeIntercept", "WriteFunctionRule", "RelationsFunctions", "ParallelPerpendicular", "TransformLinear"],
+  1: ["SlopeFromPoints", "GraphLine", "FunctionNotation", "SlopeEveryForm", "HorizontalVerticalLines"],
+  2: ["SlopeFromPoints", "GraphLine", "FunctionNotation", "WriteSlopeIntercept", "DirectVariation", "StandardToSlopeIntercept", "RelationsFunctions", "SlopeEveryForm", "HorizontalVerticalLines", "DomainRangeLinear"],
+  3: ["SlopeFromPoints", "GraphLine", "FunctionNotation", "LinearWordProblem", "WriteSlopeIntercept", "DirectVariation", "WritePointSlope", "StandardToSlopeIntercept", "WriteFunctionRule", "RelationsFunctions", "ParallelPerpendicular", "TransformLinear", "SlopeEveryForm", "HorizontalVerticalLines", "DomainRangeLinear"],
 };
 
 const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
@@ -34,6 +34,9 @@ const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
   "ParallelPerpendicular",
   "TransformLinear",
   "LinearWordProblem",
+  "SlopeEveryForm",
+  "HorizontalVerticalLines",
+  "DomainRangeLinear",
 ];
 
 // ── Slope from two points ───────────────────────────────────────────────────
@@ -369,7 +372,7 @@ function makeRelationsFunctions(rng: RNG): Algebra1Problem {
       {
         instruction: "A relation is a function if each domain value pairs with exactly one range value:",
         reason: "Definition of a function",
-        blanks: [{ label: "function?", answer: isFunction ? "Yes — no x-value repeats" : "No — an x-value pairs with two y-values" }],
+        blanks: [{ label: "function?", answer: isFunction ? "Yes, no x-value repeats" : "No, an x-value pairs with two y-values" }],
       },
       {
         instruction: "List the domain (x-values) and range (y-values):",
@@ -504,6 +507,345 @@ function makeTransformLinear(rng: RNG): Algebra1Problem {
   };
 }
 
+// ── Slope in every form (A.3A) ────────────────────────────────────────────
+// One skill, four costumes: table, two points (or a described graph),
+// slope-intercept equation, and standard-form equation (tier 3).
+// Every variant stores two points of the line in meta (kind "slope"),
+// so the checker recomputes the slope the same way for all of them.
+
+function slopeSteps(p1: [number, number], p2: [number, number]): Algebra1Problem["steps"] {
+  const dy = p2[1] - p1[1];
+  const dx = p2[0] - p1[0];
+  return [
+    {
+      instruction: "Use the slope formula \\(m = \\frac{y_2 - y_1}{x_2 - x_1}\\) with two points on the line:",
+      reason: "Definition of slope",
+      blanks: [{ label: "substitute", answer: `m = \\frac{${p2[1]} - (${p1[1]})}{${p2[0]} - (${p1[0]})}` }],
+    },
+    {
+      instruction: "Simplify:",
+      blanks: [{ label: "answer", answer: `m = ${fmtFrac(dy, dx)}` }],
+    },
+  ];
+}
+
+function makeSlopeEveryForm(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
+  const variants: string[] = difficulty === 1
+    ? ["table", "points"]
+    : difficulty === 2
+      ? ["table", "points", "graph", "slopeIntercept"]
+      : ["table", "points", "graph", "slopeIntercept", "standard"];
+  const variant = pick(rng, variants as readonly string[]);
+
+  if (variant === "table") {
+    const mNum = pick(rng, [-3, -2, -1, 1, 2, 3] as const);
+    const mDen = difficulty >= 2 && rng() < 0.4 ? pick(rng, [2, 3] as const) : 1;
+    const b = randInt(rng, -5, 6);
+    const xs = [0, mDen, 2 * mDen, 3 * mDen];
+    const ys = xs.map((x) => mNum * (x / mDen) + b);
+    const table = `\\(\\begin{array}{c|cccc} x & ${xs.join(" & ")} \\\\ \\hline y & ${ys.join(" & ")} \\end{array}\\)`;
+    const p1: [number, number] = [xs[0], ys[0]];
+    const p2: [number, number] = [xs[3], ys[3]];
+    return {
+      type: "A.3A",
+      subtype: "SlopeEveryForm",
+      prompt: `Find the slope of the linear relationship shown in the table: ${table}`,
+      answer: `m = ${fmtFrac(p2[1] - p1[1], p2[0] - p1[0])}`,
+      steps: [
+        {
+          instruction: "Pick two rows of the table as points and use the slope formula:",
+          reason: "Slope is the same between any two points of a line",
+          blanks: slopeSteps(p1, p2)[0].blanks,
+        },
+        slopeSteps(p1, p2)[1],
+      ],
+      meta: { kind: "slope", p1, p2 },
+    };
+  }
+
+  if (variant === "points" || variant === "graph") {
+    const x1 = randInt(rng, -6, 5);
+    const y1 = randInt(rng, -6, 6);
+    const dx = pick(rng, [1, 2, 3, 4] as const);
+    const m = pick(rng, [-3, -2, -1, 1, 2, 3] as const);
+    const p1: [number, number] = [x1, y1];
+    const p2: [number, number] = [x1 + dx, y1 + m * dx];
+    const prompt = variant === "graph"
+      ? `A graphed line passes through \\(${fmtPoint(p1[0], p1[1])}\\) and \\(${fmtPoint(p2[0], p2[1])}\\). Find its slope.`
+      : `Find the slope of the line through \\(${fmtPoint(p1[0], p1[1])}\\) and \\(${fmtPoint(p2[0], p2[1])}\\).`;
+    return {
+      type: "A.3A",
+      subtype: "SlopeEveryForm",
+      prompt,
+      answer: `m = ${fmtFrac(p2[1] - p1[1], p2[0] - p1[0])}`,
+      steps: slopeSteps(p1, p2),
+      graph: {
+        kind: "FunctionGraph",
+        funcs: [{ fn: "line", m, b: y1 - m * x1 }],
+        marks: [
+          { x: p1[0], y: p1[1], label: fmtPoint(p1[0], p1[1]) },
+          { x: p2[0], y: p2[1], label: fmtPoint(p2[0], p2[1]) },
+        ],
+        xRange: [Math.min(p1[0], p2[0]) - 3, Math.max(p1[0], p2[0]) + 3],
+      },
+      meta: { kind: "slope", p1, p2 },
+    };
+  }
+
+  if (variant === "slopeIntercept") {
+    const mNum = pick(rng, [-4, -3, -2, -1, 1, 2, 3, 4] as const);
+    const mDen = rng() < 0.5 ? 1 : pick(rng, [2, 3, 4] as const);
+    const b = randInt(rng, -7, 7);
+    const mText = mDen === 1 ? `${mNum}` : fmtFrac(mNum, mDen);
+    const eqText = `y = ${mText === "1" ? "" : mText === "-1" ? "-" : mText}x${b >= 0 ? ` + ${b}` : ` - ${-b}`}`;
+    const p1: [number, number] = [0, b];
+    const p2: [number, number] = [mDen, mNum + b];
+    return {
+      type: "A.3A",
+      subtype: "SlopeEveryForm",
+      prompt: `Find the slope of the line \\(${eqText}\\).`,
+      answer: `m = ${fmtFrac(mNum, mDen)}`,
+      steps: [
+        {
+          instruction: "In slope-intercept form \\(y = mx + b\\), the slope is the coefficient of x:",
+          reason: "Slope-intercept form",
+          blanks: [{ label: "answer", answer: `m = ${fmtFrac(mNum, mDen)}` }],
+        },
+      ],
+      meta: { kind: "slope", p1, p2 },
+    };
+  }
+
+  // standard form: Ax + By = C with B dividing C, slope = -A/B
+  const B = pick(rng, [-4, -3, -2, -1, 1, 2, 3, 4] as const);
+  let A = 0;
+  while (A === 0) A = randInt(rng, -6, 6);
+  const t = randInt(rng, -6, 6);
+  const C = B * t;
+  const p1: [number, number] = [0, t];
+  const p2: [number, number] = [B, t - A];
+  const prompt = `Find the slope of the line \\(${fmtLinear(A, 0)}${B >= 0 ? " + " : " - "}${Math.abs(B)}y = ${C}\\).`;
+  return {
+    type: "A.3A",
+    subtype: "SlopeEveryForm",
+    prompt,
+    answer: `m = ${fmtFrac(-A, B)}`,
+    steps: [
+      {
+        instruction: "Solve the equation for y. The coefficient of x is the slope, \\(m = -\\frac{A}{B}\\):",
+        reason: "Slope from standard form",
+        blanks: [{ label: "answer", answer: `m = ${fmtFrac(-A, B)}` }],
+      },
+    ],
+    meta: { kind: "slope", p1, p2 },
+  };
+}
+
+// ── Horizontal & vertical lines (A.2G) ────────────────────────────────────
+
+function makeHorizontalVerticalLines(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
+  const px = randInt(rng, -7, 7);
+  const py = randInt(rng, -7, 7);
+  const horizontal = rng() < 0.5;
+  const orientation = horizontal ? "horizontal" : "vertical";
+  const askSlope = difficulty >= 2 && rng() < 0.35;
+  if (askSlope) {
+    const eqText = horizontal ? `y = ${py}` : `x = ${px}`;
+    const answer = horizontal ? "0" : "no slope";
+    return {
+      type: "A.2G",
+      subtype: "HorizontalVerticalLines",
+      prompt: `Find the slope of the line \\(${eqText}\\).`,
+      answer,
+      steps: [
+        {
+          instruction: horizontal
+            ? "A horizontal line never rises, so its slope is:"
+            : "A vertical line has no run, and division by zero is undefined, so it has:",
+          reason: "Slope of a horizontal or vertical line",
+          blanks: [{ label: "answer", answer }],
+        },
+      ],
+      meta: { kind: "hvLine", orientation, px, py, ask: "slope" },
+    };
+  }
+  const answer = horizontal ? `y = ${py}` : `x = ${px}`;
+  let prompt: string;
+  let reason: string;
+  const style = difficulty === 1 ? 0 : randInt(rng, 0, 2);
+  if (style === 0) {
+    prompt = `Write the equation of the ${orientation} line through \\(${fmtPoint(px, py)}\\).`;
+    reason = horizontal ? "Every point of a horizontal line has the same y-value" : "Every point of a vertical line has the same x-value";
+  } else if (style === 1) {
+    const parallel = rng() < 0.5;
+    const axis = horizontal === parallel ? "x-axis" : "y-axis";
+    prompt = `Write the equation of the line through \\(${fmtPoint(px, py)}\\) that is ${parallel ? "parallel" : "perpendicular"} to the ${axis}.`;
+    reason = parallel
+      ? `A line parallel to the ${axis} is ${orientation}`
+      : `A line perpendicular to the ${axis} is ${orientation}`;
+  } else {
+    const parallel = rng() < 0.5;
+    const givenHorizontal = parallel === horizontal;
+    const c = givenHorizontal ? randInt(rng, -7, 7) : randInt(rng, -7, 7);
+    const givenEq = givenHorizontal ? `y = ${c}` : `x = ${c}`;
+    prompt = `Write the equation of the line through \\(${fmtPoint(px, py)}\\) that is ${parallel ? "parallel" : "perpendicular"} to the line \\(${givenEq}\\).`;
+    reason = parallel
+      ? "Parallel lines run in the same direction"
+      : `A line perpendicular to a ${givenHorizontal ? "horizontal" : "vertical"} line is ${orientation}`;
+  }
+  return {
+    type: "A.2G",
+    subtype: "HorizontalVerticalLines",
+    prompt,
+    answer,
+    steps: [
+      {
+        instruction: reason + ":",
+        reason: "Horizontal and vertical lines",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    meta: { kind: "hvLine", orientation, px, py, ask: "equation" },
+  };
+}
+
+// ── Domain & range of linear functions (A.2A) ─────────────────────────────
+
+function makeDomainRangeLinear(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
+  const rangeNote = "The range is the set of y-values the function takes.";
+  if (difficulty === 1 || rng() < 0.3) {
+    // Unbounded line: from an equation or a graph description.
+    const m = pick(rng, [-3, -2, -1, 1, 2, 3] as const);
+    const b = randInt(rng, -6, 6);
+    const fromGraph = rng() < 0.5;
+    const prompt = fromGraph
+      ? `The graph of \\(${fmtLineEq(m, b)}\\) is a line that continues without end in both directions. State the domain and range.`
+      : `For the linear function \\(${fmtLineEq(m, b)}\\), state the domain and range.`;
+    const answer = "domain: all real numbers; range: all real numbers";
+    return {
+      type: "A.2A",
+      subtype: "DomainRangeLinear",
+      prompt,
+      answer,
+      steps: [
+        {
+          instruction: "The domain is the set of x-values. A line with no endpoints accepts every x-value:",
+          reason: "Domain of a linear function",
+          blanks: [{ label: "domain", answer: "all real numbers" }],
+        },
+        {
+          instruction: rangeNote,
+          blanks: [{ label: "answer", answer: "range: all real numbers" }],
+        },
+      ],
+      meta: { kind: "domainRange", m, b, lo: null, hi: null, discrete: null },
+    };
+  }
+
+  if (difficulty >= 3 && rng() < 0.4) {
+    // Discrete context: only whole-number inputs make sense.
+    const price = pick(rng, [3, 4, 5, 6, 8, 10] as const);
+    const maxN = randInt(rng, 4, 6);
+    const xs = Array.from({ length: maxN }, (_, i) => i + 1);
+    const ys = xs.map((x) => price * x);
+    const prompt =
+      `A carnival ride charges $${price} per ride. Let \\(f(x)\\) be the total cost, in dollars, for x rides, and a ` +
+      `visitor buys between 1 and ${maxN} rides. State the domain and range.`;
+    const answer = `domain: \\{${xs.join(", ")}\\}; range: \\{${ys.join(", ")}\\}`;
+    return {
+      type: "A.2A",
+      subtype: "DomainRangeLinear",
+      prompt,
+      answer,
+      steps: [
+        {
+          instruction: "Only whole numbers of rides are possible, so list the x-values and the matching costs:",
+          reason: "Discrete domain",
+          blanks: [{ label: "answer", answer }],
+        },
+      ],
+      meta: { kind: "domainRange", m: price, b: 0, lo: null, hi: null, discrete: xs },
+    };
+  }
+
+  if (rng() < 0.5) {
+    // Segment with named endpoints.
+    const x1 = randInt(rng, -5, 2);
+    const dx = pick(rng, [2, 3, 4, 5] as const);
+    const m = pick(rng, [-2, -1, 1, 2] as const);
+    const y1 = randInt(rng, -5, 5);
+    const x2 = x1 + dx;
+    const y2 = y1 + m * dx;
+    const rlo = Math.min(y1, y2);
+    const rhi = Math.max(y1, y2);
+    const prompt =
+      `The graph of a linear function is the segment with endpoints \\(${fmtPoint(x1, y1)}\\) and \\(${fmtPoint(x2, y2)}\\). ` +
+      `State the domain and range in inequality notation.`;
+    const answer = `domain: ${x1} \\leq x \\leq ${x2}; range: ${rlo} \\leq y \\leq ${rhi}`;
+    return {
+      type: "A.2A",
+      subtype: "DomainRangeLinear",
+      prompt,
+      answer,
+      steps: [
+        {
+          instruction: "The domain runs from the smaller endpoint x-value to the larger:",
+          reason: "Domain of a segment",
+          blanks: [{ label: "domain", answer: `${x1} \\leq x \\leq ${x2}` }],
+        },
+        {
+          instruction: rangeNote,
+          blanks: [{ label: "answer", answer: `range: ${rlo} \\leq y \\leq ${rhi}` }],
+        },
+      ],
+      meta: { kind: "domainRange", m, b: y1 - m * x1, lo: x1, hi: x2, discrete: null },
+    };
+  }
+
+  // Real-world context with a practical (bounded) domain.
+  const draining = rng() < 0.5;
+  let m: number, b: number, hi: number, prompt: string;
+  if (draining) {
+    const rate = pick(rng, [2, 4, 5, 10] as const);
+    const hours = pick(rng, [4, 5, 6, 8] as const);
+    b = rate * hours;
+    m = -rate;
+    hi = hours;
+    prompt =
+      `A tank holds ${b} gallons of water and drains at ${rate} gallons per hour. Let y be the gallons ` +
+      `remaining after x hours, until the tank is empty. State the domain and range in inequality notation.`;
+  } else {
+    m = pick(rng, [5, 10, 15, 20] as const);
+    b = randInt(rng, 0, 40);
+    hi = pick(rng, [6, 8, 10, 12] as const);
+    prompt =
+      `Mia starts a savings account with $${b} and adds $${m} per week. Let y be her balance after x weeks, ` +
+      `for the first ${hi} weeks. State the domain and range in inequality notation.`;
+  }
+  const rEnd = m * hi + b;
+  const rlo = Math.min(b, rEnd);
+  const rhi = Math.max(b, rEnd);
+  const answer = `domain: 0 \\leq x \\leq ${hi}; range: ${rlo} \\leq y \\leq ${rhi}`;
+  return {
+    type: "A.2A",
+    subtype: "DomainRangeLinear",
+    prompt,
+    answer,
+    steps: [
+      {
+        instruction: "The situation limits x to the values between the start and the stopping point:",
+        reason: "Practical domain",
+        blanks: [{ label: "domain", answer: `0 \\leq x \\leq ${hi}` }],
+      },
+      {
+        instruction: "Evaluate the function at both ends to bound the y-values:",
+        blanks: [{ label: "answer", answer: `range: ${rlo} \\leq y \\leq ${rhi}` }],
+      },
+    ],
+    meta: { kind: "domainRange", m, b, lo: 0, hi, discrete: null },
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 const MAKERS: Record<string, (rng: RNG, difficulty: DifficultyLevel) => Algebra1Problem> = {
@@ -519,6 +861,9 @@ const MAKERS: Record<string, (rng: RNG, difficulty: DifficultyLevel) => Algebra1
   ParallelPerpendicular: (rng) => makeParallelPerpendicular(rng),
   TransformLinear: (rng) => makeTransformLinear(rng),
   LinearWordProblem: (rng) => makeLinearWordProblem(rng),
+  SlopeEveryForm: makeSlopeEveryForm,
+  HorizontalVerticalLines: makeHorizontalVerticalLines,
+  DomainRangeLinear: makeDomainRangeLinear,
 };
 
 export function generateLinearProblems(

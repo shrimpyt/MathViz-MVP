@@ -1,4 +1,4 @@
-// rt-verify6.ts — Middle school: NO verify payloads; parse prompts, recompute, compare.
+// rt-verify6.ts, Middle school: NO verify payloads; parse prompts, recompute, compare.
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, counter, report } from "./util";
 

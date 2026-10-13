@@ -2,7 +2,7 @@
 // Shared test harness + per-family LOGICAL checkers for geometry proofs.
 //
 // A wrong proof is worse than no proof: these checkers don't just validate
-// shape (validateProofShape) — they walk each proof's steps, track the
+// shape (validateProofShape), they walk each proof's steps, track the
 // established facts (measurements, congruence pairs, right angles), verify
 // every reason actually justifies its statement, verify the final step
 // matches `prove`, and recompute the diagram params from the parsed facts.

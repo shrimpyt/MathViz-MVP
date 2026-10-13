@@ -25,6 +25,16 @@ const SUBTYPE_LABEL: Record<Grade8Problem["subtype"], string> = {
   ScientificNotation: "Scientific Notation",
   Volume3D: "Volume of Cylinders, Cones & Spheres",
   ScatterPlots: "Scatter Plots",
+  SlopeRateOfChange: "Slope & Rate of Change",
+  IrrationalNumbers: "Irrational Numbers & Estimation",
+  MeanAbsoluteDeviation: "Mean Absolute Deviation",
+  SurfaceArea8: "Surface Area of Prisms & Cylinders",
+  InterestAndCredit: "Simple & Compound Interest",
+  TransversalsSimilarity: "Angle Relationships & Similar Triangles",
+  DilationsCoordinate: "Dilations on the Coordinate Plane",
+  PropVsNonProp: "Proportional vs. Non-Proportional",
+  CollegeCosts: "College Costs & Savings Plans",
+  WriteTheProblem8: "Writing Problems for Equations",
 };
 
 export function MiddleSchoolGrade8Card({

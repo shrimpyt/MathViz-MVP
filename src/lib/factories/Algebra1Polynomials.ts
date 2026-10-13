@@ -4,7 +4,7 @@
 //           FactorGCF, FactorTrinomial, FactorDifferenceSquares.
 //
 // Generation strategy: build the factored/operand forms FIRST, then derive
-// the expanded polynomial — so factored forms always multiply out exactly.
+// the expanded polynomial, so factored forms always multiply out exactly.
 
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
@@ -21,8 +21,8 @@ import {
 
 export const POLY_BY_DIFFICULTY: Record<DifficultyLevel, readonly Algebra1Subtype[]> = {
   1: ["PolyAddSub", "FOIL", "FactorTrinomialBasic"],
-  2: ["PolyAddSub", "FOIL", "FactorGCF", "FactorTrinomialBasic", "FactorTrinomialAC"],
-  3: ["PolyAddSub", "FOIL", "PolyMultiply", "FactorGCF", "FactorTrinomialBasic", "FactorTrinomialAC", "FactorDifferenceSquares", "FactorByGrouping", "SimplifyRationalExpression"],
+  2: ["PolyAddSub", "FOIL", "FactorGCF", "FactorTrinomialBasic", "FactorTrinomialAC", "PolyDivision"],
+  3: ["PolyAddSub", "FOIL", "PolyMultiply", "FactorGCF", "FactorTrinomialBasic", "FactorTrinomialAC", "FactorDifferenceSquares", "FactorByGrouping", "SimplifyRationalExpression", "PolyDivision"],
 };
 
 const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
@@ -35,6 +35,7 @@ const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
   "FactorDifferenceSquares",
   "FactorByGrouping",
   "SimplifyRationalExpression",
+  "PolyDivision",
 ];
 
 /** Random nonzero coefficient in a small range. */
@@ -120,7 +121,7 @@ function makeFOIL(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
     answer,
     steps: [
       {
-        instruction: "FOIL — First, Outer, Inner, Last:",
+        instruction: "FOIL, First, Outer, Inner, Last:",
         reason: "Distributive Property (twice)",
         blanks: [
           {
@@ -342,6 +343,76 @@ function makeSimplifyRationalExpression(rng: RNG): Algebra1Problem {
   };
 }
 
+// ── Polynomial long division (A.10C) ──────────────────────────────────────
+// Build the quotient FIRST, then multiply out (and add a constant remainder),
+// so the division always comes out in whole numbers.
+// Tier 1: monic linear divisor, quadratic dividend, no remainder.
+// Tier 2: monic linear divisor, cubic dividend, constant remainder allowed.
+// Tier 3: monic quadratic divisor or non-monic linear divisor.
+
+function fmtDivisionAnswer(quotient: number[], divisor: number[], remainder: number): string {
+  const q = fmtPoly(quotient);
+  if (remainder === 0) return q;
+  const d = fmtPoly(divisor);
+  return remainder > 0
+    ? `${q} + \\frac{${remainder}}{${d}}`
+    : `${q} - \\frac{${-remainder}}{${d}}`;
+}
+
+function makePolyDivision(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
+  let divisor: number[];
+  let quotient: number[];
+  let remainder = 0;
+  if (difficulty === 1) {
+    const r = randInt(rng, -6, 6);
+    divisor = [r, 1]; // x + r
+    quotient = [nz(rng, -6, 6), pick(rng, [1, 2, 3] as const)]; // q1·x + q0
+  } else if (difficulty === 2) {
+    const r = randInt(rng, -6, 6);
+    divisor = [r, 1];
+    const q1 = rng() < 0.4 ? -r : nz(rng, -5, 5); // sometimes forces a missing x² term
+    quotient = [nz(rng, -6, 6), q1, 1]; // x² + q1·x + q0
+    remainder = rng() < 0.5 ? 0 : nz(rng, -9, 9);
+  } else if (rng() < 0.5) {
+    // Monic quadratic divisor, linear quotient.
+    divisor = [randInt(rng, -6, 6), randInt(rng, -4, 4), 1]; // x² + c1·x + c0
+    quotient = [nz(rng, -5, 5), pick(rng, [1, 2] as const)];
+    remainder = rng() < 0.5 ? 0 : nz(rng, -9, 9);
+  } else {
+    // Non-monic linear divisor, quadratic quotient.
+    const lead = pick(rng, [2, 3] as const);
+    divisor = [randInt(rng, -5, 5), lead]; // lead·x + c0
+    quotient = [nz(rng, -5, 5), nz(rng, -4, 4), pick(rng, [1, 2] as const)];
+    remainder = rng() < 0.5 ? 0 : nz(rng, -9, 9);
+  }
+  const dividend = polyMul(divisor, quotient);
+  if (remainder !== 0) dividend[0] += remainder;
+  const prompt = `Divide using long division: \\(\\frac{${fmtPoly(dividend)}}{${fmtPoly(divisor)}}\\)`;
+  const answer = fmtDivisionAnswer(quotient, divisor, remainder);
+  // Lead term of the quotient, for the first scaffold step.
+  const topPow = quotient.length - 1;
+  const leadTerm = fmtPoly(quotient.map((c, i) => (i === topPow ? c : 0)));
+  return {
+    type: "A.10C",
+    subtype: "PolyDivision",
+    prompt,
+    answer,
+    steps: [
+      {
+        instruction: "Divide the leading term of the dividend by the leading term of the divisor; that is the first term of the quotient:",
+        reason: "Polynomial long division",
+        blanks: [{ label: "first term", answer: leadTerm }],
+      },
+      {
+        instruction: "Multiply the divisor by that term, subtract, and repeat until the remainder has a smaller degree than the divisor" +
+          (remainder === 0 ? " (here the remainder is 0):" : ":"),
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    meta: { kind: "polyDivision", dividend, divisor },
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 const MAKERS: Record<string, (rng: RNG, difficulty: DifficultyLevel) => Algebra1Problem> = {
@@ -354,6 +425,7 @@ const MAKERS: Record<string, (rng: RNG, difficulty: DifficultyLevel) => Algebra1
   FactorDifferenceSquares: (rng) => makeFactorDifferenceSquares(rng),
   FactorByGrouping: (rng) => makeFactorByGrouping(rng),
   SimplifyRationalExpression: (rng) => makeSimplifyRationalExpression(rng),
+  PolyDivision: makePolyDivision,
 };
 
 export function generatePolynomialProblems(

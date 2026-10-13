@@ -1,5 +1,5 @@
 // PdfMiddleSchoolDiagrams.tsx
-// @react-pdf/renderer diagram renderers for the middle-school area — the PDF
+// @react-pdf/renderer diagram renderers for the middle-school area, the PDF
 // twin of MiddleSchoolDiagrams.tsx. Every kind in the web renderer has a
 // matching exporter here; keep them in sync.
 
@@ -91,7 +91,7 @@ export function PdfMSCoordinateGridSVG(p: MSCoordinateGridParams) {
   const H = 200;
   const pad = 16;
   // Seeded presentation variant (0-7). Point coordinates, labels, and segments
-  // are the math and are never altered — only marker style, dash pattern,
+  // are the math and are never altered, only marker style, dash pattern,
   // and polygon label placement change.
   const v = p.variant ?? 0;
   const markerStyle = v % 3; // 0: filled disc, 1: ring, 2: square
@@ -221,7 +221,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
   const H = 170;
   const d = p.dims;
   // Seeded presentation variant (0-7). Changes ONLY how the figure is drawn
-  // (orientation, skew, scale, rotation, layout) — dims and math are untouched.
+  // (orientation, skew, scale, rotation, layout), dims and math are untouched.
   const v = p.variant ?? 0;
   const label = (x: number, y: number, text: string) => (
     <PdfLabel x={x} y={y} text={text} />
@@ -322,7 +322,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       const l = d.length ?? 5;
       const w = d.width ?? 4;
       const h = d.height ?? 3;
-      // Variant: 24 states — depth dir (2) x proportions (3) x height (2) x depth len (2).
+      // Variant: 24 states, depth dir (2) x proportions (3) x height (2) x depth len (2).
       const pi = v % 24;
       const dir = pi % 2 === 0 ? 1 : -1;
       const sz = Math.floor(pi / 2) % 3;
@@ -347,7 +347,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
     case "cylinder": {
       const r = d.radius ?? 3;
       const h = d.height ?? 6;
-      // Variant: 8 states — scale (2) x horizontal pos (2) x height (2).
+      // Variant: 8 states, scale (2) x horizontal pos (2) x height (2).
       const c8 = v % 8;
       const s = c8 % 2 === 0 ? 1 : 0.8;
       const cx = c8 % 4 < 2 ? 100 : 88, ry = 14 * s, hw = 55 * s;
@@ -365,7 +365,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
     case "cone": {
       const r = d.radius ?? 3;
       const h = d.height ?? 6;
-      // Variant: 8 states — scale (2) x horizontal pos (2) x height (2).
+      // Variant: 8 states, scale (2) x horizontal pos (2) x height (2).
       const c8 = v % 8;
       const s = c8 % 2 === 0 ? 1 : 0.8;
       const cx = c8 % 4 < 2 ? 100 : 88, apexY = 35, ry = 12 * s, hw = 55 * s;
@@ -397,7 +397,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       );
     }
     case "circle": {
-      // Variant: 16 states — radius indicator angle (8) x drawn size (2).
+      // Variant: 16 states, radius indicator angle (8) x drawn size (2).
       const R = v % 2 === 0 ? 58 : 48;
       const cx = 100, cy = 85;
       const a = ((Math.floor(v / 2) % 8) * 45 * Math.PI) / 180;
@@ -496,7 +496,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       const w1 = d.w1 ?? 10, h1 = d.h1 ?? 5, w2 = d.w2 ?? 5, h2 = d.h2 ?? 4;
       const s = Math.min(120 / w1, 60 / h1, 100 / w2, 50 / h2);
       const bw = w1 * s, bh = h1 * s, tw = w2 * s, th = h2 * s;
-      // Variant: 4 states — mirror (2) x vertical position (2).
+      // Variant: 4 states, mirror (2) x vertical position (2).
       const mirror = v % 2 === 1;
       const mx = (x: number) => (mirror ? 200 - x : x);
       const x0 = (200 - bw) / 2, yb = v % 4 < 2 ? 135 : 122;

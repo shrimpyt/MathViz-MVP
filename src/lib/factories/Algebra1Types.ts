@@ -2,11 +2,11 @@
 // Shared domain types for the Algebra 1 worksheet area.
 //
 // TEKS codes follow the authoritative scope doc
-// (~/workspace/euclid-worksheet/CURRICULUM_SCOPE.md, "Algebra I — Topics 1–9"),
+// (~/workspace/euclid-worksheet/CURRICULUM_SCOPE.md, "Algebra I, Topics 1–9"),
 // with the "A." subject prefix per repo convention (doc lists "5A" → "A.5A").
 //
 // NOTE FOR WIRING (parent/integrator):
-//   These types are new and live here on purpose — src/lib/types.ts and
+//   These types are new and live here on purpose, src/lib/types.ts and
 //   src/lib/ProblemFactory.ts must NOT be edited by this worker.
 //   To wire Algebra 1 into the app:
 //     1. Add the Algebra1TEKS codes to the TEKSStandard union in src/lib/types.ts.
@@ -24,17 +24,22 @@ export type Algebra1TEKS =
   | "A.5B" // solve linear inequalities in one variable
   | "A.12E" // solve literal equations
   | "A.3B" // rate of change / slope
+  | "A.3A" // slope from tables, graphs, and equations
   | "A.2B" // write equations of lines
   | "A.2D" // direct variation
   | "A.3C" // graph linear functions
   | "A.2C" // write function rules
   | "A.12A" // relations & functions
-  | "A.2A" // function notation
+  | "A.2A" // domain & range of linear functions; function notation
+  | "A.2G" // horizontal & vertical lines
+  | "A.2H" // write linear inequalities in two variables
   | "A.2E" // parallel & perpendicular lines
   | "A.3E" // transformations of linear functions
   | "A.4C" // scatter plots & trend lines
-  | "A.4B" // two-way tables (mission statistics basics)
+  | "A.4A" // correlation coefficient
+  | "A.4B" // association vs. causation; two-way tables (mission statistics basics)
   | "A.3F" // graph systems of equations
+  | "A.3G" // estimate system solutions from graphs
   | "A.5C" // solve systems algebraically
   | "A.2I" // systems applications
   | "A.3D" // linear inequalities in two variables
@@ -48,14 +53,19 @@ export type Algebra1TEKS =
   | "A.10B" // multiply binomials; factoring by grouping
   | "A.10E" // factor trinomials
   | "A.10F" // special factoring cases (difference of squares)
+  | "A.10C" // divide polynomials
   | "A.6A" // graphs & properties of quadratics
   | "A.7A" // quadratic functions & key attributes
+  | "A.7B" // factors & zeros of quadratics
   | "A.7C" // transformations of quadratics
   | "A.6B" // vertex form
   | "A.8A" // solve quadratics (factoring, CTS, formula, discriminant)
+  | "A.8B" // quadratic models from data
   | "A.6C" // write quadratic functions
   | "A.9A" // exponential functions
   | "A.9B" // exponential growth & decay
+  | "A.9C" // write exponential functions
+  | "A.9D" // graph exponentials; key features
   | "A.9E"; // exponential modeling
 
 // ── Subtypes ────────────────────────────────────────────────────────────────
@@ -85,6 +95,11 @@ export type Algebra1Subtype =
   | "LineOfBestFit"
   | "LinearWordProblem"
   | "TwoWayTable"
+  | "DomainRangeLinear"
+  | "HorizontalVerticalLines"
+  | "SlopeEveryForm"
+  | "Correlation"
+  | "AssociationCausation"
   // T4: Systems
   | "SystemGraphing"
   | "SystemSubstitution"
@@ -93,6 +108,8 @@ export type Algebra1Subtype =
   | "SystemSpecialCase"
   | "LinearInequality"
   | "SystemOfInequalities"
+  | "WriteLinearInequality"
+  | "EstimateSystemSolution"
   // T5: Exponents & radicals
   | "ZeroNegativeExponents"
   | "MultiplyPowers"
@@ -116,6 +133,7 @@ export type Algebra1Subtype =
   | "FactorDifferenceSquares"
   | "FactorByGrouping"
   | "SimplifyRationalExpression"
+  | "PolyDivision"
   // T8: Quadratics
   | "QuadraticAttributes"
   | "GraphQuadratic"
@@ -126,12 +144,16 @@ export type Algebra1Subtype =
   | "QuadraticDiscriminant"
   | "CompleteSquare"
   | "WriteQuadratic"
+  | "FactorsZeros"
+  | "QuadModelData"
   // T9: Exponentials
   | "GraphExponential"
   | "ExponentialGrowth"
   | "ExponentialDecay"
   | "ExponentialWordProblem"
-  | "ExponentialModeling";
+  | "ExponentialModeling"
+  | "WriteExponential"
+  | "ExponentialFeatures";
 
 export type IneqRel = "<" | ">" | "<=" | ">=";
 export type Pt2 = [number, number];
@@ -194,7 +216,30 @@ export type Algebra1Meta =
     }
   | { kind: "recursive"; seqKind: "arithmetic" | "geometric"; a1: number; d: number; r: number; n: number }
   | { kind: "twoway"; rowLabels: string[]; colLabels: string[]; data: number[][] }
-  | { kind: "regression"; points: Pt2[]; predictX: number };
+  | { kind: "regression"; points: Pt2[]; predictX: number }
+  | { kind: "polyDivision"; dividend: number[]; divisor: number[] } // index = power; checker long-divides
+  | {
+      kind: "domainRange";
+      m: number; b: number; // underlying linear function y = m·x + b
+      lo: number | null; hi: number | null; // continuous x-window (null = unbounded)
+      discrete: number[] | null; // explicit domain set (discrete contexts)
+    }
+  | { kind: "hvLine"; orientation: "horizontal" | "vertical"; px: number; py: number; ask: "equation" | "slope" }
+  | { kind: "correlation"; points: Pt2[]; candidates: number[] }
+  | { kind: "causation"; scenarioId: string }
+  | { kind: "systemEstimate"; m1: number; b1: number; m2: number; b2: number; decimals: 0 | 1 }
+  | {
+      kind: "factorsZeros";
+      a: number; r1: number; r2: number;
+      variant: "zeros" | "factored" | "standard" | "multiplicity"; // multiplicity: r2 is the repeated zero
+    }
+  | { kind: "writeExp"; a: number; b: number } // write f(x) = a·b^x from table/context
+  | { kind: "expFeatures"; a: number; b: number; k: number } // f(x) = a·b^x + k key features
+  | {
+      kind: "quadModel";
+      a: number; b: number; c: number; // stated best-fit model f(x) = a·x² + b·x + c
+      points: Pt2[]; askX: number; residualX: number | null;
+    };
 
 export interface Algebra1Problem {
   type: Algebra1TEKS;

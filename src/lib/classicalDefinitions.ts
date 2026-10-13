@@ -44,7 +44,7 @@ const TRIG_RATIOS: string[] = [
   "Sine: In a right triangle, sin θ = opposite/hypotenuse.",
   "Cosine: In a right triangle, cos θ = adjacent/hypotenuse.",
   "Tangent: In a right triangle, tan θ = opposite/adjacent.",
-  "SOH CAH TOA: A memory device — Sine is Opposite over Hypotenuse, Cosine is Adjacent over Hypotenuse, Tangent is Opposite over Adjacent.",
+  "SOH CAH TOA: A memory device, Sine is Opposite over Hypotenuse, Cosine is Adjacent over Hypotenuse, Tangent is Opposite over Adjacent.",
 ];
 
 const INVERSE_TRIG: string[] = [
@@ -59,8 +59,8 @@ const ELEVATION_DEPRESSION: string[] = [
 ];
 
 const SPECIAL_TRIANGLES: string[] = [
-  "45-45-90 Triangle: The sides are in the ratio 1 : 1 : √2 — the legs are equal, and the hypotenuse is leg × √2.",
-  "30-60-90 Triangle: The sides are in the ratio 1 : √3 : 2 — the short leg is opposite the 30° angle, the long leg is short leg × √3, and the hypotenuse is twice the short leg.",
+  "45-45-90 Triangle: The sides are in the ratio 1 : 1 : √2, the legs are equal, and the hypotenuse is leg × √2.",
+  "30-60-90 Triangle: The sides are in the ratio 1 : √3 : 2, the short leg is opposite the 30° angle, the long leg is short leg × √3, and the hypotenuse is twice the short leg.",
 ];
 
 const TRIG_MIXED: string[] = [...TRIG_RATIOS, ...SPECIAL_TRIANGLES];
@@ -77,11 +77,11 @@ const GEOMETRIC_PROBABILITY: string[] = [
   "Spinner Probability: The probability a spinner lands in a sector is (sector angle)/360°.",
 ];
 
-/** Geometry chapters — foundations, reasoning, and measurement (one seeded lesson per chapter). */
+/** Geometry chapters, foundations, reasoning, and measurement (one seeded lesson per chapter). */
 const GEO_POINTS_LINES: string[] = [
-  "Point: One of the three undefined terms of geometry — a point is a location that has no size; it is drawn as a dot and named with a capital letter.",
-  "Line: One of the three undefined terms of geometry — a line is a straight path made of points that extends without end in two opposite directions; it is named by any two points on it or by a single lowercase letter.",
-  "Plane: One of the three undefined terms of geometry — a plane is a flat surface made of points that extends without end in all directions; it is named by a capital letter or by three points in it that are not on the same line.",
+  "Point: One of the three undefined terms of geometry, a point is a location that has no size; it is drawn as a dot and named with a capital letter.",
+  "Line: One of the three undefined terms of geometry, a line is a straight path made of points that extends without end in two opposite directions; it is named by any two points on it or by a single lowercase letter.",
+  "Plane: One of the three undefined terms of geometry, a plane is a flat surface made of points that extends without end in all directions; it is named by a capital letter or by three points in it that are not on the same line.",
   "Collinear Points: Points that lie on the same line.",
   "Coplanar Points: Points that lie in the same plane; any three points are always coplanar, since a plane can be passed through any three points.",
   "Line Segment: A part of a line consisting of two endpoints and all the points between them; unlike a line, a segment has a length that can be measured.",
@@ -92,7 +92,7 @@ const GEO_INDUCTIVE_REASONING: string[] = [
   "Conjecture: A concluding statement reached by inductive reasoning; a conjecture is believed to be true but has not been proved.",
   "Counterexample: A specific example that shows a conjecture is false; finding just one counterexample is enough to disprove a conjecture.",
   "Pattern: A set of numbers, figures, or events arranged so that each one relates to the ones around it in a predictable way; patterns are the evidence on which inductive reasoning works.",
-  "Deductive Reasoning: A way of reasoning that uses facts, definitions, accepted properties, and logic to reach a conclusion that must be true — unlike inductive reasoning, which only suggests a conclusion.",
+  "Deductive Reasoning: A way of reasoning that uses facts, definitions, accepted properties, and logic to reach a conclusion that must be true, unlike inductive reasoning, which only suggests a conclusion.",
 ];
 
 const GEO_MIDSEGMENTS: string[] = [
@@ -148,20 +148,180 @@ const GEO_SURFACE_AREA: string[] = [
   "Surface Area of a Right Cylinder: S = 2πrh + 2πr², where r is the radius of the base and h is the height; 2πrh is the lateral area and 2πr² is the area of the two circular bases.",
 ];
 
+const GEO_PARTITIONING: string[] = [
+  "Partitioning: Locating a point on a segment that divides the segment into parts whose lengths have a given ratio.",
+  "Directed Segment: A segment named by its endpoints in order, from a starting endpoint to an ending endpoint, so a partition is measured from the starting endpoint.",
+  "Ratio of a Partition: If a point P divides segment AB with AP:PB = m:n, then P lies m/(m + n) of the way from A to B.",
+  "Section Formula: The point dividing the segment from (x₁, y₁) to (x₂, y₂) in the ratio m:n has coordinates ((nx₁ + mx₂)/(m + n), (ny₁ + my₂)/(m + n)).",
+  "Midpoint: The point that partitions a segment in the ratio 1:1; its coordinates are the averages of the endpoints' coordinates.",
+];
+
+const GEO_ALTITUDE_HYPOTENUSE: string[] = [
+  "Altitude of a Triangle: A segment drawn from a vertex of a triangle perpendicular to the line containing the opposite side.",
+  "Geometric Mean: For two positive numbers a and b, the geometric mean is √(ab), the positive number x for which x² = ab.",
+  "Right Triangle Similarity Theorem: The altitude drawn to the hypotenuse of a right triangle divides the triangle into two triangles that are similar to each other and to the original triangle.",
+  "Geometric Mean (Altitude) Theorem: The length of the altitude to the hypotenuse is the geometric mean of the lengths of the two segments of the hypotenuse.",
+  "Geometric Mean (Leg) Theorem: The length of each leg of a right triangle is the geometric mean of the length of the hypotenuse and the length of the segment of the hypotenuse adjacent to the leg.",
+];
+
+const GEO_RADIAN_MEASURE: string[] = [
+  "Radian: A unit of angle measure; a central angle of one radian cuts off an arc whose length equals the radius of the circle.",
+  "Radian Measure: The measure of a central angle in radians, equal to the arc length divided by the radius; a full circle measures 2π radians.",
+  "Degree-Radian Conversion: π radians equals 180°, so degrees convert to radians by multiplying by π/180 and radians convert to degrees by multiplying by 180/π.",
+  "Arc Length in Radians: An arc cut off by a central angle of θ radians in a circle of radius r has length s = rθ.",
+  "Sector Area in Radians: A sector with central angle θ radians in a circle of radius r has area A = (1/2)r²θ.",
+];
+
+const GEO_CIRCLE_EQUATION: string[] = [
+  "Standard Form of a Circle: The equation (x − h)² + (y − k)² = r², which describes the circle with center (h, k) and radius r.",
+  "Center of a Circle: The point in the plane of a circle that is the same distance from every point on the circle.",
+  "Radius of a Circle: The distance from the center of a circle to any point on the circle; it is half the length of a diameter.",
+  "Completing the Square: A method that turns an expression such as x² + bx into a perfect square by adding (b/2)², giving (x + b/2)².",
+  "General Form of a Circle: The equation x² + y² + Dx + Ey + F = 0; completing the square on the x terms and the y terms rewrites it in standard form.",
+];
+
+const GEO_VOLUME: string[] = [
+  "Volume: The measure of the space a solid occupies, counted in cubic units.",
+  "Volume of a Prism or Cylinder: V = Bh, where B is the area of the base and h is the height; for a cylinder the base is a circle, so V = πr²h.",
+  "Volume of a Pyramid or Cone: V = (1/3)Bh, exactly one third of the volume of the prism or cylinder with the same base and height.",
+  "Volume of a Sphere: V = (4/3)πr³, where r is the radius of the sphere.",
+  "Composite Solid: A solid formed by joining two or more simpler solids, or by removing one solid from another; its volume is the sum or difference of the volumes of its parts.",
+];
+
+const GEO_SECTOR_AREA: string[] = [
+  "Sector of a Circle: A region of a circle bounded by two radii and the arc between them, like a slice of a pie.",
+  "Central Angle: An angle whose vertex is the center of a circle and whose sides are radii of the circle.",
+  "Sector Area Formula: The area of a sector with central angle θ and radius r is the fraction θ/360 of the area of the whole circle: A = (θ/360)πr².",
+  "Sector Area in Radians: When the central angle θ is measured in radians, the area of the sector is A = (1/2)r²θ.",
+  "Concentric Circles: Two or more circles that share the same center; the region between two of them is called an annulus.",
+];
+
+const GEO_PARALLEL_PERPENDICULAR: string[] = [
+  "Slope: The ratio of the vertical change to the horizontal change between two points on a line, m = (y₂ − y₁)/(x₂ − x₁).",
+  "Parallel Lines and Slope: Two nonvertical lines are parallel exactly when their slopes are equal.",
+  "Perpendicular Lines and Slope: Two nonvertical lines are perpendicular exactly when the product of their slopes is −1; each slope is the opposite reciprocal of the other.",
+  "Slope-Intercept Form: The equation of a line written as y = mx + b, where m is the slope and b is the y-intercept.",
+  "Horizontal and Vertical Lines: A horizontal line has slope 0 and equation y = b; a vertical line has undefined slope and equation x = a.",
+];
+
+const GEO_TRIANGLE_PROPORTIONALITY: string[] = [
+  "Triangle Proportionality Theorem: If a line parallel to one side of a triangle intersects the other two sides, then it divides those two sides proportionally.",
+  "Converse of the Triangle Proportionality Theorem: If a line divides two sides of a triangle proportionally, then the line is parallel to the third side.",
+  "Midsegment: The segment joining the midpoints of two sides of a triangle; it is parallel to the third side and half as long, the special case of proportionality with ratio 1:1.",
+  "Three Parallel Lines Theorem: If three or more parallel lines intersect two transversals, the segments cut off on the transversals are proportional.",
+  "Proportion: An equation stating that two ratios are equal; it can be solved by cross-multiplying, using the Means-Extremes Property.",
+];
+
+const GEO_DIMENSIONAL_CHANGE: string[] = [
+  "Scale Factor: The ratio k comparing a dimension of an image to the corresponding dimension of its preimage; k greater than 1 enlarges, k between 0 and 1 reduces.",
+  "Dimensional Change for Lengths: When every dimension of a figure is multiplied by k, every length, including perimeters and circumferences, is multiplied by k.",
+  "Dimensional Change for Areas: When every dimension of a figure is multiplied by k, the area is multiplied by k².",
+  "Dimensional Change for Volumes: When every dimension of a solid is multiplied by k, the volume is multiplied by k³.",
+  "Similar Figures: Figures with the same shape and proportional corresponding lengths; their areas and volumes follow the dimensional change rules for the scale factor between them.",
+];
+
+const GEO_REGULAR_POLYGON_AREA: string[] = [
+  "Regular Polygon: A polygon with all sides congruent and all angles congruent.",
+  "Apothem: The perpendicular distance from the center of a regular polygon to one of its sides; it is the height of each triangle formed by joining the center to the vertices.",
+  "Central Angle of a Regular Polygon: The angle formed by two radii drawn to consecutive vertices; it measures 360° divided by the number of sides.",
+  "Area of a Regular Polygon: The area is half the product of the apothem and the perimeter: A = (1/2)aP.",
+  "Radius of a Regular Polygon: The distance from the center to a vertex; together with the apothem and half a side it forms a right triangle whose acute angle is half the central angle.",
+];
+
+const GEO_CROSS_SECTIONS: string[] = [
+  "Cross Section: The two-dimensional shape that appears where a plane intersects a solid; it is the face exposed by slicing the solid with the plane.",
+  "Solid of Revolution: A three-dimensional figure formed by rotating a two-dimensional figure about a line, called the axis of revolution.",
+  "Cylinder from a Rectangle: Rotating a rectangle about one of its edges produces a cylinder whose height is the edge on the axis and whose radius is the other dimension.",
+  "Cone from a Triangle: Rotating a right triangle about one of its legs produces a cone; rotating an isosceles triangle about its axis of symmetry does the same.",
+  "Sphere from a Semicircle: Rotating a semicircle about its diameter produces a sphere with the same radius; likewise every plane section of a sphere is a circle.",
+];
+
+const GEO_SYMMETRY: string[] = [
+  "Line Symmetry: A figure has line symmetry when it can be folded along a line so that the two halves coincide exactly; a figure may have several lines of symmetry, or none.",
+  "Line of Symmetry: The fold line in line symmetry; it is the perpendicular bisector of every segment joining a point of the figure to its image.",
+  "Rotational Symmetry: A figure has rotational symmetry when a rotation about its center, through an angle less than 360°, maps the figure onto itself.",
+  "Order of Rotational Symmetry: The number of times a figure maps onto itself during one full rotation; the smallest angle of rotation is 360° divided by the order.",
+  "Symmetry of a Regular Polygon: A regular polygon with n sides has exactly n lines of symmetry and rotational symmetry of order n, with smallest angle 360°/n.",
+];
+
+const GEO_TRIANGLE_INEQUALITY: string[] = [
+  "Triangle Inequality Theorem: The sum of the lengths of any two sides of a triangle is greater than the length of the third side.",
+  "Testing Three Lengths: Three lengths can form a triangle exactly when the sum of the two shortest lengths is greater than the longest length.",
+  "Range of the Third Side: Given two sides of lengths a and b with b the longer, the third side x must satisfy b − a < x < a + b.",
+  "Degenerate Triangle: The boundary case in which the sum of two lengths equals the third; the three points are collinear and no triangle is formed, so equality is never allowed.",
+  "Side Lengths of a Triangle: Every side of a triangle is shorter than the sum of the other two sides and longer than the difference of the other two sides.",
+];
+
 const GEO_PROBABILITY_BASICS: string[] = [
   "Probability: A number between 0 and 1, often written as a percent, that measures the likelihood of an event; 0 means the event cannot happen, and 1 means the event is certain to happen.",
   "Outcome and Sample Space: An outcome is one possible result of an experiment; the sample space is the set of all possible outcomes.",
-  "Event: An outcome, or a collection of outcomes, of an experiment — the result whose probability is being measured.",
+  "Event: An outcome, or a collection of outcomes, of an experiment, the result whose probability is being measured.",
   "Theoretical Probability: A probability computed from reasoning about equally likely outcomes: the number of favorable outcomes divided by the total number of outcomes in the sample space; it states what should happen over many trials.",
   "Experimental Probability: A probability computed from trials that have actually been performed: the number of times an event occurred divided by the total number of trials; it states what did happen in those trials.",
   "Law of Large Numbers: As an experiment is repeated more and more times, the experimental probability of an event generally gets closer to its theoretical probability.",
 ];
 
-/** Middle-school core — equations & inequalities (shared by related ids). */
+const GEO_PERMUTATIONS_COMBINATIONS: string[] = [
+  "Permutation: An arrangement of objects in which the order of the objects matters; the number of permutations of r objects chosen from n objects is written nPr.",
+  "Combination: A selection of objects in which the order of the objects does not matter; the number of combinations of r objects chosen from n objects is written nCr.",
+  "Factorial: For a whole number n, n factorial, written n!, is the product of all the whole numbers from n down to 1; by definition, 0! = 1.",
+  "Fundamental Counting Principle: If one choice can be made in a ways and an independent second choice can be made in b ways, then the two choices together can be made in a times b ways.",
+  "Order Matters Test: Before counting, ask whether swapping two chosen objects creates a different outcome; if it does, use a permutation, and if it does not, use a combination.",
+];
+
+const GEO_CONDITIONAL_PROBABILITY: string[] = [
+  "Conditional Probability: The probability that an event occurs given that another event has already occurred; it is computed inside the smaller sample space created by the given condition.",
+  "Given Condition: The known event in a conditional probability; outcomes that do not satisfy it are removed from the sample space before counting.",
+  "Two-Way Table: A table that counts outcomes by two categories at once; a conditional probability from a table uses one row or column total as its denominator.",
+  "Sampling Without Replacement: Drawing objects one at a time and keeping them out, so the total count and the remaining counts drop by one before the next draw.",
+  "Complement Within a Condition: For events inside the same given condition, the probabilities of an event and its complement add to 1, so one can be found by subtracting the other from 1.",
+];
+
+const GEO_INDEPENDENT_EVENTS: string[] = [
+  "Independent Events: Two events are independent when the occurrence of one does not change the probability of the other; equivalently, P(A and B) = P(A) times P(B).",
+  "Dependent Events: Two events are dependent when the occurrence of one changes the probability of the other, so P(A and B) does not equal P(A) times P(B).",
+  "Joint Probability: The probability that two events both occur, written P(A and B).",
+  "Product Rule for Independent Events: When two events are independent, the probability that both occur is the product of their separate probabilities.",
+  "Sampling With Replacement: Drawing an object, recording it, and putting it back before the next draw, so the counts never change and repeated draws are independent.",
+];
+
+const GEO_COUNTEREXAMPLES: string[] = [
+  "Conjecture: A statement that is believed to be true based on observations or patterns but has not been proved.",
+  "Counterexample: A single case that satisfies the hypothesis of a conjecture but makes its conclusion false; one counterexample is enough to show a conjecture is false.",
+  "Hypothesis and Conclusion: In an if-then statement, the hypothesis is the given condition after if, and the conclusion is the claim after then.",
+  "Satisfying the Hypothesis: A case can test a conjecture only when the case actually meets the conjecture's hypothesis; a case that fails the hypothesis says nothing about the conjecture.",
+  "Universal Statement: A claim about every member of a group, such as all, every, or any; counterexamples are the standard tool for disproving one.",
+];
+
+const GEO_RIGID_MOTIONS: string[] = [
+  "Rigid Motion: A transformation of the plane, such as a translation, reflection, or rotation, that preserves distances and angle measures.",
+  "Congruence Through Rigid Motions: Two figures are congruent exactly when a sequence of rigid motions maps one figure onto the other.",
+  "Preimage and Image: The preimage is the original figure before a transformation; the image is the figure after the transformation, and its vertices are labeled with primes.",
+  "Composition of Rigid Motions: Applying one rigid motion and then another; the composition is again a rigid motion, so the final image is congruent to the original figure.",
+  "Corresponding Parts: The sides and angles of congruent figures that occupy matching positions; under a rigid motion, each part of the preimage corresponds to the part it lands on in the image.",
+];
+
+const GEO_QUADRILATERAL_PROOFS: string[] = [
+  "Parallelogram: A quadrilateral with both pairs of opposite sides parallel.",
+  "Opposite Sides Parallelogram Theorems: A quadrilateral is a parallelogram if both pairs of opposite sides are congruent, or if one pair of opposite sides is both congruent and parallel.",
+  "Diagonals Bisect Each Other: In a parallelogram the diagonals cut each other into two equal parts, and a quadrilateral whose diagonals bisect each other is a parallelogram.",
+  "Alternate Interior Angles Converse: If two lines cut by a transversal form congruent alternate interior angles, then the two lines are parallel.",
+  "Diagonal of a Quadrilateral: A segment joining two nonconsecutive vertices of a quadrilateral; drawing one splits the quadrilateral into two triangles that can be proved congruent.",
+];
+
+const GEO_ANGLE_PROOFS: string[] = [
+  "Vertical Angles Theorem: When two lines intersect, the angles opposite each other, called vertical angles, are congruent.",
+  "Linear Pair Postulate: The two angles formed by a straight line at a point, a linear pair, are supplementary, so their measures add to 180 degrees.",
+  "Perpendicular Bisector: A line, ray, or segment that passes through the midpoint of a segment and is perpendicular to the segment.",
+  "Perpendicular Bisector Theorem: Any point on the perpendicular bisector of a segment is the same distance from both endpoints of the segment, and any point the same distance from both endpoints lies on the perpendicular bisector.",
+  "Subtraction Property of Equality: Subtracting the same quantity from both sides of an equation keeps the equation true; it removes the shared angle from two equal angle sums.",
+];
+
+/** Middle-school core, equations & inequalities (shared by related ids). */
 const EQUATION_CORE: string[] = [
   "Equation: A mathematical sentence that uses an equals sign to show that two expressions have the same value.",
   "Solution of an Equation: A value of the variable that makes the equation true.",
-  "Inverse Operations: Operations that undo each other — addition undoes subtraction, and multiplication undoes division.",
+  "Inverse Operations: Operations that undo each other, addition undoes subtraction, and multiplication undoes division.",
 ];
 
 const MULTI_STEP_EQUATIONS: string[] = [
@@ -173,7 +333,7 @@ const MULTI_STEP_EQUATIONS: string[] = [
 const VARIABLES_BOTH_SIDES: string[] = [
   ...EQUATION_CORE,
   "Identity: An equation that is true for every value of the variable, so it has infinitely many solutions.",
-  "No Solution: An equation that is false for every value of the variable — the variable terms cancel and leave a false statement.",
+  "No Solution: An equation that is false for every value of the variable, the variable terms cancel and leave a false statement.",
 ];
 
 const PROPORTIONS: string[] = [
@@ -193,7 +353,7 @@ const INEQUALITY_CORE: string[] = [
 const MULTI_STEP_INEQUALITIES: string[] = [
   ...INEQUALITY_CORE,
   "Reversing the Inequality: When you multiply or divide both sides of an inequality by a negative number, you must reverse the direction of the inequality symbol.",
-  "Number Line Graph: A picture of a solution set — an open circle shows the endpoint is not included, and a closed circle shows it is included.",
+  "Number Line Graph: A picture of a solution set, an open circle shows the endpoint is not included, and a closed circle shows it is included.",
 ];
 
 const COMPOUND_INEQUALITIES: string[] = [
@@ -202,13 +362,13 @@ const COMPOUND_INEQUALITIES: string[] = [
   "And and Or: In a compound inequality joined by and, both parts must be true and the graphs overlap; joined by or, at least one part must be true and the graphs are combined.",
 ];
 
-/** Middle-school core — linear functions & data (shared by related ids). */
+/** Middle-school core, linear functions & data (shared by related ids). */
 const RATE_OF_CHANGE: string[] = [
   "Rate of Change: A ratio that compares how much one quantity changes to how much another quantity changes.",
   "Slope: The rate of change of a line, equal to rise over run: m = (y₂ − y₁)/(x₂ − x₁).",
   "Rise: The vertical change between two points on a graph.",
   "Run: The horizontal change between two points on a graph.",
-  "Constant Rate of Change: A rate of change that stays the same — the graph of a relationship with a constant rate of change is a straight line.",
+  "Constant Rate of Change: A rate of change that stays the same, the graph of a relationship with a constant rate of change is a straight line.",
 ];
 
 const SLOPE_INTERCEPT: string[] = [
@@ -224,7 +384,7 @@ const DIRECT_VARIATION: string[] = [
   "Constant of Variation: The number k in y = kx; for any pair of values in a direct variation, k = y/x.",
   "Proportion: An equation that states two ratios are equal; a direct variation can be written as the proportion y₁/x₁ = y₂/x₂.",
   "Origin: The point (0, 0) where the x-axis and y-axis cross; the graph of every direct variation is a line through the origin.",
-  "Unit Rate: In a direct variation, the constant of variation is the unit rate — the amount of y for each 1 unit of x.",
+  "Unit Rate: In a direct variation, the constant of variation is the unit rate, the amount of y for each 1 unit of x.",
 ];
 
 const PARALLEL_PERPENDICULAR: string[] = [
@@ -244,18 +404,18 @@ const FUNCTION_CORE: string[] = [
 const RELATIONS_FUNCTIONS: string[] = [
   "Relation: A pairing of input values with output values, often written as a set of ordered pairs (x, y).",
   ...FUNCTION_CORE,
-  "Vertical Line Test: A way to tell whether a graph shows a function — if any vertical line crosses the graph more than once, the graph is not a function.",
+  "Vertical Line Test: A way to tell whether a graph shows a function, if any vertical line crosses the graph more than once, the graph is not a function.",
 ];
 
 const FUNCTION_NOTATION: string[] = [
   ...FUNCTION_CORE,
-  "Function Notation: A way to name and write a function — f(x), read 'f of x,' stands for the output of the function f when the input is x.",
+  "Function Notation: A way to name and write a function, f(x), read 'f of x,' stands for the output of the function f when the input is x.",
   "Evaluating a Function: Finding the output of a function for a given input by substituting the input value for x in the function's rule.",
 ];
 
 const SCATTER_TREND: string[] = [
   "Scatter Plot: A graph that displays two-variable data as ordered pairs (x, y) to show how the variables are related.",
-  "Correlation: The kind of relationship shown between two data sets — positive, negative, or none.",
+  "Correlation: The kind of relationship shown between two data sets, positive, negative, or none.",
   "Positive Correlation: In a scatter plot, as x increases, y tends to increase, so the points trend upward.",
   "Negative Correlation: In a scatter plot, as x increases, y tends to decrease, so the points trend downward.",
   "Trend Line: A line that closely fits the points of a scatter plot and can be used to make predictions; also called a line of fit.",
@@ -270,7 +430,7 @@ const TWO_WAY_TABLES: string[] = [
   "Relative Frequency: The ratio of a frequency to a total, written as a fraction, decimal, or percent, used to compare parts of the data.",
 ];
 
-/** Algebra 2 Topic 5 — quadratics (shared by related ids). */
+/** Algebra 2 Topic 5, quadratics (shared by related ids). */
 const QUADRATIC_CORE: string[] = [
   "Quadratic Function: A function that can be written f(x) = ax² + bx + c, where a is not 0.",
   "Parabola: The U-shaped graph of a quadratic function; the graph is symmetric about a vertical line through its highest or lowest point.",
@@ -281,7 +441,7 @@ const QUAD_ATTRIBUTES: string[] = [
   "Vertex Form: A quadratic function written f(x) = a(x − h)² + k; the vertex (h, k) can be read directly from the equation.",
   "Vertex: The highest or lowest point of the parabola.",
   "Axis of Symmetry: The vertical line x = h, across which the parabola mirrors itself.",
-  "Transformation: A change in the position, shape, or direction of a graph — in f(x) = a(x − h)² + k, h shifts the graph left or right, k shifts it up or down, and a stretches, shrinks, or reflects it.",
+  "Transformation: A change in the position, shape, or direction of a graph, in f(x) = a(x − h)² + k, h shifts the graph left or right, k shifts it up or down, and a stretches, shrinks, or reflects it.",
 ];
 
 const QUAD_STANDARD: string[] = [
@@ -289,16 +449,16 @@ const QUAD_STANDARD: string[] = [
   "Leading Coefficient: The coefficient a of the x² term; when a > 0 the parabola opens upward, when a < 0 it opens downward, and the greater |a| is, the narrower the parabola.",
   "Y-Intercept: The point (0, c) where the parabola crosses the y-axis, equal to the constant term of the function.",
   "Axis of Symmetry: The vertical line x = −b/(2a), across which the parabola mirrors itself; the vertex lies on this line.",
-  "Maximum Value: The greatest value of a quadratic function — the y-coordinate of the vertex when the parabola opens downward.",
-  "Minimum Value: The least value of a quadratic function — the y-coordinate of the vertex when the parabola opens upward.",
+  "Maximum Value: The greatest value of a quadratic function, the y-coordinate of the vertex when the parabola opens downward.",
+  "Minimum Value: The least value of a quadratic function, the y-coordinate of the vertex when the parabola opens upward.",
 ];
 
 const QUAD_MODELING: string[] = [
   "Quadratic Model: A quadratic function used to represent a real situation, such as the height of a launched object or the area of a rectangular region.",
   "Projectile Motion: The motion of an object thrown or launched into the air; when its height is graphed against time, the graph is a parabola that opens downward.",
   "Initial Height: The height of an object at time 0; in h(t) = at² + bt + c, the initial height is the constant term c.",
-  "Vertex in a Model: The vertex of a quadratic model gives the extreme value of the quantity modeled — for a projectile, the maximum height and the time at which it occurs.",
-  "Zero in a Model: A zero of a height function is a time when the height is 0 — for a projectile, the time at which it lands.",
+  "Vertex in a Model: The vertex of a quadratic model gives the extreme value of the quantity modeled, for a projectile, the maximum height and the time at which it occurs.",
+  "Zero in a Model: A zero of a height function is a time when the height is 0, for a projectile, the time at which it lands.",
   "Quadratic Regression: A method of finding the quadratic function that best fits a set of data points.",
 ];
 
@@ -315,7 +475,7 @@ const QUAD_FACTORING: string[] = [
   "Factoring: Rewriting an expression as a product of simpler expressions; factoring a quadratic undoes the multiplication of two binomials.",
   "Factored Form: A quadratic written as a product of factors, such as a(x − p)(x − q); the values p and q are zeros of the function.",
   "Greatest Common Factor: The greatest expression that divides every term of a polynomial; factoring it out is the first step in factoring any polynomial.",
-  "Zero Product Property: If the product of two quantities is 0, then at least one of the quantities is 0 — if ab = 0, then a = 0 or b = 0.",
+  "Zero Product Property: If the product of two quantities is 0, then at least one of the quantities is 0, if ab = 0, then a = 0 or b = 0.",
   "Difference of Two Squares: The factoring pattern a² − b² = (a + b)(a − b).",
   "Perfect-Square Trinomial: A trinomial that is the square of a binomial: a² + 2ab + b² = (a + b)² or a² − 2ab + b² = (a − b)².",
 ];
@@ -331,7 +491,7 @@ const QUAD_EQUATIONS: string[] = [
 const COMPLETING_SQUARE: string[] = [
   "Completing the Square: A method that rewrites a quadratic by building a perfect-square trinomial, used to solve quadratic equations and to convert a quadratic function to vertex form.",
   "Perfect-Square Trinomial: A trinomial of the form x² + bx + (b/2)², which factors as (x + b/2)².",
-  "Completing Constant: To complete the square on x² + bx, add (b/2)² — the square of half the coefficient of x.",
+  "Completing Constant: To complete the square on x² + bx, add (b/2)², the square of half the coefficient of x.",
   "Non-Monic Quadratic: A quadratic whose leading coefficient is not 1; before completing the square, factor the leading coefficient out of the x-terms so the squared part begins with x².",
   "Vertex Form: Completing the square rewrites f(x) = ax² + bx + c in the form f(x) = a(x − h)² + k, which reveals the vertex (h, k).",
 ];
@@ -341,7 +501,7 @@ const QUAD_FORMULA: string[] = [
   "Discriminant: The expression b² − 4ac beneath the square root sign in the quadratic formula; its sign determines the number and type of solutions of the equation.",
   "Two Real Solutions: When the discriminant is positive, a quadratic equation has two different real solutions, and its graph crosses the x-axis at two points.",
   "One Real Solution: When the discriminant is 0, a quadratic equation has exactly one real solution, called a double root, and the vertex of its graph lies on the x-axis.",
-  "No Real Solutions: When the discriminant is negative, a quadratic equation has no real solutions — its two solutions are complex numbers — and its graph never crosses the x-axis.",
+  "No Real Solutions: When the discriminant is negative, a quadratic equation has no real solutions, its two solutions are complex numbers, and its graph never crosses the x-axis.",
 ];
 
 const COMPLEX_NUMBERS: string[] = [
@@ -370,14 +530,14 @@ const LIN_QUAD_SYSTEMS: string[] = [
   "Tangent Line: A line that meets a parabola at exactly one point; a linear-quadratic system whose line is tangent to the parabola has exactly one solution.",
 ];
 
-/** Algebra 2 Topic 2 — absolute value (foundations shared by related ids). */
+/** Algebra 2 Topic 2, absolute value (foundations shared by related ids). */
 const FUNCTION_ATTRIBUTES: string[] = [
   "X-Intercept: The x-coordinate of a point where the graph of a function crosses the x-axis; it is an x-value for which f(x) = 0.",
   "Y-Intercept: The y-coordinate of the point where the graph of a function crosses the y-axis; it is the value f(0).",
-  "Increasing: A function is increasing on an interval when its outputs grow as the inputs grow — the graph rises from left to right on that interval.",
-  "Decreasing: A function is decreasing on an interval when its outputs shrink as the inputs grow — the graph falls from left to right on that interval.",
-  "Relative Maximum: The output value at a point where the graph changes from increasing to decreasing — a peak of the graph.",
-  "Relative Minimum: The output value at a point where the graph changes from decreasing to increasing — a valley of the graph.",
+  "Increasing: A function is increasing on an interval when its outputs grow as the inputs grow, the graph rises from left to right on that interval.",
+  "Decreasing: A function is decreasing on an interval when its outputs shrink as the inputs grow, the graph falls from left to right on that interval.",
+  "Relative Maximum: The output value at a point where the graph changes from increasing to decreasing, a peak of the graph.",
+  "Relative Minimum: The output value at a point where the graph changes from decreasing to increasing, a valley of the graph.",
 ];
 
 const ABS_VALUE_ONLY: string[] = [
@@ -387,19 +547,19 @@ const ABS_VALUE_ONLY: string[] = [
 const ABS_VALUE_CORE: string[] = [
   ...ABS_VALUE_ONLY,
   "Absolute Value Function: A function that can be written f(x) = a|x − h| + k; its graph is a V-shape with vertex (h, k).",
-  "Vertex of an Absolute Value Graph: The point (h, k) where the V changes direction — the maximum or minimum point of the graph.",
+  "Vertex of an Absolute Value Graph: The point (h, k) where the V changes direction, the maximum or minimum point of the graph.",
 ];
 
 const ABS_TRANSFORMATIONS: string[] = [
   ...ABS_VALUE_CORE,
-  "Transformation: A change in the position, shape, or direction of a graph — in f(x) = a|x − h| + k, h shifts the graph left or right, k shifts it up or down, and a stretches, shrinks, or reflects it.",
+  "Transformation: A change in the position, shape, or direction of a graph, in f(x) = a|x − h| + k, h shifts the graph left or right, k shifts it up or down, and a stretches, shrinks, or reflects it.",
   "Vertical Stretch and Shrink: When |a| is greater than 1, the graph of f(x) = a|x − h| + k is stretched vertically and the V narrows; when |a| is between 0 and 1, the graph shrinks vertically and the V widens.",
 ];
 
 const ABS_INEQ_GRAPH: string[] = [
   ...ABS_VALUE_CORE,
   "Boundary Graph: The graph of the related equation, such as y = |x − h| + k, drawn before shading; it is solid when the inequality permits equality and dashed when it does not.",
-  "Shading: The half of the plane chosen by testing a point — if the test point makes the inequality true, shade the side containing it; if not, shade the other side.",
+  "Shading: The half of the plane chosen by testing a point, if the test point makes the inequality true, shade the side containing it; if not, shade the other side.",
   "Solution of an Inequality in Two Variables: An ordered pair (x, y) that makes the inequality true; the solution set is the shaded region of the graph.",
 ];
 
@@ -419,7 +579,7 @@ const ABS_INEQUALITIES: string[] = [
   "Distance Interpretation: |x − a| measures the distance between x and a on the number line, so |x − a| < b describes every x within b units of a.",
 ];
 
-/** Algebra 2 Topic 3 — systems (shared by related ids). */
+/** Algebra 2 Topic 3, systems (shared by related ids). */
 const SYSTEMS_CORE: string[] = [
   "System of Equations: A set of two or more equations that share the same variables; a solution of the system is an ordered pair that makes every equation in the system true.",
 ];
@@ -440,9 +600,9 @@ const SYSTEMS_GRAPHS: string[] = [
 const SYSTEMS_ALGEBRAIC: string[] = [
   ...SYSTEMS_CORE,
   "Substitution Method: A method for solving a system: solve one equation for a variable, then substitute the result into the other equation.",
-  "Elimination Method: A method for solving a system in which the equations are added or subtracted — after multiplying by constants as needed — so that one variable is eliminated.",
+  "Elimination Method: A method for solving a system in which the equations are added or subtracted, after multiplying by constants as needed, so that one variable is eliminated.",
   "Equivalent System: A system formed by replacing one equation with a sum of it and a multiple of another equation; it has exactly the same solutions as the original system.",
-  "Break-Even Point: In a system that models two cost or revenue plans, the solution is the break-even point — the input at which the two plans give the same value.",
+  "Break-Even Point: In a system that models two cost or revenue plans, the solution is the break-even point, the input at which the two plans give the same value.",
 ];
 
 const SYSTEMS_INEQUALITIES: string[] = [
@@ -450,7 +610,7 @@ const SYSTEMS_INEQUALITIES: string[] = [
   "Solution Set of a System of Inequalities: The set of all ordered pairs that satisfy every inequality in the system, shown on a graph as the region where the shaded half-planes overlap.",
   "Half-Plane: One of the two regions into which a boundary line divides the plane; the points of one half-plane satisfy an inequality, and the points of the other do not.",
   "Boundary Line: The graph of the related equation of an inequality; it is solid when the inequality permits equality and dashed when it does not.",
-  "Feasible Region: The region of the graph where all the inequalities of a system hold at once — named for applications in which only those points are possible choices.",
+  "Feasible Region: The region of the graph where all the inequalities of a system hold at once, named for applications in which only those points are possible choices.",
   "Test Point: A point substituted into an inequality to decide which half-plane to shade; (0, 0) is used whenever the boundary line does not pass through it.",
 ];
 
@@ -478,7 +638,7 @@ const SYSTEMS_MATRICES_INTRO: string[] = [
   "Row Operations: Operations that produce an equivalent augmented matrix: swap two rows, multiply a row by a nonzero number, or replace a row with the sum of itself and a multiple of another row.",
 ];
 
-/** Algebra 2 Topic 4 — matrices (shared by related ids). */
+/** Algebra 2 Topic 4, matrices (shared by related ids). */
 const MATRIX_CORE: string[] = [
   ...MATRIX_BASICS,
   "Element (Entry): A single number in a matrix, located by its row and column; the position of an element is named with the row number first and the column number second.",
@@ -496,14 +656,14 @@ const MATRIX_MULTIPLY: string[] = [
   "Dimension Rule for Multiplication: The product AB exists only when the number of columns of A equals the number of rows of B; the product then has as many rows as A and as many columns as B.",
   "Main Diagonal: The elements of a square matrix that run from the upper left corner to the lower right corner, where the row number equals the column number.",
   "Identity Matrix: A square matrix with 1s on the main diagonal and 0s elsewhere, written I; for any square matrix A of the same size, AI = IA = A.",
-  "Non-Commutative Multiplication: Matrix multiplication is not commutative — in general AB is not BA, and one of the two products may not even exist.",
+  "Non-Commutative Multiplication: Matrix multiplication is not commutative, in general AB is not BA, and one of the two products may not even exist.",
 ];
 
 const DET_INVERSE: string[] = [
   "Determinant: A single number computed from a square matrix; for the 2 × 2 matrix with rows [a b] and [c d], the determinant is ad − bc, written det(A) or |A|.",
   "Inverse Matrix: A matrix A⁻¹ such that A times A⁻¹ and A⁻¹ times A both equal the identity matrix; only square matrices can have inverses, and not all of them do.",
   "Invertibility Test: A square matrix has an inverse exactly when its determinant is not 0; when the determinant is 0, the matrix has no inverse.",
-  "Inverse of a 2 × 2 Matrix: When det(A) = ad − bc is not 0, A⁻¹ is 1/(ad − bc) times the matrix with rows [d −b] and [−c a] — swap the diagonal elements, negate the other two, and divide by the determinant.",
+  "Inverse of a 2 × 2 Matrix: When det(A) = ad − bc is not 0, A⁻¹ is 1/(ad − bc) times the matrix with rows [d −b] and [−c a], swap the diagonal elements, negate the other two, and divide by the determinant.",
   "Singular Matrix: A square matrix whose determinant is 0; a singular matrix has no inverse.",
 ];
 
@@ -515,7 +675,7 @@ const SYSTEMS_MATRICES: string[] = [
   "No Inverse, No Unique Solution: When the coefficient matrix is singular, the system has either no solution or infinitely many solutions, and the inverse method cannot be used.",
 ];
 
-/** Algebra 2 Topic 6 — square root functions (shared by related ids). */
+/** Algebra 2 Topic 6, square root functions (shared by related ids). */
 const FUNCTION_OPERATIONS: string[] = [
   "Sum, Difference, Product, and Quotient of Functions: New functions formed from f and g point by point: (f + g)(x) = f(x) + g(x), (f − g)(x) = f(x) − g(x), (fg)(x) = f(x)g(x), and (f/g)(x) = f(x)/g(x) wherever g(x) is not 0.",
   "Composition of Functions: A function formed by using the output of one function as the input of another, written f(g(x)), read 'f of g of x.' The input of f is the output of g.",
@@ -533,23 +693,23 @@ const INVERSE_FUNCTIONS: string[] = [
   ...INVERSE_CORE,
   "Inverse Function: A function f⁻¹ that undoes f: f⁻¹(f(x)) = x for every x in the domain of f, and f(f⁻¹(x)) = x for every x in the domain of f⁻¹; the domain of f is the range of f⁻¹, and the range of f is the domain of f⁻¹.",
   "Finding an Inverse: To find the inverse of a function, replace f(x) with y, swap x and y, and solve the resulting equation for y.",
-  "Horizontal Line Test: A function has an inverse that is a function exactly when every horizontal line crosses its graph at most once — that is, when the function is one-to-one.",
+  "Horizontal Line Test: A function has an inverse that is a function exactly when every horizontal line crosses its graph at most once, that is, when the function is one-to-one.",
 ];
 
 const SQRT_TRANSFORMATIONS: string[] = [
   "Square Root Function: A function whose rule contains a square root of the variable, such as f(x) = √x; the parent function f(x) = √x takes inputs of 0 or greater and gives outputs of 0 or greater.",
   "Radicand: The expression under the radical sign; in f(x) = a√(x − h) + k the radicand is x − h, and the function is defined only where the radicand is 0 or greater.",
-  "Starting Point: For f(x) = a√(x − h) + k, the point (h, k) where the graph begins — the endpoint of the curve, playing the role the vertex plays for a parabola.",
+  "Starting Point: For f(x) = a√(x − h) + k, the point (h, k) where the graph begins, the endpoint of the curve, playing the role the vertex plays for a parabola.",
   "Domain Restriction: Because the square root of a negative number is not a real number, the domain of a square root function includes only the inputs that make its radicand nonnegative.",
   "Transformations of the Square Root Graph: In f(x) = a√(x − h) + k, h shifts the starting point left or right, k shifts it up or down, a stretches or shrinks the curve vertically, and a negative a reflects it across a horizontal line.",
 ];
 
 const SQRT_AS_INVERSES: string[] = [
   "Square Root as an Inverse: The function f(x) = √x is the inverse of g(x) = x² restricted to inputs of 0 or greater; each function undoes the other on that domain.",
-  "Why the Restriction: The squaring function is not one-to-one — both 3 and −3 square to 9 — so it has no inverse function until its domain is restricted to the nonnegative inputs.",
+  "Why the Restriction: The squaring function is not one-to-one, both 3 and −3 square to 9, so it has no inverse function until its domain is restricted to the nonnegative inputs.",
   "Reflection Across y = x: The graph of a function and the graph of its inverse are mirror images across the line y = x, because forming the inverse swaps every (x, y) pair to (y, x).",
   "Squaring a Square Root: For x of 0 or greater, (√x)² = x and √(x²) = x; without the restriction, √(x²) = |x|, since a square root is never negative.",
-  "Half-Parabola: The graph of f(x) = √x is the top half of a sideways parabola x = y² — the part with y of 0 or greater.",
+  "Half-Parabola: The graph of f(x) = √x is the top half of a sideways parabola x = y², the part with y of 0 or greater.",
 ];
 
 const RADICAL_EQ_CORE: string[] = [
@@ -561,7 +721,7 @@ const RADICAL_EQUATIONS_INTRO: string[] = [
   ...RADICAL_EQ_CORE,
   "Radical: The symbol √ together with the expression under it; the root indicated by √ is the square root.",
   "Principal Square Root: The nonnegative square root of a number; √9 = 3, never −3, even though (−3)² is also 9.",
-  "Squaring Both Sides: If both sides of an equation are squared, every solution of the original equation is still a solution of the new equation — and this step removes a square root.",
+  "Squaring Both Sides: If both sides of an equation are squared, every solution of the original equation is still a solution of the new equation, and this step removes a square root.",
 ];
 
 const RADICAL_EQUATIONS_SOLVING: string[] = [
@@ -569,13 +729,13 @@ const RADICAL_EQUATIONS_SOLVING: string[] = [
   "Extraneous Solution: A value produced by the solving process that does not satisfy the original equation; squaring both sides can create extraneous solutions, so every candidate must be checked in the original equation.",
   "Checking Solutions: Substituting each candidate back into the original equation; a candidate that makes a radicand negative, or makes the two sides unequal, is rejected.",
   "Two Radicals: An equation with a radical on each side, or with two radicals on one side, may need the square step twice: isolate one radical, square, isolate the remaining radical, and square again.",
-  "No Solution Case: A radical equation has no solution when its only candidates are extraneous — for example, when the isolated radical would have to equal a negative number.",
+  "No Solution Case: A radical equation has no solution when its only candidates are extraneous, for example, when the isolated radical would have to equal a negative number.",
 ];
 
-/** Algebra 2 Topic 7 — exponential & logarithmic functions (shared by related ids). */
+/** Algebra 2 Topic 7, exponential & logarithmic functions (shared by related ids). */
 const EXP_ATTRIBUTES: string[] = [
   "Exponential Function: A function that can be written f(x) = a times (b to the x power), where a is not 0, b is greater than 0, and b is not 1; the variable appears in the exponent.",
-  "Initial Value: The value a in an exponential function — the output when x = 0, because any base to the 0 power is 1.",
+  "Initial Value: The value a in an exponential function, the output when x = 0, because any base to the 0 power is 1.",
   "Growth Factor: The base b of an exponential function when b is greater than 1; each increase of 1 in x multiplies the output by b.",
   "Decay Factor: The base b of an exponential function when b is between 0 and 1; each increase of 1 in x multiplies the output by the fraction b.",
   "Horizontal Asymptote: A horizontal line the graph approaches as x grows large in one direction; the graph of an exponential function shifted up by k approaches the line y = k but never reaches it.",
@@ -595,7 +755,7 @@ const RECURSIVE_MODELS: string[] = [
   "Initial Condition: The starting value given with a recursive formula, from which all later terms are built.",
   "Common Ratio: In a geometric sequence or recursive exponential model, the constant factor multiplied by each term to get the next term.",
   "Recursive Exponential Model: A model of the form 'next = b × current' with a stated initial value; it produces the same values as the explicit exponential function with initial value a and base b.",
-  "Explicit Formula: A formula that gives the value of a term directly from its position, without reference to earlier terms — the closed form that a recursive model can be rewritten into.",
+  "Explicit Formula: A formula that gives the value of a term directly from its position, without reference to earlier terms, the closed form that a recursive model can be rewritten into.",
 ];
 
 const LOG_ATTRIBUTES: string[] = [
@@ -610,7 +770,7 @@ const NATURAL_LOG: string[] = [
   "Natural Logarithm: The logarithm with base e, written ln x; ln x is the exponent to which e must be raised to give x, so composing ln with the natural exponential in either order returns the input: ln of (e to the x power) is x for every real x, and e to the power (ln x) is x for positive x.",
   "Domain of ln: The natural logarithm accepts only positive inputs; ln 0 and the ln of a negative number are undefined, which is why candidate solutions of log equations are always checked.",
   "Key Values of ln: ln 1 = 0 and ln e = 1; ln x is negative for x between 0 and 1, and positive for x greater than 1.",
-  "Solving with ln: Because ln is one-to-one, taking the natural logarithm of both sides of an exponential equation brings the variable exponent down where it can be isolated — the standard tool for equations with base e or with unlike bases.",
+  "Solving with ln: Because ln is one-to-one, taking the natural logarithm of both sides of an exponential equation brings the variable exponent down where it can be isolated, the standard tool for equations with base e or with unlike bases.",
   "Continuous Models with ln: In A(t) = P times (e to the rt power), the time needed to reach a target amount is found by dividing by P and taking ln of both sides, which converts the exponential equation into a linear equation in t.",
 ];
 
@@ -618,7 +778,7 @@ const LOG_PROPERTIES: string[] = [
   "Product Property of Logarithms: The logarithm of a product is the sum of the logarithms: log base b of (xy) = log base b of x + log base b of y.",
   "Quotient Property of Logarithms: The logarithm of a quotient is the difference of the logarithms: log base b of (x/y) = log base b of x − log base b of y.",
   "Power Property of Logarithms: The logarithm of a power is the exponent times the logarithm: log base b of (x to the power p) = p × (log base b of x).",
-  "Expanding and Condensing: To expand a logarithm is to rewrite it as a sum or difference of simpler logarithms; to condense is the reverse — combine sums and differences into a single logarithm.",
+  "Expanding and Condensing: To expand a logarithm is to rewrite it as a sum or difference of simpler logarithms; to condense is the reverse, combine sums and differences into a single logarithm.",
   "Change of Base Formula: A logarithm in any base can be computed from common or natural logarithms: log base b of x = (log x)/(log b) = (ln x)/(ln b).",
   "Logarithm of 1 and of the Base: For any base b, log base b of 1 = 0 (because b to the 0 power is 1) and log base b of b = 1 (because b to the 1 power is b).",
 ];
@@ -631,23 +791,23 @@ const EXP_LOG_EQUATIONS: string[] = [
   "Extraneous Solutions of Log Equations: Logarithms are defined only for positive inputs, so every candidate solution must be checked: any value that makes the input of a logarithm 0 or negative is rejected.",
 ];
 
-/** Algebra 2 Topic 8 — polynomials (shared by related ids). */
+/** Algebra 2 Topic 8, polynomials (shared by related ids). */
 const RATIONAL_ROOT_THEOREM: string[] = [
   "Rational Root Theorem: If a polynomial equation with integer coefficients has a rational solution p/q in lowest terms, then p is a factor of the constant term and q is a factor of the leading coefficient.",
 ];
 
 const POLY_ATTRIBUTES: string[] = [
-  "Polynomial Function: A function whose rule is a polynomial — a sum of terms in which each term is a coefficient times a whole-number power of x, and no variable appears in a denominator or under a radical.",
+  "Polynomial Function: A function whose rule is a polynomial, a sum of terms in which each term is a coefficient times a whole-number power of x, and no variable appears in a denominator or under a radical.",
   "Degree of a Polynomial: The greatest exponent of the variable in the polynomial; the degree names the polynomial (degree 1 linear, 2 quadratic, 3 cubic, 4 quartic) and equals the greatest number of zeros the polynomial can have.",
   "Leading Coefficient: The coefficient of the term with the greatest degree; together with the degree it determines the end behavior of the graph.",
-  "End Behavior: The direction of the outputs of a function as x grows large in the positive and negative directions — described as the graph rising or falling on each side.",
+  "End Behavior: The direction of the outputs of a function as x grows large in the positive and negative directions, described as the graph rising or falling on each side.",
   "End Behavior Rules: For an even degree, both ends of the graph point the same way (up when the leading coefficient is positive, down when negative); for an odd degree, the ends point opposite ways (down then up when the leading coefficient is positive).",
   "Turning Point: A point where the graph of a function changes from increasing to decreasing or the reverse; a polynomial of degree n has at most n − 1 turning points.",
 ];
 
 const LINEAR_FACTORS_ZEROS: string[] = [
   "Zero of a Polynomial Function: An input value c for which the function value is 0; it is a solution of the polynomial equation and an x-intercept of the graph.",
-  "Linear Factor Theorem: A polynomial function has the factor (x − c) exactly when c is a zero of the function — factors and zeros determine each other.",
+  "Linear Factor Theorem: A polynomial function has the factor (x − c) exactly when c is a zero of the function, factors and zeros determine each other.",
   "Multiplicity: The number of times a linear factor appears in the factored form of a polynomial; a zero of even multiplicity makes the graph touch the x-axis and turn around, while a zero of odd multiplicity makes the graph cross the x-axis.",
   "Factoring by Grouping: A method for factoring a four-term polynomial: group the terms in pairs, factor a common factor from each pair, then factor out the common binomial.",
   "Sum and Difference of Cubes: The factoring patterns for cubes: a cubed plus b cubed factors as (a + b)(a² − ab + b²), and a cubed minus b cubed factors as (a − b)(a² + ab + b²).",
@@ -658,15 +818,15 @@ const POLY_OPERATIONS: string[] = [
   "Standard Form of a Polynomial: A polynomial written with its terms in order of decreasing degree, so the degree and leading coefficient can be read at once.",
   "Like Terms: Terms that have the same variable raised to the same power; only like terms can be added or subtracted, by adding or subtracting their coefficients.",
   "Adding and Subtracting Polynomials: Combine like terms; when subtracting, distribute the negative sign to every term of the polynomial being subtracted before combining.",
-  "Multiplying Polynomials: Multiply every term of one polynomial by every term of the other, then combine like terms — the distributive property applied repeatedly.",
+  "Multiplying Polynomials: Multiply every term of one polynomial by every term of the other, then combine like terms, the distributive property applied repeatedly.",
   "FOIL: A bookkeeping pattern for multiplying two binomials: the First, Outer, Inner, and Last products, added together.",
-  "Degree of a Product: The degree of the product of two polynomials is the sum of their degrees — the product of the two leading terms is the leading term of the product.",
+  "Degree of a Product: The degree of the product of two polynomials is the sum of their degrees, the product of the two leading terms is the leading term of the product.",
 ];
 
 const POLY_SOLVE: string[] = [
   "Polynomial Equation: An equation in which a polynomial is set equal to 0 (or to another polynomial); its solutions are the zeros of the related polynomial function.",
   "Solving by Factoring: Set the polynomial equal to 0, factor it completely, and apply the Zero Product Property: if a product of factors is 0, at least one factor is 0.",
-  "Zero Product Property: If the product of two quantities is 0, then at least one of the quantities is 0 — if ab = 0, then a = 0 or b = 0.",
+  "Zero Product Property: If the product of two quantities is 0, then at least one of the quantities is 0, if ab = 0, then a = 0 or b = 0.",
   ...RATIONAL_ROOT_THEOREM,
   "Testing a Candidate Zero: A candidate c is an actual zero exactly when synthetic division by (x − c) leaves remainder 0; each zero found splits off a linear factor and lowers the degree of what remains.",
   "Complete Solution Count: A polynomial equation of degree n has n solutions in the complex numbers when multiplicity is counted; its real solutions are the x-intercepts of the graph.",
@@ -676,8 +836,8 @@ const POLY_DIVIDE: string[] = [
   "Polynomial Long Division: A division algorithm for polynomials modeled on whole-number long division: divide the leading terms, multiply, subtract, and repeat with the remainder until its degree is less than the degree of the divisor.",
   "Synthetic Division: A shortcut for dividing a polynomial by a binomial of the form (x − c): only the coefficients are written, c is the multiplier, and the process adds where long division subtracts.",
   "Quotient and Remainder: Dividing a polynomial P(x) by (x − c) gives P(x) = (x − c)Q(x) + R, where Q is the quotient polynomial and R is the constant remainder.",
-  "Remainder Theorem: The remainder when a polynomial P(x) is divided by (x − c) is exactly P(c) — synthetic division and direct evaluation always agree.",
-  "Factor Theorem: The binomial (x − c) is a factor of a polynomial P(x) exactly when P(c) = 0 — that is, exactly when c is a zero of the polynomial.",
+  "Remainder Theorem: The remainder when a polynomial P(x) is divided by (x − c) is exactly P(c), synthetic division and direct evaluation always agree.",
+  "Factor Theorem: The binomial (x − c) is a factor of a polynomial P(x) exactly when P(c) = 0, that is, exactly when c is a zero of the polynomial.",
 ];
 
 const ROOT_THEOREMS: string[] = [
@@ -696,12 +856,12 @@ const FTA: string[] = [
   "Real Zeros and the Graph: The real zeros of a polynomial are exactly the x-intercepts of its graph; a polynomial of degree n has at most n real zeros, and any zeros not seen on the graph are non-real.",
 ];
 
-/** Algebra 2 Topic 9 — radical expressions (shared by related ids). */
+/** Algebra 2 Topic 9, radical expressions (shared by related ids). */
 const ROOTS_RADICALS: string[] = [
   "Radical Expression: An expression that contains a radical sign √; the number or expression under the sign is the radicand.",
-  "Index: The small number written in the notch of a radical that names the root — an index of 2 means square root (and is not written), an index of 3 means cube root, and in general the index names the nth root.",
-  "Principal Root: For an even index, the radical sign names the nonnegative root only — √16 = 4, never −4; for an odd index, the root keeps the sign of the radicand.",
-  "Perfect Powers: Numbers that are exact powers matching an index — perfect squares such as 4, 9, 16, and 25 for square roots, and perfect cubes such as 8, 27, 64, and 125 for cube roots; factoring out the largest perfect-power factor of the radicand simplifies a radical.",
+  "Index: The small number written in the notch of a radical that names the root, an index of 2 means square root (and is not written), an index of 3 means cube root, and in general the index names the nth root.",
+  "Principal Root: For an even index, the radical sign names the nonnegative root only, √16 = 4, never −4; for an odd index, the root keeps the sign of the radicand.",
+  "Perfect Powers: Numbers that are exact powers matching an index, perfect squares such as 4, 9, 16, and 25 for square roots, and perfect cubes such as 8, 27, 64, and 125 for cube roots; factoring out the largest perfect-power factor of the radicand simplifies a radical.",
   "Product Property of Radicals: The root of a product is the product of the roots: the nth root of (ab) equals the nth root of a times the nth root of b, whenever the roots are real numbers.",
   "Simplest Form of a Radical: A radical is in simplest form when the radicand has no factor that is a perfect power of the index, no fraction remains under the radical, and no radical remains in a denominator.",
 ];
@@ -730,24 +890,24 @@ const RATIONAL_EXPONENTS: string[] = [
   "Negative Rational Exponent: A negative exponent still means a reciprocal: a to the power (−m/n) equals 1 divided by a to the power (m/n), for a greater than 0.",
 ];
 
-/** Algebra 2 Topic 10 — cubic & cube root functions (shared by related ids). */
+/** Algebra 2 Topic 10, cubic & cube root functions (shared by related ids). */
 const CUBIC_TRANSFORMATIONS: string[] = [
   "Cubic Function: A polynomial function of degree 3, such as the parent function f(x) = x cubed; its graph is a curve that falls on the left and rises on the right, passing through the origin.",
-  "Point of Inflection: The point where the graph of a cubic function changes the direction of its bend — the point (h, k) of a transformed cubic, which plays the role for a cubic that the vertex plays for a parabola.",
+  "Point of Inflection: The point where the graph of a cubic function changes the direction of its bend, the point (h, k) of a transformed cubic, which plays the role for a cubic that the vertex plays for a parabola.",
   "Transformations of the Cubic Graph: In a transformed cubic, h shifts the graph left or right, k shifts it up or down, the coefficient a stretches or shrinks it vertically, and a negative a reflects it so the graph rises on the left and falls on the right.",
-  "End Behavior of a Cubic: The ends of a cubic graph always point in opposite directions — down on the left and up on the right for the parent function — unlike the matching ends of an even-degree polynomial.",
+  "End Behavior of a Cubic: The ends of a cubic graph always point in opposite directions, down on the left and up on the right for the parent function, unlike the matching ends of an even-degree polynomial.",
   "Symmetry of the Cubic Graph: The parent cubic, the function that cubes x, is symmetric about the origin: rotating its graph a half-turn gives the same graph, the mark of an odd function.",
 ];
 
 const CUBE_ROOT_DEF: string[] = [
-  "Cube Root: The inverse of cubing: the cube root of a number is the value that, used as a factor three times, gives the number — the cube root of 8 is 2, and the cube root of −8 is −2.",
+  "Cube Root: The inverse of cubing: the cube root of a number is the value that, used as a factor three times, gives the number, the cube root of 8 is 2, and the cube root of −8 is −2.",
 ];
 
 const CUBEROOT_TRANSFORMATIONS: string[] = [
   "Cube Root Function: A function whose rule contains a cube root of the variable; the parent function takes the cube root of x, accepts every real number as an input, and gives every real number as an output.",
   ...CUBE_ROOT_DEF,
   "Transformations of the Cube Root Graph: In a transformed cube root function, h shifts the graph left or right, k shifts it up or down, and the coefficient a stretches, shrinks, or reflects it; the inflection point of the graph sits at (h, k).",
-  "Domain and Range of a Cube Root Function: Both are all real numbers — negative inputs have real cube roots, so the graph is never cut off the way a square root graph is.",
+  "Domain and Range of a Cube Root Function: Both are all real numbers, negative inputs have real cube roots, so the graph is never cut off the way a square root graph is.",
   "Inverse of a Cubic: A cube root function is the inverse of the corresponding cubic function, and their graphs are reflections of each other across the line y = x.",
 ];
 
@@ -756,11 +916,11 @@ const CUBEROOT_EQUATIONS: string[] = [
   ...CUBE_ROOT_DEF,
   "Isolate the Cube Root: As with square root equations, first use inverse operations to get the cube root expression alone on one side before cubing.",
   "Cubing Both Sides: Raising both sides of an equation to the third power removes a cube root: if the cube root of A equals B, then A equals B cubed.",
-  "No Extraneous Solutions from Cubing: Unlike squaring, cubing gives an equivalent equation — every real number has exactly one cube root, so cubing both sides can never introduce an extraneous solution.",
-  "Negative Radicands Allowed: A cube root equation may ask for the cube root of a negative quantity — always a real number — so no domain restriction arises before solving.",
+  "No Extraneous Solutions from Cubing: Unlike squaring, cubing gives an equivalent equation, every real number has exactly one cube root, so cubing both sides can never introduce an extraneous solution.",
+  "Negative Radicands Allowed: A cube root equation may ask for the cube root of a negative quantity, always a real number, so no domain restriction arises before solving.",
 ];
 
-/** Algebra 2 Topic 11 — rational functions & equations (shared by related ids). */
+/** Algebra 2 Topic 11, rational functions & equations (shared by related ids). */
 const RATIONAL_SIMPLIFY: string[] = [
   "Rational Expression: An expression that is the quotient of two polynomials; the denominator polynomial cannot be 0.",
   "Domain Restrictions: The values of the variable that make a denominator 0 are excluded from the domain; restrictions are read from the original expression, before any factors are canceled.",
@@ -771,17 +931,17 @@ const RATIONAL_SIMPLIFY: string[] = [
 
 const RATIONAL_MULT_DIV: string[] = [
   "Multiplying Rational Expressions: Multiply the numerators together and the denominators together, factoring everything first so that common factors can be divided out before or after multiplying.",
-  "Dividing Rational Expressions: To divide by a rational expression, multiply by its reciprocal — flip the divisor and proceed as in multiplication.",
+  "Dividing Rational Expressions: To divide by a rational expression, multiply by its reciprocal, flip the divisor and proceed as in multiplication.",
   "Reciprocal: The reciprocal of a nonzero expression is 1 divided by the expression; an expression and its reciprocal have product 1.",
-  "Restrictions in Products and Quotients: Every value that makes any denominator in the problem 0 — including the divisor, before it is flipped — is excluded from the domain.",
-  "Factor First: The working rule of rational arithmetic — factor every numerator and denominator before canceling, because only factors, never terms, can be divided out.",
+  "Restrictions in Products and Quotients: Every value that makes any denominator in the problem 0, including the divisor, before it is flipped, is excluded from the domain.",
+  "Factor First: The working rule of rational arithmetic, factor every numerator and denominator before canceling, because only factors, never terms, can be divided out.",
 ];
 
 const RATIONAL_ADD_SUB: string[] = [
   "Least Common Denominator: The least expression that every denominator in a problem divides into; it is built from each distinct factor of the denominators, taken at the greatest power with which that factor appears in any one denominator.",
   "Common Denominator: Any denominator that all the denominators of a problem divide into; rewriting an expression with a common denominator multiplies its numerator and denominator by the same factor, so the value of the expression does not change.",
   "Adding and Subtracting with Like Denominators: When rational expressions share a denominator, add or subtract the numerators only and keep the denominator; in subtraction the whole of the second numerator is subtracted, so it is treated as a single grouped quantity.",
-  "Adding and Subtracting with Unlike Denominators: First rewrite each expression with the least common denominator, multiplying each numerator by the factor its denominator is missing; then combine the numerators. The denominators of an expression are never cleared away — clearing denominators is a move for equations, not for expressions.",
+  "Adding and Subtracting with Unlike Denominators: First rewrite each expression with the least common denominator, multiplying each numerator by the factor its denominator is missing; then combine the numerators. The denominators of an expression are never cleared away, clearing denominators is a move for equations, not for expressions.",
   "Simplifying the Sum or Difference: After the numerators are combined, factor the resulting numerator and divide out any factor it shares with the denominator; the restrictions on the variable still come from every denominator in the original problem.",
 ];
 
@@ -789,7 +949,7 @@ const ASYMPTOTES_HOLES: string[] = [
   "Rational Function: A function that can be written as the quotient of two polynomial functions, f(x) = P(x)/Q(x), with Q(x) not the zero polynomial.",
   "Vertical Asymptote: A vertical line x = c that the graph of a function approaches but never touches, occurring at a zero of the denominator that does not cancel with the numerator.",
   "Horizontal Asymptote: A horizontal line the graph approaches as x grows large in the positive or negative direction; for a rational function it is decided by comparing the degrees of the numerator and denominator.",
-  "Hole (Removable Discontinuity): A single missing point in the graph of a rational function, occurring where a factor cancels between numerator and denominator; the x-value is excluded, as with a restriction, but the graph has no asymptote there — only a gap at one point.",
+  "Hole (Removable Discontinuity): A single missing point in the graph of a rational function, occurring where a factor cancels between numerator and denominator; the x-value is excluded, as with a restriction, but the graph has no asymptote there, only a gap at one point.",
   "Degree Rules for Horizontal Asymptotes: If the degree of the numerator is less than the degree of the denominator, the horizontal asymptote is y = 0; if the degrees are equal, it is the ratio of the leading coefficients; if the degree of the numerator is greater, there is no horizontal asymptote.",
 ];
 
@@ -801,12 +961,12 @@ const RATIONAL_EQUATIONS: string[] = [
   "Proportions: A rational equation stating that two ratios are equal can be solved by cross-multiplication, since a/b = c/d exactly when ad = bc, for nonzero denominators.",
 ];
 
-/** Algebra 2 Topic 12 — data & regression (shared by related ids). */
+/** Algebra 2 Topic 12, data & regression (shared by related ids). */
 const ANALYZING_DATA: string[] = [
   "Finite Differences: The differences between consecutive outputs of a table with evenly spaced inputs; constant first differences signal a linear model, and constant second differences signal a quadratic model.",
-  "First and Second Differences: First differences subtract consecutive outputs directly; second differences subtract consecutive first differences — the level at which the differences become constant names the polynomial model.",
+  "First and Second Differences: First differences subtract consecutive outputs directly; second differences subtract consecutive first differences, the level at which the differences become constant names the polynomial model.",
   "Common Ratio Test: Dividing each output of a table by the output before it; a constant ratio signals an exponential model, and the ratio is the growth or decay factor of the model.",
-  "Model Selection: Choosing among linear, quadratic, and exponential models for data by testing which signature the table shows — constant differences, constant second differences, or constant ratios.",
+  "Model Selection: Choosing among linear, quadratic, and exponential models for data by testing which signature the table shows, constant differences, constant second differences, or constant ratios.",
   "Evenly Spaced Inputs: Tables are classified by differences and ratios only when the inputs increase by a constant amount; data with uneven inputs must be fitted with a function instead.",
 ];
 
@@ -815,31 +975,31 @@ const REGRESSION: string[] = [
   "Least-Squares Line: The line of best fit for a data set: of all possible lines, it is the one that makes the sum of the squares of the vertical distances from the points to the line the smallest.",
   "Line of Best Fit: The regression line drawn through a scatter plot to summarize its trend; its equation is written in slope-intercept form and used for prediction.",
   "Correlation Coefficient: A number r between −1 and 1 that measures the strength and direction of a linear relationship: values near 1 or −1 mean the points cluster tightly around a line, and values near 0 mean little linear relationship.",
-  "Residual: The vertical distance from a data point to the regression line — the observed value minus the value predicted by the model; small residuals with no pattern signal a good fit.",
+  "Residual: The vertical distance from a data point to the regression line, the observed value minus the value predicted by the model; small residuals with no pattern signal a good fit.",
 ];
 
 const USING_MODELS: string[] = [
   "Prediction: Using the equation of a fitted model to estimate a value for an input, either from the pattern of the data or by direct substitution.",
   "Interpolation: Predicting a value inside the range of the data used to build the model; interpolation is generally more reliable than extrapolation.",
   "Extrapolation: Predicting a value outside the range of the data used to build the model; the farther the prediction reaches beyond the data, the less trustworthy it is.",
-  "Choosing a Model for a Decision: A model is chosen by how well it fits — its residuals and correlation — and by whether its type matches the situation: constant change suggests linear, and constant percent change suggests exponential.",
+  "Choosing a Model for a Decision: A model is chosen by how well it fits, its residuals and correlation, and by whether its type matches the situation: constant change suggests linear, and constant percent change suggests exponential.",
   "Limits of a Model: Every model is an approximation that holds only near the data behind it; real quantities also obey real-world limits, such as nonnegative amounts, that a formula does not know.",
 ];
 
-/** Algebra 2 supplementary — sequences, circles (shared by related ids). */
+/** Algebra 2 supplementary, sequences, circles (shared by related ids). */
 const SEQUENCES: string[] = [
   "Sequence: An ordered list of numbers, called terms, that follows a rule; a sequence can be described by an explicit formula or a recursive formula.",
   "Arithmetic Sequence: A sequence in which the difference between consecutive terms is constant; that constant is the common difference, and the nth term is the first term plus (n − 1) times the common difference.",
   "Geometric Sequence: A sequence in which the ratio of consecutive terms is constant; that constant is the common ratio, and the nth term is the first term times the common ratio raised to the (n − 1) power.",
   "Recursive Formula: A formula that defines a sequence or model by giving the first term and a rule for finding each term from the term (or terms) before it.",
-  "Explicit Formula: A formula that gives the value of a term directly from its position, without reference to earlier terms — the closed form that a recursive model can be rewritten into.",
+  "Explicit Formula: A formula that gives the value of a term directly from its position, without reference to earlier terms, the closed form that a recursive model can be rewritten into.",
   "Series: The sum of the terms of a sequence; a finite series has a stated number of terms, and its sum is found by adding the terms in order.",
 ];
 
 const CIRCLE_EQUATIONS: string[] = [
   "Circle: The set of all points in a plane that are a fixed distance, the radius, from a fixed point, the center.",
   "Center-Radius Form: The equation of a circle with center (h, k) and radius r: (x − h)² + (y − k)² = r².",
-  "Radius from the Equation: In center-radius form the constant equals r², so the radius is its square root — the equation (x − h)² + (y − k)² = 25 describes a circle of radius 5, not 25.",
+  "Radius from the Equation: In center-radius form the constant equals r², so the radius is its square root, the equation (x − h)² + (y − k)² = 25 describes a circle of radius 5, not 25.",
   "General Form: A circle equation written x² + y² + Dx + Ey + F = 0, with the squared terms having equal coefficients; completing the square on x and on y converts it to center-radius form.",
   "Completing the Square for a Circle: Group the x-terms and the y-terms, complete the square in each group, and add the same constants to the other side; the result names the center and the radius directly.",
 ];
@@ -852,7 +1012,7 @@ const CIRCLE_LINE_SYSTEMS: string[] = [
   "No Intersection: A line that misses the circle entirely produces a quadratic with no real solutions when substituted, so the system has no solution.",
 ];
 
-/** Algebra 1 Topic 1 — literal equations & absolute value (shared by related ids). */
+/** Algebra 1 Topic 1, literal equations & absolute value (shared by related ids). */
 const LITERAL_EQUATIONS: string[] = [
   "Literal Equation: An equation that contains two or more variables; solving a literal equation means rewriting it so that one variable is isolated in terms of the others.",
   "Formula: A literal equation that describes a relationship among quantities in a real situation, such as the equation A = lw that gives the area of a rectangle from its length and width.",
@@ -867,7 +1027,7 @@ const A1_ABSOLUTE_VALUE: string[] = [
   "No Solution: An absolute value can never equal a negative number, so an equation of the form |A| = c with c negative has no solution.",
 ];
 
-/** Algebra 1 Topics 2/3 — linear forms, function rules, transformations (shared by related ids). */
+/** Algebra 1 Topics 2/3, linear forms, function rules, transformations (shared by related ids). */
 const FUNCTION_RULE_CORE: string[] = [
   "Function Rule: An equation that describes a function; for each input x it gives exactly one output y, such as y = 2x + 1.",
 ];
@@ -876,7 +1036,7 @@ const POINT_SLOPE_FORM: string[] = [
   "Point-Slope Form: An equation of a line written y − y₁ = m(x − x₁), where m is the slope of the line and (x₁, y₁) is one point on the line.",
   "Slope: The rate of change of a line, equal to rise over run: m = (y₂ − y₁)/(x₂ − x₁).",
   "Writing an Equation from a Point and the Slope: Substitute the slope for m and the point's coordinates for x₁ and y₁ in point-slope form; simplify into slope-intercept form when the y-intercept is needed.",
-  "Writing an Equation from Two Points: First use the slope formula on the two points to find m, then write point-slope form with either point — both choices describe the same line.",
+  "Writing an Equation from Two Points: First use the slope formula on the two points to find m, then write point-slope form with either point, both choices describe the same line.",
 ];
 
 const LINEAR_STANDARD_FORM: string[] = [
@@ -911,12 +1071,12 @@ const LINEAR_TRANSFORMATIONS: string[] = [
   "Reflection and Steepness: Multiplying a function rule by a negative number flips its graph, reversing the direction of the line; multiplying by a number with absolute value greater than 1 makes the line steeper, and multiplying by a number between 0 and 1 makes it flatter.",
 ];
 
-/** Algebra 1 Topic 4 — systems of equations & inequalities (shared by related ids). */
+/** Algebra 1 Topic 4, systems of equations & inequalities (shared by related ids). */
 const A1_SYSTEMS_GRAPHING: string[] = [
   ...SYSTEMS_CORE,
   "Solving by Graphing: Graphing both equations of a system on the same coordinate plane; the point where the two graphs intersect is the solution of the system.",
-  "No Solution — Parallel Lines: When the graphs of a system are parallel lines, they never intersect, so the system has no solution.",
-  "Infinitely Many Solutions — Same Line: When both equations of a system graph as the same line, every point on the line makes both equations true, so the system has infinitely many solutions.",
+  "No Solution, Parallel Lines: When the graphs of a system are parallel lines, they never intersect, so the system has no solution.",
+  "Infinitely Many Solutions, Same Line: When both equations of a system graph as the same line, every point on the line makes both equations true, so the system has infinitely many solutions.",
   "Checking a Solution: A solution must make both equations true; substitute the ordered pair into each original equation to check it.",
 ];
 
@@ -929,7 +1089,7 @@ const A1_SYSTEMS_SUBSTITUTION: string[] = [
 
 const A1_SYSTEMS_ELIMINATION: string[] = [
   ...SYSTEMS_CORE,
-  "Elimination Method: A method for solving a system in which the equations are added or subtracted — after multiplying by constants as needed — so that one variable is eliminated.",
+  "Elimination Method: A method for solving a system in which the equations are added or subtracted, after multiplying by constants as needed, so that one variable is eliminated.",
   "Opposite Coefficients: Two terms whose coefficients sum to 0, such as 3x and −3x; adding equations that have opposite coefficients removes that variable from the result.",
   "Multiplying an Equation: Every term of an equation may be multiplied by the same nonzero number without changing the equation's solutions; this is the step used to create opposite coefficients.",
 ];
@@ -937,7 +1097,7 @@ const A1_SYSTEMS_ELIMINATION: string[] = [
 const A1_SYSTEMS_APPLICATIONS: string[] = [
   ...SYSTEMS_CORE,
   "Defining the Variables: The first step in solving a problem with a system: write in words what each variable stands for, including the units it is measured in.",
-  "Break-Even Point: In a system that models two cost or revenue plans, the solution is the break-even point — the input at which the two plans give the same value.",
+  "Break-Even Point: In a system that models two cost or revenue plans, the solution is the break-even point, the input at which the two plans give the same value.",
   "Interpreting the Solution: The last step in solving a problem with a system: state in words what the solution's coordinates mean in the situation, not just the numbers themselves.",
 ];
 
@@ -949,12 +1109,12 @@ const A1_LINEAR_INEQUALITIES: string[] = [
   "Test Point: A point substituted into an inequality to decide which half-plane to shade; (0, 0) is used whenever the boundary line does not pass through it.",
 ];
 
-/** Algebra 1 Topic 5 — exponents & radicals (shared by related ids). */
+/** Algebra 1 Topic 5, exponents & radicals (shared by related ids). */
 const ZERO_NEGATIVE_EXPONENTS: string[] = [
   "Base: In a power, the number or expression that is used as a repeated factor.",
   "Exponent: In a power, the number that tells how many times the base is used as a factor.",
   "Zero Exponent Property: Every nonzero number raised to the power 0 equals 1.",
-  "Negative Exponent Property: For a nonzero number a and a whole number n, a raised to the power negative n equals 1 divided by a raised to the power n — a negative exponent places the power on the other side of a fraction bar.",
+  "Negative Exponent Property: For a nonzero number a and a whole number n, a raised to the power negative n equals 1 divided by a raised to the power n, a negative exponent places the power on the other side of a fraction bar.",
 ];
 
 const MULTIPLYING_POWERS: string[] = [
@@ -980,27 +1140,27 @@ const DIVISION_PROPERTIES_EXP: string[] = [
 
 const A1_RATIONAL_EXPONENTS: string[] = [
   "Rational Exponent: An exponent that is a fraction; the denominator of the fraction names a root to take, and the numerator names a power to raise to.",
-  "Power of 1/2: Raising a nonnegative number to the power 1/2 gives its square root — a raised to the power 1/2 is √a.",
-  "Power of 1/3: Raising a number to the power 1/3 gives its cube root — the number that, used as a factor three times, returns the original number.",
+  "Power of 1/2: Raising a nonnegative number to the power 1/2 gives its square root, a raised to the power 1/2 is √a.",
+  "Power of 1/3: Raising a number to the power 1/3 gives its cube root, the number that, used as a factor three times, returns the original number.",
   "Radical: The symbol √ used to indicate a root; the number or expression written under the symbol is the radicand.",
 ];
 
 const SIMPLIFYING_RADICALS: string[] = [
   "Radical Expression: An expression that contains a radical symbol and a radicand, such as √12.",
   "Radicand: The number or expression under a radical symbol; simplifying a square root means reducing what the radicand contains, not changing the root being taken.",
-  "Perfect Square: A number that is the square of a whole number — 1, 4, 9, 16, 25, and so on; perfect-square factors are the ones that can be taken out of a square root.",
+  "Perfect Square: A number that is the square of a whole number, 1, 4, 9, 16, 25, and so on; perfect-square factors are the ones that can be taken out of a square root.",
   "Product Property of Square Roots: The square root of a product equals the product of the square roots of its factors, when neither factor is negative: √(ab) = √a × √b.",
   "Simplest Radical Form: A square root is in simplest radical form when the radicand has no perfect-square factor left in it other than 1.",
 ];
 
-/** Algebra 1 Topic 6 — sequences (shared by related ids). */
+/** Algebra 1 Topic 6, sequences (shared by related ids). */
 const EXPLICIT_SEQUENCES: string[] = [
   "Sequence: An ordered list of numbers that follows a pattern; each number in the list is a term of the sequence.",
   "Arithmetic Sequence: A sequence in which the difference between one term and the next is always the same number.",
   "Common Difference: The constant difference between consecutive terms of an arithmetic sequence, found by subtracting any term from the term that follows it.",
   "Geometric Sequence: A sequence in which the ratio of one term to the next is always the same number.",
   "Common Ratio: The constant ratio between consecutive terms of a geometric sequence, found by dividing any term by the term before it.",
-  "Explicit Formula: A formula that computes the nth term of a sequence directly from its position n — for an arithmetic sequence, the first term plus (n − 1) times the common difference; for a geometric sequence, the first term times the common ratio raised to the power (n − 1).",
+  "Explicit Formula: A formula that computes the nth term of a sequence directly from its position n, for an arithmetic sequence, the first term plus (n − 1) times the common difference; for a geometric sequence, the first term times the common ratio raised to the power (n − 1).",
 ];
 
 const RECURSIVE_ARITHMETIC: string[] = [
@@ -1017,7 +1177,7 @@ const RECURSIVE_GEOMETRIC: string[] = [
   "Common Ratio: The constant ratio between consecutive terms of a geometric sequence, found by dividing any term by the term before it.",
 ];
 
-/** Algebra 1 Topic 7 — polynomials & factoring (shared by related ids). */
+/** Algebra 1 Topic 7, polynomials & factoring (shared by related ids). */
 const A1_ADD_SUB_POLYNOMIALS: string[] = [
   "Polynomial: A monomial or a sum of monomials; each monomial in the sum is called a term of the polynomial.",
   "Monomial: A number, a variable, or a product of a number and one or more variables with whole-number exponents.",
@@ -1044,7 +1204,7 @@ const MULTIPLYING_BINOMIALS: string[] = [
 const FACTOR_MONIC_TRINOMIAL: string[] = [
   "Trinomial with Leading Coefficient 1: A trinomial of the form x² + bx + c, in which the coefficient of the squared term is 1.",
   "Factoring x² + bx + c: Find the two numbers whose product is c and whose sum is b; the trinomial then factors into the two binomials built from those numbers.",
-  "Sign Patterns in Factoring: When c is positive, the two numbers have the same sign as each other — the sign of b; when c is negative, the two numbers have opposite signs.",
+  "Sign Patterns in Factoring: When c is positive, the two numbers have the same sign as each other, the sign of b; when c is negative, the two numbers have opposite signs.",
   "Prime Trinomial: A trinomial that cannot be factored using integer coefficients; if no pair of factors of c has sum b, the trinomial is prime.",
 ];
 
@@ -1076,14 +1236,14 @@ const A1_RATIONAL_EXPRESSIONS: string[] = [
   "Restrictions: The excluded values of an expression are recorded from its original denominator, and they remain excluded even after the expression is simplified.",
 ];
 
-/** Algebra 1 Topic 8 — quadratic functions & equations (shared by related ids). */
+/** Algebra 1 Topic 8, quadratic functions & equations (shared by related ids). */
 const A1_QUAD_CORE: string[] = [
   "Quadratic Function: A function that can be written f(x) = ax² + bx + c, where a is not 0.",
   "Parabola: The U-shaped graph of a quadratic function; the two sides of the graph are mirror images of each other across a vertical line through its turning point.",
 ];
 
 const A1_QUAD_VERTEX_AXIS: string[] = [
-  "Vertex: The point where a parabola changes direction — its lowest point when the parabola opens upward and its highest point when the parabola opens downward.",
+  "Vertex: The point where a parabola changes direction, its lowest point when the parabola opens upward and its highest point when the parabola opens downward.",
   "Axis of Symmetry: The vertical line through the vertex that divides the parabola into two matching halves; points on the graph occur in pairs equally far from this line.",
 ];
 
@@ -1123,7 +1283,7 @@ const A1_QUAD_SOLVING: string[] = [
 ];
 
 const A1_QUAD_FACTORING_SOLVE: string[] = [
-  "Zero Product Property: If the product of two quantities is 0, then at least one of the quantities is 0 — if ab = 0, then a = 0 or b = 0.",
+  "Zero Product Property: If the product of two quantities is 0, then at least one of the quantities is 0, if ab = 0, then a = 0 or b = 0.",
   "Solving by Factoring: Rewrite the equation in standard form, factor the quadratic expression completely, set each factor equal to 0, and solve the resulting simple equations.",
   "Factored Form: A quadratic written as a product of factors, such as a(x − p)(x − q); the values p and q are zeros of the function.",
   "Factoring Out the GCF First: Before choosing any other factoring method, check whether every term shares a common factor; factoring it out first makes the remaining factoring simpler.",
@@ -1139,11 +1299,11 @@ const A1_QUAD_WRITING: string[] = [
 const A1_QUAD_COMPLETING_SQUARE: string[] = [
   "Completing the Square: A method that rewrites a quadratic by building a perfect-square trinomial, used to solve quadratic equations and to convert a quadratic function to vertex form.",
   "Perfect-Square Trinomial: A trinomial of the form x² + bx + (b/2)², which factors as (x + b/2)².",
-  "Completing Constant: To complete the square on x² + bx, add (b/2)² — the square of half the coefficient of x.",
+  "Completing Constant: To complete the square on x² + bx, add (b/2)², the square of half the coefficient of x.",
   "Square Root Step: After completing the square, the equation has a squared expression on one side equal to a number; take the square root of both sides and keep both the positive and the negative root to get the solutions.",
 ];
 
-/** Algebra 1 Topic 9 — exponential functions & models (shared by related ids). */
+/** Algebra 1 Topic 9, exponential functions & models (shared by related ids). */
 const A1_EXPONENTIAL_FUNCTIONS: string[] = [
   "Exponential Function: A function in which the variable is an exponent, such as f(x) = 2 times (3 to the x power); as x increases by equal steps, the outputs are multiplied by the same factor each time.",
   "Initial Value: The value of an exponential function when x = 0; it is the starting amount in the situation being modeled and the y-intercept of the graph.",
@@ -1163,12 +1323,108 @@ const A1_EXPONENTIAL_MODELING: string[] = [
   "Exponential Model: An exponential function written for a real situation, of the form y = a times (b to the t power), where a is the starting value and b is the factor by which the quantity is multiplied in each period.",
   "Initial Value: The value of an exponential function when x = 0; it is the starting amount in the situation being modeled and the y-intercept of the graph.",
   "Prediction: A value computed from a model for an input that was not measured; substituting a time into an exponential model predicts the amount at that time.",
-  "Reading the Factor: The factor of an exponential model tells the percent change per period — a factor greater than 1 means the quantity grows by the part above 1 as a percent, and a factor less than 1 means it decays by the part below 1 as a percent.",
+  "Reading the Factor: The factor of an exponential model tells the percent change per period, a factor greater than 1 means the quantity grows by the part above 1 as a percent, and a factor less than 1 means it decays by the part below 1 as a percent.",
+];
+
+const A1_DIVIDING_POLYNOMIALS: string[] = [
+  "Dividend: The polynomial being divided; in a division problem it is the expression inside the long division symbol or the numerator of the fraction.",
+  "Divisor: The polynomial you divide by; in a division problem it stands outside the long division symbol or in the denominator of the fraction.",
+  "Quotient: The result of a division before any remainder is written; the divisor times the quotient, plus the remainder, equals the dividend.",
+  "Remainder: What is left over after the division can go no further, because its degree is less than the degree of the divisor; it is written as a fraction over the divisor.",
+  "Polynomial Long Division: A division process that works one term at a time: divide the leading terms, multiply, subtract, and bring down the next term, until the remainder has a smaller degree than the divisor.",
+];
+
+const A1_DOMAIN_RANGE_LINEAR: string[] = [
+  "Domain: The set of all x-values (inputs) of a function; for a linear function whose graph is a full line, the domain is all real numbers.",
+  "Range: The set of all y-values (outputs) of a function; for a non-constant linear function whose graph is a full line, the range is all real numbers.",
+  "Inequality Notation: A way of describing a set of numbers with inequality symbols, such as all x with 0 less than or equal to x and x less than or equal to 10.",
+  "Continuous Graph: A graph drawn without lifting the pencil, such as a line or a segment; its domain is an interval of x-values.",
+  "Discrete Graph: A graph made of separate, unconnected points, such as whole numbers of tickets; its domain is a list of specific values.",
+];
+
+const A1_HORIZONTAL_VERTICAL_LINES: string[] = [
+  "Horizontal Line: A line with equation y = b; every point on it has the same y-value, and its slope is 0.",
+  "Vertical Line: A line with equation x = a; every point on it has the same x-value, and it is not the graph of a function.",
+  "Zero Slope: The slope of a horizontal line; the y-values never change, so the rise is 0.",
+  "No Slope: The description of a vertical line's steepness; the run is 0, and division by 0 is undefined, so the line is said to have no slope.",
+  "Constant Function: A function of the form f(x) = b whose graph is a horizontal line; its output never changes.",
+];
+
+const A1_SLOPE_EVERY_FORM: string[] = [
+  "Slope Formula: The slope between two points (x1, y1) and (x2, y2) is m = (y2 minus y1) divided by (x2 minus x1), the change in y over the change in x.",
+  "Table of Values: A list of x-values with their matching y-values; for a linear relationship, any two rows give two points of the line, and their difference ratio is the slope.",
+  "Standard Form: A linear equation written as Ax + By = C with A, B, and C integers; its slope is the opposite of A divided by B.",
+  "Slope-Intercept Form: A linear equation written as y = mx + b; the coefficient m is the slope and b is the y-intercept.",
+  "Constant Rate of Change: The amount y changes when x increases by 1 in a linear relationship; it is the same between every pair of points and equals the slope.",
+];
+
+const A1_CORRELATION: string[] = [
+  "Correlation: A relationship between two quantities in which a change in one tends to go along with a change in the other; data with correlation forms a pattern on a scatter plot.",
+  "Correlation Coefficient: A number r between negative 1 and 1 that measures the strength and direction of a linear correlation; values near 1 or negative 1 mean a strong linear pattern.",
+  "Positive Correlation: A correlation in which y tends to increase as x increases; the correlation coefficient is positive and the points trend upward.",
+  "Negative Correlation: A correlation in which y tends to decrease as x increases; the correlation coefficient is negative and the points trend downward.",
+  "Strength of a Correlation: How tightly the points of a scatter plot gather around a line; the closer the correlation coefficient is to 1 or negative 1, the stronger the correlation.",
+];
+
+const A1_ASSOCIATION_CAUSATION: string[] = [
+  "Association: A pattern in data in which two quantities tend to change together, without any claim that one change produces the other.",
+  "Causation: A relationship in which a change in one quantity directly produces a change in another; only a well-designed experiment can support a claim of causation.",
+  "Lurking Variable: A hidden third quantity that influences both of the quantities being compared and can create a misleading association between them.",
+  "Controlled Experiment: A study in which subjects are randomly assigned to a treatment group or a comparison group, so a difference in outcomes can be credited to the treatment.",
+  "Observational Study: A study that only watches and records what happens, without assigning any treatment; it can show association but not causation.",
+];
+
+const A1_WRITING_LINEAR_INEQUALITIES: string[] = [
+  "Boundary Line: The graph of the equation that belongs to a linear inequality; its points separate the solutions of the inequality from the non-solutions.",
+  "Solid Boundary: A boundary line drawn without breaks, used when the inequality allows equality (less than or equal to, or greater than or equal to); points on the line are solutions.",
+  "Dashed Boundary: A boundary line drawn with breaks, used when the inequality is strict (less than, or greater than); points on the line are not solutions.",
+  "Half-Plane: One of the two regions into which a boundary line divides the coordinate plane; the solution set of a linear inequality is one whole half-plane.",
+  "Test Point: A point substituted into an inequality to decide which half-plane holds the solutions; the origin (0, 0) is the usual choice when the boundary line does not pass through it.",
+];
+
+const A1_ESTIMATING_SYSTEM_SOLUTIONS: string[] = [
+  "Solution of a System: An ordered pair that makes every equation of the system true at once; on a graph it is the point where the graphs of the equations meet.",
+  "Intersection Point: The single point shared by two graphs; for a system of two lines it is the solution of the system.",
+  "Estimate: A value read approximately from a graph rather than computed exactly; it is checked by substituting it into both equations.",
+  "Break-Even Point: In a comparison of two cost plans, the amount of use at which both plans cost the same; past it, the cheaper plan changes.",
+  "Graphical Solution: A solution obtained by graphing the equations of a system and reading the coordinates of their meeting point.",
+];
+
+const A1_FACTORS_ZEROS: string[] = [
+  "Zero of a Function: An x-value at which the function's value is 0; the graph of the function crosses or touches the x-axis at each of its zeros.",
+  "Factor: An expression that is multiplied by another expression; for a polynomial, setting any single factor equal to 0 can produce a zero of the function.",
+  "Factored Form: A polynomial written as a product of factors, such as (x minus 3)(x plus 2); each factor of the form (x minus r) names the zero r.",
+  "x-Intercept: The x-coordinate of a point where a graph meets the x-axis; the x-intercepts of a quadratic function are the same numbers as its zeros.",
+  "Multiplicity: The number of times a factor repeats in a factored polynomial; a zero of even multiplicity makes the graph touch the x-axis, and a zero of odd multiplicity makes it cross.",
+];
+
+const A1_QUADRATIC_MODELS: string[] = [
+  "Quadratic Model: A quadratic function chosen to fit a set of data points as closely as possible, used to describe and predict the quantity being measured.",
+  "Best Fit: The model that comes closest to all of the data points at once; in this course the best-fit quadratic is given, and the work is to use it well.",
+  "Prediction: A value computed from a model for a chosen input; a prediction is the model's answer, whether or not any real measurement was taken there.",
+  "Observed Value: The actual measured value in a data set, as opposed to the value the model predicts at the same input.",
+  "Residual: The observed value minus the predicted value at the same input; a positive residual means the data point lies above the model, and a negative one means it lies below.",
+];
+
+const A1_WRITING_EXPONENTIAL: string[] = [
+  "Initial Value: In f(x) = a times (b to the x power), the number a; it is the amount at the start, when x = 0, and the y-intercept of the graph.",
+  "Growth Factor: The number b in an exponential growth function; it is greater than 1 and equals 1 plus the percent rate written as a decimal.",
+  "Decay Factor: The number b in an exponential decay function; it is between 0 and 1 and equals 1 minus the percent rate written as a decimal.",
+  "Constant Ratio: The fixed multiplier between consecutive outputs of an exponential function in a table; it is the base b of the function.",
+  "Percent Rate: The percent by which a quantity grows or decays in each period; a growth rate of 8 percent gives the factor 1.08, and a decay rate of 8 percent gives the factor 0.92.",
+];
+
+const A1_EXPONENTIAL_FEATURES: string[] = [
+  "y-Intercept: The point where a graph meets the y-axis; for f(x) = a times (b to the x power) plus k, it is the point (0, a plus k).",
+  "Horizontal Asymptote: A horizontal line that the graph approaches as x grows large in one direction; for an exponential function a times (b to the x power) plus k, the asymptote is the line y = k.",
+  "Domain: The set of all x-values of a function; every exponential function accepts all real numbers as inputs.",
+  "Range: The set of all y-values of a function; an exponential function with a positive multiplier a has outputs strictly above its asymptote.",
+  "End Behavior: The description of what a function's outputs do as x increases or decreases without bound; an exponential graph levels off toward its asymptote in one direction and grows or falls steeply in the other.",
 ];
 
 /**
  * Definitions are seeded for every lesson entry. Test, proof, and other
- * non-lesson entries have no key — renderers must omit the definitions
+ * non-lesson entries have no key, renderers must omit the definitions
  * block gracefully for them.
  */
 /** Middle school shared cores (grades 6–8). */
@@ -1197,13 +1453,13 @@ const MS_CENTER_CORE: string[] = [
   "Range: The spread of a data set, found by subtracting the least value from the greatest value.",
 ];
 
-/** Middle school Grade 6 — numbers, expressions, proportionality, geometry, data, finance. */
+/** Middle school Grade 6, numbers, expressions, proportionality, geometry, data, finance. */
 const MS6_FRACTIONS: string[] = [
   "Fraction: A number that names part of a whole or part of a group, written with a numerator over a denominator, like 3/4.",
   "Numerator: The top number of a fraction; it tells how many parts are counted. In 3/4, the numerator is 3.",
   "Denominator: The bottom number of a fraction; it tells how many equal parts the whole is divided into. In 3/4, the denominator is 4.",
   "Mixed Number: A number made of a whole number and a fraction, such as 2 1/3.",
-  "Reciprocal: One of two numbers whose product is 1; to find the reciprocal of a fraction, flip it — the reciprocal of 3/5 is 5/3.",
+  "Reciprocal: One of two numbers whose product is 1; to find the reciprocal of a fraction, flip it, the reciprocal of 3/5 is 5/3.",
   "Simplest Form: A fraction is in simplest form when the numerator and denominator share no common factor except 1; 2/4 in simplest form is 1/2.",
 ];
 
@@ -1243,7 +1499,7 @@ const MS6_EQUATIONS_INEQUALITIES: string[] = [
   ...EQUATION_CORE,
   "One-Step Equation: An equation that takes just one operation to solve, such as x + 7 = 15.",
   "Inequality: A mathematical sentence that compares two values using less than, greater than, less than or equal to, or greater than or equal to; unlike an equation, an inequality usually has many solutions.",
-  "Graphing an Inequality: Showing the solutions of an inequality on a number line — use an open circle when the endpoint is not a solution, a closed circle when it is a solution, and shade toward the solutions.",
+  "Graphing an Inequality: Showing the solutions of an inequality on a number line, use an open circle when the endpoint is not a solution, a closed circle when it is a solution, and shade toward the solutions.",
 ];
 
 const MS6_TWO_VARIABLE: string[] = [
@@ -1271,14 +1527,14 @@ const MS6_AREA_POLYGONS: string[] = [
   "Area: The number of square units needed to cover a surface, measured in square units such as square centimeters.",
   "Parallelogram: A four-sided figure with both pairs of opposite sides parallel; its area is A = bh, base times height.",
   "Height of a Parallelogram or Triangle: The perpendicular distance from the base to the opposite side or vertex; the height is not the length of a slanted side.",
-  "Area of a Triangle: A = bh/2 — multiply the base by the height, then take one half; a triangle is half of a parallelogram with the same base and height.",
+  "Area of a Triangle: A = bh/2, multiply the base by the height, then take one half; a triangle is half of a parallelogram with the same base and height.",
   "Trapezoid: A four-sided figure with exactly one pair of parallel sides, called the bases; its area is the height times the average of the two bases.",
 ];
 
 const MS6_VOLUME_SURFACE: string[] = [
   "Volume: The number of cubic units needed to fill a solid figure, measured in cubic units such as cubic inches.",
   "Rectangular Prism: A solid figure whose faces are all rectangles, like a cereal box; its volume is V = lwh, length times width times height.",
-  "Surface Area: The total area of all the faces of a solid figure — the amount of material it would take to cover the figure completely.",
+  "Surface Area: The total area of all the faces of a solid figure, the amount of material it would take to cover the figure completely.",
   "Net: A flat pattern that folds up into a solid figure; the surface area of a prism is the area of its net.",
   "Face: A flat surface of a solid figure; a rectangular prism has six faces.",
 ];
@@ -1301,7 +1557,7 @@ const MS6_DATA_DISPLAYS: string[] = [
 
 const MS6_CENTER_VARIATION: string[] = [
   ...MS_CENTER_CORE,
-  "Measure of Center: A value — the mean, median, or mode — that describes the center of a data set with a single number.",
+  "Measure of Center: A value, the mean, median, or mode, that describes the center of a data set with a single number.",
   "Measure of Variation: A value, such as the range, that describes how spread out the values of a data set are.",
 ];
 
@@ -1318,10 +1574,66 @@ const MS6_COLLEGE_SALARIES: string[] = [
   "Hourly Wage: The amount of pay earned for one hour of work.",
   "Annual Salary: The total amount of pay earned in one year; multiply an hourly wage by the hours worked per week and by 52 weeks to estimate it.",
   "Tuition: The price a college charges for classes; college costs also include books, fees, and housing.",
-  "Total Cost of College: The sum of all college expenses — tuition, fees, books, supplies, and living costs — for the time a student attends.",
+  "Total Cost of College: The sum of all college expenses, tuition, fees, books, supplies, and living costs, for the time a student attends.",
 ];
 
-/** Middle school Grade 7 — rational numbers, equations, geometry, proportionality, data, finance. */
+const MS6_COORDINATE_GRAPHING: string[] = [
+  "Coordinate Plane: A flat surface formed by a horizontal x-axis and a vertical y-axis that cross at the origin; points on it are located with ordered pairs.",
+  "Ordered Pair: Two numbers written as (x, y) that give the location of a point; the first number tells the distance right or left of the origin, and the second tells the distance up or down.",
+  "Quadrant: One of the four regions of the coordinate plane formed by the two axes, numbered I, II, III, and IV.",
+  "Origin: The point (0, 0) where the x-axis and the y-axis cross.",
+  "Reflection: A flip of a point or figure over a line, such as the x-axis or the y-axis, that produces a mirror image the same distance from the line.",
+];
+
+const MS6_UNIT_CONVERSIONS: string[] = [
+  "Unit Conversion: Changing a measurement from one unit to another unit for the same kind of quantity, such as changing feet to inches.",
+  "Conversion Factor: A ratio that shows how two units are related, such as 12 inches in 1 foot; multiplying or dividing by it changes the unit without changing the amount measured.",
+  "Customary Units: The units of measurement commonly used in the United States, such as inches, feet, yards, miles, ounces, pounds, cups, and gallons.",
+  "Metric Units: Units of measurement based on powers of ten, such as millimeters, centimeters, meters, kilometers, grams, kilograms, and liters.",
+  "Equivalent Measurements: Two measurements of the same amount written in different units, such as 2 feet and 24 inches.",
+];
+
+const MS6_NUMBER_SETS: string[] = [
+  "Whole Numbers: The counting numbers together with 0: 0, 1, 2, 3, and so on.",
+  "Integers: All of the whole numbers and their opposites, such as -3, -2, -1, 0, 1, 2, and 3.",
+  "Rational Numbers: Numbers that can be written as a fraction of two integers with a nonzero denominator; every whole number, integer, terminating decimal, and repeating decimal is a rational number.",
+  "Opposite: One of two numbers that are the same distance from 0 on a number line but on opposite sides, such as 5 and -5.",
+  "Absolute Value: The distance a number is from 0 on a number line; absolute value is never negative, so the absolute value of -5 is 5.",
+];
+
+const MS6_FRACTION_MULTIPLY_EFFECT: string[] = [
+  "Scaling: The effect of multiplication on a number; multiplying by a factor greater than 1 grows the number, and multiplying by a factor less than 1 shrinks it.",
+  "Proper Fraction: A fraction whose numerator is less than its denominator, so its value is less than 1, such as 3/4.",
+  "Improper Fraction: A fraction whose numerator is greater than or equal to its denominator, so its value is 1 or more, such as 5/4.",
+  "Product: The result of multiplying two numbers.",
+  "Benchmark Fraction: A familiar fraction, such as 1/2, 1/4, or 3/4, used to estimate or compare values.",
+];
+
+const MS6_BENCHMARK_PERCENTS: string[] = [
+  "Benchmark Percent: A familiar percent, such as 1%, 10%, 25%, 50%, or 75%, used to compute or estimate percents of numbers quickly.",
+  "Percent: A ratio that compares a number to 100; 25% means 25 out of 100.",
+  "Percent of a Number: A part of a quantity, found by multiplying the quantity by a percent; 50% of 80 is 40.",
+  "Estimate: A close guess of a value; rounding a percent to a nearby benchmark percent gives a quick estimate of an exact answer.",
+  "Base: The whole amount that a percent is taken from; in 25% of 60, the base is 60.",
+];
+
+const MS6_CATEGORICAL_DATA: string[] = [
+  "Categorical Data: Data collected in groups or categories, such as favorite colors or types of pets, rather than as measurements.",
+  "Relative Frequency: The part of a whole that one category makes up, often written as a percent; if 8 of 40 students chose art, the relative frequency of art is 20%.",
+  "Percent Bar Graph: A single bar divided into sections that show the percent of the whole in each category; the sections always add to 100%.",
+  "Frequency: The number of times a particular value or category appears in a data set.",
+  "Survey: A method of collecting data by asking a group of people questions and recording their answers.",
+];
+
+const MS6_WRITE_PROBLEM: string[] = [
+  "Equation: A mathematical sentence that uses an equals sign to show that two expressions have the same value.",
+  "Unknown: A value in a problem that is not yet known; in an equation the unknown is usually represented by a variable.",
+  "One-Step Equation: An equation that can be solved with just one operation, such as x + 7 = 15 or 3x = 12.",
+  "Situation: A real-world story or context that can be represented by an expression or an equation.",
+  "Inverse Operation: An operation that undoes another operation; subtraction undoes addition, and division undoes multiplication.",
+];
+
+/** Middle school Grade 7, rational numbers, equations, geometry, proportionality, data, finance. */
 const MS_ANGLE_TYPES: string[] = [
   "Angle: A figure formed by two rays that share a common endpoint called the vertex.",
   "Degree: The unit used to measure angles; a full turn measures 360°.",
@@ -1364,7 +1676,7 @@ const MS7_MULT_DIV_RATIONAL: string[] = [
   "Product: The result of multiplying two or more numbers.",
   "Quotient: The result of dividing one number by another.",
   "Sign Rules for Multiplication and Division: The product or quotient of two numbers with the same sign is positive, and the product or quotient of two numbers with different signs is negative.",
-  "Order of Operations: The set order for computing an expression — parentheses first, then exponents, then multiply and divide from left to right, then add and subtract from left to right.",
+  "Order of Operations: The set order for computing an expression, parentheses first, then exponents, then multiply and divide from left to right, then add and subtract from left to right.",
   "Multiplicative Inverse: The reciprocal of a number; dividing by a fraction is the same as multiplying by its reciprocal.",
 ];
 
@@ -1383,12 +1695,12 @@ const MS7_TWO_STEP_EQUATIONS: string[] = [
 const MS7_INEQUALITIES: string[] = [
   ...INEQUALITY_CORE,
   "Reversing the Inequality: When you multiply or divide both sides of an inequality by a negative number, you must reverse the direction of the inequality symbol.",
-  "Number Line Graph: A picture of a solution set — an open circle shows the endpoint is not included, and a closed circle shows it is included.",
+  "Number Line Graph: A picture of a solution set, an open circle shows the endpoint is not included, and a closed circle shows it is included.",
 ];
 
 const MS7_PROBLEM_SITUATIONS: string[] = [
   "Verbal Description: A real-world situation told in words that must be translated into mathematics before it can be solved.",
-  "Translating Words to Algebra: Turning phrases into symbols — 'five more than a number' becomes n + 5, and 'three times a number' becomes 3n.",
+  "Translating Words to Algebra: Turning phrases into symbols, 'five more than a number' becomes n + 5, and 'three times a number' becomes 3n.",
   "Unknown Quantity: The amount you are trying to find in a problem, usually represented by a variable.",
   "Equation from a Situation: An equation that models a word problem, written so that the two sides show two ways to express the same total.",
 ];
@@ -1414,14 +1726,14 @@ const MS7_CIRCLE_MEASUREMENT: string[] = [
   "Diameter: A segment through the center with both endpoints on the circle; the diameter is twice the radius, d = 2r.",
   "Pi: The ratio of the circumference of any circle to its diameter, about 3.14; pi is written with the symbol π.",
   "Circumference: The distance around a circle; C = 2πr using the radius, or C = πd using the diameter.",
-  "Area of a Circle: A = πr² — multiply π by the radius squared.",
+  "Area of a Circle: A = πr², multiply π by the radius squared.",
 ];
 
 const MS7_SEMI_QUARTER: string[] = [
   "Semicircle: Exactly one half of a circle, cut off by a diameter.",
-  "Area of a Semicircle: One half of the area of the full circle — find πr², then divide by 2.",
+  "Area of a Semicircle: One half of the area of the full circle, find πr², then divide by 2.",
   "Quarter Circle: Exactly one fourth of a circle, cut off by two radii that meet at a right angle.",
-  "Area of a Quarter Circle: One fourth of the area of the full circle — find πr², then divide by 4.",
+  "Area of a Quarter Circle: One fourth of the area of the full circle, find πr², then divide by 4.",
 ];
 
 const MS7_COMPOSITE: string[] = [
@@ -1433,7 +1745,7 @@ const MS7_COMPOSITE: string[] = [
 
 const MS7_NETS: string[] = [
   "Net: A flat pattern of polygons that folds up into a solid figure without overlaps.",
-  "Surface Area: The total area of all the faces of a solid figure — the sum of the areas of the shapes in its net.",
+  "Surface Area: The total area of all the faces of a solid figure, the sum of the areas of the shapes in its net.",
   "Cube: A solid figure with six congruent square faces; if each edge has length s, the surface area is 6s².",
   "Face: A flat surface of a solid figure; each polygon in a net becomes one face of the solid.",
 ];
@@ -1442,14 +1754,14 @@ const MS7_PRISMS: string[] = [
   "Prism: A solid figure with two congruent faces, called bases, that lie in parallel planes, and whose other faces are rectangles.",
   "Triangular Prism: A prism whose two bases are triangles.",
   "Base of a Prism: One of the two congruent parallel faces; the shape of the base names the prism.",
-  "Volume of a Prism: V = Bh — the area of the base times the height of the prism.",
+  "Volume of a Prism: V = Bh, the area of the base times the height of the prism.",
   "Surface Area of a Prism: The sum of the areas of all its faces, often found by drawing the net and adding the area of each face.",
 ];
 
 const MS7_PYRAMIDS: string[] = [
   "Pyramid: A solid figure with a polygon base whose other faces are triangles that meet at a single point called the apex.",
   "Square Pyramid: A pyramid whose base is a square.",
-  "Volume of a Pyramid: V = Bh/3 — one third of the area of the base times the height; a pyramid holds exactly one third of a prism with the same base and height.",
+  "Volume of a Pyramid: V = Bh/3, one third of the area of the base times the height; a pyramid holds exactly one third of a prism with the same base and height.",
   "Slant Height: The height of one triangular face of a pyramid, used when finding surface area.",
 ];
 
@@ -1468,7 +1780,7 @@ const MS7_PROPORTIONAL: string[] = [
 
 const MS7_LINEAR_RELATIONSHIPS: string[] = [
   "Linear Relationship: A relationship between two quantities whose graph is a straight line; it can be written as an equation in the form y = mx + b.",
-  "Slope: The rate of change of a line, equal to rise over run — how much y changes when x increases by 1.",
+  "Slope: The rate of change of a line, equal to rise over run, how much y changes when x increases by 1.",
   "Y-Intercept: The y-coordinate of the point where a line crosses the y-axis; it is the value b in y = mx + b and shows the starting value when x is 0.",
   "Table of Values: A table that pairs input values of x with their output values of y, computed from a rule.",
 ];
@@ -1489,7 +1801,7 @@ const MS7_SAMPLING: string[] = [
 
 const MS7_COMPARING_POPULATIONS: string[] = [
   ...MS_CENTER_CORE,
-  "Comparing Centers: To compare two populations, compare their measures of center — the group with the greater mean or median tends to have the greater values.",
+  "Comparing Centers: To compare two populations, compare their measures of center, the group with the greater mean or median tends to have the greater values.",
 ];
 
 const MS7_COMPOUND_EVENTS: string[] = [
@@ -1501,7 +1813,7 @@ const MS7_COMPOUND_EVENTS: string[] = [
 
 const MS7_ECONOMIC_THINKING: string[] = [
   "Sales Tax: A percent added to the price of an item by a government; the buyer pays the price plus the tax.",
-  "Total Cost: The amount actually paid for an item — the price plus the sales tax.",
+  "Total Cost: The amount actually paid for an item, the price plus the sales tax.",
   "Budget: A plan that lists income and expenses so that spending stays within the money available.",
   "Income: Money received, such as pay from a job or an allowance.",
   "Expense: Money spent on goods, services, or bills.",
@@ -1523,7 +1835,7 @@ const MS7_PERCENT_ERROR: string[] = [
 
 const MS7_EXPANDING_FACTORING: string[] = [
   "Expand: To rewrite an expression by multiplying out the parentheses with the distributive property; expanding 4(x − 3) gives 4x − 12.",
-  "Factor an Expression: To write an expression as a product of factors by taking out the greatest common factor — the reverse of expanding; 6x + 9 factors as 3(2x + 3).",
+  "Factor an Expression: To write an expression as a product of factors by taking out the greatest common factor, the reverse of expanding; 6x + 9 factors as 3(2x + 3).",
   "Greatest Common Factor: The greatest factor that two or more terms share; the GCF of 6x and 9 is 3.",
   "Distributive Property: A property that connects multiplication with addition: a(b + c) = ab + ac.",
 ];
@@ -1541,12 +1853,68 @@ const MS7_MULTI_STEP_INEQUALITIES: string[] = [
   "Number Line Graph: The solutions of an inequality drawn on a number line, with an open or closed circle at the endpoint and shading in the direction of the solutions.",
 ];
 
-/** Middle school Grade 8 — equations, functions, systems, geometry, number system, statistics. */
+const MS7_SIMILAR_FIGURES: string[] = [
+  "Similar Figures: Figures with the same shape but not always the same size; their corresponding angles are equal and their corresponding sides are proportional.",
+  "Corresponding Sides: Sides in the same position in two similar figures; their lengths form equal ratios.",
+  "Scale Factor: The ratio of a length in an image to the matching length in the original figure; multiply every length of the original by the scale factor to get the image.",
+  "Scale Drawing: A drawing that represents a real object with all lengths multiplied by the same scale, such as a map or a floor plan.",
+  "Proportion: An equation stating that two ratios are equal; cross multiplying solves for a missing value in similar figures.",
+];
+
+const MS7_CONVERSIONS: string[] = [
+  "Customary System: The measurement system used in the United States, with inches, feet, miles, gallons, and pounds.",
+  "Metric System: The measurement system based on powers of ten, with centimeters, meters, kilometers, liters, and kilograms.",
+  "Conversion Factor: A ratio equal to 1 that changes a measurement to different units, such as 2.54 centimeters per 1 inch.",
+  "Approximate Conversion: A conversion using a rounded factor, such as 1 mile is about 1.61 kilometers, so the answer is approximate too.",
+  "Unit Rate Conversion: Rewriting a measurement by multiplying or dividing by the number of new units in each old unit.",
+];
+
+const MS7_INTEREST: string[] = [
+  "Principal: The starting amount of money in an account or loan, before any interest is added.",
+  "Interest: The money paid for using money, earned on savings or charged on a loan, usually as a percent of the principal.",
+  "Simple Interest: Interest paid only on the principal, found with I = Prt (principal times rate times time).",
+  "Compound Interest: Interest paid on the principal and on interest already earned, so the balance grows faster each year.",
+  "Balance: The total amount in an account, the principal plus all the interest earned so far.",
+];
+
+const MS7_NET_WORTH: string[] = [
+  "Asset: Something a person owns that has value, such as a house, a car, or money in a savings account.",
+  "Liability: Money a person owes to someone else, such as a mortgage, a car loan, or a credit card balance.",
+  "Net Worth: The value of everything a person owns minus everything the person owes: assets minus liabilities.",
+  "Financial Record: A written record of what a person owns and owes, used to calculate net worth.",
+  "Mortgage: A loan used to buy a house, paid back over many years; it is a liability, while the house itself is an asset.",
+];
+
+const MS7_FAMILY_BUDGETS: string[] = [
+  "Budget: A plan that lists income and expenses so that spending stays within the money available.",
+  "Income: Money received, such as wages from a job.",
+  "Expense: Money spent on goods, services, or bills, such as rent, groceries, and utilities.",
+  "Hourly Wage: The amount of money earned for one hour of work; monthly pay is the wage times the hours worked in a month.",
+  "Minimum Income: The smallest income that covers all expenses plus any planned savings.",
+];
+
+const MS7_READING_GRAPHS: string[] = [
+  "Circle Graph: A graph that shows parts of a whole as sections of a circle, each labeled with a percent of the whole.",
+  "Bar Graph: A graph that uses bars to compare amounts in different categories.",
+  "Dot Plot: A graph that shows data values as dots above a number line, making the shape of the data easy to see.",
+  "Median: The middle value of an ordered data set, or the average of the two middle values.",
+  "Mode: The value that appears most often in a data set.",
+];
+
+const MS7_NUMBER_SETS: string[] = [
+  "Natural Numbers: The counting numbers 1, 2, 3, 4, and so on.",
+  "Whole Numbers: The natural numbers together with 0.",
+  "Integers: The whole numbers and their negatives: ..., -3, -2, -1, 0, 1, 2, 3, ...",
+  "Rational Number: A number that can be written as a fraction a/b where a and b are integers and b is not 0; integers, fractions, and ending or repeating decimals are all rational.",
+  "Subset: A set whose members all belong to a larger set; the natural numbers are a subset of the whole numbers, which are a subset of the integers, which are a subset of the rational numbers.",
+];
+
+/** Middle school Grade 8, equations, functions, systems, geometry, number system, statistics. */
 const MS8_LINEAR_EQUATIONS: string[] = [
   "Multi-Step Equation: An equation that takes several steps to solve, often needing the distributive property and combining like terms first.",
   "Variables on Both Sides: An equation with variable terms on both sides of the equals sign; move the variable terms to one side to solve.",
-  "No Solution: An equation that is false for every value of the variable — the variables cancel and leave a false statement, such as 5 = 3.",
-  "Infinitely Many Solutions: An equation that is true for every value of the variable — both sides simplify to the same expression, such as 2x + 4 = 2x + 4.",
+  "No Solution: An equation that is false for every value of the variable, the variables cancel and leave a false statement, such as 5 = 3.",
+  "Infinitely Many Solutions: An equation that is true for every value of the variable, both sides simplify to the same expression, such as 2x + 4 = 2x + 4.",
   "Like Terms: Terms that have the same variable part, such as 3x and 5x; like terms can be combined into one term.",
 ];
 
@@ -1561,7 +1929,7 @@ const MS8_SYSTEMS: string[] = [
   "System of Equations: Two or more equations with the same variables, considered together.",
   "Solution of a System: An ordered pair (x, y) that makes every equation in the system true at the same time; on a graph, it is the point where the graphs cross.",
   "Intersection Point: The point where two graphs cross; for a system of equations, this point is the solution of the system.",
-  "Inconsistent System: A system with no solution — its graphs are parallel lines that never meet.",
+  "Inconsistent System: A system with no solution, its graphs are parallel lines that never meet.",
   "Infinitely Many Solutions in a System: When two equations graph as the same line, every point on the line is a solution of the system.",
 ];
 
@@ -1575,7 +1943,7 @@ const MS8_PYTHAGOREAN: string[] = [
 
 const MS8_TRANSFORMATIONS: string[] = [
   "Transformation: A change in the position, shape, or size of a figure on the coordinate plane.",
-  "Translation: A slide — every point of a figure moves the same distance in the same direction; a translation that moves a point right 3 and up 2 sends (x, y) to (x + 3, y + 2).",
+  "Translation: A slide, every point of a figure moves the same distance in the same direction; a translation that moves a point right 3 and up 2 sends (x, y) to (x + 3, y + 2).",
   "Reflection: A flip of a figure over a line, such as the x-axis or the y-axis; each point and its image are the same distance from the line of reflection.",
   "Rotation: A turn of a figure around a fixed point, usually the origin, by a given angle such as 90°.",
   "Congruent Figures: Figures that have the same size and shape; translations, reflections, and rotations produce figures congruent to the original.",
@@ -1591,11 +1959,11 @@ const MS8_SCIENTIFIC_NOTATION: string[] = [
 
 const MS8_VOLUME: string[] = [
   "Cylinder: A solid with two congruent circular bases connected by a curved surface, like a can.",
-  "Volume of a Cylinder: V = πr²h — the area of the circular base times the height.",
+  "Volume of a Cylinder: V = πr²h, the area of the circular base times the height.",
   "Cone: A solid with a circular base that tapers to a single point called the apex.",
-  "Volume of a Cone: V = πr²h/3 — one third of the volume of a cylinder with the same base and height.",
+  "Volume of a Cone: V = πr²h/3, one third of the volume of a cylinder with the same base and height.",
   "Sphere: A solid in which every point on the surface is the same distance from the center, like a ball.",
-  "Volume of a Sphere: V = (4/3) × π × r × r × r — four thirds of π times the radius multiplied by itself three times.",
+  "Volume of a Sphere: V = (4/3) × π × r × r × r, four thirds of π times the radius multiplied by itself three times.",
 ];
 
 const MS8_SCATTER: string[] = [
@@ -1607,46 +1975,227 @@ const MS8_SCATTER: string[] = [
   "Outlier: A data point that lies far away from the other points in a data set.",
 ];
 
+const MS8_SLOPE: string[] = [
+  "Slope: The steepness of a line, found by dividing the change in y by the change in x between two points.",
+  "Rate of Change: How much one quantity changes compared with another, such as miles per hour or dollars per item.",
+  "Unit Rate: A rate whose second value is 1, such as $3 per 1 notebook; in a proportional graph it equals the slope.",
+  "y-Intercept: The value where a graph crosses the y-axis, when x is 0; it is the starting value in y = mx + b.",
+  "Slope-Intercept Form: A linear equation written as y = mx + b, where m is the slope and b is the y-intercept.",
+];
+
+const MS8_IRRATIONAL: string[] = [
+  "Rational Number: A number that can be written as a fraction of two integers; its decimal form ends or repeats.",
+  "Irrational Number: A number that cannot be written as a fraction of two integers; its decimal form never ends and never repeats, like pi.",
+  "Square Root: A value that multiplied by itself gives the number under the root, such as the square root of 25 being 5.",
+  "Perfect Square: A whole number times itself, such as 1, 4, 9, 16, and 25; their square roots are whole numbers.",
+  "Approximate: To estimate a value closely, such as placing the square root of 10 between 3 and 4 or near 3.2.",
+];
+
+const MS8_MAD: string[] = [
+  "Mean: The average of a data set, found by adding all the values and dividing by how many values there are.",
+  "Absolute Value: The distance a number is from 0, always written as a positive value.",
+  "Mean Absolute Deviation: The average distance between each value in a data set and the mean; it measures spread.",
+  "Data Set: A collection of values gathered about something, such as test scores or daily temperatures.",
+  "Variability: How spread out the values in a data set are; a larger MAD means more variability.",
+];
+
+const MS8_SURFACE_AREA: string[] = [
+  "Surface Area: The total area of all the faces and surfaces of a three-dimensional figure, measured in square units.",
+  "Lateral Surface Area: The area of only the side surfaces of a solid, not counting the top and bottom bases.",
+  "Net: A flat pattern that folds up into a three-dimensional figure; adding the areas of its pieces gives the surface area.",
+  "Rectangular Prism: A solid with six rectangular faces, such as a box; its surface area is 2(lw + lh + wh).",
+  "Triangular Prism: A solid with two triangular bases and three rectangular side faces, such as a tent or a wedge.",
+];
+
+const MS8_INTEREST: string[] = [
+  "Principal: The starting amount of money in an account or loan, before any interest is added.",
+  "Interest: The money paid for using money, earned on savings or charged on a loan, usually as a percent of the principal.",
+  "Simple Interest: Interest paid only on the principal, found with I = Prt (principal times rate times time).",
+  "Compound Interest: Interest paid on the principal and on interest already earned, so the balance grows faster each year.",
+  "Loan Term: The length of time given to repay a loan; a longer term usually means more total interest paid.",
+];
+
+const MS8_TRANSVERSALS: string[] = [
+  "Transversal: A line that crosses two or more other lines, forming eight angles where it crosses a pair of parallel lines.",
+  "Corresponding Angles: Angles in the same position at each intersection; when the lines are parallel, their measures are equal.",
+  "Alternate Interior Angles: Angles inside the two lines on opposite sides of the transversal; when the lines are parallel, their measures are equal.",
+  "Same-Side Interior Angles: Angles inside the two lines on the same side of the transversal; when the lines are parallel, their measures add to 180 degrees.",
+  "AA Similarity Criterion: If two angles of one triangle match two angles of another triangle, the triangles are similar, so their sides are proportional.",
+];
+
+const MS8_DILATIONS: string[] = [
+  "Dilation: A transformation that resizes a figure to make it larger or smaller while keeping the same shape.",
+  "Scale Factor: The number every length in a figure is multiplied by in a dilation; a value greater than 1 enlarges the figure, and a value between 0 and 1 reduces it.",
+  "Center of Dilation: The fixed point from which a dilation grows or shrinks a figure; in this lesson the center is the origin.",
+  "Preimage: The original figure before a transformation is applied.",
+  "Image: The figure that results after a transformation is applied; the image of a dilation is similar to the preimage.",
+];
+
+const MS8_PROPORTIONAL: string[] = [
+  "Proportional Relationship: A relationship between two quantities whose ratio is always the same; its graph is a straight line through the origin.",
+  "Constant of Proportionality: The constant ratio k in the equation y = kx; it tells how much y changes for each unit of x.",
+  "Direct Variation: A relationship described by the equation y = kx, where y varies directly with x and k is not zero.",
+  "Non-Proportional Relationship: A linear relationship whose graph does not pass through the origin, such as y = mx + b when b is not zero.",
+  "Origin: The point (0, 0) on a coordinate plane, where the x-axis and the y-axis cross.",
+];
+
+const MS8_COLLEGE_COSTS: string[] = [
+  "Tuition: The amount a college charges for instruction, not counting housing, food, books, or other fees.",
+  "Scholarship: Money given to a student for college that does not have to be paid back, often awarded for grades or other achievements.",
+  "Savings Goal: The total amount of money a person plans to set aside for a future expense, such as a year of college.",
+  "Monthly Savings: The amount of money set aside each month; dividing a savings goal by the number of months gives the monthly amount needed.",
+  "Family Contribution: The part of a college cost that a student's family agrees to pay, which lowers the amount the student must save.",
+];
+
+const MS8_WRITE_PROBLEM: string[] = [
+  "Word Problem: A math problem written in words that describes a situation and asks a question about it.",
+  "Variable: A letter, such as x, that stands for an unknown number in an equation or expression.",
+  "Equation: A math statement that sets two expressions equal to each other, such as 4x + 6 = 2x + 18.",
+  "Model: To represent a real situation with math, such as writing an equation for when two gym plans cost the same.",
+  "Solution of an Equation: A value of the variable that makes the equation true.",
+];
+
+
+const QUADRATIC_THREE_POINTS: string[] = [
+  "Quadratic Function: A function that can be written f(x) = a times x squared plus b times x plus c, with a not equal to zero; its graph is a parabola.",
+  "Standard Form: The form f(x) = a times x squared plus b times x plus c of a quadratic function, which shows the y-intercept c directly and names the coefficients a and b.",
+  "System of Equations: A set of equations that are all true at the same time; a solution of the system is a choice of values that satisfies every equation in the set at once.",
+  "Substitution: Replacing a variable or expression by a value or an equivalent expression; writing a point into the equation is substitution, and it produces one equation in a, b, and c per point.",
+  "Elimination: Solving a system by adding or subtracting equations to remove one variable; subtracting one point equation from another removes c, because c appears in each equation with coefficient 1.",
+];
+
+const LIN_QUAD_CONTEXT: string[] = [
+  "Linear-Quadratic System: A system made of one linear equation and one quadratic equation; its solutions are the points where the line and the parabola meet.",
+  "Intersection Point: A point that lies on both graphs in a system, so its coordinates satisfy both equations at once.",
+  "Substitution Method: Solving a system by setting the two expressions for the same quantity equal to each other, producing a single equation in one variable.",
+  "Model: An equation or system that represents a real situation; its variables stand for measured quantities, so only values that make sense in the situation can serve as answers.",
+  "Non-Physical Solution: A value that solves the equations of a model but cannot occur in the situation it models, such as a negative time or a height below the ground; it is reported and rejected, not listed as an answer.",
+];
+
+const DOMAIN_RANGE_NOTATIONS: string[] = [
+  "Domain: The set of all input values (x-values) for which a function is defined.",
+  "Range: The set of all output values (y-values) that a function actually takes for inputs in its domain.",
+  "Interval Notation: A way of writing a set of numbers by its endpoints, with a square bracket for an endpoint that is included and a parenthesis for one that is not; infinity always takes a parenthesis.",
+  "Inequality Notation: A way of writing a set of numbers with an inequality, such as x greater than or equal to 3, naming the variable and the values it is allowed to take.",
+  "Set Notation: A way of writing a set by describing its members, in the form {x | condition}, read as the set of all x such that the condition holds; the vertical bar separates the variable from the condition.",
+];
+
+const INEQUALITY_TEST_POINTS: string[] = [
+  "System of Inequalities: Two or more inequalities that must hold at the same time; a solution is a point that satisfies every inequality in the system.",
+  "Solution of a System: An ordered pair that makes every equation or inequality in the system a true statement when it is substituted in.",
+  "Test Point: A candidate point that is substituted into each inequality of a system to decide whether it belongs to the solution set of the system.",
+  "Constraint: A condition that limits the allowed values in a problem, often written as an inequality, such as a budget that the total spending must stay within.",
+  "Feasible Point: A point that meets every constraint of a problem; in a budget problem it represents a purchase that the buyer can actually make.",
+];
+
+const RADICAL_EXTRANEOUS_SETS: string[] = [
+  "Radical Equation: An equation in which a variable appears inside a radicand, under a square root sign or another root.",
+  "Principal Square Root: The nonnegative square root of a nonnegative number; the square root symbol never stands for a negative value.",
+  "Extraneous Solution: A value obtained while solving an equation that does not satisfy the original equation; squaring both sides can create extraneous solutions, so every candidate must be checked in the original equation.",
+  "Solution Set: The set of all values that satisfy an equation; for a radical equation it contains only the candidates that pass the check in the original equation.",
+  "Discriminant: For a quadratic equation written with squared term coefficient a, linear coefficient b, and constant c, the quantity b squared minus 4ac; when it is negative the quadratic has no real solutions.",
+];
+
+const LOG_REASONABLENESS: string[] = [
+  "Logarithm: The exponent to which a base must be raised to produce a given number; the log base b of N is the number e for which b raised to the power e equals N.",
+  "Argument of a Logarithm: The number or expression that a logarithm acts on; it must be positive, because a positive base raised to any real power is always positive.",
+  "Domain of a Logarithmic Equation: The set of values of the variable for which every logarithm in the equation is defined, which means every argument is positive.",
+  "Extraneous Root: A root of an equation obtained after condensing or clearing that makes some argument zero or negative in the original equation; it is rejected even though the algebra produced it.",
+  "Reasonableness Check: Testing a candidate answer against the original problem, here by substituting it into the original equation and confirming that every argument is positive and the two sides balance.",
+];
+
+const EXP_LOG_CONVERSION: string[] = [
+  "Exponential Form: The statement that a base raised to an exponent equals a value, packaging a base, a power, and its result in one equation.",
+  "Logarithmic Form: The statement that the log of a value equals an exponent; it says the same thing as the corresponding exponential form, with the logarithm naming the exponent.",
+  "Base: The number that is raised to a power in an exponential expression; in a logarithm the base is that same number, and it must be positive and not equal to 1.",
+  "Exponent: The power to which a base is raised; a logarithm is exactly this exponent, read off from the corresponding exponential statement.",
+  "Evaluating a Logarithm: Finding the exponent that the base must be raised to in order to produce the argument; when the argument is a perfect power of the base, this exponent can be named exactly.",
+];
+
+const SUM_DIFFERENCE_CUBES: string[] = [
+  "Perfect Cube: A number or expression that is the cube of another, such as 27, the cube of 3, or x cubed, the cube of x.",
+  "Sum of Cubes: An expression that is the sum of two perfect cubes; it factors as the sum of the cube roots times a trinomial: (A + B) times (A squared minus AB plus B squared).",
+  "Difference of Cubes: An expression that is the difference of two perfect cubes; it factors as (A - B) times (A squared plus AB plus B squared).",
+  "Factoring by Grouping: Factoring a polynomial by splitting it into groups that share a common factor, and then factoring the shared factor out of the whole expression.",
+  "Common Binomial Factor: A two-term factor, such as (x + 2), that appears in every group after grouping; factoring it out finishes the factorization.",
+];
+
+const INVERSE_VARIATION: string[] = [
+  "Inverse Variation: A relationship between two variables in which one variable is a constant multiple of the reciprocal of the other, written y = k/x; as one variable grows, the other shrinks in proportion.",
+  "Constant of Variation: The nonzero constant k in a variation equation; for inverse variation it equals the product xy, which is the same for every pair of corresponding values.",
+  "Inverse-Square Variation: A relationship in which y varies inversely as the square of x, written y = k divided by x squared; doubling x divides y by four.",
+  "Constant Product: In any inverse variation, every pair of corresponding values has the same product, so a missing value is found by setting its product with its partner equal to that constant.",
+  "Direct Variation: A relationship y = kx in which the ratio of y to x is constant; it is the contrasting pattern to inverse variation, where it is the product that stays constant.",
+];
+
+const RATIONAL_WORD_PROBLEMS: string[] = [
+  "Rational Equation: An equation that contains at least one rational expression, an expression with a variable in a denominator.",
+  "Work Rate: The fraction of a job completed in one unit of time; a worker who finishes a job alone in a hours has a rate of 1/a of the job per hour.",
+  "Combined Work: When workers or machines work together on one job, their rates add; the combined rate equals 1/T, where T is the time the job takes when they work together.",
+  "Excluded Value: A value of the variable that makes a denominator in the original equation equal to zero; it can never be a solution, no matter what the cleared equation produces.",
+  "Non-Physical Solution: A value produced while solving a word problem that cannot occur in the situation, such as a negative time or a negative number of students; it is rejected together with any excluded values.",
+];
+
 export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
-  // Topic 12 — circle theorems
+  // Topic 12, circle theorems
   "anatomy-of-a-circle": CIRCLE_THEOREMS,
   "ch12-test": CIRCLE_THEOREMS,
-  // Topic 4 — triangle congruence
+  // Topic 4, triangle congruence
   "logic-of-congruence": CONGRUENCE_THEOREMS,
   "ch4-test": CONGRUENCE_THEOREMS,
-  // Topic 7 — coordinate geometry
+  // Topic 7, coordinate geometry
   "ch7-1-distance-midpoint": COORDINATE_FORMULAS,
+  "ch7-2-partitioning-a-segment": GEO_PARTITIONING,
   "ch7-test": COORDINATE_FORMULAS,
-  // Topic 10 — trigonometry
+  // Topic 10, trigonometry
+  "ch10-1-altitude-to-the-hypotenuse": GEO_ALTITUDE_HYPOTENUSE,
   "trig-1-ratios": TRIG_RATIOS,
   "trig-2-sides": TRIG_RATIOS,
   "trig-3-angles": INVERSE_TRIG,
   "elevation-depression": ELEVATION_DEPRESSION,
   "special-right-triangles": SPECIAL_TRIANGLES,
   "ch10-test": TRIG_MIXED,
-  // Topic 11 — circle measurement
+  // Topic 11, circle measurement
   "ch11-1-circumference": CIRCLE_MEASUREMENT,
+  "ch11-2-radian-measure": GEO_RADIAN_MEASURE,
   "ch11-test": CIRCLE_MEASUREMENT,
-  // Topic 15 — geometric probability
+  // Topic 15, geometric probability
   "target-zone": GEOMETRIC_PROBABILITY,
   "ch15-test": GEOMETRIC_PROBABILITY,
-  // Geometry chapters — the seeded lesson of each chapter
+  // Geometry chapters, the seeded lesson of each chapter
   "ch1-1-points-lines": GEO_POINTS_LINES,
   "ch2-1-inductive-reasoning": GEO_INDUCTIVE_REASONING,
   "ch5-1-midsegments": GEO_MIDSEGMENTS,
   "ch6-1-polygons": GEO_POLYGON_ANGLES,
   "ch8-1-translations": GEO_TRANSLATIONS,
   "ch12-1-tangent-lines": GEO_TANGENT_LINES,
+  "ch12-2-equation-of-a-circle": GEO_CIRCLE_EQUATION,
   "ch13-1-area-polygons": GEO_AREA_POLYGONS,
   "ch14-2-surface-area": GEO_SURFACE_AREA,
+  "ch14-3-volume": GEO_VOLUME,
+  "ch11-3-sector-area": GEO_SECTOR_AREA,
+  "ch7-3-parallel-perpendicular-lines": GEO_PARALLEL_PERPENDICULAR,
+  "ch10-2-triangle-proportionality": GEO_TRIANGLE_PROPORTIONALITY,
+  "ch13-2-effects-of-dimensional-change": GEO_DIMENSIONAL_CHANGE,
+  "ch13-3-area-of-regular-polygons": GEO_REGULAR_POLYGON_AREA,
+  "ch14-4-cross-sections": GEO_CROSS_SECTIONS,
+  "ch8-2-symmetry": GEO_SYMMETRY,
+  "ch5-2-triangle-inequality": GEO_TRIANGLE_INEQUALITY,
   "ch15-1-experimental-theoretical": GEO_PROBABILITY_BASICS,
-  // Algebra 1 Topic 1 — equations & inequalities (middle-school core)
+  "ch15-2-permutations-combinations": GEO_PERMUTATIONS_COMBINATIONS,
+  "ch15-3-conditional-probability": GEO_CONDITIONAL_PROBABILITY,
+  "ch15-4-independent-events": GEO_INDEPENDENT_EVENTS,
+  "ch2-2-counterexamples": GEO_COUNTEREXAMPLES,
+  "ch8-3-rigid-motions": GEO_RIGID_MOTIONS,
+  "proofs-6-2-parallelograms": GEO_QUADRILATERAL_PROOFS,
+  "proofs-3-4-angle-proofs": GEO_ANGLE_PROOFS,
+  // Algebra 1 Topic 1, equations & inequalities (middle-school core)
   "a1-1-1-multi-step-equations": MULTI_STEP_EQUATIONS,
   "a1-1-2-variables-both-sides": VARIABLES_BOTH_SIDES,
   "a1-1-4-proportions": PROPORTIONS,
   "a1-1-5-multi-step-inequalities": MULTI_STEP_INEQUALITIES,
   "a1-1-6-compound-inequalities": COMPOUND_INEQUALITIES,
-  // Algebra 1 Topics 2/3 — linear functions & data (middle-school core)
+  // Algebra 1 Topics 2/3, linear functions & data (middle-school core)
   "a1-23-1-rate-of-change": RATE_OF_CHANGE,
   "a1-23-2-slope-intercept": SLOPE_INTERCEPT,
   "a1-23-3-direct-variation": DIRECT_VARIATION,
@@ -1655,34 +2204,41 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a1-23-10-parallel-perpendicular": PARALLEL_PERPENDICULAR,
   "a1-23-12-scatter-trend": SCATTER_TREND,
   "a1-23-13-two-way-tables": TWO_WAY_TABLES,
-  // Algebra 1 Topic 1 — remaining equations lessons
+  "a1-23-14-domain-range-linear": A1_DOMAIN_RANGE_LINEAR,
+  "a1-23-15-horizontal-vertical-lines": A1_HORIZONTAL_VERTICAL_LINES,
+  "a1-23-16-slope-every-form": A1_SLOPE_EVERY_FORM,
+  "a1-23-17-correlation": A1_CORRELATION,
+  "a1-23-18-association-causation": A1_ASSOCIATION_CAUSATION,
+  // Algebra 1 Topic 1, remaining equations lessons
   "a1-1-3-literal-equations": LITERAL_EQUATIONS,
   "a1-1-7-absolute-value": A1_ABSOLUTE_VALUE,
-  // Algebra 1 Topics 2/3 — remaining linear lessons
+  // Algebra 1 Topics 2/3, remaining linear lessons
   "a1-23-4-point-slope": POINT_SLOPE_FORM,
   "a1-23-5-standard-form": LINEAR_STANDARD_FORM,
   "a1-23-6-graphing-function-rule": GRAPHING_FUNCTION_RULE,
   "a1-23-7-writing-function-rule": WRITING_FUNCTION_RULE,
   "a1-23-11-transform-linear": LINEAR_TRANSFORMATIONS,
-  // Algebra 1 Topic 4 — systems
+  // Algebra 1 Topic 4, systems
   "a1-4-1-systems-graphing": A1_SYSTEMS_GRAPHING,
   "a1-4-2-substitution": A1_SYSTEMS_SUBSTITUTION,
   "a1-4-3-elimination": A1_SYSTEMS_ELIMINATION,
   "a1-4-4-applications": A1_SYSTEMS_APPLICATIONS,
   "a1-4-5-linear-inequalities": A1_LINEAR_INEQUALITIES,
   "a1-4-6-systems-inequalities": SYSTEMS_INEQUALITIES,
-  // Algebra 1 Topic 5 — exponents & radicals
+  "a1-4-7-writing-linear-inequalities": A1_WRITING_LINEAR_INEQUALITIES,
+  "a1-4-8-estimating-system-solutions": A1_ESTIMATING_SYSTEM_SOLUTIONS,
+  // Algebra 1 Topic 5, exponents & radicals
   "a1-5-1-zero-negative-exponents": ZERO_NEGATIVE_EXPONENTS,
   "a1-5-2-multiplying-powers": MULTIPLYING_POWERS,
   "a1-5-3-power-of-power": POWER_OF_POWER,
   "a1-5-4-division-properties": DIVISION_PROPERTIES_EXP,
   "a1-5-5-rational-exponents": A1_RATIONAL_EXPONENTS,
   "a1-5-6-simplifying-radicals": SIMPLIFYING_RADICALS,
-  // Algebra 1 Topic 6 — sequences
+  // Algebra 1 Topic 6, sequences
   "a1-6-1-explicit-sequences": EXPLICIT_SEQUENCES,
   "a1-6-2-recursive-arithmetic": RECURSIVE_ARITHMETIC,
   "a1-6-3-recursive-geometric": RECURSIVE_GEOMETRIC,
-  // Algebra 1 Topic 7 — polynomials & factoring
+  // Algebra 1 Topic 7, polynomials & factoring
   "a1-7-1-add-subtract-poly": A1_ADD_SUB_POLYNOMIALS,
   "a1-7-2-multiply-factor": A1_MULTIPLY_AND_FACTOR,
   "a1-7-3-multiplying-binomials": MULTIPLYING_BINOMIALS,
@@ -1691,7 +2247,8 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a1-7-6-special-cases": SPECIAL_FACTORING_CASES,
   "a1-7-7-grouping": FACTORING_BY_GROUPING,
   "a1-7-8-rational-expressions": A1_RATIONAL_EXPRESSIONS,
-  // Algebra 1 Topic 8 — quadratics
+  "a1-7-9-dividing-polynomials": A1_DIVIDING_POLYNOMIALS,
+  // Algebra 1 Topic 8, quadratics
   "a1-8-1-graphs-properties": A1_QUAD_GRAPHS_PROPERTIES,
   "a1-8-2-quadratic-functions": A1_QUAD_GRAPHING,
   "a1-8-3-transformations": A1_QUAD_TRANSFORMATIONS,
@@ -1701,11 +2258,15 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a1-8-7-writing": A1_QUAD_WRITING,
   "a1-8-8-completing-square": A1_QUAD_COMPLETING_SQUARE,
   "a1-8-9-formula-discriminant": QUAD_FORMULA,
-  // Algebra 1 Topic 9 — exponential functions
+  "a1-8-10-factors-zeros": A1_FACTORS_ZEROS,
+  "a1-8-11-quadratic-models": A1_QUADRATIC_MODELS,
+  // Algebra 1 Topic 9, exponential functions
   "a1-9-1-exponential-functions": A1_EXPONENTIAL_FUNCTIONS,
   "a1-9-2-growth-decay": A1_GROWTH_DECAY,
   "a1-9-3-modeling": A1_EXPONENTIAL_MODELING,
-  // Algebra 2 Topic 5 — quadratics
+  "a1-9-4-writing-exponential-functions": A1_WRITING_EXPONENTIAL,
+  "a1-9-5-exponential-features": A1_EXPONENTIAL_FEATURES,
+  // Algebra 2 Topic 5, quadratics
   "a2-5-1-quad-attributes": QUAD_ATTRIBUTES,
   "a2-5-2-quad-standard": QUAD_STANDARD,
   "a2-5-3-quad-modeling": QUAD_MODELING,
@@ -1717,32 +2278,37 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a2-5-9-complex-numbers": COMPLEX_NUMBERS,
   "a2-5-10-quad-inequalities": QUAD_INEQUALITIES,
   "a2-5-11-lin-quad-systems": LIN_QUAD_SYSTEMS,
-  // Algebra 2 Topic 2 — absolute value
+  "a2-5-12-three-points": QUADRATIC_THREE_POINTS,
+  "a2-5-13-lin-quad-context": LIN_QUAD_CONTEXT,
+  // Algebra 2 Topic 2, absolute value
   "a2-2-1-relations-functions": RELATIONS_FUNCTIONS,
   "a2-2-2-attributes-functions": FUNCTION_ATTRIBUTES,
   "a2-2-3-abs-transformations": ABS_TRANSFORMATIONS,
   "a2-2-4-abs-inequalities-graph": ABS_INEQ_GRAPH,
   "a2-2-5-abs-equations": ABS_EQUATIONS,
   "a2-2-6-abs-inequalities": ABS_INEQUALITIES,
-  // Algebra 2 Topic 3 — systems
+  "a2-2-7-domain-range-notations": DOMAIN_RANGE_NOTATIONS,
+  // Algebra 2 Topic 3, systems
   "a2-3-1-systems-graphs": SYSTEMS_GRAPHS,
   "a2-3-2-systems-algebraic": SYSTEMS_ALGEBRAIC,
   "a2-3-3-systems-inequalities": SYSTEMS_INEQUALITIES,
   "a2-3-4-three-variables": THREE_VARIABLES,
   "a2-3-5-matrices-systems": SYSTEMS_MATRICES_INTRO,
-  // Algebra 2 Topic 4 — matrices
+  "a2-3-6-inequality-test-points": INEQUALITY_TEST_POINTS,
+  // Algebra 2 Topic 4, matrices
   "a2-4-1-matrix-add-subtract": MATRIX_OPERATIONS,
   "a2-4-2-matrix-multiply": MATRIX_MULTIPLY,
   "a2-4-3-det-inverse": DET_INVERSE,
   "a2-4-4-systems-matrices": SYSTEMS_MATRICES,
-  // Algebra 2 Topic 6 — square root functions
+  // Algebra 2 Topic 6, square root functions
   "a2-6-1-function-operations": FUNCTION_OPERATIONS,
   "a2-6-2-inverse-functions": INVERSE_FUNCTIONS,
   "a2-6-3-sqrt-transformations": SQRT_TRANSFORMATIONS,
   "a2-6-4-sqrt-as-inverses": SQRT_AS_INVERSES,
   "a2-6-5-sqrt-equations-intro": RADICAL_EQUATIONS_INTRO,
   "a2-6-6-sqrt-equations-solving": RADICAL_EQUATIONS_SOLVING,
-  // Algebra 2 Topic 7 — exponential & logarithmic functions
+  "a2-6-7-radical-extraneous": RADICAL_EXTRANEOUS_SETS,
+  // Algebra 2 Topic 7, exponential & logarithmic functions
   "a2-7-1-exp-attributes": EXP_ATTRIBUTES,
   "a2-7-2-e-to-x": E_FUNCTION,
   "a2-7-3-recursive-models": RECURSIVE_MODELS,
@@ -1750,7 +2316,9 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a2-7-5-natural-log": NATURAL_LOG,
   "a2-7-6-log-properties": LOG_PROPERTIES,
   "a2-7-7-exp-log-equations": EXP_LOG_EQUATIONS,
-  // Algebra 2 Topic 8 — polynomials
+  "a2-7-8-log-reasonableness": LOG_REASONABLENESS,
+  "a2-7-9-exp-log-conversion": EXP_LOG_CONVERSION,
+  // Algebra 2 Topic 8, polynomials
   "a2-8-1-poly-attributes": POLY_ATTRIBUTES,
   "a2-8-2-linear-factors-zeros": LINEAR_FACTORS_ZEROS,
   "a2-8-3-poly-add-sub-mul": POLY_OPERATIONS,
@@ -1758,22 +2326,25 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "a2-8-5-poly-divide": POLY_DIVIDE,
   "a2-8-6-root-theorems": ROOT_THEOREMS,
   "a2-8-7-fta": FTA,
-  // Algebra 2 Topic 9 — radical expressions
+  "a2-8-8-sum-difference-cubes": SUM_DIFFERENCE_CUBES,
+  // Algebra 2 Topic 9, radical expressions
   "a2-9-1-roots-radicals": ROOTS_RADICALS,
   "a2-9-2-radical-mult-div": RADICAL_MULT_DIV,
   "a2-9-3-binomial-radicals": BINOMIAL_RADICALS,
   "a2-9-4-rational-exponents": RATIONAL_EXPONENTS,
-  // Algebra 2 Topic 10 — cubic & cube root functions
+  // Algebra 2 Topic 10, cubic & cube root functions
   "a2-10-1-cubic-transformations": CUBIC_TRANSFORMATIONS,
   "a2-10-2-cuberoot-transformations": CUBEROOT_TRANSFORMATIONS,
   "a2-10-3-cuberoot-equations": CUBEROOT_EQUATIONS,
-  // Algebra 2 Topic 11 — rational functions & equations
+  // Algebra 2 Topic 11, rational functions & equations
   "a2-11-1-simplify": RATIONAL_SIMPLIFY,
   "a2-11-2-mult-div": RATIONAL_MULT_DIV,
   "a2-11-3-asymptotes-holes": ASYMPTOTES_HOLES,
   "a2-11-4-solve-rational": RATIONAL_EQUATIONS,
   "a2-11-5-add-subtract": RATIONAL_ADD_SUB,
-  // Algebra 2 Topic 12 — data & regression
+  "a2-11-6-inverse-variation": INVERSE_VARIATION,
+  "a2-11-7-rational-word-problems": RATIONAL_WORD_PROBLEMS,
+  // Algebra 2 Topic 12, data & regression
   "a2-12-1-analyzing-data": ANALYZING_DATA,
   "a2-12-2-regression": REGRESSION,
   "a2-12-3-using-models": USING_MODELS,
@@ -1799,6 +2370,13 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ms6-6-2-measures-center-variation": MS6_CENTER_VARIATION,
   "ms6-7-1-banking-credit": MS6_BANKING_CREDIT,
   "ms6-7-2-college-salaries": MS6_COLLEGE_SALARIES,
+  "ms6-8-1-coordinate-graphing": MS6_COORDINATE_GRAPHING,
+  "ms6-8-2-unit-conversions": MS6_UNIT_CONVERSIONS,
+  "ms6-8-3-number-sets-absolute-value": MS6_NUMBER_SETS,
+  "ms6-8-4-multiplying-by-fractions": MS6_FRACTION_MULTIPLY_EFFECT,
+  "ms6-8-5-benchmark-percents": MS6_BENCHMARK_PERCENTS,
+  "ms6-8-6-categorical-data": MS6_CATEGORICAL_DATA,
+  "ms6-8-7-write-the-problem": MS6_WRITE_PROBLEM,
   // Middle School Grade 7
   "ms7-1-1-rational-absolute-value": MS7_RATIONAL_ABS,
   "ms7-1-2-add-subtract-rational": MS7_ADD_SUB_RATIONAL,
@@ -1831,6 +2409,13 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ms7-7-3-expanding-factoring": MS7_EXPANDING_FACTORING,
   "ms7-7-4-distributive-equations": MS7_DISTRIBUTIVE_EQUATIONS,
   "ms7-7-5-multi-step-inequalities": MS7_MULTI_STEP_INEQUALITIES,
+  "ms7-8-1-similar-figures": MS7_SIMILAR_FIGURES,
+  "ms7-8-2-converting-between-systems": MS7_CONVERSIONS,
+  "ms7-8-3-simple-compound-interest": MS7_INTEREST,
+  "ms7-8-4-net-worth": MS7_NET_WORTH,
+  "ms7-8-5-family-budgets": MS7_FAMILY_BUDGETS,
+  "ms7-8-6-reading-graphs": MS7_READING_GRAPHS,
+  "ms7-8-7-number-sets": MS7_NUMBER_SETS,
   // Middle School Grade 8
   "ms8-1-linear-equations": MS8_LINEAR_EQUATIONS,
   "ms8-2-functions": MS8_FUNCTIONS,
@@ -1840,11 +2425,21 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ms8-6-scientific-notation": MS8_SCIENTIFIC_NOTATION,
   "ms8-7-volume": MS8_VOLUME,
   "ms8-8-scatter-plots": MS8_SCATTER,
+  "ms8-9-slope-rate-of-change": MS8_SLOPE,
+  "ms8-10-irrational-numbers": MS8_IRRATIONAL,
+  "ms8-11-mean-absolute-deviation": MS8_MAD,
+  "ms8-12-surface-area": MS8_SURFACE_AREA,
+  "ms8-13-interest-credit": MS8_INTEREST,
+  "ms8-14-angle-relationships": MS8_TRANSVERSALS,
+  "ms8-15-dilations": MS8_DILATIONS,
+  "ms8-16-proportional-relationships": MS8_PROPORTIONAL,
+  "ms8-17-college-costs": MS8_COLLEGE_COSTS,
+  "ms8-18-write-the-problem": MS8_WRITE_PROBLEM,
 };
 
 /**
  * Look up the definition set for a registry entry id.
- * Returns undefined when the entry has no seeded definitions — the renderer
+ * Returns undefined when the entry has no seeded definitions, the renderer
  * then omits the DEFINITIONS block (no empty box, no crash).
  */
 export function getClassicalDefinitions(entryId: string): string[] | undefined {

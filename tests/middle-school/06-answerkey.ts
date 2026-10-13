@@ -1,4 +1,4 @@
-// 06-answerkey.ts — answer-key behavior for middle-school problems.
+// 06-answerkey.ts, answer-key behavior for middle-school problems.
 // Verifies: formatAnswer() renders every problem type without throwing;
 // difficulty filtering keeps only tiers ≤ the requested difficulty;
 // multi-topic mixing (several entries on one sheet) keeps answers aligned
@@ -16,7 +16,7 @@ export function run(): void {
 
   // 1) Answer rendering on every entry × difficulty × mode.
   // NOTE: formatAnswer() has no MS.6/MS.7/MS.8 case yet (coordinator wiring);
-  // it currently returns "" — we assert it doesn't throw and verify the real
+  // it currently returns "", we assert it doesn't throw and verify the real
   // answer-key path, pdfSafeText(p.answer), instead.
   const MODES: OutputMode[] = ["GuidedNote", "Review", "Test", "Classical"];
   for (const e of MIDDLE_SCHOOL_ENTRIES) {
@@ -39,7 +39,7 @@ export function run(): void {
           check(keyText.length > 0, `${e.id} d${d} ${mode}: answer-key text empty`);
           check(!/undefined|NaN/.test(keyText), `${e.id} d${d} ${mode}: answer-key text dirty: ${keyText.slice(0, 60)}`);
           // pdfSafeText strips "$" (shared latexToText treats it as a math
-          // delimiter) and upgrades "^2" to "²" — both documented shared
+          // delimiter) and upgrades "^2" to "²", both documented shared
           // behavior. The value must survive; normalize both before comparing.
           const SUPER = "⁰¹²³⁴⁵⁶⁷⁸⁹";
           const desuper = (s: string) => s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (c) => "^" + SUPER.indexOf(c));
@@ -77,7 +77,7 @@ export function run(): void {
       const expected = recomputeAnswer(p);
       check(answersEqual(expected, p.answer), `mixed sheet seed ${seed}: answer mismatch expected=${expected} got=${p.answer}`);
       try {
-        formatAnswer(p); // no MS case yet (coordinator wiring) — must not throw
+        formatAnswer(p); // no MS case yet (coordinator wiring), must not throw
       } catch (err: any) {
         check(false, `mixed sheet seed ${seed}: formatAnswer threw: ${err?.message}`);
       }

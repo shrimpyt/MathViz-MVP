@@ -1,5 +1,5 @@
 // Algebra2PolynomialDivision.ts
-// A2.2 — Polynomial long division & synthetic division by a linear divisor.
+// A2.2, Polynomial long division & synthetic division by a linear divisor.
 // Dividends are constructed as (x - r)·Q(x) (+ optional remainder) so the
 // quotient/remainder are exact by construction; tests re-derive them with an
 // independent long-division implementation. Pure, seeded, cumulative 1|2|3.
@@ -74,7 +74,7 @@ function makeDivisionProblem(rng: RNG, subtype: DivisionSubtype, opts: { missing
             blanks: [{ label: "first term of quotient", answer: "x^2" }],
           },
           {
-            instruction: "Repeat: divide, multiply, subtract, bring down — until the degree of the remainder is less than 1:",
+            instruction: "Repeat: divide, multiply, subtract, bring down, until the degree of the remainder is less than 1:",
             reason: "Long division algorithm",
             blanks: [
               { label: "quotient", answer: polyToLatex(quotient) },
@@ -89,7 +89,7 @@ function makeDivisionProblem(rng: RNG, subtype: DivisionSubtype, opts: { missing
             blanks: [{ label: "r", answer: `${r}` }],
           },
           {
-            instruction: "Bring down, multiply by r, add — across the row. The last value is the remainder:",
+            instruction: "Bring down, multiply by r, add, across the row. The last value is the remainder:",
             reason: "Synthetic division algorithm",
             blanks: [
               { label: "quotient coefficients", answer: quotient.join(", ") },

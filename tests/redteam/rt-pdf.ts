@@ -1,7 +1,7 @@
-// rt-pdf.ts — break the PDF export.
+// rt-pdf.ts, break the PDF export.
 // 1. Max problems (25/topic) across diagram-heavy topics + answer key on.
 // 2. Decode content streams via ToUnicode CMaps; check special glyphs
-//    (√ θ π ∠ ≃ ² ∞ − · × ÷) decode correctly — no WinAnsi mojibake.
+//    (√ θ π ∠ ≃ ² ∞ − · × ÷) decode correctly, no WinAnsi mojibake.
 // 3. Blank-page detection, page-count sanity, key/problem count alignment.
 // 4. Hostile titles, empty lists, classical-notes groups, proof docTypes.
 import React from "react";
@@ -65,7 +65,7 @@ function extractPdfText(buf: Uint8Array): PdfText {
       // find stream content
       const sm = body.match(/stream\r?\n([\s\S]*?)endstream/);
       if (tm && sm) {
-        // note: stream may be FlateDecode'd — handle
+        // note: stream may be FlateDecode'd, handle
         let content = sm[1];
         fontCMaps.set(Number(tm[1]), parseCMap(content)); // placeholder keyed by ToUnicode obj
       }
@@ -74,7 +74,7 @@ function extractPdfText(buf: Uint8Array): PdfText {
   // Re-key: map font obj number -> its ToUnicode map. Find /FontFile refs:
   // Simpler: collect ALL bfrange/bfchar mappings across every ToUnicode stream
   // into one global map keyed by glyph code (react-pdf subsets per font, but
-  // codes may collide across fonts — acceptable for glyph-presence checks).
+  // codes may collide across fonts, acceptable for glyph-presence checks).
   const globalMap = new Map<number, string>();
   for (const cmap of fontCMaps.values()) for (const [k, v] of cmap) if (!globalMap.has(k)) globalMap.set(k, v);
 
@@ -103,7 +103,7 @@ function extractPdfText(buf: Uint8Array): PdfText {
       if (cm[1]) content = grabStream(Number(cm[1]));
       else { const refs = [...cm[2].matchAll(/(\d+)\s+0\s+R/g)]; content = refs.map((r) => grabStream(Number(r[1]))).join("\n"); }
     }
-    // NOTE: content streams are usually FlateDecode'd — try inflate
+    // NOTE: content streams are usually FlateDecode'd, try inflate
     let text = "";
     try {
       const inflated = tryInflate(content);
@@ -169,7 +169,7 @@ async function main() {
   bump();
   let big: { bytes: Uint8Array; problems: any[] };
   try {
-    big = await buildMax("Max Stress — Geometry √ θ π ∠ ≃ ² ∞ − · × ÷", "worksheet", 25, 9001);
+    big = await buildMax("Max Stress, Geometry √ θ π ∠ ≃ ² ∞ − · × ÷", "worksheet", 25, 9001);
   } catch (e) {
     fail("PDF-CRASH", "max-doc", "worksheet", 0, `renderToBuffer threw: ${e instanceof Error ? e.message : String(e).slice(0, 200)}`);
     report("rt-pdf"); process.exit(0); return;
@@ -311,7 +311,7 @@ async function main() {
   bump();
   console.log(`decoded glyphs: ${total}, unmapped: ${unmapped} (non-ASCII: ${unmappedNonAscii})`);
   if (unmappedNonAscii > 0)
-    fail("PDF-UNMAPPED", "max-doc", "worksheet", 0, `${unmappedNonAscii}/${total} glyph codes are neither ToUnicode-mapped nor ASCII — possible mojibake`);
+    fail("PDF-UNMAPPED", "max-doc", "worksheet", 0, `${unmappedNonAscii}/${total} glyph codes are neither ToUnicode-mapped nor ASCII, possible mojibake`);
 
   for (const g of ["√", "θ", "π", "∠", "≃", "²", "∞", "−", "·"]) {
     bump();
@@ -324,7 +324,7 @@ async function main() {
   const avgChars = decoded.length / Math.max(1, pageCount);
   console.log(`decoded chars: ${decoded.length}, avg/page: ${avgChars.toFixed(0)}`);
   if (avgChars < 120)
-    fail("PDF-SPARSE", "max-doc", "worksheet", 0, `only ${avgChars.toFixed(0)} decoded chars/page on average — possible blank/missing content`);
+    fail("PDF-SPARSE", "max-doc", "worksheet", 0, `only ${avgChars.toFixed(0)} decoded chars/page on average, possible blank/missing content`);
 
   // key alignment: count "ANSWER KEY" rows vs problems
   bump();

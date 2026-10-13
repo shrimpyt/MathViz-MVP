@@ -1,6 +1,6 @@
 // matrix.ts
 // Full generation matrix: every domain × mode × difficulty 1–3 × count {1,3,12,25}.
-// Schema/invariant checks only (no answer recomputation — see verify.ts).
+// Schema/invariant checks only (no answer recomputation, see verify.ts).
 //
 // Per the Classical-notes contract update, "Classical" mode is handled exactly
 // like "Review" by the SAT generators (they are mode-agnostic); the matrix

@@ -53,7 +53,7 @@ export function DocumentHeader({ mode, title }: { mode: OutputMode; title: strin
         </div>
       </div>
 
-      {/* Mode-specific directions — plain italic, no boxes */}
+      {/* Mode-specific directions, plain italic, no boxes */}
       {mode === "GuidedNote" && (
         <p className="mt-3 font-serif text-xs italic text-[#444]">
           Directions: Fill in each blank as we work through the problems

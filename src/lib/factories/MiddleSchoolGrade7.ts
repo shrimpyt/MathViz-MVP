@@ -1,6 +1,6 @@
 // MiddleSchoolGrade7.ts
 // Grade 7 problem generators, structured on the authoritative scope document
-// (CURRICULUM_SCOPE.md — Pearson "7th Grade Math (year at a glance)"):
+// (CURRICULUM_SCOPE.md, Pearson "7th Grade Math (year at a glance)"):
 //
 //   T1 Numbers & Operations: rational numbers; opposites & absolute value;
 //      +/−/×/÷ rational numbers
@@ -19,6 +19,10 @@
 //   T6 Financial Literacy: economic thinking
 //   T7 Step-up: percents >100% & <1%, percent error, expanding & factoring
 //      expressions, distributive property equations, multi-step inequalities
+//   T8 TEKS Extensions: similar figures & scale drawings; converting between
+//      measurement systems; simple & compound interest; net worth; family
+//      budgets & wages; reading bar, dot & circle graphs; rational number
+//      sets & subsets
 //
 // Each lesson in the doc is a Grade7Subtype; registry entries are one per
 // lesson (see src/modules/middle-school.ts). Pure, seeded, deterministic.
@@ -42,6 +46,7 @@ import {
   fracDiv,
   fracToString,
   fmt,
+  fmtFixed,
   roundTo,
   randNonZero,
   shuffled,
@@ -957,7 +962,7 @@ function makePyramidSA(rng: RNG): Grade7Problem {
   const ans = s * s + 2 * s * slant;
   return build(
     "PyramidsSurfaceAreaVolume",
-    `A square pyramid has a base with side length ${s} ft and a slant height of ${slant} ft. Find its surface area. (Do not include the base if the pyramid sits on the ground — include all faces here.)`,
+    `A square pyramid has a base with side length ${s} ft and a slant height of ${slant} ft. Find its surface area. (Do not include the base if the pyramid sits on the ground, include all faces here.)`,
     "the surface area",
     `${ans} ft²`,
     [
@@ -1237,6 +1242,41 @@ function makePercentDiscount(rng: RNG): Grade7Problem {
   );
 }
 
+function makePercentChange(rng: RNG): Grade7Problem {
+  const old = pick(rng, [40, 50, 60, 80, 100, 120, 160, 200, 240, 300, 400]);
+  const pct = pick(rng, [5, 10, 15, 20, 25, 30, 40, 50, 60, 75]);
+  const increase = rng() < 0.5;
+  const change = (old * pct) / 100;
+  const nw = increase ? old + change : old - change;
+  const dir = increase ? "increase" : "decrease";
+  const ans = `${pct}% ${dir}`;
+  const ctx = pick(rng, ["item", "enrollment", "club"] as const);
+  const item = pick(rng, ["backpack", "pair of shoes", "bicycle", "video game", "jacket", "phone case"]);
+  const prompt =
+    ctx === "item"
+      ? `A ${item} was priced at $${old} and is now priced at $${nw}. By what percent did the price change, and was it an increase or a decrease?`
+      : ctx === "enrollment"
+        ? `A school had ${old} students last year and has ${nw} students this year. By what percent did the enrollment change, and was it an increase or a decrease?`
+        : `A club had ${old} members last year and has ${nw} members this year. By what percent did the membership change, and was it an increase or a decrease?`;
+  return build(
+    "Percents",
+    prompt,
+    "the percent change and its direction",
+    ans,
+    [
+      {
+        instruction: `Amount of change = |${nw} − ${old}| = ${change}.`,
+        blanks: [{ label: "change", answer: String(change) }],
+      },
+      {
+        instruction: `Percent change = change ÷ original = ${change} ÷ ${old}. The new value is ${increase ? "larger" : "smaller"}, so it is a ${dir}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "percent-change", old, new: nw }
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // T5 · DATA
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1400,6 +1440,54 @@ function makeProbabilityWord(rng: RNG): Grade7Problem {
   );
 }
 
+function makeComplementProbability(rng: RNG): Grade7Problem {
+  const form = pick(rng, ["frac", "pct"] as const);
+  if (form === "pct") {
+    const pct = pick(rng, [10, 15, 20, 25, 30, 35, 40, 45, 55, 60, 65, 70, 75, 80, 85, 90]);
+    const ans = `${100 - pct}%`;
+    const ctx = pick(rng, [
+      { event: "rain tomorrow", prompt: `The probability of rain tomorrow is ${pct}%. What is the probability that it will not rain tomorrow?` },
+      { event: "snow this weekend", prompt: `A weather report says the probability of snow this weekend is ${pct}%. What is the probability that it will not snow this weekend?` },
+      { event: "the bus being on time", prompt: `The probability that the bus is on time is ${pct}%. What is the probability that the bus is not on time?` },
+    ]);
+    return build(
+      "ProbabilityConcepts",
+      ctx.prompt,
+      "the probability of the complement",
+      ans,
+      [
+        {
+          instruction: `An event and its complement always add to 100%. So P(not the event) = 100% − ${pct}%.`,
+          blanks: [{ label: "answer", answer: ans }],
+        },
+      ],
+      { kind: "complement-pct", pct }
+    );
+  }
+  const total = pick(rng, [8, 10, 12, 15, 20, 24, 30]);
+  const fav = randInt(rng, 1, total - 1);
+  const color = pick(rng, ["red", "blue", "green", "purple"]);
+  const f = makeFrac(total - fav, total);
+  const ans = fracToString(f);
+  return build(
+    "ProbabilityConcepts",
+    `A bag contains ${total} marbles, and ${fav} of them are ${color}. One marble is drawn at random. What is the probability of NOT drawing a ${color} marble? Write the answer as a fraction in simplest form.`,
+    "the probability of the complement",
+    ans,
+    [
+      {
+        instruction: `P(${color}) = ${fav}/${total}, so P(not ${color}) = 1 − ${fav}/${total} = ${total - fav}/${total}.`,
+        blanks: [{ label: "probability", answer: `${total - fav}/${total}` }],
+      },
+      {
+        instruction: "Simplify:",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "complement-frac", fav, total }
+  );
+}
+
 // ── Lesson: Compound Events ──────────────────────────────────────────────────
 
 function makeCompoundProbability(rng: RNG): Grade7Problem {
@@ -1528,6 +1616,32 @@ function makeBudget(rng: RNG): Grade7Problem {
       },
     ],
     { income, rent, food, other }
+  );
+}
+
+function makeIncomeTax(rng: RNG): Grade7Problem {
+  const gross = pick(rng, [24000, 30000, 36000, 42000, 48000, 54000, 60000]);
+  const deduction = pick(rng, [2000, 3000, 5000, 6000, 8000, 10000, 12000]);
+  const rate = pick(rng, [10, 12, 15, 20, 22, 25]);
+  const taxable = gross - deduction;
+  const tax = (taxable * rate) / 100;
+  const ans = `$${tax.toLocaleString("en-US")}`;
+  return build(
+    "EconomicThinking",
+    `A worker earns $${gross.toLocaleString("en-US")} in a year. After a deduction of $${deduction.toLocaleString("en-US")}, the rest is taxed at ${rate}%. How much income tax does the worker owe?`,
+    "the income tax owed",
+    ans,
+    [
+      {
+        instruction: `Taxable income = $${gross.toLocaleString("en-US")} − $${deduction.toLocaleString("en-US")} = $${taxable.toLocaleString("en-US")}.`,
+        blanks: [{ label: "taxable income", answer: `$${taxable.toLocaleString("en-US")}` }],
+      },
+      {
+        instruction: `Tax = ${rate}% of $${taxable.toLocaleString("en-US")}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "income-tax", gross, deduction, rate }
   );
 }
 
@@ -2075,6 +2189,1003 @@ function makeOneStepMultIneq(rng: RNG): Grade7Problem {
 // Maker table with difficulty tiers (cumulative)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+// T8 · TEKS EXTENSIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Lesson: Similar Figures & Scale Drawings (TEKS 7.5A, 7.5C) ──────────────
+
+function makeScaleFactor7(rng: RNG): Grade7Problem {
+  const [num, den] = pick(rng, [[2, 1], [3, 1], [4, 1], [1, 2], [1, 3], [3, 2], [2, 3], [5, 2], [5, 4]] as const);
+  const k = randInt(rng, 2, 9);
+  const sideA = den * k;
+  const sideB = num * k;
+  const ans = fracToString(makeFrac(num, den));
+  return build(
+    "SimilarFigures7",
+    `Figure B is similar to Figure A. A side of Figure A is ${sideA} cm long, and the corresponding side of Figure B is ${sideB} cm long. What is the scale factor from Figure A to Figure B?`,
+    "the scale factor",
+    ans,
+    [
+      {
+        instruction: `Scale factor = image side ÷ original side = ${sideB} ÷ ${sideA} = ${sideB}/${sideA}.`,
+        blanks: [{ label: "ratio", answer: `${sideB}/${sideA}` }],
+      },
+      {
+        instruction: "Simplify the ratio:",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "scale-factor", sideA, sideB }
+  );
+}
+
+function makeSimilarMissingSide(rng: RNG): Grade7Problem {
+  const [num, den] = pick(rng, [[2, 1], [3, 1], [1, 2], [3, 2], [2, 3], [5, 2]] as const);
+  const k = randInt(rng, 2, 7);
+  const known1 = den * k;
+  const known2 = num * k;
+  const m = randInt(rng, 2, 8);
+  const side1 = den * m;
+  const side2 = num * m;
+  return build(
+    "SimilarFigures7",
+    `Two triangles are similar. In the first triangle, two sides measure ${known1} in. and ${side1} in. In the second triangle, the side corresponding to the ${known1} in. side measures ${known2} in. Find the length of the side corresponding to the ${side1} in. side.`,
+    "the missing side length",
+    side2,
+    [
+      {
+        instruction: `Set up a proportion: ${side1}/${known1} = x/${known2}.`,
+        blanks: [{ label: "proportion", answer: `${side1}/${known1} = x/${known2}` }],
+      },
+      {
+        instruction: `Cross multiply and solve: x = ${side1} × ${known2} ÷ ${known1}.`,
+        blanks: [{ label: "answer", answer: String(side2) }],
+      },
+    ],
+    { kind: "missing-side", known1, known2, side1 },
+    null,
+    "inches"
+  );
+}
+
+function makeScaleDrawing(rng: RNG): Grade7Problem {
+  const s = pick(rng, [
+    { text: "1 inch represents 10 miles", per: 10, mapUnit: "inches", realUnit: "miles" },
+    { text: "1 inch represents 25 miles", per: 25, mapUnit: "inches", realUnit: "miles" },
+    { text: "1 cm represents 5 km", per: 5, mapUnit: "cm", realUnit: "km" },
+    { text: "1 cm represents 2 km", per: 2, mapUnit: "cm", realUnit: "km" },
+    { text: "1 inch represents 4 feet", per: 4, mapUnit: "inches", realUnit: "feet" },
+  ]);
+  const mapDist = pick(rng, [2, 3, 4, 5, 6, 7, 2.5, 3.5, 4.5]);
+  const actual = mapDist * s.per;
+  const ans = `${fmt(actual)} ${s.realUnit}`;
+  return build(
+    "SimilarFigures7",
+    `On a map, ${s.text}. Two places are ${fmt(mapDist)} ${s.mapUnit} apart on the map. What is the actual distance between the two places?`,
+    "the actual distance",
+    ans,
+    [
+      {
+        instruction: `Actual distance = map distance × ${s.per} = ${fmt(mapDist)} × ${s.per}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "scale-drawing", map: fmt(mapDist), per: s.per, unit: s.realUnit }
+  );
+}
+
+function makeSimilarAreaScale(rng: RNG): Grade7Problem {
+  const o = pick(rng, [
+    { num: 2, den: 1, areas: [12, 15, 20, 24, 30] },
+    { num: 3, den: 1, areas: [5, 8, 11, 14] },
+    { num: 1, den: 2, areas: [24, 36, 48, 60, 80] },
+    { num: 3, den: 2, areas: [8, 12, 16, 20, 24] },
+    { num: 2, den: 3, areas: [18, 27, 36, 45] },
+  ]);
+  const k = randInt(rng, 2, 6);
+  const side1 = o.den * k;
+  const side2 = o.num * k;
+  const area1 = pick(rng, o.areas);
+  const area2 = (area1 * o.num * o.num) / (o.den * o.den);
+  const kStr = fracToString(makeFrac(o.num, o.den));
+  const ans = `${fmt(area2)} cm²`;
+  return build(
+    "SimilarFigures7",
+    `Figure B is similar to Figure A. A side of Figure A is ${side1} cm and the corresponding side of Figure B is ${side2} cm. The area of Figure A is ${area1} cm². Find the area of Figure B.`,
+    "the area of Figure B",
+    ans,
+    [
+      {
+        instruction: `The scale factor is ${kStr}. Areas scale by the square of the scale factor, (${kStr})².`,
+        blanks: [{ label: "area multiplier", answer: fracToString(makeFrac(o.num * o.num, o.den * o.den)) }],
+      },
+      {
+        instruction: `Area of B = ${area1} × (${kStr})².`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "area-scale", side1, side2, area1 },
+    null,
+    "cm²"
+  );
+}
+
+// ── Lesson: Converting Between Measurement Systems (TEKS 7.4E) ─────────────
+
+function makeInchCmConvert(rng: RNG): Grade7Problem {
+  const toCm = rng() < 0.5;
+  if (toCm) {
+    const v = pick(rng, [2, 3, 4, 5, 6, 8, 10, 12, 15, 20]);
+    const ans = `${fmt(roundTo(v * 2.54, 2))} cm`;
+    return build(
+      "ConversionsBetweenSystems",
+      `Convert ${v} inches to centimeters. Use 1 inch = 2.54 centimeters.`,
+      "the length in centimeters",
+      ans,
+      [
+        {
+          instruction: `Multiply by 2.54: ${v} × 2.54.`,
+          blanks: [{ label: "answer", answer: ans }],
+        },
+      ],
+      { kind: "in-cm", dir: "to-cm", value: v },
+      null,
+      "cm"
+    );
+  }
+  const inches = pick(rng, [1, 2, 3, 4, 5, 6, 8, 10, 15, 20]);
+  const cm = roundTo(inches * 2.54, 2);
+  const ans = `${inches} inches`;
+  return build(
+    "ConversionsBetweenSystems",
+    `Convert ${fmt(cm)} centimeters to inches. Use 1 inch = 2.54 centimeters.`,
+    "the length in inches",
+    ans,
+    [
+      {
+        instruction: `Divide by 2.54: ${fmt(cm)} ÷ 2.54.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "in-cm", dir: "to-in", value: fmt(cm) },
+    null,
+    "inches"
+  );
+}
+
+function makeMileKmConvert(rng: RNG): Grade7Problem {
+  const toKm = rng() < 0.5;
+  if (toKm) {
+    const mi = pick(rng, [3, 5, 10, 15, 20, 25, 40, 50, 100]);
+    const ans = `about ${fmt(roundTo(mi * 1.61, 2))} km`;
+    return build(
+      "ConversionsBetweenSystems",
+      `A road trip is ${mi} miles long. About how many kilometers is that? Use 1 mile is about 1.61 kilometers.`,
+      "the distance in kilometers",
+      ans,
+      [
+        {
+          instruction: `Multiply by 1.61: ${mi} × 1.61.`,
+          blanks: [{ label: "answer", answer: ans }],
+        },
+      ],
+      { kind: "mi-km", dir: "to-km", value: mi },
+      null,
+      "km"
+    );
+  }
+  const mi = pick(rng, [5, 10, 20, 25, 50, 100]);
+  const km = roundTo(mi * 1.61, 2);
+  const ans = `about ${mi} miles`;
+  return build(
+    "ConversionsBetweenSystems",
+    `A bike route is ${fmt(km)} kilometers long. About how many miles is that? Use 1 mile is about 1.61 kilometers.`,
+    "the distance in miles",
+    ans,
+    [
+      {
+        instruction: `Divide by 1.61: ${fmt(km)} ÷ 1.61.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "mi-km", dir: "to-mi", value: fmt(km) },
+    null,
+    "miles"
+  );
+}
+
+function makeGallonLiterConvert(rng: RNG): Grade7Problem {
+  const toL = rng() < 0.5;
+  if (toL) {
+    const gal = pick(rng, [2, 3, 4, 5, 6, 10, 15, 20]);
+    const ans = `about ${fmt(roundTo(gal * 3.79, 2))} liters`;
+    return build(
+      "ConversionsBetweenSystems",
+      `A fish tank holds ${gal} gallons of water. About how many liters is that? Use 1 gallon is about 3.79 liters.`,
+      "the capacity in liters",
+      ans,
+      [
+        {
+          instruction: `Multiply by 3.79: ${gal} × 3.79.`,
+          blanks: [{ label: "answer", answer: ans }],
+        },
+      ],
+      { kind: "gal-L", dir: "to-L", value: gal },
+      null,
+      "liters"
+    );
+  }
+  const gal = pick(rng, [2, 3, 4, 5, 10, 20]);
+  const liters = roundTo(gal * 3.79, 2);
+  const ans = `about ${gal} gallons`;
+  return build(
+    "ConversionsBetweenSystems",
+    `A bottle holds ${fmt(liters)} liters of water. About how many gallons is that? Use 1 gallon is about 3.79 liters.`,
+    "the capacity in gallons",
+    ans,
+    [
+      {
+        instruction: `Divide by 3.79: ${fmt(liters)} ÷ 3.79.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "gal-L", dir: "to-gal", value: fmt(liters) },
+    null,
+    "gallons"
+  );
+}
+
+function makeApproxConvertMix(rng: RNG): Grade7Problem {
+  const which = pick(rng, ["lb-kg", "m-yd", "ft-cm"] as const);
+  if (which === "lb-kg") {
+    const toKg = rng() < 0.5;
+    if (toKg) {
+      const lb = pick(rng, [10, 20, 30, 40, 50, 60, 80, 100, 150, 200]);
+      const ans = `about ${fmt(roundTo(lb * 0.45, 2))} kg`;
+      return build(
+        "ConversionsBetweenSystems",
+        `A dog weighs ${lb} pounds. About how many kilograms does it weigh? Use 1 pound is about 0.45 kilogram.`,
+        "the mass in kilograms",
+        ans,
+        [
+          {
+            instruction: `Multiply by 0.45: ${lb} × 0.45.`,
+            blanks: [{ label: "answer", answer: ans }],
+          },
+        ],
+        { kind: "lb-kg", dir: "to-kg", value: lb },
+        null,
+        "kg"
+      );
+    }
+    const lb = pick(rng, [10, 20, 40, 60, 100, 200]);
+    const kg = roundTo(lb * 0.45, 2);
+    const ans = `about ${lb} pounds`;
+    return build(
+      "ConversionsBetweenSystems",
+      `A suitcase has a mass of ${fmt(kg)} kilograms. About how many pounds is that? Use 1 pound is about 0.45 kilogram.`,
+      "the mass in pounds",
+      ans,
+      [
+        {
+          instruction: `Work backwards from kilograms: divide ${fmt(kg)} by 0.45.`,
+          blanks: [{ label: "answer", answer: ans }],
+        },
+      ],
+      { kind: "lb-kg", dir: "to-lb", value: fmt(kg) },
+      null,
+      "pounds"
+    );
+  }
+  if (which === "m-yd") {
+    const toYd = rng() < 0.5;
+    if (toYd) {
+      const m = pick(rng, [10, 20, 25, 50, 75, 100, 200]);
+      const ans = `about ${fmt(roundTo(m * 1.09, 2))} yards`;
+      return build(
+        "ConversionsBetweenSystems",
+        `A running track straightaway is ${m} meters long. About how many yards is that? Use 1 meter is about 1.09 yards.`,
+        "the length in yards",
+        ans,
+        [
+          {
+            instruction: `Multiply by 1.09: ${m} × 1.09.`,
+            blanks: [{ label: "answer", answer: ans }],
+          },
+        ],
+        { kind: "m-yd", dir: "to-yd", value: m },
+        null,
+        "yards"
+      );
+    }
+    const m = pick(rng, [10, 20, 50, 100]);
+    const yd = roundTo(m * 1.09, 2);
+    const ans = `about ${m} meters`;
+    return build(
+      "ConversionsBetweenSystems",
+      `A ribbon is ${fmt(yd)} yards long. About how many meters is that? Use 1 meter is about 1.09 yards.`,
+      "the length in meters",
+      ans,
+      [
+        {
+          instruction: `Divide by 1.09: ${fmt(yd)} ÷ 1.09.`,
+          blanks: [{ label: "answer", answer: ans }],
+        },
+      ],
+      { kind: "m-yd", dir: "to-m", value: fmt(yd) },
+      null,
+      "meters"
+    );
+  }
+  const ft = pick(rng, [1, 2, 3, 4, 5, 6]);
+  const inches = ft * 12;
+  const ans = `${fmt(roundTo(inches * 2.54, 2))} cm`;
+  return build(
+    "ConversionsBetweenSystems",
+    `Convert ${ft} ${ft === 1 ? "foot" : "feet"} to centimeters. First change feet to inches (1 foot = 12 inches), then use 1 inch = 2.54 centimeters.`,
+    "the length in centimeters",
+    ans,
+    [
+      {
+        instruction: `${ft} ${ft === 1 ? "foot" : "feet"} = ${inches} inches.`,
+        blanks: [{ label: "inches", answer: String(inches) }],
+      },
+      {
+        instruction: `Multiply by 2.54: ${inches} × 2.54.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "ft-cm", value: ft },
+    null,
+    "cm"
+  );
+}
+
+// ── Lesson: Simple & Compound Interest (TEKS 7.13E) ─────────────────────────
+
+function money7(n: number): string {
+  return `$${fmtFixed(n, 2)}`;
+}
+
+function makeSimpleInterest7(rng: RNG): Grade7Problem {
+  const P = pick(rng, [100, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000]);
+  const r = pick(rng, [2, 3, 4, 5, 6]);
+  const t = randInt(rng, 1, 5);
+  const I = (P * r * t) / 100;
+  const ans = money7(I);
+  return build(
+    "Interest7",
+    `You deposit $${P} into an account that pays ${r}% simple interest each year. How much interest will you earn in ${t} year${t === 1 ? "" : "s"}?`,
+    "the interest earned",
+    ans,
+    [
+      {
+        instruction: `Use I = Prt: I = ${P} × ${fmt(r / 100)} × ${t}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "simple", P, r, t },
+    null,
+    "dollars"
+  );
+}
+
+function makeSimpleBalance7(rng: RNG): Grade7Problem {
+  const P = pick(rng, [250, 400, 500, 750, 900, 1000, 1600]);
+  const r = pick(rng, [2, 3, 4, 5]);
+  const t = randInt(rng, 2, 6);
+  const A = P + (P * r * t) / 100;
+  const ans = money7(A);
+  return build(
+    "Interest7",
+    `A savings account starts with $${P} and earns ${r}% simple interest each year. What is the balance after ${t} years if no money is added or taken out?`,
+    "the balance",
+    ans,
+    [
+      {
+        instruction: `Interest = ${P} × ${fmt(r / 100)} × ${t} = ${money7((P * r * t) / 100)}. Add the interest to the principal.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "simple-balance", P, r, t },
+    null,
+    "dollars"
+  );
+}
+
+function makeCompoundInterest7(rng: RNG): Grade7Problem {
+  const P = pick(rng, [200, 400, 500, 800, 1000]);
+  const r = pick(rng, [2, 3, 4, 5]);
+  const t = randInt(rng, 2, 3);
+  const A = P * Math.pow(1 + r / 100, t);
+  const ans = money7(A);
+  return build(
+    "Interest7",
+    `You invest $${P} at ${r}% interest compounded yearly. What is the balance after ${t} years? Round to the nearest cent.`,
+    "the balance",
+    ans,
+    [
+      {
+        instruction: `Each year the balance is multiplied by ${fmt(1 + r / 100)}. After ${t} years, the balance is $${P} multiplied by ${fmt(1 + r / 100)} a total of ${t} times.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "compound", P, r, t },
+    null,
+    "dollars"
+  );
+}
+
+function makeCompareSimpleCompound7(rng: RNG): Grade7Problem {
+  const P = pick(rng, [400, 500, 1000, 2000]);
+  const r = pick(rng, [3, 4, 5, 6, 10]);
+  const t = randInt(rng, 2, 3);
+  const simpleI = (P * r * t) / 100;
+  const A = P * Math.pow(1 + r / 100, t);
+  const compoundI = A - P;
+  const ans = money7(compoundI - simpleI);
+  return build(
+    "Interest7",
+    `You invest $${P} at ${r}% interest for ${t} years. One account pays simple interest, and a second account pays interest compounded yearly. How much more interest does the compound account earn than the simple account?`,
+    "the extra interest from compounding",
+    ans,
+    [
+      {
+        instruction: `Simple interest = ${P} × ${fmt(r / 100)} × ${t}.`,
+        blanks: [{ label: "simple interest", answer: money7(simpleI) }],
+      },
+      {
+        instruction: `Compound balance = ${money7(A)}, so the compound interest is ${money7(compoundI)}. Subtract the simple interest.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "compare-simple-compound", P, r, t },
+    null,
+    "dollars"
+  );
+}
+
+// ── Lesson: Net Worth & Financial Records (TEKS 7.13C) ──────────────────────
+
+const NW_CLASSIFY_POOL: Array<{ item: string; expected: "asset" | "liability" }> = [
+  { item: "a house", expected: "asset" },
+  { item: "a car", expected: "asset" },
+  { item: "money in a savings account", expected: "asset" },
+  { item: "a jewelry collection", expected: "asset" },
+  { item: "an investment account", expected: "asset" },
+  { item: "furniture and electronics", expected: "asset" },
+  { item: "a mortgage", expected: "liability" },
+  { item: "a credit card balance", expected: "liability" },
+  { item: "a student loan", expected: "liability" },
+  { item: "a car loan", expected: "liability" },
+  { item: "a personal loan", expected: "liability" },
+  { item: "money owed on a store credit card", expected: "liability" },
+];
+
+function makeClassifyAssetLiability(rng: RNG): Grade7Problem {
+  const c = pick(rng, NW_CLASSIFY_POOL);
+  return build(
+    "NetWorth7",
+    `Is ${c.item} an asset or a liability?`,
+    "asset or liability",
+    c.expected,
+    [
+      {
+        instruction:
+          c.expected === "asset"
+            ? "An asset is something a person owns that has value."
+            : "A liability is money a person owes to someone else.",
+        blanks: [{ label: "answer", answer: c.expected }],
+      },
+    ],
+    { kind: "classify", item: c.item, expected: c.expected }
+  );
+}
+
+function makeNetWorthCompute(rng: RNG): Grade7Problem {
+  const family = pick(rng, ["Alvarez", "Johnson", "Nguyen", "Smith", "Garcia", "Kim"]);
+  const H = pick(rng, [120000, 150000, 180000, 200000, 240000]);
+  const C = pick(rng, [6000, 9000, 12000, 15000, 18000]);
+  const S = pick(rng, [1500, 2500, 4000, 6000, 8500]);
+  const M = Math.round(H * pick(rng, [0.5, 0.6, 0.7, 0.8]));
+  const D = pick(rng, [800, 1200, 2000, 3500, 4200]);
+  const assets = H + C + S;
+  const liabilities = M + D;
+  const net = assets - liabilities;
+  const ans = `$${net.toLocaleString("en-US")}`;
+  return build(
+    "NetWorth7",
+    `The ${family} family owns a house worth $${H.toLocaleString("en-US")}, a car worth $${C.toLocaleString("en-US")}, and has $${S.toLocaleString("en-US")} in a savings account. They owe $${M.toLocaleString("en-US")} on their mortgage and $${D.toLocaleString("en-US")} on credit cards. What is the family's net worth?`,
+    "the net worth",
+    ans,
+    [
+      {
+        instruction: `Total assets = $${H.toLocaleString("en-US")} + $${C.toLocaleString("en-US")} + $${S.toLocaleString("en-US")}.`,
+        blanks: [{ label: "assets", answer: `$${assets.toLocaleString("en-US")}` }],
+      },
+      {
+        instruction: `Total liabilities = $${M.toLocaleString("en-US")} + $${D.toLocaleString("en-US")} = $${liabilities.toLocaleString("en-US")}. Net worth = assets − liabilities.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "net-worth", assets: `${H},${C},${S}`, liabilities: `${M},${D}` },
+    null,
+    "dollars"
+  );
+}
+
+function makeNetWorthChange(rng: RNG): Grade7Problem {
+  const start = pick(rng, [15000, 24000, 32500, 48000, 56000, 72000]);
+  const amount = pick(rng, [500, 1000, 1500, 2500, 4000, 5000]);
+  const ev = pick(rng, [
+    {
+      event: "payoff",
+      text: `uses a work bonus of $${amount.toLocaleString("en-US")} to pay off part of a loan`,
+      why: "The loan (a liability) drops by the amount paid, and the bonus was new money, so net worth rises by that amount.",
+    },
+    {
+      event: "asset-gain",
+      text: `sees their house increase in value by $${amount.toLocaleString("en-US")}`,
+      why: "An asset grew in value, so net worth rises by that amount.",
+    },
+    {
+      event: "asset-drop",
+      text: `sees their car decrease in value by $${amount.toLocaleString("en-US")}`,
+      why: "An asset lost value, so net worth falls by that amount.",
+    },
+    {
+      event: "new-debt-spent",
+      text: `borrows $${amount.toLocaleString("en-US")} for a vacation and spends all of it`,
+      why: "The loan is a new liability and nothing of value was kept, so net worth falls by that amount.",
+    },
+  ] as const);
+  const delta = ev.event === "payoff" || ev.event === "asset-gain" ? amount : -amount;
+  const ans = `$${(start + delta).toLocaleString("en-US")}`;
+  return build(
+    "NetWorth7",
+    `A family's net worth is $${start.toLocaleString("en-US")}. Then the family ${ev.text}. What is the family's new net worth?`,
+    "the new net worth",
+    ans,
+    [
+      {
+        instruction: ev.why,
+        blanks: [{ label: "change", answer: `${delta > 0 ? "+" : "−"}$${amount.toLocaleString("en-US")}` }],
+      },
+      {
+        instruction: `New net worth = $${start.toLocaleString("en-US")} ${delta > 0 ? "+" : "−"} $${amount.toLocaleString("en-US")}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "nw-change", start, event: ev.event, amount },
+    null,
+    "dollars"
+  );
+}
+
+// ── Lesson: Family Budgets & Wages (TEKS 7.13D) ─────────────────────────────
+
+function budgetCategories(rng: RNG): { rent: number; food: number; utilities: number; transport: number; other: number } {
+  return {
+    rent: pick(rng, [700, 850, 900, 1000, 1100, 1200, 1250, 1400]),
+    food: pick(rng, [300, 350, 400, 450, 500, 600]),
+    utilities: pick(rng, [90, 120, 135, 150, 180, 210]),
+    transport: pick(rng, [150, 180, 200, 240, 275, 320]),
+    other: pick(rng, [80, 100, 125, 160, 200]),
+  };
+}
+
+function makeMonthlyExpenseTotal(rng: RNG): Grade7Problem {
+  const c = budgetCategories(rng);
+  const total = c.rent + c.food + c.utilities + c.transport + c.other;
+  const ans = `$${total.toLocaleString("en-US")}`;
+  return build(
+    "FamilyBudgets7",
+    `A family's monthly expenses are: rent $${c.rent.toLocaleString("en-US")}, groceries $${c.food}, utilities $${c.utilities}, transportation $${c.transport}, and other $${c.other}. What are the family's total monthly expenses?`,
+    "the total monthly expenses",
+    ans,
+    [
+      {
+        instruction: `Add all five expenses: ${c.rent} + ${c.food} + ${c.utilities} + ${c.transport} + ${c.other}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "expense-total", ...c },
+    null,
+    "dollars"
+  );
+}
+
+function makeMinimumIncome(rng: RNG): Grade7Problem {
+  const c = budgetCategories(rng);
+  const total = c.rent + c.food + c.utilities + c.transport + c.other;
+  const savings = pick(rng, [100, 150, 200, 250, 300]);
+  const ans = `$${(total + savings).toLocaleString("en-US")}`;
+  return build(
+    "FamilyBudgets7",
+    `A family's monthly expenses are: rent $${c.rent.toLocaleString("en-US")}, groceries $${c.food}, utilities $${c.utilities}, transportation $${c.transport}, and other $${c.other}. The family also wants to save $${savings} each month. What is the minimum monthly income the family needs?`,
+    "the minimum monthly income",
+    ans,
+    [
+      {
+        instruction: `Total expenses = $${total.toLocaleString("en-US")}. The income must cover the expenses plus the savings goal.`,
+        blanks: [{ label: "expenses", answer: `$${total.toLocaleString("en-US")}` }],
+      },
+      {
+        instruction: `Minimum income = $${total.toLocaleString("en-US")} + $${savings}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "min-income", ...c, savings },
+    null,
+    "dollars"
+  );
+}
+
+function makeHourlyWageNeeded(rng: RNG): Grade7Problem {
+  const wage = pick(rng, [9, 10, 11, 12, 12.5, 14, 15, 16, 18, 20, 22, 25]);
+  const hoursPerWeek = pick(rng, [10, 15, 20, 25, 30, 35, 40]);
+  const monthly = wage * 4 * hoursPerWeek;
+  const ans = `$${fmt(wage)} per hour`;
+  return build(
+    "FamilyBudgets7",
+    `A family needs $${monthly.toLocaleString("en-US")} of income each month. One parent works ${hoursPerWeek} hours per week. Using 4 weeks in a month, what hourly wage must the parent earn?`,
+    "the hourly wage needed",
+    ans,
+    [
+      {
+        instruction: `Hours per month = ${hoursPerWeek} × 4 = ${hoursPerWeek * 4}.`,
+        blanks: [{ label: "hours per month", answer: String(hoursPerWeek * 4) }],
+      },
+      {
+        instruction: `Wage = monthly income ÷ hours per month = ${monthly} ÷ ${hoursPerWeek * 4}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "hourly-wage", monthly, hoursPerWeek },
+    null,
+    "dollars per hour"
+  );
+}
+
+function makeCategoryPercent(rng: RNG): Grade7Problem {
+  const income = pick(rng, [2000, 2500, 3000, 3200, 4000, 4500, 5000, 6000]);
+  const pct = pick(rng, [5, 10, 15, 20, 25, 30, 35, 40]);
+  const cat = pick(rng, ["housing", "groceries", "transportation", "savings", "entertainment"]);
+  const amount = (income * pct) / 100;
+  const ans = `${pct}%`;
+  return build(
+    "FamilyBudgets7",
+    `A family earns $${income.toLocaleString("en-US")} per month and spends $${amount.toLocaleString("en-US")} on ${cat}. What percent of the family's income is spent on ${cat}?`,
+    "the percent of income",
+    ans,
+    [
+      {
+        instruction: `Percent = amount ÷ income × 100 = ${amount} ÷ ${income} × 100.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "category-percent", amount, income, category: cat }
+  );
+}
+
+// ── Lesson: Reading Bar, Dot & Circle Graphs (TEKS 7.6G) ────────────────────
+
+const SURVEY_TOPICS: Array<{ topic: string; cats: string[] }> = [
+  { topic: "favorite sport", cats: ["Soccer", "Basketball", "Baseball", "Swimming"] },
+  { topic: "favorite pet", cats: ["Dogs", "Cats", "Fish", "Birds"] },
+  { topic: "favorite subject", cats: ["Math", "Reading", "Science", "Art"] },
+  { topic: "favorite season", cats: ["Spring", "Summer", "Fall", "Winter"] },
+];
+
+const SURVEY_PCT_COMBOS: number[][] = [
+  [40, 30, 20, 10],
+  [50, 25, 15, 10],
+  [35, 25, 25, 15],
+  [45, 20, 20, 15],
+  [30, 30, 25, 15],
+  [25, 25, 25, 25],
+  [60, 20, 10, 10],
+  [45, 30, 15, 10],
+];
+
+function surveyData(rng: RNG): { topic: string; cats: string[]; counts: number[]; total: number } {
+  const t = pick(rng, SURVEY_TOPICS);
+  const pcts = shuffled(rng, pick(rng, SURVEY_PCT_COMBOS));
+  const total = pick(rng, [40, 60, 80, 100, 200]);
+  const counts = pcts.map((p) => (p * total) / 100);
+  return { topic: t.topic, cats: t.cats, counts, total };
+}
+
+function surveyText(d: { topic: string; cats: string[]; counts: number[]; total: number }): string {
+  const parts = d.cats.map((c, i) => `${c}: ${d.counts[i]} students`).join(", ");
+  return `${d.total} students were surveyed about their ${d.topic}. The results were: ${parts}.`;
+}
+
+function makeCircleGraphPercent(rng: RNG): Grade7Problem {
+  const d = surveyData(rng);
+  const idx = randInt(rng, 0, 3);
+  const pct = (d.counts[idx] / d.total) * 100;
+  const ans = `${Math.round(pct)}%`;
+  return build(
+    "ReadingGraphs7",
+    `${surveyText(d)} A circle graph is made from the data. What percent of the circle graph should be labeled for ${d.cats[idx]}?`,
+    "the percent for the category",
+    ans,
+    [
+      {
+        instruction: `Percent = category count ÷ total = ${d.counts[idx]} ÷ ${d.total}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "circle-percent", count: d.counts[idx], total: d.total }
+  );
+}
+
+function makeCircleGraphCount(rng: RNG): Grade7Problem {
+  const t = pick(rng, SURVEY_TOPICS);
+  const total = pick(rng, [40, 60, 80, 100, 200]);
+  const pct = pick(rng, [10, 15, 20, 25, 30, 35, 40, 45, 50, 60]);
+  const idx = randInt(rng, 0, 3);
+  const count = (pct * total) / 100;
+  return build(
+    "ReadingGraphs7",
+    `A circle graph shows the results of a survey of ${total} students about their ${t.topic}. The section for ${t.cats[idx]} is ${pct}% of the graph. How many students chose ${t.cats[idx]}?`,
+    "the number of students",
+    count,
+    [
+      {
+        instruction: `Find ${pct}% of ${total}: ${total} × ${fmt(pct / 100)}.`,
+        blanks: [{ label: "answer", answer: String(count) }],
+      },
+    ],
+    { kind: "circle-count", pct, total }
+  );
+}
+
+function makeCompareCategories(rng: RNG): Grade7Problem {
+  const d = surveyData(rng);
+  const mode = pick(rng, ["diff", "ratio"] as const);
+  let i = randInt(rng, 0, 3);
+  let j = randInt(rng, 0, 3);
+  let guard = 0;
+  while ((j === i || (mode === "diff" && d.counts[i] === d.counts[j])) && guard++ < 40) {
+    i = randInt(rng, 0, 3);
+    j = randInt(rng, 0, 3);
+  }
+  if (mode === "diff") {
+    const hi = d.counts[i] > d.counts[j] ? i : j;
+    const lo = hi === i ? j : i;
+    const ans = d.counts[hi] - d.counts[lo];
+    return build(
+      "ReadingGraphs7",
+      `${surveyText(d)} How many more students chose ${d.cats[hi]} than chose ${d.cats[lo]}?`,
+      "how many more students",
+      ans,
+      [
+        {
+          instruction: `Subtract the counts: ${d.counts[hi]} − ${d.counts[lo]}.`,
+          blanks: [{ label: "answer", answer: String(ans) }],
+        },
+      ],
+      { kind: "compare-cats", counts: d.counts.join(","), i: hi, j: lo, mode }
+    );
+  }
+  const ans = fracToString(makeFrac(d.counts[i], d.counts[j]));
+  return build(
+    "ReadingGraphs7",
+    `${surveyText(d)} What is the ratio of students who chose ${d.cats[i]} to students who chose ${d.cats[j]}? Write the ratio in simplest form.`,
+    "the ratio in simplest form",
+    ans,
+    [
+      {
+        instruction: `The ratio is ${d.counts[i]}:${d.counts[j]}. Divide both numbers by their greatest common factor.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "compare-cats", counts: d.counts.join(","), i, j, mode }
+  );
+}
+
+function makeDotPlotStats(rng: RNG): Grade7Problem {
+  const ctx = pick(rng, [
+    { name: "number of books read last month", unit: "books" },
+    { name: "number of pets owned", unit: "pets" },
+    { name: "number of siblings", unit: "siblings" },
+  ]);
+  const stat = pick(rng, ["median", "mode"] as const);
+  let vals: number[] = [];
+  let guard = 0;
+  while (guard++ < 80) {
+    const n = randInt(rng, 7, 11);
+    vals = Array.from({ length: n }, () => randInt(rng, 0, 6)).sort((a, b) => a - b);
+    if (stat === "mode") {
+      const freq = new Map<number, number>();
+      for (const v of vals) freq.set(v, (freq.get(v) ?? 0) + 1);
+      const maxF = Math.max(...freq.values());
+      const modes = [...freq.entries()].filter(([, c]) => c === maxF);
+      if (modes.length === 1 && maxF >= 2) break;
+    } else {
+      break;
+    }
+  }
+  const list = vals.join(", ");
+  if (stat === "mode") {
+    const freq = new Map<number, number>();
+    for (const v of vals) freq.set(v, (freq.get(v) ?? 0) + 1);
+    let modeVal = vals[0];
+    let best = 0;
+    for (const [v, c] of freq) if (c > best) { best = c; modeVal = v; }
+    return build(
+      "ReadingGraphs7",
+      `A dot plot shows the ${ctx.name} for a class. The values shown by the dots are: ${list}. What is the mode of the data?`,
+      "the mode",
+      modeVal,
+      [
+        {
+          instruction: `The mode is the value that appears most often. The value ${modeVal} appears ${best} times.`,
+          blanks: [{ label: "answer", answer: String(modeVal) }],
+        },
+      ],
+      { kind: "dot-mode", data: list }
+    );
+  }
+  const n = vals.length;
+  const median = n % 2 === 1 ? vals[Math.floor(n / 2)] : (vals[n / 2 - 1] + vals[n / 2]) / 2;
+  const ans = fmt(median);
+  return build(
+    "ReadingGraphs7",
+    `A dot plot shows the ${ctx.name} for a class. The values shown by the dots are: ${list}. What is the median of the data?`,
+    "the median",
+    ans,
+    [
+      {
+        instruction:
+          n % 2 === 1
+            ? `There are ${n} values, so the median is the middle value when the values are in order.`
+            : `There are ${n} values, so the median is the average of the two middle values, ${vals[n / 2 - 1]} and ${vals[n / 2]}.`,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "dot-median", data: list }
+  );
+}
+
+// ── Lesson: Rational Number Sets & Subsets (TEKS 7.2) ───────────────────────
+
+const SET_CLASSIFY_POOL7 = [
+  "7", "0", "-4", "3/4", "-5/6", "2.5", "-0.75", "12/3", "-9/3",
+  "0.333... (repeating)", "15", "-11", "1/2", "-2.4", "100/10", "0/5",
+  "8/4", "-7/1", "0.85", "23",
+];
+
+type SetLevel7 = "natural" | "whole" | "integer" | "rational";
+
+function setLevel7(text: string): SetLevel7 {
+  if (text.includes("...")) return "rational";
+  if (text.includes("/")) {
+    const [ns, ds] = text.split("/");
+    const n = Number(ns);
+    const d = Number(ds);
+    if (n % d !== 0) return "rational";
+    const v = n / d;
+    return v > 0 ? "natural" : v === 0 ? "whole" : "integer";
+  }
+  if (text.includes(".")) return "rational";
+  const v = Number(text);
+  return v > 0 ? "natural" : v === 0 ? "whole" : "integer";
+}
+
+const SET_LABEL7: Record<SetLevel7, string> = {
+  natural: "natural number",
+  whole: "whole number",
+  integer: "integer",
+  rational: "rational number",
+};
+
+function makeClassifySet7(rng: RNG): Grade7Problem {
+  const text = pick(rng, SET_CLASSIFY_POOL7);
+  const ans = SET_LABEL7[setLevel7(text)];
+  return build(
+    "NumberSets7",
+    `What is the most specific set that ${text} belongs to: natural numbers, whole numbers, integers, or rational numbers?`,
+    "the most specific set",
+    ans,
+    [
+      {
+        instruction: "Natural numbers are the counting numbers 1, 2, 3, and so on. Whole numbers add 0. Integers add the negatives. Rational numbers can be written as a fraction of two integers.",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "classify-set", value: text }
+  );
+}
+
+const SUBSET_STATEMENTS7: Array<{ statement: string; truth: "true" | "false" }> = [
+  { statement: "Every integer is a rational number", truth: "true" },
+  { statement: "Every rational number is an integer", truth: "false" },
+  { statement: "Every whole number is a natural number", truth: "false" },
+  { statement: "Every natural number is a whole number", truth: "true" },
+  { statement: "Every integer is a whole number", truth: "false" },
+  { statement: "Every whole number is an integer", truth: "true" },
+  { statement: "Every rational number is a whole number", truth: "false" },
+  { statement: "Every natural number is a rational number", truth: "true" },
+  { statement: "Every natural number is an integer", truth: "true" },
+  { statement: "Every integer is a natural number", truth: "false" },
+];
+
+function makeSubsetStatement7(rng: RNG): Grade7Problem {
+  const s = pick(rng, SUBSET_STATEMENTS7);
+  return build(
+    "NumberSets7",
+    `True or false: ${s.statement}.`,
+    "true or false",
+    s.truth,
+    [
+      {
+        instruction: "Each set sits inside the larger ones: natural numbers are inside the whole numbers, which are inside the integers, which are inside the rational numbers. A statement is true only if it works for every number in the first set.",
+        blanks: [{ label: "answer", answer: s.truth }],
+      },
+    ],
+    { kind: "subset-statement", statement: s.statement }
+  );
+}
+
+function makeAllSets7(rng: RNG): Grade7Problem {
+  const text = pick(rng, SET_CLASSIFY_POOL7);
+  const level = setLevel7(text);
+  const sets: Record<SetLevel7, string> = {
+    natural: "natural number, whole number, integer, rational number",
+    whole: "whole number, integer, rational number",
+    integer: "integer, rational number",
+    rational: "rational number",
+  };
+  const ans = sets[level];
+  return build(
+    "NumberSets7",
+    `Name every set that ${text} belongs to, choosing from: natural numbers, whole numbers, integers, rational numbers. List them in that order, separated by commas.`,
+    "all the sets it belongs to",
+    ans,
+    [
+      {
+        instruction: "The sets are nested: every natural number is also whole, an integer, and rational; every integer is also rational; a fraction or decimal that is not an integer is rational only.",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "all-sets", value: text }
+  );
+}
+
+function makeCountInSet7(rng: RNG): Grade7Problem {
+  const set = pick(rng, ["natural numbers", "whole numbers", "integers"] as const);
+  let values: string[] = [];
+  let count = 0;
+  let guard = 0;
+  while (guard++ < 80) {
+    values = shuffled(rng, SET_CLASSIFY_POOL7).slice(0, 6);
+    count = values.filter((v) => {
+      const level = setLevel7(v);
+      if (set === "natural numbers") return level === "natural";
+      if (set === "whole numbers") return level === "natural" || level === "whole";
+      return level !== "rational";
+    }).length;
+    if (count > 0 && count < values.length) break;
+  }
+  return build(
+    "NumberSets7",
+    `How many of these numbers are ${set}? ${values.join(", ")}`,
+    `the count of ${set}`,
+    count,
+    [
+      {
+        instruction: "Check each number: a counting number (1, 2, 3, ...) is natural; 0 is whole but not natural; a negative whole value is an integer; fractions and decimals that are not integers are rational only.",
+        blanks: [{ label: "answer", answer: String(count) }],
+      },
+    ],
+    { kind: "count-in-set", values: values.join(","), set }
+  );
+}
+
 const MAKERS: MakerEntry[] = [
   // T1 · Numbers & Operations
   { tier: 1, subtype: "RationalNumbersAndAbsoluteValue", make: makeAbsoluteValue },
@@ -2129,6 +3240,7 @@ const MAKERS: MakerEntry[] = [
   { tier: 3, subtype: "RepresentingLinearRelationships", make: makeLinearIdentify },
   { tier: 1, subtype: "Percents", make: makePercentSimple },
   { tier: 2, subtype: "Percents", make: makePercentOf7 },
+  { tier: 2, subtype: "Percents", make: makePercentChange },
   { tier: 3, subtype: "Percents", make: makePercentDiscount },
   // T5 · Data
   { tier: 1, subtype: "Sampling", make: makeSampleFraction },
@@ -2138,6 +3250,7 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "ProbabilityConcepts", make: makeSimpleProbability },
   { tier: 1, subtype: "ProbabilityConcepts", make: makeSpinnerProbability },
   { tier: 2, subtype: "ProbabilityConcepts", make: makeExperimentalProbability },
+  { tier: 2, subtype: "ProbabilityConcepts", make: makeComplementProbability },
   { tier: 3, subtype: "ProbabilityConcepts", make: makeProbabilityWord },
   { tier: 1, subtype: "CompoundEvents", make: makeCompoundSimple },
   { tier: 2, subtype: "CompoundEvents", make: makeCompoundProbability },
@@ -2145,6 +3258,7 @@ const MAKERS: MakerEntry[] = [
   // T6 · Financial Literacy
   { tier: 1, subtype: "EconomicThinking", make: makeTaxTotal },
   { tier: 2, subtype: "EconomicThinking", make: makeSalesTax },
+  { tier: 2, subtype: "EconomicThinking", make: makeIncomeTax },
   { tier: 3, subtype: "EconomicThinking", make: makeBudget },
   // T7 · Step-up
   { tier: 1, subtype: "PercentsBeyond100", make: makePercentOver100 },
@@ -2158,6 +3272,34 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "DistributiveEquations", make: makeDistributiveEquation },
   { tier: 1, subtype: "MultiStepInequalities", make: makeOneStepMultIneq },
   { tier: 3, subtype: "MultiStepInequalities", make: makeMultiStepInequality },
+  // T8 · TEKS Extensions
+  { tier: 1, subtype: "SimilarFigures7", make: makeScaleFactor7 },
+  { tier: 2, subtype: "SimilarFigures7", make: makeSimilarMissingSide },
+  { tier: 2, subtype: "SimilarFigures7", make: makeScaleDrawing },
+  { tier: 3, subtype: "SimilarFigures7", make: makeSimilarAreaScale },
+  { tier: 1, subtype: "ConversionsBetweenSystems", make: makeInchCmConvert },
+  { tier: 1, subtype: "ConversionsBetweenSystems", make: makeMileKmConvert },
+  { tier: 2, subtype: "ConversionsBetweenSystems", make: makeGallonLiterConvert },
+  { tier: 3, subtype: "ConversionsBetweenSystems", make: makeApproxConvertMix },
+  { tier: 1, subtype: "Interest7", make: makeSimpleInterest7 },
+  { tier: 2, subtype: "Interest7", make: makeSimpleBalance7 },
+  { tier: 2, subtype: "Interest7", make: makeCompoundInterest7 },
+  { tier: 3, subtype: "Interest7", make: makeCompareSimpleCompound7 },
+  { tier: 1, subtype: "NetWorth7", make: makeClassifyAssetLiability },
+  { tier: 2, subtype: "NetWorth7", make: makeNetWorthCompute },
+  { tier: 3, subtype: "NetWorth7", make: makeNetWorthChange },
+  { tier: 1, subtype: "FamilyBudgets7", make: makeMonthlyExpenseTotal },
+  { tier: 2, subtype: "FamilyBudgets7", make: makeMinimumIncome },
+  { tier: 2, subtype: "FamilyBudgets7", make: makeHourlyWageNeeded },
+  { tier: 3, subtype: "FamilyBudgets7", make: makeCategoryPercent },
+  { tier: 1, subtype: "ReadingGraphs7", make: makeCircleGraphPercent },
+  { tier: 2, subtype: "ReadingGraphs7", make: makeCompareCategories },
+  { tier: 2, subtype: "ReadingGraphs7", make: makeDotPlotStats },
+  { tier: 3, subtype: "ReadingGraphs7", make: makeCircleGraphCount },
+  { tier: 1, subtype: "NumberSets7", make: makeClassifySet7 },
+  { tier: 2, subtype: "NumberSets7", make: makeSubsetStatement7 },
+  { tier: 2, subtype: "NumberSets7", make: makeAllSets7 },
+  { tier: 3, subtype: "NumberSets7", make: makeCountInSet7 },
 ];
 
 /** Makers unlocked at the given difficulty tier (cumulative). */
@@ -2197,6 +3339,13 @@ export const GRADE7_SUBTYPES: Grade7Subtype[] = [
   "ExpandingAndFactoring",
   "DistributiveEquations",
   "MultiStepInequalities",
+  "SimilarFigures7",
+  "ConversionsBetweenSystems",
+  "Interest7",
+  "NetWorth7",
+  "FamilyBudgets7",
+  "ReadingGraphs7",
+  "NumberSets7",
 ];
 
 /**

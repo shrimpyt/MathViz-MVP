@@ -1,4 +1,4 @@
-// 05-pdf.ts — PDF byte verification on middle-school samples.
+// 05-pdf.ts, PDF byte verification on middle-school samples.
 // Renders real problems (prompts, steps, answers, and every diagram kind)
 // through @react-pdf/renderer using PdfMiddleSchoolDiagram, then asserts the
 // output is a valid, non-trivial PDF and that re-rendering is byte-stable.
@@ -16,7 +16,7 @@ function SampleDoc({ problems }: { problems: MiddleSchoolProblem[] }) {
   return (
     <Document>
       <Page size="LETTER" style={{ padding: 40, fontFamily: "Times-Roman" }}>
-        <Text style={{ fontSize: 18, marginBottom: 12 }}>Middle School Math — Sample</Text>
+        <Text style={{ fontSize: 18, marginBottom: 12 }}>Middle School Math, Sample</Text>
         {problems.map((p, i) => (
           <View key={i} style={{ marginBottom: 14 }} wrap={false}>
             <Text style={{ fontSize: 11, marginBottom: 4 }}>

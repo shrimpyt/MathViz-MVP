@@ -140,7 +140,7 @@ function makeFindMissingInterior(rng: RNG): GeometryProblem {
   const n = pick(rng, [5, 6]);
   const sum = (n - 2) * 180;
   // Choose the missing angle FIRST, then split the rest among the known
-  // angles — constructing it the other way can leave a negative "missing".
+  // angles, constructing it the other way can leave a negative "missing".
   const missing = randInt(rng, 75, 140);
   const known: number[] = [];
   let rest = sum - missing;
@@ -163,7 +163,7 @@ function makeFindMissingInterior(rng: RNG): GeometryProblem {
     answer: `${missing}°`,
     steps: [
       step(`First find the total: the interior angles of a ${POLY_NAMES[n]} sum to (n − 2) × 180° = ${sum}°.`, "Polygon Interior Angle-Sum Theorem."),
-      step("The polygon is irregular, so the angles are not equal — subtract the known angles from the total.", "Irregular polygon: use the sum, not division."),
+      step("The polygon is irregular, so the angles are not equal, subtract the known angles from the total.", "Irregular polygon: use the sum, not division."),
       step(`Known angles sum to ${knownSum}°. Unknown = ${sum}° − ${knownSum}° = ${missing}°.`, "Subtraction.", [
         { label: "unknown", answer: `${missing}°` },
       ]),
@@ -423,7 +423,7 @@ function makeKiteAngles(rng: RNG): GeometryProblem {
     find: "m∠C",
     answer: `${other2}°`,
     steps: [
-      step("A kite has exactly one pair of congruent opposite angles — the ones between sides of different lengths.", "Kite angle property."),
+      step("A kite has exactly one pair of congruent opposite angles, the ones between sides of different lengths.", "Kite angle property."),
       step("The interior angles of any quadrilateral sum to (4 − 2) × 180° = 360°.", "Polygon Interior Angle-Sum Theorem."),
       step(`m∠C = 360° − ${pair}° − ${pair}° − ${other1}° = ${other2}°.`, "Subtraction.", [
         { label: "m∠C", answer: `${other2}°` },

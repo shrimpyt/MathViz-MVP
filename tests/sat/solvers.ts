@@ -5,7 +5,7 @@
 // factories. Each takes the problem's raw `verify.params` and returns the
 // expected canonical display string + numeric value, plus a defining-property
 // check (usually substitution into the original equation). If a generator's
-// key disagrees with its solver, the generator is wrong — by construction.
+// key disagrees with its solver, the generator is wrong, by construction.
 
 type Params = Record<string, number | string | number[]>;
 

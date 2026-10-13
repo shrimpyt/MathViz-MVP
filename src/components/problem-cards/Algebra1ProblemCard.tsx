@@ -1,7 +1,7 @@
 "use client";
 // Algebra1ProblemCard.tsx
 // Renders a single Algebra 1 problem (any subtype).
-// NOTE: this card is new and not yet routed — see tests/algebra-1/WIRING.md
+// NOTE: this card is new and not yet routed, see tests/algebra-1/WIRING.md
 // for the EuclidEngine / index.ts changes that mount it.
 
 import React from "react";
@@ -41,6 +41,11 @@ const SUBTYPE_LABELS: Record<Algebra1Problem["subtype"], string> = {
   LineOfBestFit: "Scatter Plots & Trend Lines",
   LinearWordProblem: "Linear Models",
   TwoWayTable: "Two-Way Tables",
+  DomainRangeLinear: "Domain & Range of Linear Functions",
+  HorizontalVerticalLines: "Horizontal & Vertical Lines",
+  SlopeEveryForm: "Slope in Every Form",
+  Correlation: "Correlation: Strength & Direction",
+  AssociationCausation: "Association vs. Causation",
   SystemGraphing: "Systems by Graphing",
   SystemSubstitution: "Systems by Substitution",
   SystemElimination: "Systems by Elimination",
@@ -48,6 +53,8 @@ const SUBTYPE_LABELS: Record<Algebra1Problem["subtype"], string> = {
   SystemSpecialCase: "Special Systems",
   LinearInequality: "Linear Inequalities in Two Variables",
   SystemOfInequalities: "Systems of Inequalities",
+  WriteLinearInequality: "Writing Linear Inequalities",
+  EstimateSystemSolution: "Estimating System Solutions from Graphs",
   ZeroNegativeExponents: "Zero & Negative Exponents",
   MultiplyPowers: "Multiplying Powers",
   PowerOfPower: "Power of a Power",
@@ -68,6 +75,7 @@ const SUBTYPE_LABELS: Record<Algebra1Problem["subtype"], string> = {
   FactorDifferenceSquares: "Difference of Squares",
   FactorByGrouping: "Factoring by Grouping",
   SimplifyRationalExpression: "Simplifying Rational Expressions",
+  PolyDivision: "Dividing Polynomials",
   QuadraticAttributes: "Graphs & Properties of Quadratics",
   GraphQuadratic: "Quadratic Functions",
   QuadraticTransformations: "Transformations of Quadratics",
@@ -77,11 +85,15 @@ const SUBTYPE_LABELS: Record<Algebra1Problem["subtype"], string> = {
   QuadraticDiscriminant: "Discriminant",
   CompleteSquare: "Completing the Square",
   WriteQuadratic: "Writing Quadratic Functions",
+  FactorsZeros: "Factors & Zeros of Quadratics",
+  QuadModelData: "Quadratic Models from Data",
   GraphExponential: "Exponential Functions",
   ExponentialGrowth: "Exponential Growth",
   ExponentialDecay: "Exponential Decay",
   ExponentialWordProblem: "Exponential Growth & Decay Models",
   ExponentialModeling: "Modeling Data with Exponentials",
+  WriteExponential: "Writing Exponential Functions",
+  ExponentialFeatures: "Key Features of Exponential Graphs",
 };
 
 export function Algebra1ProblemCard({

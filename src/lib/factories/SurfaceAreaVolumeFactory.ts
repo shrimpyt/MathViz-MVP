@@ -1,7 +1,7 @@
 // SurfaceAreaVolumeFactory.ts
 // Topic 14: Surface Area and Volume (TEKS G.11(C)).
 // Lesson ch14-2: surface area of prisms and cylinders. The steps consistently
-// decompose the total into LATERAL area + bases — nets thinking — so lateral
+// decompose the total into LATERAL area + bases, nets thinking, so lateral
 // vs total surface area is a distinction students compute, not just name.
 // Chapter-test pool adds pyramids, cones, and spheres, all the chapter's
 // volumes (prisms/cylinders Bh, pyramids/cones ⅓Bh, sphere 4⁄3πr³), and
@@ -55,7 +55,7 @@ function makeRectPrismLateral(rng: RNG): GeometryProblem {
   return {
     type: "GEO.14",
     subtype: "LateralSurfaceArea",
-    prompt: `An open-top box (a rectangular prism with no top) has length ${l}, width ${w}, and height ${h}. How much cardboard is needed to make the box — that is, what is its surface area including the bottom but no top?`,
+    prompt: `An open-top box (a rectangular prism with no top) has length ${l}, width ${w}, and height ${h}. How much cardboard is needed to make the box, that is, what is its surface area including the bottom but no top?`,
     given: { l, w, h },
     find: "surface area without a top",
     answer: String(lateral + l * w),
@@ -108,7 +108,7 @@ function makeCylinderSA(rng: RNG, lateralOnly = false): GeometryProblem {
     return {
       type: "GEO.14",
       subtype: "CylinderLateralArea",
-      prompt: `Find the lateral surface area of a cylinder with radius ${r} and height ${h}. (The lateral area is the curved surface only — no bases.) Round to two decimal places.`,
+      prompt: `Find the lateral surface area of a cylinder with radius ${r} and height ${h}. (The lateral area is the curved surface only, no bases.) Round to two decimal places.`,
       given: { r, h },
       find: "lateral surface area",
       answer: pi2(lateral),
@@ -157,7 +157,7 @@ function makeNetSA(rng: RNG): GeometryProblem {
     answer: String(total),
     unit: "square units",
     steps: [
-      step("The surface area of a solid is exactly the area of its net — add the areas of all the faces shown.", "Surface area is the area of the net."),
+      step("The surface area of a solid is exactly the area of its net, add the areas of all the faces shown.", "Surface area is the area of the net."),
       step(`The net has three pairs of rectangles: ${l}×${w} (twice), ${l}×${h} (twice), ${w}×${h} (twice).`, "Congruent opposite faces."),
       step(`SA = 2(${l * w} + ${l * h} + ${w * h}) = ${total}.`, "Add all six faces.", [{ label: "SA", answer: String(total) }]),
     ],
@@ -291,7 +291,7 @@ function makeVolume(rng: RNG): GeometryProblem {
         prompt: `Find the volume of a cone with radius ${r} and height ${h}. Round to two decimal places.`,
         given: { r, h }, find: "volume", answer: pi2(v), unit: "cubic units",
         steps: [
-          step("V = ⅓πr²h — one-third of the matching cylinder.", "Volume of a Cone."),
+          step("V = ⅓πr²h, one-third of the matching cylinder.", "Volume of a Cone."),
           step(`V = ⅓ × π × ${r}² × ${h} ≈ ${pi2(v)}.`, "Substitution.", [{ label: "V", answer: pi2(v) }]),
         ],
         svgParams: { kind: "SolidFigure", solid: "cone", dims: { r: String(r), height: String(h) } },
@@ -340,6 +340,307 @@ function makeCrossSection(rng: RNG): GeometryProblem {
   };
 }
 
+// ── Lesson makers: volume (ch14-3, TEKS G.11(D)) ─────────────────────────────
+// D1: one solid, direct substitution. D2: the remaining solids plus a
+// missing-dimension variant (volume given, solve for a height or a radius;
+// radii come from volumes stated in terms of π so the numbers stay clean).
+// D3: composite solids, a sum or a difference of two solids.
+
+function makeVolumeRectPrism(rng: RNG): GeometryProblem {
+  const l = randInt(rng, 3, 12);
+  const w = randInt(rng, 3, 10);
+  const h = randInt(rng, 2, 9);
+  const v = l * w * h;
+  return {
+    type: "GEO.14",
+    subtype: "VolumeRectPrism",
+    prompt: `Find the volume of a rectangular prism with length ${l}, width ${w}, and height ${h}.`,
+    given: { l, w, h },
+    find: "volume",
+    answer: String(v),
+    unit: "cubic units",
+    steps: [
+      step("The volume of a prism is the area of its base times its height: V = B·h. For a rectangular prism the base area is l × w.", "Volume of a Prism."),
+      step(`V = (${l} × ${w}) × ${h} = ${l * w} × ${h} = ${v}.`, "Substitution.", [{ label: "V", answer: String(v) }]),
+    ],
+    svgParams: { kind: "SolidFigure", solid: "rectPrism", dims: { l: String(l), w: String(w), h: String(h) } },
+    verify: { kind: "volRectPrism", l, w, h },
+  };
+}
+
+function makeVolumeTriPrism(rng: RNG): GeometryProblem {
+  const [t1, t2, t3] = pickTriple(rng); // triangular base sides; t1, t2 legs
+  const L = randInt(rng, 4, 12); // prism length
+  const baseArea = (t1 * t2) / 2;
+  const v = baseArea * L;
+  return {
+    type: "GEO.14",
+    subtype: "VolumeTriPrism",
+    prompt: `Find the volume of a triangular prism whose triangular bases are right triangles with legs ${t1} and ${t2} and hypotenuse ${t3}, and whose length is ${L}.`,
+    given: { leg1: t1, leg2: t2, hyp: t3, length: L },
+    find: "volume",
+    answer: String(v),
+    unit: "cubic units",
+    steps: [
+      step("The volume of a prism is the area of its base times the length of the prism: V = B·L. Here the base is a right triangle.", "Volume of a Prism."),
+      step(`Base area: B = ½ × ${t1} × ${t2} = ${baseArea}.`, "Area of a triangle."),
+      step(`V = ${baseArea} × ${L} = ${v}.`, "Multiply base area by length.", [{ label: "V", answer: String(v) }]),
+    ],
+    svgParams: { kind: "SolidFigure", solid: "triPrism", dims: { base: String(t1), height: String(t2), length: String(L) } },
+    verify: { kind: "volTriPrism", t1, t2, L },
+  };
+}
+
+function makeVolumeCylinderLesson(rng: RNG): GeometryProblem {
+  const r = randInt(rng, 2, 9);
+  const h = randInt(rng, 3, 12);
+  const v = PI * r * r * h;
+  return {
+    type: "GEO.14",
+    subtype: "VolumeCylinder",
+    prompt: `Find the volume of a cylinder with radius ${r} and height ${h}. Round to two decimal places.`,
+    given: { r, h },
+    find: "volume",
+    answer: pi2(v),
+    unit: "cubic units",
+    steps: [
+      step("The volume of a cylinder is the area of its circular base times its height: V = πr²h.", "Volume of a Cylinder."),
+      step(`V = π × ${r}² × ${h} ≈ ${pi2(v)}.`, "Substitution.", [{ label: "V", answer: pi2(v) }]),
+    ],
+    svgParams: { kind: "SolidFigure", solid: "cylinder", dims: { r: String(r), h: String(h) } },
+    verify: { kind: "volCylinder", r, h },
+  };
+}
+
+function makeVolumePyramidLesson(rng: RNG): GeometryProblem {
+  const s = randInt(rng, 3, 12);
+  const h = 3 * randInt(rng, 1, 4); // multiple of 3 keeps the volume a whole number
+  const v = (s * s * h) / 3;
+  return {
+    type: "GEO.14",
+    subtype: "VolumePyramid",
+    prompt: `Find the volume of a square pyramid with base side ${s} and height ${h}.`,
+    given: { baseSide: s, h },
+    find: "volume",
+    answer: num(v),
+    unit: "cubic units",
+    steps: [
+      step("A pyramid holds exactly one third of the prism with the same base and height: V = ⅓·B·h.", "Volume of a Pyramid."),
+      step(`V = ⅓ × ${s}² × ${h} = ⅓ × ${s * s * h} = ${num(v)}.`, "Substitution.", [{ label: "V", answer: num(v) }]),
+    ],
+    svgParams: { kind: "SolidFigure", solid: "pyramid", dims: { base: String(s), height: String(h) } },
+    verify: { kind: "volPyramid", s, h },
+  };
+}
+
+function makeVolumeConeLesson(rng: RNG): GeometryProblem {
+  const r = randInt(rng, 2, 9);
+  const h = randInt(rng, 3, 12);
+  const v = (PI * r * r * h) / 3;
+  return {
+    type: "GEO.14",
+    subtype: "VolumeCone",
+    prompt: `Find the volume of a cone with radius ${r} and height ${h}. Round to two decimal places.`,
+    given: { r, h },
+    find: "volume",
+    answer: pi2(v),
+    unit: "cubic units",
+    steps: [
+      step("A cone holds exactly one third of the cylinder with the same base and height: V = ⅓πr²h.", "Volume of a Cone."),
+      step(`V = ⅓ × π × ${r}² × ${h} ≈ ${pi2(v)}.`, "Substitution.", [{ label: "V", answer: pi2(v) }]),
+    ],
+    svgParams: { kind: "SolidFigure", solid: "cone", dims: { r: String(r), height: String(h) } },
+    verify: { kind: "volCone", r, h },
+  };
+}
+
+function makeVolumeSphereLesson(rng: RNG): GeometryProblem {
+  const r = randInt(rng, 2, 9);
+  const v = (4 / 3) * PI * r ** 3;
+  return {
+    type: "GEO.14",
+    subtype: "VolumeSphere",
+    prompt: `Find the volume of a sphere with radius ${r}. Round to two decimal places.`,
+    given: { r },
+    find: "volume",
+    answer: pi2(v),
+    unit: "cubic units",
+    steps: [
+      step("The volume of a sphere is V = (4/3)πr³.", "Volume of a Sphere."),
+      step(`V = (4/3) × π × ${r}³ ≈ ${pi2(v)}.`, "Substitution.", [{ label: "V", answer: pi2(v) }]),
+    ],
+    svgParams: { kind: "SolidFigure", solid: "sphere", dims: { r: String(r) } },
+    verify: { kind: "volSphere", r },
+  };
+}
+
+function makeVolumeMissingDimension(rng: RNG): GeometryProblem {
+  const form = pick(rng, ["prismHeight", "pyramidHeight", "sphereRadius", "cylinderRadius"] as const);
+  switch (form) {
+    case "prismHeight": {
+      const l = randInt(rng, 3, 11);
+      const w = randInt(rng, 3, 9);
+      const h = randInt(rng, 2, 12);
+      const v = l * w * h;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeMissingDimension",
+        prompt: `A rectangular prism has volume ${v}, length ${l}, and width ${w}. Find its height.`,
+        given: { V: v, l, w },
+        find: "height",
+        answer: String(h),
+        unit: "units",
+        steps: [
+          step("Start from V = l·w·h and solve for the unknown height before substituting.", "Solve the volume formula for h."),
+          step(`h = V ÷ (l × w) = ${v} ÷ (${l} × ${w}) = ${v} ÷ ${l * w} = ${h}.`, "Substitution.", [{ label: "h", answer: String(h) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "rectPrism", dims: { l: String(l), w: String(w), h: "?" } },
+        verify: { kind: "volMissingPrism", V: v, l, w },
+      };
+    }
+    case "pyramidHeight": {
+      const s = randInt(rng, 3, 11);
+      const h = 3 * randInt(rng, 1, 4);
+      const v = (s * s * h) / 3;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeMissingDimension",
+        prompt: `A square pyramid has volume ${v} and base side ${s}. Find its height.`,
+        given: { V: v, baseSide: s },
+        find: "height",
+        answer: String(h),
+        unit: "units",
+        steps: [
+          step("Start from V = ⅓·s²·h and solve for the unknown height before substituting.", "Solve the volume formula for h."),
+          step(`h = 3V ÷ s² = ${3 * v} ÷ ${s * s} = ${h}.`, "Substitution.", [{ label: "h", answer: String(h) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "pyramid", dims: { base: String(s), height: "?" } },
+        verify: { kind: "volMissingPyramid", V: v, s },
+      };
+    }
+    case "sphereRadius": {
+      const r = pick(rng, [3, 6, 9]); // (4/3)r³ is a whole-number coefficient of π
+      const coef = (4 * r ** 3) / 3;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeMissingDimension",
+        prompt: `The volume of a sphere is ${coef}π cubic units. Find its radius.`,
+        given: { V: `${coef}π`, form: "sphere" },
+        find: "radius",
+        answer: String(r),
+        unit: "units",
+        steps: [
+          step("Set the volume formula equal to the given volume: (4/3)πr³ = " + `${coef}π. The π factors cancel.`, "Volume of a Sphere."),
+          step(`r³ = ${coef} × ¾ = ${r ** 3}.`, "Isolate r³.", [{ label: "r³", answer: String(r ** 3) }]),
+          step(`r is the cube root of ${r ** 3}, so r = ${r}.`, "Take the cube root.", [{ label: "r", answer: String(r) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "sphere", dims: { r: "?" } },
+        verify: { kind: "volMissingRadius", coefNum: 4 * r ** 3, coefDen: 3 },
+      };
+    }
+    case "cylinderRadius": {
+      const r = randInt(rng, 2, 8);
+      const h = randInt(rng, 2, 10);
+      const coef = r * r * h;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeMissingDimension",
+        prompt: `The volume of a cylinder is ${coef}π cubic units and its height is ${h}. Find its radius.`,
+        given: { V: `${coef}π`, h, form: "cylinder" },
+        find: "radius",
+        answer: String(r),
+        unit: "units",
+        steps: [
+          step(`Set the volume formula equal to the given volume: πr²·${h} = ${coef}π. The π factors cancel.`, "Volume of a Cylinder."),
+          step(`r² = ${coef} ÷ ${h} = ${r * r}.`, "Isolate r².", [{ label: "r²", answer: String(r * r) }]),
+          step(`r is the positive square root of ${r * r}, so r = ${r}.`, "Take the square root.", [{ label: "r", answer: String(r) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "cylinder", dims: { r: "?", h: String(h) } },
+        verify: { kind: "volMissingCylRadius", coef, h },
+      };
+    }
+  }
+}
+
+function makeVolumeComposite(rng: RNG): GeometryProblem {
+  const form = pick(rng, ["silo", "house", "hole"] as const);
+  switch (form) {
+    case "silo": {
+      const r = randInt(rng, 2, 7);
+      const h = randInt(rng, 4, 12);
+      const cyl = PI * r * r * h;
+      const hemi = (2 / 3) * PI * r ** 3;
+      const v = cyl + hemi;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeComposite",
+        prompt: `A silo is a cylinder with radius ${r} and height ${h}, topped by a hemisphere of the same radius. Find the total volume of the silo. Round to two decimal places.`,
+        given: { r, h, form: "cylinder plus hemisphere" },
+        find: "total volume",
+        answer: pi2(v),
+        unit: "cubic units",
+        steps: [
+          step("Split the composite solid into a cylinder and a hemisphere (half of a sphere) and add their volumes.", "Volume addition postulate."),
+          step(`Cylinder: π × ${r}² × ${h} ≈ ${pi2(cyl)}. Hemisphere: ½ × (4/3)π × ${r}³ ≈ ${pi2(hemi)}.`, "Volumes of the parts."),
+          step(`V ≈ ${pi2(cyl)} + ${pi2(hemi)} = ${pi2(v)}.`, "Add the parts.", [{ label: "V", answer: pi2(v) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "cylinder", dims: { r: String(r), h: String(h) } },
+        verify: { kind: "volCompositeSilo", r, h },
+      };
+    }
+    case "house": {
+      const l = randInt(rng, 4, 10);
+      const w = randInt(rng, 4, 10);
+      const h = randInt(rng, 3, 9);
+      const h2 = 3 * randInt(rng, 1, 3); // roof height; multiple of 3 keeps the total whole
+      const prism = l * w * h;
+      const roof = (l * w * h2) / 3;
+      const v = prism + roof;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeComposite",
+        prompt: `A building is a rectangular prism with length ${l}, width ${w}, and height ${h}. Its roof is a pyramid with the same ${l} by ${w} base and height ${h2}. Find the total volume of the building.`,
+        given: { l, w, h, roofHeight: h2, form: "prism plus pyramid" },
+        find: "total volume",
+        answer: String(v),
+        unit: "cubic units",
+        steps: [
+          step("Split the composite solid into a rectangular prism and a pyramid with the same base, then add their volumes.", "Volume addition postulate."),
+          step(`Prism: ${l} × ${w} × ${h} = ${prism}. Pyramid roof: ⅓ × (${l} × ${w}) × ${h2} = ${roof}.`, "Volumes of the parts."),
+          step(`V = ${prism} + ${roof} = ${v}.`, "Add the parts.", [{ label: "V", answer: String(v) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "rectPrism", dims: { l: String(l), w: String(w), h: String(h) } },
+        verify: { kind: "volCompositeHouse", l, w, h, h2 },
+      };
+    }
+    case "hole": {
+      const l = randInt(rng, 8, 14);
+      const w = randInt(rng, 6, 12);
+      const h = randInt(rng, 3, 8);
+      const r = randInt(rng, 1, 3); // small enough that the hole fits inside the block
+      const block = l * w * h;
+      const holeV = PI * r * r * h;
+      const v = block - holeV;
+      return {
+        type: "GEO.14",
+        subtype: "VolumeComposite",
+        prompt: `A rectangular block with length ${l}, width ${w}, and height ${h} has a cylindrical hole of radius ${r} drilled straight through its height. Find the volume of the block that remains. Round to two decimal places.`,
+        given: { l, w, h, r, form: "prism minus cylinder" },
+        find: "remaining volume",
+        answer: pi2(v),
+        unit: "cubic units",
+        steps: [
+          step("The remaining solid is a difference of two solids: the block with the cylindrical hole removed, so subtract.", "Volume of a composite solid by subtraction."),
+          step(`Block: ${l} × ${w} × ${h} = ${block}. Hole: π × ${r}² × ${h} ≈ ${pi2(holeV)}.`, "Volumes of the parts."),
+          step(`V ≈ ${block} − ${pi2(holeV)} = ${pi2(v)}.`, "Subtract the hole.", [{ label: "V", answer: pi2(v) }]),
+        ],
+        svgParams: { kind: "SolidFigure", solid: "rectPrism", dims: { l: String(l), w: String(w), h: String(h) } },
+        verify: { kind: "volCompositeHole", l, w, h, r },
+      };
+    }
+  }
+}
+
 // ── Pools + public generators ─────────────────────────────────────────────────
 
 export const SURFACE_AREA_LESSON_POOL: MakerEntry[] = [
@@ -366,5 +667,26 @@ export function generateSurfaceAreaProblems(
   only?: readonly string[]
 ): GeometryProblem[] {
   const pool = only ? SURFACE_AREA_LESSON_POOL.filter((e) => only.includes(e.subtype)) : SURFACE_AREA_LESSON_POOL;
+  return sampleFromPool(rng, pool, n, difficulty);
+}
+
+export const VOLUME_LESSON_POOL: MakerEntry[] = [
+  M("VolumeRectPrism", 1, (rng) => makeVolumeRectPrism(rng)),
+  M("VolumeTriPrism", 1, (rng) => makeVolumeTriPrism(rng)),
+  M("VolumeCylinder", 1, (rng) => makeVolumeCylinderLesson(rng)),
+  M("VolumePyramid", 2, (rng) => makeVolumePyramidLesson(rng)),
+  M("VolumeCone", 2, (rng) => makeVolumeConeLesson(rng)),
+  M("VolumeSphere", 2, (rng) => makeVolumeSphereLesson(rng)),
+  M("VolumeMissingDimension", 2, (rng) => makeVolumeMissingDimension(rng)),
+  M("VolumeComposite", 3, (rng) => makeVolumeComposite(rng)),
+];
+
+export function generateVolumeProblems(
+  rng: RNG,
+  n: number,
+  difficulty: Difficulty,
+  only?: readonly string[]
+): GeometryProblem[] {
+  const pool = only ? VOLUME_LESSON_POOL.filter((e) => only.includes(e.subtype)) : VOLUME_LESSON_POOL;
   return sampleFromPool(rng, pool, n, difficulty);
 }

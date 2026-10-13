@@ -34,6 +34,13 @@ const SUBTYPE_LABEL: Record<Grade6Problem["subtype"], string> = {
   MeasuresOfCenterAndVariation: "Measures of Center & Variation",
   BankingAndCredit: "Banking & Credit",
   CollegeAndSalaries: "Paying for College & Annual Salaries",
+  CoordinateGraphing6: "Graphing Points in Four Quadrants",
+  UnitConversion6: "Converting Units",
+  NumberSets6: "Number Sets, Opposites & Absolute Value",
+  FractionMultiplyEffect: "Multiplying by a Fraction: Bigger or Smaller?",
+  BenchmarkPercents: "Benchmark Percents",
+  CategoricalData6: "Relative Frequency & Percent Bar Graphs",
+  WriteProblem6: "Write the Problem",
 };
 
 export function MiddleSchoolGrade6Card({

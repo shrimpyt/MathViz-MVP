@@ -76,7 +76,7 @@ export function PdfInscribedAngleSVG({
   variant,
 }: InscribedAngleSVGParams) {
   // Variant: rigid rotation of the whole configuration (8 positions).
-  // Arc measures and the angle are unchanged — pure presentation.
+  // Arc measures and the angle are unchanged, pure presentation.
   const arcStart = 30 + ((variant ?? 0) % 8) * 45;
   const arcEnd = arcStart + interceptedArc;
   const vertexAngle = arcStart + interceptedArc + 60;
@@ -315,7 +315,7 @@ export function PdfRightTriangleSVG({
   const width = 130;
   const height = 130;
   const pad = 20;
-  // Variant: draw scale and center offset — pure presentation; side ratios,
+  // Variant: draw scale and center offset, pure presentation; side ratios,
   // labels, and the reference angle are untouched.
   const v = variant ?? 0;
   const drawScale = [1, 0.9, 1.06, 0.94, 0.84, 1.12][v % 6];
@@ -704,7 +704,7 @@ export function PdfCircleMeasurementSVG({
   const C = 100;
   const R = 70;
   // Variant: rigid rotation of the radius/angle configuration (8 positions).
-  // The radius value and angle measure are unchanged — pure presentation.
+  // The radius value and angle measure are unchanged, pure presentation.
   const rot = ((variant ?? 0) % 8) * 45;
   const p0 = { x: C + R * Math.cos(toRad(rot)), y: C - R * Math.sin(toRad(rot)) };
   const showAngle = typeof angle === "number" && angle > 0;
@@ -765,7 +765,7 @@ export function PdfGeometrySVG({ params }: { params: SVGParams }) {
   if (!params) return null;
 
   // New Geometry lesson/test figures (GeometryProblem svgParams) dispatch to
-  // their own PDF renderer. "ShadedSector" is NOT routed here — it keeps the
+  // their own PDF renderer. "ShadedSector" is NOT routed here, it keeps the
   // existing PdfShadedSectorSVG case below.
   const gkind = (params as { kind?: string }).kind;
   if (

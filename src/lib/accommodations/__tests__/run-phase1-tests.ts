@@ -200,7 +200,7 @@ test('validateGroupInput enforces label length, count, and ≥1 accommodation', 
 test('validateClassLabel rejects PII-shaped class labels', () => {
   const bad = validateClassLabel('Algebra 2 John Smith period');
   assert(bad.ok === false, 'accepted name in class label');
-  const good = validateClassLabel('Algebra 2 — Period 3');
+  const good = validateClassLabel('Algebra 2, Period 3');
   assert(good.ok === true, 'rejected valid class label');
 });
 
@@ -210,7 +210,7 @@ test('store: full CRUD round-trips through storage', () => {
   const storage = memStorage();
   const store = createAccommodationStore(storage);
 
-  const list = store.createList('Algebra 2 — Period 3');
+  const list = store.createList('Algebra 2, Period 3');
   assert(list.groups.length === 0, 'new list should have no groups');
 
   const g1 = store.addGroup(list.id, { label: 'Group A', studentCount: 3, flags: { ...ALL_FLAGS } });
@@ -235,7 +235,7 @@ test('store: full CRUD round-trips through storage', () => {
 test('store: stored JSON carries no PII-shaped fields by construction', () => {
   const storage = memStorage();
   const store = createAccommodationStore(storage);
-  const list = store.createList('Geometry — Period 1');
+  const list = store.createList('Geometry, Period 1');
   store.addGroup(list.id, { label: 'Group A', studentCount: 3, flags: { ...ALL_FLAGS } });
 
   const raw = storage.raw().get('euclid.accommodationLists.v1');
@@ -247,7 +247,7 @@ test('store: stored JSON carries no PII-shaped fields by construction', () => {
     `unexpected group fields: ${groupKeys.join(',')}`,
   );
   const blob = JSON.stringify(parsed);
-  // Strip machine-generated tokens (uuids, ISO timestamps) — the PII heuristics
+  // Strip machine-generated tokens (uuids, ISO timestamps), the PII heuristics
   // target human-entered labels, and a random uuid can contain digit runs that
   // look phone-shaped. What matters: no name/email/ID-shaped *label* content.
   const scrubbed = blob
@@ -280,7 +280,7 @@ test('store: corrupted storage degrades to empty (never throws on read)', () => 
 
 function makeListWithGroups(): ReturnType<ReturnType<typeof createAccommodationStore>['getList']> {
   const store = createAccommodationStore(memStorage());
-  const list = store.createList('Algebra 2 — Period 3');
+  const list = store.createList('Algebra 2, Period 3');
   store.addGroup(list.id, { label: 'Group A', studentCount: 3, flags: { ...ALL_FLAGS } });
   store.addGroup(list.id, { label: 'Group B', studentCount: 0, flags: { ...EMPTY_FLAGS, largePrint: true } });
   return store.getList(list.id);
@@ -342,7 +342,7 @@ test('answer keys stay matched for all 16 flag combinations', () => {
     const store = createAccommodationStore(memStorage());
     const list = store.createList('T');
     // mask 0 (no flags) is rejected by store validation (a group needs ≥1
-    // accommodation), so build that list literally — planVersions itself
+    // accommodation), so build that list literally, planVersions itself
     // accepts it fine (it just yields a base-equivalent version).
     const fullList =
       mask === 0

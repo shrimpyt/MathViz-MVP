@@ -1,9 +1,9 @@
 // Algebra2Cubic.ts
-// A2.10 — Cubic & cube root functions (10-1..10-3): transformations of
+// A2.10, Cubic & cube root functions (10-1..10-3): transformations of
 // g(x) = a(x - h)^3 + k and g(x) = a·∛(x - h) + k in the same a/h/k register
 // as the other function families, and cube root equations solved by cubing
-// both sides. Cubing is one-to-one on the reals, so — unlike squaring for
-// square-root equations — it never introduces extraneous solutions, and the
+// both sides. Cubing is one-to-one on the reals, so, unlike squaring for
+// square-root equations, it never introduces extraneous solutions, and the
 // steps say so. Equations are constructed backwards from a chosen integer
 // solution so answers are exact. Pure, seeded, cumulative difficulty 1|2|3.
 
@@ -313,7 +313,7 @@ function makeCubeRootEquation(rng: RNG, hard: 1 | 2 | 3): Algebra2Problem {
           blanks: [{ label: "cubed equation", answer: `${inside} = ${t * t * t}` }],
         },
         {
-          instruction: "Solve the resulting linear equation. No check for extraneous roots is needed — cubing is one-to-one, unlike squaring:",
+          instruction: "Solve the resulting linear equation. No check for extraneous roots is needed, cubing is one-to-one, unlike squaring:",
           reason: "Inverse operations; cubing creates no extraneous solutions",
           blanks: [{ label: "solution", answer: `x = ${x0}` }],
         },

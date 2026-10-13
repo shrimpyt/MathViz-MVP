@@ -1,5 +1,5 @@
 // Algebra2Polynomials.ts
-// A2.8 — Polynomial attributes (8-1), polynomial arithmetic (8-3), and the
+// A2.8, Polynomial attributes (8-1), polynomial arithmetic (8-3), and the
 // Fundamental Theorem of Algebra (8-7). Attributes are read straight from the
 // generated coefficients; arithmetic answers come from the shared polynomial
 // operations; FTA problems are built from chosen zeros/factors so counts are
@@ -431,7 +431,7 @@ function makeFTACountZeros(rng: RNG, hard: 1 | 2 | 3): Algebra2Problem {
         {
           instruction:
             "By the Fundamental Theorem of Algebra, a degree-n polynomial has exactly n complex zeros, " +
-            "counting multiplicity — the theorem counts complex zeros; it does not promise rational or real zeros:",
+            "counting multiplicity, the theorem counts complex zeros; it does not promise rational or real zeros:",
           reason: "Fundamental Theorem of Algebra",
           blanks: [{ label: "number of zeros", answer: `${degree}` }],
         },
@@ -471,7 +471,7 @@ function makeFTACountZeros(rng: RNG, hard: 1 | 2 | 3): Algebra2Problem {
         {
           instruction:
             "By the Fundamental Theorem of Algebra, a degree-n polynomial has exactly n complex zeros, " +
-            "counting multiplicity (zeros may be irrational or nonreal — the theorem never promises rational zeros):",
+            "counting multiplicity (zeros may be irrational or nonreal, the theorem never promises rational zeros):",
           reason: "Fundamental Theorem of Algebra",
           blanks: [{ label: "zeros counting multiplicity", answer: `${total}` }],
         },
@@ -512,7 +512,7 @@ function makeFTACountZerosSimple(rng: RNG, degree: number): Algebra2Problem {
       {
         instruction:
           "The theorem guarantees the count only: the zeros may be real or nonreal, rational or irrational:",
-        reason: "FTA counts complex zeros — no promise of rational roots",
+        reason: "FTA counts complex zeros, no promise of rational roots",
         blanks: [{ label: "kind of zeros guaranteed", answer: "complex" }],
       },
     ],

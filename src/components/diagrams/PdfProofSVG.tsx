@@ -1,6 +1,6 @@
 // PdfProofSVG.tsx
 // PDF renderers for geometry-proof diagrams (@react-pdf/renderer primitives).
-// Mirrors ./ProofDiagrams.tsx — same viewBox (0 0 200 200), same geometry,
+// Mirrors ./ProofDiagrams.tsx, same viewBox (0 0 200 200), same geometry,
 // same labels. Web shows ≅; PDF uses ≃ (DejaVu Serif lacks U+2245).
 
 import React from "react";
@@ -14,6 +14,8 @@ import type {
   ProofSimilaritySVGParams,
   ProofElementsSVGParams,
   ProofCircleSVGParams,
+  ProofQuadrilateralSVGParams,
+  ProofAngleFigureSVGParams,
   ElementsProposition,
 } from "@/lib/proofDiagrams";
 
@@ -554,6 +556,145 @@ export function PdfProofElementsSVG(p: ProofElementsSVGParams) {
   }
 }
 
+// ── Quadrilateral (parallelogram) figure ─────────────────────────────────────
+
+const QUAD: Record<string, Pt> = {
+  A: { x: 45, y: 150 },
+  B: { x: 155, y: 150 },
+  C: { x: 175, y: 55 },
+  D: { x: 65, y: 55 },
+};
+const QUAD_M: Pt = { x: 110, y: 102.5 };
+const QUAD_SIDES: [string, string][] = [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"]];
+
+function PdfSideChevron({ p1, p2 }: { p1: Pt; p2: Pt }) {
+  const mx = (p1.x + p2.x) / 2;
+  const my = (p1.y + p2.y) / 2;
+  const len = Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1;
+  const ux = (p2.x - p1.x) / len;
+  const uy = (p2.y - p1.y) / len;
+  const px = -uy;
+  const py = ux;
+  return (
+    <Path
+      d={`M ${mx - ux * 4 + px * 4} ${my - uy * 4 + py * 4} L ${mx + ux * 3} ${my + uy * 3} L ${mx - ux * 4 - px * 4} ${my - uy * 4 - py * 4}`}
+      fill="none" stroke="#1d4ed8" strokeWidth={1.4}
+    />
+  );
+}
+
+export function PdfProofQuadrilateralSVG(p: ProofQuadrilateralSVGParams) {
+  const { A, B, C, D } = QUAD;
+  return (
+    <Svg viewBox="0 0 200 200" width="130" height="130">
+      <Polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y} ${D.x},${D.y}`} fill="none" stroke={INK} strokeWidth={1.5} />
+      {(p.diagonal === "AC" || p.diagonal === "both") && (
+        <Line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke={INK} strokeWidth={1.1} />
+      )}
+      {(p.diagonal === "BD" || p.diagonal === "both") && (
+        <Line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke={INK} strokeWidth={1.1} />
+      )}
+      {p.diagonal === "both" && (
+        <>
+          <Circle cx={QUAD_M.x} cy={QUAD_M.y} r={2.2} fill={INK} />
+          <PdfLabel pt={QUAD_M} text="M" dx={9} dy={-4} />
+        </>
+      )}
+      {QUAD_SIDES.map(([s1, s2], i) =>
+        p.sideMarks[i] > 0 ? (
+          <PdfTickMarks key={i} p1={QUAD[s1]} p2={QUAD[s2]} count={p.sideMarks[i]} />
+        ) : null
+      )}
+      {p.parallelMarks.map((side) => {
+        const found = QUAD_SIDES.find(([a, b]) => a + b === side) ?? QUAD_SIDES[0];
+        return <PdfSideChevron key={side} p1={QUAD[found[0]]} p2={QUAD[found[1]]} />;
+      })}
+      {p.diagMarks[0] > 0 && (
+        <>
+          <PdfTickMarks p1={A} p2={QUAD_M} count={p.diagMarks[0]} />
+          <PdfTickMarks p1={QUAD_M} p2={C} count={p.diagMarks[0]} />
+        </>
+      )}
+      {p.diagMarks[1] > 0 && (
+        <>
+          <PdfTickMarks p1={B} p2={QUAD_M} count={p.diagMarks[1]} />
+          <PdfTickMarks p1={QUAD_M} p2={D} count={p.diagMarks[1]} />
+        </>
+      )}
+      <PdfLabel pt={A} text="A" dx={-8} dy={8} />
+      <PdfLabel pt={B} text="B" dx={8} dy={8} />
+      <PdfLabel pt={C} text="C" dx={8} dy={-4} />
+      <PdfLabel pt={D} text="D" dx={-8} dy={-4} />
+    </Svg>
+  );
+}
+
+// ── Angle-proof figures ──────────────────────────────────────────────────────
+
+export function PdfProofAngleFigureSVG(p: ProofAngleFigureSVGParams) {
+  if (p.figure === "vertical") {
+    const A: Pt = { x: 30, y: 55 };
+    const B: Pt = { x: 170, y: 145 };
+    const C: Pt = { x: 155, y: 50 };
+    const D: Pt = { x: 45, y: 150 };
+    const E: Pt = { x: 100, y: 100 };
+    const pair = p.markPair ?? 0;
+    return (
+      <Svg viewBox="0 0 200 200" width="130" height="130">
+        <Line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={INK} strokeWidth={1.5} />
+        <Line x1={C.x} y1={C.y} x2={D.x} y2={D.y} stroke={INK} strokeWidth={1.5} />
+        {pair === 0 ? (
+          <>
+            <PdfAngleArc v={E} p1={A} p2={C} r={17} />
+            <PdfAngleArc v={E} p1={D} p2={B} r={17} />
+          </>
+        ) : (
+          <>
+            <PdfAngleArc v={E} p1={A} p2={D} r={17} />
+            <PdfAngleArc v={E} p1={B} p2={C} r={17} />
+          </>
+        )}
+        <PdfLabel pt={A} text="A" dx={-8} dy={-2} />
+        <PdfLabel pt={B} text="B" dx={8} dy={6} />
+        <PdfLabel pt={C} text="C" dx={8} dy={-2} />
+        <PdfLabel pt={D} text="D" dx={-8} dy={8} />
+        <PdfLabel pt={E} text="E" dx={0} dy={-10} />
+      </Svg>
+    );
+  }
+  const A: Pt = { x: 35, y: 150 };
+  const B: Pt = { x: 165, y: 150 };
+  const M: Pt = { x: 100, y: 150 };
+  const P: Pt = { x: 100, y: 45 };
+  return (
+    <Svg viewBox="0 0 200 200" width="130" height="130">
+      <Line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={INK} strokeWidth={1.5} />
+      <Line x1={100} y1={168} x2={100} y2={30} stroke={INK} strokeWidth={1.2} />
+      <Line x1={P.x} y1={P.y} x2={A.x} y2={A.y} stroke={INK} strokeWidth={1.2} />
+      <Line x1={P.x} y1={P.y} x2={B.x} y2={B.y} stroke={INK} strokeWidth={1.2} />
+      <PdfRightAngleMark v={M} p1={A} p2={P} />
+      {p.markMidpoint && (
+        <>
+          <PdfTickMarks p1={A} p2={M} count={1} />
+          <PdfTickMarks p1={M} p2={B} count={1} />
+        </>
+      )}
+      {p.markSlants && (
+        <>
+          <PdfTickMarks p1={P} p2={A} count={2} />
+          <PdfTickMarks p1={P} p2={B} count={2} />
+        </>
+      )}
+      <Circle cx={P.x} cy={P.y} r={2.2} fill={INK} />
+      <Circle cx={M.x} cy={M.y} r={2.2} fill={INK} />
+      <PdfLabel pt={A} text="A" dx={-8} dy={8} />
+      <PdfLabel pt={B} text="B" dx={8} dy={8} />
+      <PdfLabel pt={M} text="M" dx={0} dy={14} />
+      <PdfLabel pt={P} text="P" dx={9} dy={0} />
+    </Svg>
+  );
+}
+
 // ── Dispatcher ───────────────────────────────────────────────────────────────
 
 export function PdfProofSVG({ params }: { params: ProofSVGParams }) {
@@ -571,6 +712,10 @@ export function PdfProofSVG({ params }: { params: ProofSVGParams }) {
       return <PdfProofElementsSVG {...(params as ProofElementsSVGParams)} />;
     case "ProofCircle":
       return <PdfProofCircleSVG {...(params as ProofCircleSVGParams)} />;
+    case "ProofQuadrilateral":
+      return <PdfProofQuadrilateralSVG {...(params as ProofQuadrilateralSVGParams)} />;
+    case "ProofAngleFigure":
+      return <PdfProofAngleFigureSVG {...(params as ProofAngleFigureSVGParams)} />;
     default:
       return null;
   }

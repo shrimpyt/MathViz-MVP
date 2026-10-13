@@ -1,16 +1,16 @@
 // algebra-1.ts
-// Algebra 1 module — delegates to the domain factories in
+// Algebra 1 module, delegates to the domain factories in
 // src/lib/factories/Algebra1*.ts and exposes registry-style generator
 // functions (mode, seed, options) for the CurriculumRegistry snippet.
 //
 // Lesson granularity follows the authoritative scope doc
-// (~/workspace/euclid-worksheet/CURRICULUM_SCOPE.md, "Algebra I — Topics 1–9"):
+// (~/workspace/euclid-worksheet/CURRICULUM_SCOPE.md, "Algebra I, Topics 1–9"):
 // one route per lesson row. TEKS codes are the doc's codes with the "A."
 // subject prefix per repo convention.
 //
 // NOTE: this file is new. The CurriculumRegistry.ts entries that call these
 // functions are documented in tests/algebra-1/REGISTRY_SNIPPET.md (the
-// registry itself must be edited by the integrator — see WIRING.md).
+// registry itself must be edited by the integrator, see WIRING.md).
 
 import { mulberry32 } from "@/lib/math-utils";
 import type { RNG } from "@/lib/math-utils";
@@ -73,6 +73,11 @@ const ROUTES = {
   t23Transform: R(["TransformLinear"], generateLinearProblems, LINEAR_BY_DIFFICULTY),
   t23Scatter: R(["LineOfBestFit"], generateStatisticsProblems, STATS_BY_DIFFICULTY),
   t23TwoWay: R(["TwoWayTable"], generateStatisticsProblems, STATS_BY_DIFFICULTY), // mission extension
+  t23DomainRange: R(["DomainRangeLinear"], generateLinearProblems, LINEAR_BY_DIFFICULTY),
+  t23HVLines: R(["HorizontalVerticalLines"], generateLinearProblems, LINEAR_BY_DIFFICULTY),
+  t23SlopeForms: R(["SlopeEveryForm"], generateLinearProblems, LINEAR_BY_DIFFICULTY),
+  t23Correlation: R(["Correlation"], generateStatisticsProblems, STATS_BY_DIFFICULTY),
+  t23Causation: R(["AssociationCausation"], generateStatisticsProblems, STATS_BY_DIFFICULTY),
   // ── T4: Systems ───────────────────────────────────────────────────────────
   t4Graphing: R(["SystemGraphing", "SystemSpecialCase"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
   t4Substitution: R(["SystemSubstitution"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
@@ -80,6 +85,8 @@ const ROUTES = {
   t4Applications: R(["SystemWordProblem"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
   t4LinIneq: R(["LinearInequality"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
   t4SysIneq: R(["SystemOfInequalities"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
+  t4WriteIneq: R(["WriteLinearInequality"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
+  t4Estimate: R(["EstimateSystemSolution"], generateSystemProblems, SYSTEM_BY_DIFFICULTY),
   // ── T5: Exponents & Radicals ──────────────────────────────────────────────
   t5ZeroNeg: R(["ZeroNegativeExponents"], generateExponentProblems, EXPONENT_BY_DIFFICULTY),
   t5Multiply: R(["MultiplyPowers"], generateExponentProblems, EXPONENT_BY_DIFFICULTY),
@@ -100,6 +107,7 @@ const ROUTES = {
   t7Special: R(["FactorDifferenceSquares"], generatePolynomialProblems, POLY_BY_DIFFICULTY),
   t7Grouping: R(["FactorByGrouping"], generatePolynomialProblems, POLY_BY_DIFFICULTY),
   t7Rational: R(["SimplifyRationalExpression"], generatePolynomialProblems, POLY_BY_DIFFICULTY),
+  t7Division: R(["PolyDivision"], generatePolynomialProblems, POLY_BY_DIFFICULTY),
   // ── T8: Quadratics ────────────────────────────────────────────────────────
   t8Graphs: R(["QuadraticAttributes"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
   t8Functions: R(["GraphQuadratic"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
@@ -110,10 +118,14 @@ const ROUTES = {
   t8Writing: R(["WriteQuadratic"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
   t8CTS: R(["CompleteSquare"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
   t8Formula: R(["QuadraticFormula", "QuadraticDiscriminant"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
+  t8FactorsZeros: R(["FactorsZeros"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
+  t8QuadModels: R(["QuadModelData"], generateQuadraticProblems, QUADRATIC_BY_DIFFICULTY),
   // ── T9: Exponentials ──────────────────────────────────────────────────────
   t9Functions: R(["GraphExponential", "ExponentialGrowth"], generateExponentialProblems, EXPONENTIAL_BY_DIFFICULTY),
   t9GrowthDecay: R(["ExponentialGrowth", "ExponentialDecay"], generateExponentialProblems, EXPONENTIAL_BY_DIFFICULTY),
   t9Modeling: R(["ExponentialWordProblem", "ExponentialModeling"], generateExponentialProblems, EXPONENTIAL_BY_DIFFICULTY),
+  t9WriteExp: R(["WriteExponential"], generateExponentialProblems, EXPONENTIAL_BY_DIFFICULTY),
+  t9ExpFeatures: R(["ExponentialFeatures"], generateExponentialProblems, EXPONENTIAL_BY_DIFFICULTY),
 };
 
 export type Algebra1LessonKey = keyof typeof ROUTES;

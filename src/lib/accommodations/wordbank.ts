@@ -4,7 +4,7 @@
 // A word bank prints the version's fill-in blank answers at the top of the
 // worksheet so students SELECT an answer instead of recalling it cold. The
 // bank is derived from the version's own final problem list (after any
-// content transforms like reduced-count), exactly like the answer key —
+// content transforms like reduced-count), exactly like the answer key,
 // so a bank can never contain answers to problems the version doesn't have.
 //
 // Pure function: same problem list → same bank, every time. Terms are
@@ -45,7 +45,7 @@ function hashTerms(terms: string[]): number {
 /**
  * Build the word bank for a problem list: every fill-in blank answer,
  * deduped (first occurrence wins), deterministically shuffled.
- * Returns [] when the list has no blanks — renderers omit the bank box.
+ * Returns [] when the list has no blanks, renderers omit the bank box.
  */
 export function buildWordBank(problems: MathProblem[]): string[] {
   const seen = new Set<string>();

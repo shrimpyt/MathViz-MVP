@@ -1,6 +1,6 @@
 "use client";
 // CalculusGraphs.tsx
-// Function-graph renderers for the calculus area — web SVG + PDF SVG duality.
+// Function-graph renderers for the calculus area, web SVG + PDF SVG duality.
 //
 // Both renderers sample the SAME CalcGraphParams (the problem's own function
 // data: coefficients, domains, holes, asymptotes, shading, tangent points,

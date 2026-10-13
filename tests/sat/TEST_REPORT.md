@@ -1,6 +1,6 @@
-# SAT Math Practice Generator — Test Report
+# SAT Math Practice Generator, Test Report
 
-Generated: 2026-10-11T00:34:11.144Z
+Generated: 2026-10-13T23:29:25.100Z
 Suites: matrix, verify, fuzz, repro, pdfcheck
 
 ## Totals
@@ -8,14 +8,14 @@ Suites: matrix, verify, fuzz, repro, pdfcheck
 - Problems generated: 22,016
 - Headless checks: 497,422
 - Failures: 0
-- Verdict: PASS — zero failures
+- Verdict: PASS, zero failures
 
 ## Suites
 
 | Suite | Problems | Checks | Failures | Time |
 | ----- | -------- | ------ | -------- | ---- |
 | matrix | 696 | 19,896 | 0 | 0.0s |
-| verify | 10,920 | 184,730 | 0 | 0.3s |
+| verify | 10,920 | 184,730 | 0 | 0.2s |
 | fuzz | 10,400 | 291,965 | 0 | 0.1s |
 | repro | 0 | 824 | 0 | 0.0s |
 | pdfcheck | 0 | 7 | 0 | 1.3s |
@@ -30,6 +30,6 @@ Suites: matrix, verify, fuzz, repro, pdfcheck
 
 ## Notes
 
-- Distractor pools use graceful filtering (pickDistractors): candidates colliding with the key or each other are dropped; generation throws only if fewer than 3 documented-error distractors survive — the fuzz run proves this never happens across 3,000 seeds.
+- Distractor pools use graceful filtering (pickDistractors): candidates colliding with the key or each other are dropped; generation throws only if fewer than 3 documented-error distractors survive, the fuzz run proves this never happens across 3,000 seeds.
 - Inequality correctness is decided by the full (boundary, direction) string, not the numeric boundary alone; the flipped-direction distractor is intentionally boundary-equal.
 - Classical-notes contract: SAT generators are mode-agnostic (no steps emitted), so 'Classical' is handled exactly like 'Review'; not in the matrix per coordinator instruction.

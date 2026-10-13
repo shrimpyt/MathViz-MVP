@@ -10,7 +10,7 @@ export interface CartesianPoint {
 
 export interface LabeledPoint extends CartesianPoint {
   label: string;
-  /** Signed pixel offset applied when rendering the label — already accounts
+  /** Signed pixel offset applied when rendering the label, already accounts
    *  for the direction from the diagram center to avoid line collision. */
   offsetX: number;
   offsetY: number;
@@ -55,7 +55,7 @@ export abstract class BaseGeometryModule {
     const dy = y - this.cy;
     const mag = Math.hypot(dx, dy);
     if (mag < 0.01) {
-      // Point is at center — push straight up by convention
+      // Point is at center, push straight up by convention
       return { x, y, label, offsetX: 0, offsetY: -pushRadius };
     }
     return {
@@ -79,7 +79,7 @@ export abstract class BaseGeometryModule {
     };
   }
 
-  /** Round n to the nearest 0.5 — produces "clean" classroom values */
+  /** Round n to the nearest 0.5, produces "clean" classroom values */
   static roundToHalf(n: number): number {
     return Math.round(n * 2) / 2;
   }

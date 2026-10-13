@@ -1,4 +1,4 @@
-// util.ts — redteam shared helpers (NOT a test itself)
+// util.ts, redteam shared helpers (NOT a test itself)
 import { formatAnswer, latexToText, pdfSafeText } from "@/lib/answerKey";
 import type { MathProblem, OutputMode } from "@/lib/ProblemFactory";
 

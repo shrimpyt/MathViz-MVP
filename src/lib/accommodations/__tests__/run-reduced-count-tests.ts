@@ -7,7 +7,7 @@
 //  (a) reduced count ≈ 75% of base
 //  (b) every TEKS in the base version appears ≥1 in the reduced version
 //  (c) the version's answer key matches its reduced problem list exactly
-//  (d) determinism — same input yields the same subset every time
+//  (d) determinism, same input yields the same subset every time
 //  (e) tiny-base edge case: coverage beats the 75% target
 //  (+) round-robin fill order, input purity, planVersions/divider integration,
 //      findKeyMismatches skips reduced versions (no false positives)
@@ -99,7 +99,7 @@ test('(b) every base TEKS appears ≥1 in the reduced set', () => {
 });
 
 test('(b) skewed distribution keeps rare TEKS', () => {
-  // 10 of G.9A, 1 lonely G.12B — the lonely one must survive the cut.
+  // 10 of G.9A, 1 lonely G.12B, the lonely one must survive the cut.
   const teks = [...Array<string>(10).fill('G.9A'), 'G.12B', 'G.9A', 'G.9A'];
   const out = selectReducedProblems(teksProblems(teks));
   assert(out.some((p) => p.type === 'G.12B'), 'rare TEKS G.12B dropped');
@@ -224,7 +224,7 @@ test('(c) reduced version key matches its own problems exactly', () => {
     assert(key[i].number === i + 1, `numbering restarts per version (idx ${i})`);
     assert(key[i].text === serialize(v.problems[i]), `key entry ${i} mismatches problem`);
   }
-  // And it must NOT equal the base key (fewer entries) — the per-version
+  // And it must NOT equal the base key (fewer entries), the per-version
   // derivation is what keeps them matched.
   const baseKey = buildAnswerKey(plan.base.problems, serialize);
   assert(key.length < baseKey.length, 'reduced key should be shorter than base key');

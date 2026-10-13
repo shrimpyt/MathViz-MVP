@@ -1,7 +1,7 @@
 // GeometryTypes.ts
 // Shared types for the Geometry lesson/test generators built out from the
 // placeholder entries in CurriculumRegistry (Topics 1, 2, 3, 5, 6, 8, 9, 12,
-// 13, 14, 15 — the lessons and chapter tests that previously returned
+// 13, 14, 15, the lessons and chapter tests that previously returned
 // placeholderGenerator output).
 //
 // Shape mirrors Algebra2Problem (the repo's established pattern for newer
@@ -22,9 +22,12 @@ export type GeometryType =
   | "GEO.3" // Parallel and Perpendicular Lines
   | "GEO.5" // Relationships Within Triangles
   | "GEO.6" // Polygons and Quadrilaterals
+  | "GEO.7" // Coordinate Geometry
   | "GEO.8" // Transformational Geometry
   | "GEO.9" // Similarity
-  | "GEO.12" // Theorems About Circles (tangent lines)
+  | "GEO.10" // Right Triangles and Trigonometry
+  | "GEO.11" // Circle Measurement
+  | "GEO.12" // Theorems About Circles
   | "GEO.13" // Area
   | "GEO.14" // Surface Area and Volume
   | "GEO.15"; // Probability
@@ -218,9 +221,12 @@ export const GEOMETRY_TOPIC_LABELS: Record<GeometryType, string> = {
   "GEO.3": "Parallel and Perpendicular Lines",
   "GEO.5": "Relationships Within Triangles",
   "GEO.6": "Polygons and Quadrilaterals",
+  "GEO.7": "Coordinate Geometry",
   "GEO.8": "Transformational Geometry",
   "GEO.9": "Similarity",
-  "GEO.12": "Tangent Lines",
+  "GEO.10": "Right Triangles and Trigonometry",
+  "GEO.11": "Circle Measurement",
+  "GEO.12": "Theorems About Circles",
   "GEO.13": "Area",
   "GEO.14": "Surface Area and Volume",
   "GEO.15": "Probability",

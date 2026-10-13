@@ -10,7 +10,7 @@ import type { BaseProofProblem } from "../proofTypes";
 import { latexToText } from "../answerKey";
 
 // ── Topic codes ───────────────────────────────────────────────────────────────
-// Aligned to CURRICULUM_SCOPE.md ("Algebra II — Topics 2–12"): the code is the
+// Aligned to CURRICULUM_SCOPE.md ("Algebra II, Topics 2–12"): the code is the
 // TEKS-by-topic code, so registry entries, cards, and problems agree.
 
 export type Algebra2Type =
@@ -25,7 +25,7 @@ export type Algebra2Type =
   | "A2.10" // T10 Cubic & cube root functions
   | "A2.11" // T11 Rational functions & equations
   | "A2.12" // T12 Data & regression
-  | "A2.S" // Sequences & series (supplementary — not in scope doc)
+  | "A2.S" // Sequences & series (supplementary, not in scope doc)
   | "A2.C"; // Circle equations & circle-line systems (supplementary)
 
 export type Algebra2ProofType = "A2.P";
@@ -131,7 +131,7 @@ export type Algebra2MathProblem = Algebra2Problem | Algebra2ProofProblem;
 /**
  * One-line printable answer for the answer key.
  * (Wiring: add `case` branches in formatAnswer() in src/lib/answerKey.ts
- * that delegate here — see tests/algebra-2/WIRING.md.)
+ * that delegate here, see tests/algebra-2/WIRING.md.)
  */
 export function formatAlgebra2Answer(p: Algebra2MathProblem): string {
   if (p.type === "Proof") return latexToText(p.prove);

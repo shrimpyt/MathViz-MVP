@@ -25,13 +25,13 @@ export function check(cond: boolean, msg: string): void {
 export function checkClose(actual: number, expected: number, tol: number, msg: string): void {
   checks++;
   if (!isFinite(actual) || !isFinite(expected) || Math.abs(actual - expected) > tol) {
-    failures.push(`${msg} — got ${actual}, want ${expected} ± ${tol}`);
+    failures.push(`${msg}, got ${actual}, want ${expected} ± ${tol}`);
   }
 }
 
 export function checkEqual<T>(actual: T, expected: T, msg: string): void {
   checks++;
-  if (actual !== expected) failures.push(`${msg} — got ${JSON.stringify(actual)}, want ${JSON.stringify(expected)}`);
+  if (actual !== expected) failures.push(`${msg}, got ${JSON.stringify(actual)}, want ${JSON.stringify(expected)}`);
 }
 
 export function stats(): { checks: number; failures: string[] } {

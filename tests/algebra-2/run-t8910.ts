@@ -292,8 +292,8 @@ function checkProblem(p: Algebra2Problem, tag: string): void {
       } else {
         // quotient sqrt(a)/sqrt(b): split the REDUCED numerator and
         // denominator separately, cancel when the inside parts agree, else
-        // rationalize. (The previous shortcut — root-splitting the product
-        // (a/g)(b/g) and dividing by b/g — was flagged as a test-only
+        // rationalize. (The previous shortcut, root-splitting the product
+        // (a/g)(b/g) and dividing by b/g, was flagged as a test-only
         // expected-string bug, e.g. a=18, b=8 must give 3/2; this form
         // recomputes the answer the way the math is actually done and is
         // pinned by the regression cases below.)

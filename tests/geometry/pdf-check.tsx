@@ -1,4 +1,4 @@
-// pdf-check.tsx — Geometry sample worksheet PDFs.
+// pdf-check.tsx, Geometry sample worksheet PDFs.
 //
 // Renders five sample worksheets through the real PDF stack (@react-pdf +
 // the new PdfGeometryFigureSVG diagram renderers + DejaVu fonts, the same
@@ -56,7 +56,7 @@ function SampleDoc({ title, problems }: { title: string; problems: GeometryProbl
     <Document>
       <Page size="LETTER" style={styles.page}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.sub}>Euclid Engine — geometry sample worksheet (seeded)</Text>
+        <Text style={styles.sub}>Euclid Engine, geometry sample worksheet (seeded)</Text>
         {problems.map((p, i) => (
           <View key={i} style={styles.problem}>
             <Text style={styles.prompt}>{`${i + 1}. ${p.prompt}`}</Text>

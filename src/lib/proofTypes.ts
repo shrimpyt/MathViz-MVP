@@ -7,7 +7,7 @@
 // CONVENTIONS:
 // - steps[] must be logically valid AS LISTED: each statement follows from
 //   the givens + previous steps, and each reason must actually justify its
-//   statement. A wrong proof is worse than no proof — test this.
+//   statement. A wrong proof is worse than no proof, test this.
 // - All strings PDF-safe plain text (see "@/lib/answerKey.ts").
 // - Generation pure + seeded (mulberry32). No JSX, no AI.
 
@@ -15,7 +15,7 @@ export type ProofDomain = "geometry" | "algebra2";
 
 /** One line of a two-column proof. */
 export interface ProofStep {
-  /** The statement, e.g. "AB ≅ DE" (use ≃ in PDF contexts — see README). */
+  /** The statement, e.g. "AB ≅ DE" (use ≃ in PDF contexts, see README). */
   statement: string;
   /** The reason, e.g. "Given", "SSS", "Substitution", "Distributive Property". */
   reason: string;
@@ -54,7 +54,7 @@ export interface BaseProofProblem {
 
 /** Structural validation for a proof problem. Factories should call this in
  *  tests. Checks shape, not deep logical validity (that needs per-family
- *  checkers — write those in your tests).
+ *  checkers, write those in your tests).
  */
 export function validateProofShape(p: BaseProofProblem): string[] {
   const errors: string[] = [];

@@ -1,5 +1,5 @@
 // geometry-lessons.ts
-// Geometry module — registry-style generators for the 18 placeholder entries
+// Geometry module, registry-style generators for the 18 placeholder entries
 // in CurriculumRegistry: the 9 lessons (ch1-1, ch2-1, ch5-1, ch6-1, ch8-1,
 // ch12-1, ch13-1, ch14-2, ch15-1) and the 9 chapter tests (ch1, ch2, ch3, ch5,
 // ch6, ch8, ch9, ch13, ch14 tests). The registry edits that point entries at
@@ -10,7 +10,7 @@
 // (9 in Review/Classical); tests default to 10 (15 in Review), matching
 // topicTestGenerator. Chapter tests are weighted shuffle-bags over the
 // chapter's lesson makers + test-only makers, weighted toward the chapter's
-// core theorems — the sampling a real course test uses.
+// core theorems, the sampling a real course test uses.
 
 import { mulberry32 } from "@/lib/math-utils";
 import type { RNG } from "@/lib/math-utils";
@@ -58,8 +58,78 @@ import {
   generateSurfaceAreaProblems,
   SURFACE_AREA_LESSON_POOL,
   VOLUME_TEST_POOL,
+  generateVolumeProblems,
+  VOLUME_LESSON_POOL,
 } from "@/lib/factories/SurfaceAreaVolumeFactory";
 import { generateProbabilityConceptsProblems } from "@/lib/factories/ProbabilityConceptsFactory";
+import {
+  generateCircleEquationProblems,
+  CIRCLE_EQUATION_LESSON_POOL,
+} from "@/lib/factories/CircleEquationFactory";
+import {
+  generatePartitionProblems,
+  SEGMENT_PARTITION_LESSON_POOL,
+} from "@/lib/factories/SegmentPartitionFactory";
+import {
+  generateAltitudeProblems,
+  ALTITUDE_LESSON_POOL,
+} from "@/lib/factories/AltitudeHypotenuseFactory";
+import {
+  generateRadianProblems,
+  RADIAN_MEASURE_LESSON_POOL,
+} from "@/lib/factories/RadianMeasureFactory";
+import {
+  generateSectorAreaProblems,
+  SECTOR_AREA_LESSON_POOL,
+} from "@/lib/factories/SectorAreaFactory";
+import {
+  generateParPerpLineProblems,
+  PAR_PERP_LINES_LESSON_POOL,
+} from "@/lib/factories/ParallelPerpendicularFactory";
+import {
+  generateTriangleProportionalityProblems,
+  TRIANGLE_PROPORTIONALITY_LESSON_POOL,
+} from "@/lib/factories/TriangleProportionalityFactory";
+import {
+  generateDimensionalChangeProblems,
+  DIMENSIONAL_CHANGE_LESSON_POOL,
+} from "@/lib/factories/DimensionalChangeFactory";
+import {
+  generateRegularPolygonAreaProblems,
+  REGULAR_POLYGON_AREA_LESSON_POOL,
+} from "@/lib/factories/RegularPolygonAreaFactory";
+import {
+  generateCrossSectionProblems,
+  CROSS_SECTIONS_LESSON_POOL,
+} from "@/lib/factories/CrossSectionsRevolutionFactory";
+import {
+  generateSymmetryProblems,
+  SYMMETRY_LESSON_POOL,
+} from "@/lib/factories/SymmetryFactory";
+import {
+  generateTriangleInequalityProblems,
+  TRIANGLE_INEQUALITY_LESSON_POOL,
+} from "@/lib/factories/TriangleInequalityFactory";
+import {
+  generatePermutationsCombinationsProblems,
+  PERMUTATIONS_COMBINATIONS_LESSON_POOL,
+} from "@/lib/factories/PermutationsCombinationsFactory";
+import {
+  generateConditionalProbabilityProblems,
+  CONDITIONAL_PROBABILITY_LESSON_POOL,
+} from "@/lib/factories/ConditionalProbabilityFactory";
+import {
+  generateIndependenceProblems,
+  INDEPENDENCE_LESSON_POOL,
+} from "@/lib/factories/IndependenceFactory";
+import {
+  generateCounterexamplesProblems,
+  COUNTEREXAMPLES_LESSON_POOL,
+} from "@/lib/factories/CounterexamplesFactory";
+import {
+  generateRigidMotionsProblems,
+  RIGID_MOTIONS_LESSON_POOL,
+} from "@/lib/factories/RigidMotionsFactory";
 
 /** Structural twin of CurriculumRegistry's GenerateOptions (avoids a cycle). */
 export interface GeometryOptions {
@@ -93,6 +163,24 @@ export const geo_12_1_tangentLines = lesson(generateTangentProblems);
 export const geo_13_1_area = lesson(generateAreaProblems);
 export const geo_14_2_surfaceArea = lesson(generateSurfaceAreaProblems);
 export const geo_15_1_probability = lesson(generateProbabilityConceptsProblems);
+export const geo_7_2_partitioning = lesson(generatePartitionProblems);
+export const geo_10_1_altitude = lesson(generateAltitudeProblems);
+export const geo_11_2_radians = lesson(generateRadianProblems);
+export const geo_12_2_circleEquation = lesson(generateCircleEquationProblems);
+export const geo_14_3_volume = lesson(generateVolumeProblems);
+export const geo_11_3_sectorArea = lesson(generateSectorAreaProblems);
+export const geo_7_3_parPerpLines = lesson(generateParPerpLineProblems);
+export const geo_10_2_triangleProportionality = lesson(generateTriangleProportionalityProblems);
+export const geo_13_2_dimensionalChange = lesson(generateDimensionalChangeProblems);
+export const geo_13_3_regularPolygons = lesson(generateRegularPolygonAreaProblems);
+export const geo_14_4_crossSections = lesson(generateCrossSectionProblems);
+export const geo_8_2_symmetry = lesson(generateSymmetryProblems);
+export const geo_5_2_triangleInequality = lesson(generateTriangleInequalityProblems);
+export const geo_15_2_permutationsCombinations = lesson(generatePermutationsCombinationsProblems);
+export const geo_15_3_conditionalProbability = lesson(generateConditionalProbabilityProblems);
+export const geo_15_4_independence = lesson(generateIndependenceProblems);
+export const geo_2_2_counterexamples = lesson(generateCounterexamplesProblems);
+export const geo_8_3_rigidMotions = lesson(generateRigidMotionsProblems);
 
 // ── Chapter tests: weighted mixes over the chapter's actual scope ─────────────
 
@@ -250,6 +338,24 @@ export const WIRED_GEOMETRY: WiredGeometryEntry[] = [
   { id: "ch13-1-area-polygons", generate: geo_13_1_area, subtypes: AREA_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch14-2-surface-area", generate: geo_14_2_surfaceArea, subtypes: SURFACE_AREA_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch15-1-experimental-theoretical", generate: geo_15_1_probability, subtypes: ["TheoreticalProbability", "ExperimentalProbability", "PredictFromData", "CompareProbabilities"] },
+  { id: "ch7-2-partitioning-a-segment", generate: geo_7_2_partitioning, subtypes: SEGMENT_PARTITION_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch10-1-altitude-to-the-hypotenuse", generate: geo_10_1_altitude, subtypes: ALTITUDE_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch11-2-radian-measure", generate: geo_11_2_radians, subtypes: RADIAN_MEASURE_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch12-2-equation-of-a-circle", generate: geo_12_2_circleEquation, subtypes: CIRCLE_EQUATION_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch14-3-volume", generate: geo_14_3_volume, subtypes: VOLUME_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch11-3-sector-area", generate: geo_11_3_sectorArea, subtypes: SECTOR_AREA_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch7-3-parallel-perpendicular-lines", generate: geo_7_3_parPerpLines, subtypes: PAR_PERP_LINES_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch10-2-triangle-proportionality", generate: geo_10_2_triangleProportionality, subtypes: TRIANGLE_PROPORTIONALITY_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch13-2-effects-of-dimensional-change", generate: geo_13_2_dimensionalChange, subtypes: DIMENSIONAL_CHANGE_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch13-3-area-of-regular-polygons", generate: geo_13_3_regularPolygons, subtypes: REGULAR_POLYGON_AREA_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch14-4-cross-sections", generate: geo_14_4_crossSections, subtypes: CROSS_SECTIONS_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch8-2-symmetry", generate: geo_8_2_symmetry, subtypes: SYMMETRY_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch5-2-triangle-inequality", generate: geo_5_2_triangleInequality, subtypes: TRIANGLE_INEQUALITY_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch15-2-permutations-combinations", generate: geo_15_2_permutationsCombinations, subtypes: PERMUTATIONS_COMBINATIONS_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch15-3-conditional-probability", generate: geo_15_3_conditionalProbability, subtypes: CONDITIONAL_PROBABILITY_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch15-4-independent-events", generate: geo_15_4_independence, subtypes: INDEPENDENCE_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch2-2-counterexamples", generate: geo_2_2_counterexamples, subtypes: COUNTEREXAMPLES_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch8-3-rigid-motions", generate: geo_8_3_rigidMotions, subtypes: RIGID_MOTIONS_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch1-test", generate: (m, s, o) => geoTopicTest(1, m, s, o), subtypes: TEST_MIXES[1].map((w) => w.entry.subtype) },
   { id: "ch2-test", generate: (m, s, o) => geoTopicTest(2, m, s, o), subtypes: TEST_MIXES[2].map((w) => w.entry.subtype) },
   { id: "ch3-test", generate: (m, s, o) => geoTopicTest(3, m, s, o), subtypes: TEST_MIXES[3].map((w) => w.entry.subtype) },

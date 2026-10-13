@@ -1,11 +1,11 @@
 // anatomy-of-a-circle.ts
-// TEKS G.12(A) — Inscribed Angles, Central Angles, Tangents, Chords, Secants
+// TEKS G.12(A), Inscribed Angles, Central Angles, Tangents, Chords, Secants
 //
 // Mathematical Truth Layer:
 //   • Seed variable: the circle's radius R (integer, 3–12 abstract units).
 //   • All arc angles are derived deterministically from R so every "Given"
 //     in a problem is internally consistent.
-//   • Arc values are multiples of 10° — clean classroom arithmetic.
+//   • Arc values are multiples of 10°, clean classroom arithmetic.
 
 import { BaseGeometryModule, CartesianPoint } from "./BaseGeometryModule";
 import type {

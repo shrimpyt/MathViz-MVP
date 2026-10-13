@@ -1,4 +1,4 @@
-// verify.ts — Geometry generator verification.
+// verify.ts, Geometry generator verification.
 //
 // For every wired geometry entry (9 lessons + 9 chapter tests):
 //  • generation succeeds across difficulties 1–3 and many seeds, no exceptions
@@ -59,9 +59,87 @@ function ruleStrC(a: number, b: number): string {
 function close(a: number, b: number): boolean {
   return Math.abs(a - b) < 1e-9;
 }
+/** Format (num/den)·π in lowest terms: "π", "4π", "π/6", "2π/3" (checker-side). */
+function piFracC(numerator: number, denominator: number): string {
+  const g = gcd2(numerator, denominator);
+  const nn = numerator / g;
+  const dd = denominator / g;
+  if (nn === 0) return "0";
+  if (dd === 1) return nn === 1 ? "π" : `${nn}π`;
+  return nn === 1 ? `π/${dd}` : `${nn}π/${dd}`;
+}
+/** Standard-form circle equation from center and radius (checker-side). */
+function circleEqC(h: number, k: number, r: number): string {
+  const part = (v: string, c: number) =>
+    c === 0 ? `${v}²` : c > 0 ? `(${v} − ${c})²` : `(${v} + ${-c})²`;
+  return `${part("x", h)} + ${part("y", k)} = ${r * r}`;
+}
+function ptFmt(x: number, y: number): string {
+  return `(${fmtNum(x)}, ${fmtNum(y)})`;
+}
 function parseLeadingNum(s: string): number {
   const m = s.replace(",", "").match(/-?\d+(\.\d+)?/);
   return m ? parseFloat(m[0]) : NaN;
+}
+function factC(k: number): number {
+  let f = 1;
+  for (let i = 2; i <= k; i++) f *= i;
+  return f;
+}
+function nPrC(nn: number, rr: number): number {
+  return rr < 0 || rr > nn ? NaN : factC(nn) / factC(nn - rr);
+}
+function nCrC(nn: number, rr: number): number {
+  return rr < 0 || rr > nn ? NaN : factC(nn) / (factC(rr) * factC(nn - rr));
+}
+/** Apply a named rigid motion (checker-side reimplementation). */
+function motionC(m: string, x: number, y: number, a = 0, b = 0): [number, number] {
+  if (m === "translate") return [x + a, y + b];
+  if (m === "reflectX") return [x, -y];
+  if (m === "reflectY") return [-x, y];
+  if (m === "reflectYX") return [y, x];
+  if (m === "rot90") return [-y, x];
+  if (m === "rot180") return [-x, -y];
+  return [y, -x]; // rot270
+}
+function isPrimeC(k: number): boolean {
+  if (k < 2) return false;
+  for (let d = 2; d * d <= k; d++) if (k % d === 0) return false;
+  return true;
+}
+/** Conjecture hypothesis/conclusion evaluators for counterexample lessons.
+ * The conjectures, as stated in the factory prompts:
+ * product: "The product of two positive numbers is greater than either of
+ *   the two numbers." acute: "Any two acute angles are complementary."
+ * rhombus: "Every quadrilateral with four congruent sides is a square"
+ *   (candidate gives one vertex angle). mult8: "Every multiple of 4 is
+ *   also a multiple of 8." oddProduct: "The product of two odd numbers is
+ *   always even." formPrime: "For every whole number x, 2x + 1 is prime." */
+function hypOf(t: string, vals: number[]): boolean {
+  switch (t) {
+    case "product": return vals[0] > 0 && vals[1] > 0;
+    case "acute": return vals[0] < 90 && vals[1] < 90;
+    case "rhombus": return true;
+    case "mult8": return vals[0] % 4 === 0;
+    case "oddProduct": return vals[0] % 2 === 1 && vals[1] % 2 === 1;
+    case "formPrime": return true;
+    default: return false;
+  }
+}
+function conclOf(t: string, vals: number[]): boolean {
+  switch (t) {
+    case "product": return vals[0] * vals[1] > Math.max(vals[0], vals[1]);
+    case "acute": return vals[0] + vals[1] === 90;
+    case "rhombus": return vals[0] === 90;
+    case "mult8": return vals[0] % 8 === 0;
+    case "oddProduct": return (vals[0] * vals[1]) % 2 === 0;
+    case "formPrime": return isPrimeC(2 * vals[0] + 1);
+    default: return false;
+  }
+}
+function smallestFactorC(v: number): number {
+  for (let f = 2; f < v; f++) if (v % f === 0) return f;
+  return v;
 }
 
 type V = Record<string, number | string | boolean | number[] | string[]>;
@@ -312,12 +390,319 @@ function verifyAnswer(p: GeometryProblem): boolean {
     case "volPyramid": return close(parseLeadingNum(A), Math.round(((n("s") * n("s") * n("h")) / 3) * 100) / 100);
     case "volCone": return close(parseLeadingNum(A), Math.round((Math.PI * n("r") ** 2 * n("h")) / 3 * 100) / 100);
     case "volSphere": return close(parseLeadingNum(A), Math.round(((4 / 3) * Math.PI * n("r") ** 3) * 100) / 100);
+    case "volTriPrism": {
+      const base = (n("t1") * n("t2")) / 2;
+      return Number.isInteger(base) && A === String(base * n("L"));
+    }
+    case "volMissingPrism": {
+      const lw = n("l") * n("w");
+      return n("V") % lw === 0 && A === String(n("V") / lw);
+    }
+    case "volMissingPyramid": {
+      const s2 = n("s") * n("s");
+      return (3 * n("V")) % s2 === 0 && A === String((3 * n("V")) / s2);
+    }
+    case "volMissingRadius": {
+      const r3 = (3 * n("coefNum")) / (4 * n("coefDen"));
+      const r = Math.round(Math.cbrt(r3));
+      return r ** 3 === r3 && A === String(r);
+    }
+    case "volMissingCylRadius": {
+      if (n("coef") % n("h") !== 0) return false;
+      const r2 = n("coef") / n("h");
+      const r = Math.sqrt(r2);
+      return Number.isInteger(r) && A === String(r);
+    }
+    case "volCompositeSilo": {
+      const exp = Math.PI * n("r") ** 2 * n("h") + (2 / 3) * Math.PI * n("r") ** 3;
+      return close(parseLeadingNum(A), Math.round(exp * 100) / 100);
+    }
+    case "volCompositeHouse": {
+      const roof = n("l") * n("w") * n("h2");
+      return roof % 3 === 0 && A === String(n("l") * n("w") * n("h") + roof / 3);
+    }
+    case "volCompositeHole": {
+      const exp = n("l") * n("w") * n("h") - Math.PI * n("r") ** 2 * n("h");
+      return exp > 0 && close(parseLeadingNum(A), Math.round(exp * 100) / 100);
+    }
+    case "circleEqWrite": return A === circleEqC(n("h"), n("k"), n("r"));
+    case "circleEqRead": return A === `center ${ptStr(n("h"), n("k"))}, radius ${n("r")}`;
+    case "circleEqGeneral": {
+      const h = -n("D") / 2, k = -n("E") / 2;
+      if (!Number.isInteger(h) || !Number.isInteger(k)) return false;
+      const r2 = h * h + k * k - n("F");
+      const r = Math.sqrt(r2);
+      return Number.isInteger(r) && r > 0 && A === circleEqC(h, k, r);
+    }
+    case "circleEqDiameter": {
+      const h = (n("x1") + n("x2")) / 2, k = (n("y1") + n("y2")) / 2;
+      if (!Number.isInteger(h) || !Number.isInteger(k)) return false;
+      const dist = Math.hypot(n("x2") - n("x1"), n("y2") - n("y1"));
+      return Number.isInteger(dist) && dist % 2 === 0 && A === circleEqC(h, k, dist / 2);
+    }
+    case "partition": {
+      const t = n("m") + n("n");
+      const px = (n("n") * n("ax") + n("m") * n("bx")) / t;
+      const py = (n("n") * n("ay") + n("m") * n("by")) / t;
+      return Number.isInteger(px) && Number.isInteger(py) && A === ptFmt(px, py);
+    }
+    case "partitionFrac": {
+      const px = n("ax") + ((n("bx") - n("ax")) * n("num")) / n("den");
+      const py = n("ay") + ((n("by") - n("ay")) * n("num")) / n("den");
+      return A === ptFmt(px, py);
+    }
+    case "partitionEndpoint": {
+      const t = n("m") + n("n");
+      const bx = n("ax") + (t * (n("px") - n("ax"))) / n("m");
+      const by = n("ay") + (t * (n("py") - n("ay"))) / n("m");
+      return Number.isInteger(bx) && Number.isInteger(by) && A === ptFmt(bx, by);
+    }
+    case "altLegs": {
+      return n("a") ** 2 + n("b") ** 2 === n("c") ** 2 && A === fmtNum((n("a") * n("b")) / n("c"));
+    }
+    case "hypSegOther": {
+      return (n("h") * n("h")) % n("p") === 0 && A === String((n("h") * n("h")) / n("p"));
+    }
+    case "hypSegLeg": {
+      const leg = Math.sqrt(n("seg") * n("c"));
+      return Number.isInteger(leg) && A === String(leg);
+    }
+    case "altCombined": {
+      const p = (n("a") * n("a")) / n("c");
+      const q = (n("b") * n("b")) / n("c");
+      const hh = (n("a") * n("b")) / n("c");
+      return close(Math.sqrt(p * q), hh) && A === `AD = ${fmtNum(p)}, DC = ${fmtNum(q)}, BD = ${fmtNum(hh)}`;
+    }
+    case "degToRad": return A === piFracC(n("deg"), 180);
+    case "radToDeg": {
+      return (n("num") * 180) % n("den") === 0 && A === `${(n("num") * 180) / n("den")}°`;
+    }
+    case "arcRad": return A === piFracC(n("r") * n("num"), n("den"));
+    case "sectorRad": return A === piFracC(n("r") * n("r") * n("num"), 2 * n("den"));
+    case "radFromArc": return A === piFracC(n("sNum"), n("sDen") * n("r"));
     case "theoretical": return A === fracStr(n("fav"), n("total"));
     case "theoreticalPct": return A === `${fmtNum((n("fav") / n("total")) * 100)}%`;
     case "experimental": return A === fracStr(n("hits"), n("trials"));
     case "predict": {
       const num2 = n("hits") * n("future");
       return num2 % n("trials") === 0 && A === String(num2 / n("trials"));
+    }
+    case "sectorDeg":
+      return close(parseLeadingNum(A), Math.round(((n("angle") / 360) * Math.PI * n("r") * n("r")) * 100) / 100);
+    case "sectorRadDec":
+      return close(parseLeadingNum(A), Math.round(0.5 * n("r") * n("r") * (n("tNum") / n("tDen")) * 100) / 100);
+    case "sectorRemainder":
+      return close(parseLeadingNum(A), Math.round(Math.PI * n("r") * n("r") * (1 - n("angle") / 360) * 100) / 100);
+    case "sectorRing": {
+      const exp = (n("angle") / 360) * Math.PI * (n("R") * n("R") - n("r") * n("r"));
+      return close(parseLeadingNum(A), Math.round(exp * 100) / 100);
+    }
+    case "hvLine": return A === `${v.axis as string} = ${n("value")}`;
+    case "slopeSpecial": return A === (v.vertical ? "no slope" : "0");
+    case "triPropParallel":
+      return A === (n("AD") * n("EC") === n("DB") * n("AE") ? "Yes" : "No");
+    case "triPropMid": return A === `AB = ${2 * n("a")}, AC = ${2 * n("b")}`;
+    case "threeParallel": {
+      const num3 = n("b") * n("c");
+      return num3 % n("a") === 0 && A === String(num3 / n("a"));
+    }
+    case "scalePerim": {
+      const exp = (n("perim") * n("kNum")) / n("kDen");
+      return Number.isInteger(exp) && A === String(exp);
+    }
+    case "scaleCirc":
+      return close(parseLeadingNum(A), Math.round(2 * Math.PI * n("r") * (n("kNum") / n("kDen")) * 100) / 100);
+    case "scaleArea": {
+      const exp = (n("area") * n("kNum") * n("kNum")) / (n("kDen") * n("kDen"));
+      return Number.isInteger(exp) && A === String(exp);
+    }
+    case "scaleVolume": {
+      const exp = (n("vol") * n("kNum") ** 3) / n("kDen") ** 3;
+      return Number.isInteger(exp) && A === String(exp);
+    }
+    case "scaleKFromAreas": return n("u") > 0 && A === fracStr(n("b"), n("a"));
+    case "scaleKFromVolumes": return n("u") > 0 && A === fracStr(n("b"), n("a"));
+    case "scaleVolFromRatio": {
+      const num4 = n("smallVol") * n("b") ** 3;
+      return num4 % (n("a") ** 3) === 0 && close(parseLeadingNum(A), num4 / n("a") ** 3);
+    }
+    case "regPolyAreaP": return close(parseLeadingNum(A), Math.round(0.5 * n("a") * n("P") * 100) / 100);
+    case "regPolyHex": return close(parseLeadingNum(A), Math.round(1.5 * Math.sqrt(3) * n("s") * n("s") * 100) / 100);
+    case "regPolySquare": return A === `a = ${fmtNum(n("s") / 2)}, A = ${n("s") * n("s")}`;
+    case "regPolyShaded":
+      return close(parseLeadingNum(A), Math.round((n("W") * n("H") - 0.5 * n("a") * n("n") * n("s")) * 100) / 100);
+    case "regPolySum":
+      return close(parseLeadingNum(A), Math.round((n("q") * n("q") + 0.5 * n("a") * n("n") * n("s")) * 100) / 100);
+    case "csId": {
+      const table: Record<string, string> = {
+        "cyl-parallel": "Circle",
+        "cyl-axis": "Rectangle",
+        "cyl-oblique": "Ellipse",
+        "cone-parallel": "Circle",
+        "cone-apex": "Triangle",
+        "cone-oblique": "Ellipse",
+        "sphere-plane": "Circle",
+        "prism-parallel": "Rectangle",
+        "pyramid-parallel": "Square",
+        "pyramid-apex": "Triangle",
+        "triprism-parallel": "Triangle",
+        "triprism-lengthwise": "Rectangle",
+        "rev-rectangle": "Cylinder",
+        "rev-square": "Cylinder",
+        "rev-righttri": "Cone",
+        "rev-isotri": "Cone",
+        "rev-semicircle": "Sphere",
+        "rev-circle": "Torus",
+      };
+      return A === table[v.id as string];
+    }
+    case "csDimsCyl": return A === `Rectangle, ${2 * n("r")} by ${n("h")}`;
+    case "csDimsRect": return A === `Rectangle, ${n("d1")} by ${n("d2")}`;
+    case "csDimsSphere": return A === `Circle, radius ${n("r")}`;
+    case "symShapeLines": {
+      const table: Record<string, string> = {
+        square: "4", rectangle: "2", rhombus: "2", kite: "1", isoscelesTrapezoid: "1",
+        parallelogram: "0", equilateralTriangle: "3", isoscelesTriangle: "1",
+        scaleneTriangle: "0", circle: "infinitely many",
+      };
+      return A === table[v.shape as string];
+    }
+    case "symShapeRot": {
+      const table: Record<string, string> = {
+        square: "order 4, angle 90°",
+        rectangle: "order 2, angle 180°",
+        rhombus: "order 2, angle 180°",
+        parallelogram: "order 2, angle 180°",
+        equilateralTriangle: "order 3, angle 120°",
+        kite: "no rotational symmetry",
+        isoscelesTrapezoid: "no rotational symmetry",
+        isoscelesTriangle: "no rotational symmetry",
+      };
+      return A === table[v.shape as string];
+    }
+    case "symRotOrder": return 360 % n("n") === 0 && A === `order ${n("n")}, angle ${360 / n("n")}°`;
+    case "symGrid": {
+      const table: Record<string, Record<string, string>> = {
+        square: { lines: "4", angle: "90°" },
+        rectangle: { lines: "2", angle: "180°" },
+        isoscelesTriangle: { lines: "1", angle: "none" },
+      };
+      return A === table[v.shape as string][v.ask as string];
+    }
+    case "triRangeWords":
+      return A === `greater than ${n("b") - n("a")}${v.unit as string} and less than ${n("a") + n("b")}${v.unit as string}`;
+    case "triChoose": {
+      const ch = n("chosen");
+      return ch > n("b") - n("a") && ch < n("a") + n("b") && A === String(ch);
+    }
+    case "perm": return n("r") >= 1 && n("r") <= n("n") && A === String(nPrC(n("n"), n("r")));
+    case "comb": return n("r") >= 1 && n("r") <= n("n") && A === String(nCrC(n("n"), n("r")));
+    case "permDecide": {
+      const val = v.method === "permutation" ? nPrC(n("n"), n("r")) : nCrC(n("n"), n("r"));
+      return A === `${v.method as string}, ${val}`;
+    }
+    case "productCount": {
+      const factors = v.factors as number[];
+      return factors.length >= 2 && factors.every((f) => f >= 2) &&
+        A === String(factors.reduce((s, f) => s * f, 1));
+    }
+    case "condFrac": return n("fav") >= 0 && n("cond") > 0 && n("fav") <= n("cond") && A === fracStr(n("fav"), n("cond"));
+    case "condCompare": {
+      const l = n("f1") / n("c1");
+      const r = n("f2") / n("c2");
+      if (close(l, r)) return false;
+      const exp = l > r ? fracStr(n("f1"), n("c1")) : fracStr(n("f2"), n("c2"));
+      return A === exp;
+    }
+    case "condComplement":
+      return n("fav") > 0 && n("fav") < n("cond") &&
+        A === fracStr(n("cond") - n("fav"), n("cond"));
+    case "indepTest": {
+      const lhs = n("pabN") / n("pabD");
+      const rhs = (n("paN") / n("paD")) * (n("pbN") / n("pbD"));
+      if (!(lhs > 0 && lhs <= Math.min(n("paN") / n("paD"), n("pbN") / n("pbD")) + 1e-9)) return false;
+      const ind = close(lhs, rhs);
+      return A === (ind ? "independent" : "dependent");
+    }
+    case "indepTestPct": {
+      const lhs = n("pab") / 100;
+      const rhs = (n("pa") / 100) * (n("pb") / 100);
+      const ind = close(lhs, rhs);
+      return A === (ind ? "independent" : "dependent");
+    }
+    case "jointProb": return A === fracStr(n("f1") * n("f2"), n("t1") * n("t2"));
+    case "replacementContrast": {
+      const r = n("r");
+      const total = n("total");
+      if (r < 2 || total < 3 || r > total) return false;
+      return A === `with replacement ${fracStr(r * r, total * total)}, without replacement ${fracStr(r * (r - 1), total * (total - 1))}`;
+    }
+    case "motionName": {
+      const [cx, cy] = motionC(v.motion as string, n("x"), n("y"));
+      const names: Record<string, string> = {
+        reflectX: "reflection over the x-axis",
+        reflectY: "reflection over the y-axis",
+        reflectYX: "reflection over the line y = x",
+        rot90: "rotation of 90° counterclockwise about the origin",
+        rot180: "rotation of 180° about the origin",
+        rot270: "rotation of 270° counterclockwise about the origin",
+      };
+      return cx === n("ix") && cy === n("iy") && A === names[v.motion as string];
+    }
+    case "motionSeq": {
+      const [mx, my] = motionC(v.m1 as string, n("x"), n("y"), n("a1"), n("b1"));
+      const [fx, fy] = motionC(v.m2 as string, mx, my, n("a2"), n("b2"));
+      return A === ptStr(fx, fy);
+    }
+    case "counterJudge": {
+      const t = v.template as string;
+      const vals =
+        t === "product" ? [n("a"), n("b")]
+        : t === "acute" ? [n("x"), n("y")]
+        : t === "rhombus" ? [n("angle")]
+        : [n("n")];
+      const isCounter = hypOf(t, vals) && !conclOf(t, vals);
+      return A === (isCounter ? "counterexample" : "not a counterexample");
+    }
+    case "counterChoose": {
+      const flat = v.cases as number[];
+      const t = v.template as string;
+      const width = t === "oddProduct" ? 2 : 1;
+      let idx = -1;
+      let count = 0;
+      for (let i = 0; i * width < flat.length; i++) {
+        const vals = flat.slice(i * width, i * width + width);
+        if (hypOf(t, vals) && !conclOf(t, vals)) {
+          idx = i;
+          count++;
+        }
+      }
+      return count === 1 && idx === n("correct") && A === `Case ${idx + 1}`;
+    }
+    case "counterBuild": {
+      const t = v.template as string;
+      if (t === "euler") {
+        const x = n("x");
+        const val = x * x + x + 41;
+        const f = smallestFactorC(val);
+        return (x === 40 || x === 41) && f > 1 && f < val &&
+          A === `x = ${x} gives ${val} = ${f} × ${val / f}, which is composite`;
+      }
+      if (t === "sumSquares") {
+        const a = n("a");
+        const b = n("b");
+        const s = a * a + b * b;
+        const root = Math.round(Math.sqrt(s));
+        return root * root !== s &&
+          A === `${a}² + ${b}² = ${s}, which is not a perfect square`;
+      }
+      if (t === "productEven") {
+        const a = n("a");
+        const b = n("b");
+        return a % 2 === 0 && b % 2 === 1 && (a * b) % 2 === 0 &&
+          A === `${a} × ${b} = ${a * b} is even, but ${b} is odd`;
+      }
+      return false;
     }
     default: return false;
   }
@@ -354,7 +739,7 @@ function main() {
           check(entry.subtypes.includes(p.subtype), `${entry.id}/${p.subtype}: subtype declared for entry`);
           let ok = false;
           try { ok = verifyAnswer(p); } catch { ok = false; }
-          check(ok, `${entry.id}/${p.subtype} (${(p.verify as V)?.kind}): answer verifies independently — got "${p.answer}" verify=${JSON.stringify(p.verify)}`);
+          check(ok, `${entry.id}/${p.subtype} (${(p.verify as V)?.kind}): answer verifies independently, got "${p.answer}" verify=${JSON.stringify(p.verify)}`);
         }
         // determinism
         const again = entry.generate("Review", seed, { count: 12, difficulty });

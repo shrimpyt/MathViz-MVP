@@ -8,7 +8,7 @@
 // (lowercase <svg> elements) and a PDF renderer (react-pdf primitives),
 // exported as AlgebraGraphSVG and PdfAlgebraGraphSVG.
 //
-// Plotting is always recomputed from params — nothing is hardcoded.
+// Plotting is always recomputed from params, nothing is hardcoded.
 
 import React from "react";
 import { Svg, Line as PdfLine, Path as PdfPath, Circle as PdfCircle, Text as PdfText, Rect as PdfRect } from "@react-pdf/renderer";

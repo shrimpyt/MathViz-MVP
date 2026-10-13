@@ -1,11 +1,11 @@
 // satTypes.ts
-// SAT Math Practice Generator — problem types, timing presets, module builder.
+// SAT Math Practice Generator, problem types, timing presets, module builder.
 //
 // College Board digital-SAT domain taxonomy:
-//   HeartOfAlgebra            — linear equations, inequalities, functions, systems
-//   ProblemSolvingData        — ratios, percents, statistics, probability
-//   PassportAdvancedMath      — quadratics, equivalent expressions, nonlinear functions
-//   AdditionalTopics          — geometry, trigonometry, area/volume
+//   HeartOfAlgebra           , linear equations, inequalities, functions, systems
+//   ProblemSolvingData       , ratios, percents, statistics, probability
+//   PassportAdvancedMath     , quadratics, equivalent expressions, nonlinear functions
+//   AdditionalTopics         , geometry, trigonometry, area/volume
 //
 // Generation stays pure + seeded (mulberry32). Rendering decisions
 // (latexToText, pdfSafeText) live on the render side per AGENTS.md.
@@ -29,7 +29,7 @@ export type SATDomain =
 
 export type SATFormat = "MCQ" | "GridIn";
 
-/** 1 = easy, 2 = medium, 3 = hard — mirrors the SAT's own difficulty ordering. */
+/** 1 = easy, 2 = medium, 3 = hard, mirrors the SAT's own difficulty ordering. */
 export type SATDifficulty = 1 | 2 | 3;
 
 export const SAT_DOMAIN_META: Record<

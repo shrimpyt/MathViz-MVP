@@ -4,7 +4,7 @@
 // Follows the Algebra1ProblemCard pattern: prompt is authoritative, steps go
 // through the shared StepBlock atoms (reasons blank correctly in Guided /
 // Classical modes), and the figure renders via the GeometryFigureSVG
-// dispatcher — except "ShadedSector", which the dispatcher intentionally
+// dispatcher, except "ShadedSector", which the dispatcher intentionally
 // leaves to the established sector renderer (GeometrySVG).
 
 import React from "react";

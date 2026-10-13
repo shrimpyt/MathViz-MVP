@@ -1,5 +1,5 @@
 // PdfDocument.tsx
-// PDF export engine — Classical Academy style.
+// PDF export engine, Classical Academy style.
 // Enforces US Letter (8.5" × 11") via @react-pdf/renderer `size="LETTER"`.
 // Typography: DejaVu Serif embedded from public/fonts/ (covers math glyphs
 // like √ θ π ∠ that the PDF standard 14 fonts would render as wrong glyphs).
@@ -51,7 +51,7 @@ import type { Presentation } from "../lib/accommodations";
 import { DEFAULT_PRESENTATION } from "../lib/accommodations";
 
 // ── Embedded serif font ───────────────────────────────────────────────────────
-// The PDF's standard 14 fonts only cover WinAnsi, so math glyphs (√ θ π ∠ —)
+// The PDF's standard 14 fonts only cover WinAnsi, so math glyphs (√ θ π ∠)
 // would print as wrong characters. We embed DejaVu Serif (bundled in
 // public/fonts/) instead. In the browser the font loads from the public URL;
 // in Node (tests / prerender) it loads from the repo's public directory.
@@ -104,19 +104,19 @@ interface SectionDef {
 }
 
 const SECTION_DEFS: SectionDef[] = [
-  { label: "G.12(A) — Circle Relationships", match: (p) => p.type === "G.12A" },
-  { label: "G.12(B) — Circle Measurement", match: (p) => p.type === "G.12B" },
-  { label: "G.13(B) — Geometric Probability", match: (p) => p.type === "G.13B" },
-  { label: "G.6(B) — Triangle Congruence", match: (p) => p.type === "G.6B" },
-  { label: "G.2(B) — Coordinate Geometry", match: (p) => p.type === "G.2B" },
-  { label: "G.9(A) — Right Triangles & Trigonometry", match: (p) => p.type === "G.9A" },
-  { label: "G.9(B) — Special Right Triangles", match: (p) => p.type === "G.9B" },
+  { label: "G.12(A), Circle Relationships", match: (p) => p.type === "G.12A" },
+  { label: "G.12(B), Circle Measurement", match: (p) => p.type === "G.12B" },
+  { label: "G.13(B), Geometric Probability", match: (p) => p.type === "G.13B" },
+  { label: "G.6(B), Triangle Congruence", match: (p) => p.type === "G.6B" },
+  { label: "G.2(B), Coordinate Geometry", match: (p) => p.type === "G.2B" },
+  { label: "G.9(A), Right Triangles & Trigonometry", match: (p) => p.type === "G.9A" },
+  { label: "G.9(B), Special Right Triangles", match: (p) => p.type === "G.9B" },
   {
     label: "Geometry Proofs",
     match: (p) => p.type === "Proof" && (p as { domain?: string }).domain === "geometry",
   },
   {
-    label: "Algebra 2 — Proofs",
+    label: "Algebra 2, Proofs",
     match: (p) => p.type === "Proof" && (p as { domain?: string }).domain === "algebra2",
   },
   { label: "Algebra 1", match: (p) => (p as { type: string }).type.startsWith("A.") },
@@ -125,14 +125,14 @@ const SECTION_DEFS: SectionDef[] = [
   { label: "Grade 7 Math", match: (p) => p.type === "MS.7" },
   { label: "Grade 8 Math", match: (p) => p.type === "MS.8" },
   { label: "SAT Math Practice", match: (p) => p.type === "SAT" },
-  { label: "AP Precalculus — Multiple Choice", match: (p) => p.type === "PRECALC_MCQ" },
+  { label: "AP Precalculus, Multiple Choice", match: (p) => p.type === "PRECALC_MCQ" },
   {
-    label: "AP Precalculus — Free Response",
+    label: "AP Precalculus, Free Response",
     match: (p) => p.type === "AP_FRQ" && (p as { subject?: string }).subject === "precalc",
   },
-  { label: "AP Calculus — Multiple Choice", match: (p) => p.type === "CALC_MCQ" },
+  { label: "AP Calculus, Multiple Choice", match: (p) => p.type === "CALC_MCQ" },
   {
-    label: "AP Calculus — Free Response",
+    label: "AP Calculus, Free Response",
     match: (p) => p.type === "AP_FRQ" && (p as { subject?: string }).subject === "calc",
   },
 ];
@@ -227,7 +227,7 @@ function createStyles(presentation: Presentation) {
     height: 14,
   },
 
-  // Word bank — plain bordered box under the header (IEP option)
+  // Word bank, plain bordered box under the header (IEP option)
   wordBankBox: {
     borderWidth: 1,
     borderColor: '#111111',
@@ -248,7 +248,7 @@ function createStyles(presentation: Presentation) {
     lineHeight: 1.5,
   },
 
-  // Directions — plain italic, no box
+  // Directions, plain italic, no box
   directionsBox: {
     marginBottom: sp(10),
   },
@@ -283,7 +283,7 @@ function createStyles(presentation: Presentation) {
     color: '#111111',
   },
 
-  // ── Problem container — wrap:false enforces unbreakable ──
+  // ── Problem container, wrap:false enforces unbreakable ──
   problemRow: {
     flexDirection: 'row',
     marginBottom: sp(18),
@@ -312,7 +312,7 @@ function createStyles(presentation: Presentation) {
     alignSelf: 'flex-end',
   },
 
-  // Scaffolding steps — plain, no accents
+  // Scaffolding steps, plain, no accents
   scaffoldBox: {
     marginTop: sp(6),
     marginLeft: sp(8),
@@ -687,13 +687,13 @@ export interface PdfDocumentProps {
   logoSrc?: string;
   /** Per-entry problem groups for Classical Notes mode (built by WorksheetGenerator). */
   classicalGroups?: ClassicalGroup[];
-  /** Worksheet seed — drives deterministic margin-prompt rotation in Classical mode. */
+  /** Worksheet seed, drives deterministic margin-prompt rotation in Classical mode. */
   seed?: number;
   /** Presentation overrides from the IEP accommodation generator. Presentation
-      only — never changes math. Defaults to the standard presentation. */
+      only, never changes math. Defaults to the standard presentation. */
   presentation?: Presentation;
   /** Heading for the answer-key page. Defaults to 'ANSWER KEY'. Per-version
-      keys pass their own label (e.g. 'Answer Key — Group A'). */
+      keys pass their own label (e.g. 'Answer Key, Group A'). */
   keyHeading?: string;
   /** Word bank terms for accommodated versions (IEP word-bank option).
       Rendered in a plain bank box under the header when non-empty. */
@@ -703,7 +703,7 @@ export interface PdfDocumentProps {
 // ── Document ──────────────────────────────────────────────────────────────────
 // PdfVersionPages renders one worksheet version's pages (worksheet + its own
 // answer key) as a fragment, so the combined accommodated export can render
-// several versions — with divider pages between — inside a single <Document>.
+// several versions, with divider pages between, inside a single <Document>.
 // The default PdfDocument export preserves the original single-version API.
 
 interface PdfItem {
@@ -933,7 +933,7 @@ export function PdfVersionPages({
         </View>
       );
     }
-    // graph — subject discriminates the renderer (decision: AP_FRQ routes on subject)
+    // graph, subject discriminates the renderer (decision: AP_FRQ routes on subject)
     if (p.subject === 'precalc') {
       return <PrecalcPdfSVG params={stim.params as unknown as PrecalcDiagramParams} />;
     }
@@ -943,7 +943,7 @@ export function PdfVersionPages({
   // ── Problem renderers ─────────────────────────────────────────────────────
 
   const renderStandardProblem = (item: PdfItem, n: number) => (
-    // wrap={false} — diagram + answer table never split across pages
+    // wrap={false}, diagram + answer table never split across pages
     <View key={n} style={styles.problemRow} wrap={false}>
       <Text style={styles.problemNumber}>{n}.</Text>
 
@@ -1352,7 +1352,7 @@ export function PdfVersionPages({
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>{standard}</Text>
       <Text style={styles.footerText}>
-        Euclid Engine — {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        Euclid Engine, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
       </Text>
     </View>
   );
@@ -1423,7 +1423,7 @@ export function PdfVersionPages({
           <View style={styles.headerWrapper}>
             <View style={styles.headerTopRule}>
               <Text style={styles.keyTitle}>{keyHeading}</Text>
-              <Text style={styles.keyWarning}>Do not distribute — teacher use only</Text>
+              <Text style={styles.keyWarning}>Do not distribute, teacher use only</Text>
               <Text style={styles.modeLabel}>{title}</Text>
             </View>
           </View>
@@ -1456,10 +1456,10 @@ export default function PdfDocument(props: PdfDocumentProps) {
 
 // ── Accommodation divider page ────────────────────────────────────────────────
 // Separates versions in the combined accommodated export. Carries the version's
-// dividerText (e.g. "Group A — Large print · 3 students · print 3 copies").
+// dividerText (e.g. "Group A, Large print · 3 students · print 3 copies").
 
 // Divider pages carry no version of their own, so they follow the default
-// presentation's font (sans) — same fam() swap as createStyles above.
+// presentation's font (sans), same fam() swap as createStyles above.
 const dividerFam = (
   f: 'WorksheetSerif' | 'WorksheetSerifBold',
 ): { fontFamily: string; fontWeight?: number } =>

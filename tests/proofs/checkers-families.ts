@@ -555,3 +555,506 @@ export function checkElementsProof(ctx: Ctx, p: ProofProblem, tag: string): void
   check(ctx, p.presentation === "elements", `${tag}: presentation not elements`);
   check(ctx, p.given.length >= 1, `${tag}: no givens`);
 }
+
+// ── Quadrilateral proofs (parallelogram conditions) ──────────────────────────
+
+export type QuadrilateralFamilyName =
+  | "OnePairBoth"
+  | "OppositeSidesCongruent"
+  | "DiagonalsBisect";
+
+/** Canonical segment name: letters sorted (CA → AC, DA → AD). */
+const canonSegQ = (s: string) => s.split("").sort().join("");
+const segPairKeyQ = (a: string, b: string) =>
+  [canonSegQ(a), canonSegQ(b)].sort().join("|");
+/** Angle names that denote the same angle when M lies on diagonal AC:
+ * at vertex A the ray AM is the ray AC, and at C the ray CM is the ray CA. */
+const ANG_ALIAS_Q: Record<string, string> = { BAM: "BAC", DCM: "ACD" };
+/** Canonical angle name: vertex (middle letter) fixed, outer letters sorted. */
+const canonAngQ = (a: string) => {
+  if (a.length !== 3) return a;
+  const c = [a[0], a[2]].sort()[0] + a[1] + [a[0], a[2]].sort()[1];
+  return ANG_ALIAS_Q[c] ?? c;
+};
+const angPairKeyQ = (a: string, b: string) =>
+  [canonAngQ(a), canonAngQ(b)].sort().join("|");
+
+/** Positional side letters of a triangle name: [v0v1, v1v2, v2v0]. */
+function triSidesQ(t: string): string[] {
+  return [t[0] + t[1], t[1] + t[2], t[2] + t[0]];
+}
+
+export function checkQuadrilateralProof(
+  ctx: Ctx,
+  p: ProofProblem,
+  family: QuadrilateralFamilyName,
+  tag: string
+): void {
+  check(ctx, p.family === `Quadrilateral:${family}`, `${tag}: family ${p.family}`);
+  check(ctx, p.teks === "G.6(E)", `${tag}: teks ${p.teks}`);
+  check(ctx, p.prove === "ABCD is a parallelogram", `${tag}: prove mismatch`);
+
+  const givenSet = new Set(p.given.map(norm));
+  const segCong = new Set<string>();
+  const parallelPairs = new Set<string>();
+  const angCong = new Set<string>();
+  const triPairs: [string, string][] = [];
+  let diagonalDrawn = false;
+  let intersectM = false;
+
+  const recordGivenFacts = (stmt: string) => {
+    const sc = stmt.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+    if (sc) segCong.add(segPairKeyQ(sc[1], sc[2]));
+    const sp = stmt.match(/^([A-Z]{2}) ∥ ([A-Z]{2})$/);
+    if (sp) parallelPairs.add(segPairKeyQ(sp[1], sp[2]));
+    if (stmt === "AC and BD intersect at M") intersectM = true;
+  };
+  p.given.forEach(recordGivenFacts);
+
+  const cpctcSegOk = (x: string, y: string) =>
+    triPairs.some(([t1, t2]) => {
+      const s1 = triSidesQ(t1);
+      const s2 = triSidesQ(t2);
+      return s1.some((side, i) => segPairKeyQ(side, s2[i]) === segPairKeyQ(x, y));
+    });
+  const cpctcAngOk = (x: string, y: string) =>
+    triPairs.some(([t1, t2]) => {
+      for (let i = 0; i < 3; i++) {
+        const a1 = t1[(i + 2) % 3] + t1[i] + t1[(i + 1) % 3];
+        const a2 = t2[(i + 2) % 3] + t2[i] + t2[(i + 1) % 3];
+        if (angPairKeyQ(a1, a2) === angPairKeyQ(x, y)) return true;
+      }
+      return false;
+    });
+
+  p.steps.forEach((s, i) => {
+    const stmt = norm(s.statement);
+    const where = `${tag} step ${i + 1} "${stmt}"`;
+    switch (s.reason) {
+      case "Given":
+        check(ctx, givenSet.has(stmt), `${where}: reason Given but not in given[]`);
+        break;
+      case "Construction":
+        check(ctx, stmt === "Draw diagonal AC", `${where}: unexpected construction`);
+        diagonalDrawn = true;
+        break;
+      case "Reflexive Property": {
+        const m = stmt.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+        check(ctx, m !== null && m[1] === m[2], `${where}: not a self-congruence`);
+        if (m) segCong.add(segPairKeyQ(m[1], m[2]));
+        break;
+      }
+      case "SSS": {
+        const m = stmt.match(/^△([A-Z]{3}) ≅ △([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not a triangle congruence`);
+        if (m) {
+          const s1 = triSidesQ(m[1]);
+          const s2 = triSidesQ(m[2]);
+          check(ctx, s1.every((side, k) => segCong.has(segPairKeyQ(side, s2[k]))),
+            `${where}: SSS needs all three positional side pairs established`);
+          triPairs.push([m[1], m[2]]);
+        }
+        break;
+      }
+      case "SAS": {
+        const m = stmt.match(/^△([A-Z]{3}) ≅ △([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not a triangle congruence`);
+        if (m) {
+          const [t1, t2] = [m[1], m[2]];
+          // SAS may sit at any vertex position: two sides through that
+          // vertex plus the included angle there.
+          let sasOk = false;
+          for (let v = 0; v < 3 && !sasOk; v++) {
+            const sA = segPairKeyQ(
+              t1[v] + t1[(v + 1) % 3], t2[v] + t2[(v + 1) % 3]);
+            const sB = segPairKeyQ(
+              t1[(v + 2) % 3] + t1[v], t2[(v + 2) % 3] + t2[v]);
+            const incl = angPairKeyQ(
+              t1[(v + 2) % 3] + t1[v] + t1[(v + 1) % 3],
+              t2[(v + 2) % 3] + t2[v] + t2[(v + 1) % 3]);
+            sasOk = segCong.has(sA) && segCong.has(sB) && angCong.has(incl);
+          }
+          check(ctx, sasOk, `${where}: no vertex position gives established SAS data`);
+          triPairs.push([t1, t2]);
+        }
+        break;
+      }
+      case "CPCTC": {
+        const sc = stmt.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+        const ac = stmt.match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+        if (sc) {
+          check(ctx, cpctcSegOk(sc[1], sc[2]), `${where}: ${sc[1]} ≅ ${sc[2]} not corresponding parts`);
+          segCong.add(segPairKeyQ(sc[1], sc[2]));
+        } else if (ac) {
+          check(ctx, cpctcAngOk(ac[1], ac[2]), `${where}: ∠${ac[1]} ≅ ∠${ac[2]} not corresponding parts`);
+          angCong.add(angPairKeyQ(ac[1], ac[2]));
+        } else {
+          check(ctx, false, `${where}: CPCTC statement form unrecognized`);
+        }
+        break;
+      }
+      case "Alternate Interior Angles Theorem": {
+        const m = stmt.match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not an angle congruence`);
+        if (m) {
+          check(ctx, parallelPairs.has(segPairKeyQ("AB", "CD")),
+            `${where}: theorem needs AB ∥ CD established`);
+          check(ctx, diagonalDrawn, `${where}: theorem needs diagonal AC drawn`);
+          check(ctx, angPairKeyQ(m[1], m[2]) === angPairKeyQ("BAC", "DCA"),
+            `${where}: (${m[1]},${m[2]}) not the alternate interior pair for transversal AC`);
+          angCong.add(angPairKeyQ(m[1], m[2]));
+        }
+        break;
+      }
+      case "Alternate Interior Angles Converse": {
+        const m = stmt.match(/^([A-Z]{2}) ∥ ([A-Z]{2})$/);
+        check(ctx, m !== null, `${where}: converse must conclude a parallel pair`);
+        if (m) {
+          const need = segPairKeyQ(m[1], m[2]) === segPairKeyQ("AB", "CD")
+            ? angPairKeyQ("BAC", "DCA")
+            : angPairKeyQ("BCA", "DAC");
+          check(ctx, angCong.has(need), `${where}: alternate interior pair ${need} not established`);
+          parallelPairs.add(segPairKeyQ(m[1], m[2]));
+        }
+        break;
+      }
+      case "Vertical Angles Theorem": {
+        const m = stmt.match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not an angle congruence`);
+        if (m) {
+          check(ctx, intersectM, `${where}: vertical angles need the diagonals to intersect at M`);
+          check(ctx, angPairKeyQ(m[1], m[2]) === angPairKeyQ("AMB", "CMD"),
+            `${where}: (${m[1]},${m[2]}) not the vertical pair at M`);
+          angCong.add(angPairKeyQ(m[1], m[2]));
+        }
+        break;
+      }
+      case "Definition of parallelogram":
+        check(ctx, stmt === p.prove, `${where}: definition must conclude the prove statement`);
+        check(ctx, parallelPairs.has(segPairKeyQ("AB", "CD")) && parallelPairs.has(segPairKeyQ("BC", "AD")),
+          `${where}: both pairs of opposite sides must be established parallel`);
+        break;
+      case "Opposite Sides Congruent Parallelogram Theorem":
+        check(ctx, stmt === p.prove, `${where}: theorem must conclude the prove statement`);
+        check(ctx, segCong.has(segPairKeyQ("AB", "CD")) && segCong.has(segPairKeyQ("BC", "AD")),
+          `${where}: both pairs of opposite sides must be established congruent`);
+        break;
+      case "One Pair Congruent and Parallel Parallelogram Theorem":
+        check(ctx, stmt === p.prove, `${where}: theorem must conclude the prove statement`);
+        check(ctx, segCong.has(segPairKeyQ("AB", "CD")) && parallelPairs.has(segPairKeyQ("AB", "CD")),
+          `${where}: pair AB/CD must be established both congruent and parallel`);
+        break;
+      default:
+        check(ctx, false, `${where}: unknown reason "${s.reason}"`);
+    }
+  });
+
+  const last = p.steps[p.steps.length - 1];
+  check(ctx, norm(last.statement) === norm(p.prove), `${tag}: final ≠ prove`);
+
+  // Diagram recomputed from the GIVEN facts only.
+  const params = p.svgParams;
+  check(ctx, params.kind === "ProofQuadrilateral", `${tag}: wrong diagram kind ${params.kind}`);
+  if (params.kind === "ProofQuadrilateral") {
+    check(ctx, params.diagonal === (family === "DiagonalsBisect" ? "both" : "AC"),
+      `${tag}: diagonal ${params.diagonal} wrong for ${family}`);
+    const SIDE_ORDER = ["AB", "BC", "CD", "AD"];
+    const expMarks = [0, 0, 0, 0];
+    let nextMark = 1;
+    const expParallel: string[] = [];
+    p.given.forEach((g) => {
+      const gg = norm(g);
+      const sc = gg.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+      if (sc && SIDE_ORDER.includes(canonSegQ(sc[1])) && SIDE_ORDER.includes(canonSegQ(sc[2]))) {
+        expMarks[SIDE_ORDER.indexOf(canonSegQ(sc[1]))] = nextMark;
+        expMarks[SIDE_ORDER.indexOf(canonSegQ(sc[2]))] = nextMark;
+        nextMark++;
+      }
+      const sp = gg.match(/^([A-Z]{2}) ∥ ([A-Z]{2})$/);
+      if (sp) expParallel.push(sp[1], sp[2]);
+    });
+    check(ctx, JSON.stringify(params.sideMarks) === JSON.stringify(expMarks),
+      `${tag}: sideMarks ${JSON.stringify(params.sideMarks)} ≠ recomputed ${JSON.stringify(expMarks)}`);
+    check(ctx, JSON.stringify(params.parallelMarks) === JSON.stringify(expParallel),
+      `${tag}: parallelMarks ${JSON.stringify(params.parallelMarks)} ≠ recomputed ${JSON.stringify(expParallel)}`);
+    const expDiag: [number, number] = [0, 0];
+    if (family === "DiagonalsBisect") {
+      let dm = 1;
+      p.given.forEach((g) => {
+        const sc = norm(g).match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+        if (!sc) return;
+        const pair = segPairKeyQ(sc[1], sc[2]);
+        if (pair === segPairKeyQ("AM", "MC")) expDiag[0] = dm++;
+        if (pair === segPairKeyQ("BM", "MD")) expDiag[1] = dm++;
+      });
+    }
+    check(ctx, JSON.stringify(params.diagMarks) === JSON.stringify(expDiag),
+      `${tag}: diagMarks ${JSON.stringify(params.diagMarks)} ≠ recomputed ${JSON.stringify(expDiag)}`);
+  }
+}
+
+// ── Angle proofs (vertical angles, perpendicular bisectors) ──────────────────
+
+export type AngleProofVariantName =
+  | "VerticalAngles"
+  | "PerpendicularBisector"
+  | "PerpendicularBisectorConverse";
+
+const LINEAR_PAIRS_VERTICAL = new Set(
+  [["AEC", "AED"], ["AED", "DEB"], ["DEB", "BEC"], ["BEC", "AEC"]]
+    .map(([a, b]) => angPairKeyQ(a, b))
+);
+const VERTICAL_PAIRS = new Set(
+  [["AEC", "DEB"], ["AED", "BEC"]].map(([a, b]) => angPairKeyQ(a, b))
+);
+
+export function checkAngleProof(ctx: Ctx, p: ProofProblem, tag: string): void {
+  const variant = p.family.startsWith("AngleProofs:")
+    ? (p.family.slice("AngleProofs:".length) as AngleProofVariantName)
+    : "";
+  check(ctx, ["VerticalAngles", "PerpendicularBisector", "PerpendicularBisectorConverse"].includes(variant),
+    `${tag}: bad angle-proof family ${p.family}`);
+  check(ctx, p.teks === "G.6(A)", `${tag}: teks ${p.teks}`);
+
+  const givenSet = new Set(p.given.map(norm));
+  const segCong = new Set<string>();
+  const angCong = new Set<string>();
+  const rightAngles = new Set<string>();
+  const triPairs: [string, string][] = [];
+  const sumPairs = new Set<string>();
+  const measEq = new Set<string>();
+  let linesIntersect = false;
+  let midpointGiven = false;
+  let midpointConstructed = false;
+  let perpGiven = false;
+  let perpEstablished = false;
+  let sumEq: { a: string; shared: string; d: string } | null = null;
+  let doubledAngle: string | null = null;
+  let rightMeasAngle: string | null = null;
+
+  p.given.forEach((g) => {
+    const gg = norm(g);
+    if (gg === "Lines AB and CD intersect at E") linesIntersect = true;
+    if (gg === "M is the midpoint of AB") midpointGiven = true;
+    if (gg === "PM ⊥ AB") perpGiven = true;
+    const sc = gg.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+    if (sc) segCong.add(segPairKeyQ(sc[1], sc[2]));
+  });
+
+  const cpctcSegOkA = (x: string, y: string) =>
+    triPairs.some(([t1, t2]) => {
+      const s1 = triSidesQ(t1);
+      const s2 = triSidesQ(t2);
+      return s1.some((side, i) => segPairKeyQ(side, s2[i]) === segPairKeyQ(x, y));
+    });
+  const cpctcAngOkA = (x: string, y: string) =>
+    triPairs.some(([t1, t2]) => {
+      for (let i = 0; i < 3; i++) {
+        const a1 = t1[(i + 2) % 3] + t1[i] + t1[(i + 1) % 3];
+        const a2 = t2[(i + 2) % 3] + t2[i] + t2[(i + 1) % 3];
+        if (angPairKeyQ(a1, a2) === angPairKeyQ(x, y)) return true;
+      }
+      return false;
+    });
+
+  p.steps.forEach((s, i) => {
+    const stmt = norm(s.statement);
+    const where = `${tag} step ${i + 1} "${stmt}"`;
+    switch (s.reason) {
+      case "Given":
+        check(ctx, givenSet.has(stmt), `${where}: reason Given but not in given[]`);
+        break;
+      case "Construction":
+        check(ctx, stmt === "Let M be the midpoint of AB", `${where}: unexpected construction`);
+        midpointConstructed = true;
+        break;
+      case "Linear Pair Postulate": {
+        if (variant === "VerticalAngles") {
+          const m = stmt.match(/^m∠([A-Z]{3}) \+ m∠([A-Z]{3}) = 180°$/);
+          check(ctx, m !== null, `${where}: unexpected form`);
+          if (m) {
+            check(ctx, linesIntersect, `${where}: linear pairs need the intersecting lines`);
+            check(ctx, LINEAR_PAIRS_VERTICAL.has(angPairKeyQ(m[1], m[2])),
+              `${where}: (${m[1]},${m[2]}) not a linear pair at E`);
+            sumPairs.add(angPairKeyQ(m[1], m[2]));
+          }
+        } else {
+          check(ctx, stmt === "m∠PMA + m∠PMB = 180°", `${where}: unexpected linear pair`);
+          sumPairs.add(angPairKeyQ("PMA", "PMB"));
+        }
+        break;
+      }
+      case "Substitution": {
+        if (variant === "VerticalAngles") {
+          const m = stmt.match(/^m∠([A-Z]{3}) \+ m∠([A-Z]{3}) = m∠([A-Z]{3}) \+ m∠([A-Z]{3})$/);
+          check(ctx, m !== null, `${where}: unexpected form`);
+          if (m) {
+            check(ctx, canonAngQ(m[2]) === canonAngQ(m[3]), `${where}: middle terms differ`);
+            check(ctx,
+              sumPairs.has(angPairKeyQ(m[1], m[2])) && sumPairs.has(angPairKeyQ(m[3], m[4])),
+              `${where}: substitution sides are not the two established sums`);
+            sumEq = { a: canonAngQ(m[1]), shared: canonAngQ(m[2]), d: canonAngQ(m[4]) };
+          }
+        } else {
+          check(ctx, stmt === "2 · m∠PMA = 180°", `${where}: unexpected substitution`);
+          check(ctx, measEq.has(angPairKeyQ("PMA", "PMB")) && sumPairs.has(angPairKeyQ("PMA", "PMB")),
+            `${where}: needs equal measures and the linear-pair sum first`);
+          doubledAngle = "PMA";
+        }
+        break;
+      }
+      case "Subtraction Property of Equality": {
+        const m = stmt.match(/^m∠([A-Z]{3}) = m∠([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: unexpected form`);
+        if (m) {
+          check(ctx, sumEq !== null && sumEq.a === canonAngQ(m[1]) && sumEq.d === canonAngQ(m[2]),
+            `${where}: subtracted equality does not match the established sum equality`);
+          measEq.add(angPairKeyQ(m[1], m[2]));
+        }
+        break;
+      }
+      case "Definition of congruent angles": {
+        const mc = stmt.match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+        if (mc) {
+          check(ctx, measEq.has(angPairKeyQ(mc[1], mc[2])),
+            `${where}: congruent angles need equal measures established`);
+          angCong.add(angPairKeyQ(mc[1], mc[2]));
+          break;
+        }
+        const mm = stmt.match(/^m∠([A-Z]{3}) = m∠([A-Z]{3})$/);
+        check(ctx, mm !== null, `${where}: unexpected form`);
+        if (mm) {
+          check(ctx, angCong.has(angPairKeyQ(mm[1], mm[2])),
+            `${where}: equal measures need the angle congruence established`);
+          measEq.add(angPairKeyQ(mm[1], mm[2]));
+        }
+        break;
+      }
+      case "Definition of midpoint": {
+        check(ctx, stmt === "AM ≅ MB", `${where}: unexpected midpoint consequence`);
+        check(ctx, midpointGiven || midpointConstructed,
+          `${where}: no midpoint given or constructed`);
+        segCong.add(segPairKeyQ("AM", "MB"));
+        break;
+      }
+      case "Definition of perpendicular lines": {
+        if (stmt === "∠PMA and ∠PMB are right angles") {
+          check(ctx, perpGiven, `${where}: right angles need PM ⊥ AB given`);
+          rightAngles.add(canonAngQ("PMA"));
+          rightAngles.add(canonAngQ("PMB"));
+        } else if (stmt === "PM ⊥ AB") {
+          check(ctx, rightMeasAngle === "PMA", `${where}: perpendicular needs a 90° angle at M established`);
+          perpEstablished = true;
+        } else {
+          check(ctx, false, `${where}: unexpected perpendicular-lines statement`);
+        }
+        break;
+      }
+      case "Right Angles Congruence Theorem": {
+        const m = stmt.match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not an angle congruence`);
+        if (m) {
+          check(ctx, rightAngles.has(canonAngQ(m[1])) && rightAngles.has(canonAngQ(m[2])),
+            `${where}: both angles must be established right angles`);
+          angCong.add(angPairKeyQ(m[1], m[2]));
+        }
+        break;
+      }
+      case "Reflexive Property": {
+        const m = stmt.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+        check(ctx, m !== null && m[1] === m[2], `${where}: not a self-congruence`);
+        if (m) segCong.add(segPairKeyQ(m[1], m[2]));
+        break;
+      }
+      case "SAS": {
+        const m = stmt.match(/^△([A-Z]{3}) ≅ △([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not a triangle congruence`);
+        if (m) {
+          const [t1, t2] = [m[1], m[2]];
+          // SAS may sit at any vertex position: two sides through that
+          // vertex plus the included angle there.
+          let sasOk = false;
+          for (let v = 0; v < 3 && !sasOk; v++) {
+            const sA = segPairKeyQ(
+              t1[v] + t1[(v + 1) % 3], t2[v] + t2[(v + 1) % 3]);
+            const sB = segPairKeyQ(
+              t1[(v + 2) % 3] + t1[v], t2[(v + 2) % 3] + t2[v]);
+            const incl = angPairKeyQ(
+              t1[(v + 2) % 3] + t1[v] + t1[(v + 1) % 3],
+              t2[(v + 2) % 3] + t2[v] + t2[(v + 1) % 3]);
+            sasOk = segCong.has(sA) && segCong.has(sB) && angCong.has(incl);
+          }
+          check(ctx, sasOk, `${where}: no vertex position gives established SAS data`);
+          triPairs.push([t1, t2]);
+        }
+        break;
+      }
+      case "SSS": {
+        const m = stmt.match(/^△([A-Z]{3}) ≅ △([A-Z]{3})$/);
+        check(ctx, m !== null, `${where}: not a triangle congruence`);
+        if (m) {
+          const s1 = triSidesQ(m[1]);
+          const s2 = triSidesQ(m[2]);
+          check(ctx, s1.every((side, k) => segCong.has(segPairKeyQ(side, s2[k]))),
+            `${where}: SSS needs all three positional side pairs established`);
+          triPairs.push([m[1], m[2]]);
+        }
+        break;
+      }
+      case "CPCTC": {
+        const sc = stmt.match(/^([A-Z]{2}) ≅ ([A-Z]{2})$/);
+        const ac = stmt.match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+        if (sc) {
+          check(ctx, cpctcSegOkA(sc[1], sc[2]), `${where}: ${sc[1]} ≅ ${sc[2]} not corresponding parts`);
+          segCong.add(segPairKeyQ(sc[1], sc[2]));
+        } else if (ac) {
+          check(ctx, cpctcAngOkA(ac[1], ac[2]), `${where}: ∠${ac[1]} ≅ ∠${ac[2]} not corresponding parts`);
+          angCong.add(angPairKeyQ(ac[1], ac[2]));
+        } else {
+          check(ctx, false, `${where}: CPCTC statement form unrecognized`);
+        }
+        break;
+      }
+      case "Division Property of Equality": {
+        check(ctx, stmt === "m∠PMA = 90°", `${where}: unexpected division result`);
+        check(ctx, doubledAngle === "PMA", `${where}: needs the doubled-angle equation first`);
+        rightMeasAngle = "PMA";
+        break;
+      }
+      case "Definition of perpendicular bisector": {
+        check(ctx, stmt === p.prove, `${where}: must conclude the prove statement`);
+        check(ctx, perpEstablished && midpointConstructed,
+          `${where}: needs PM perpendicular to AB through its midpoint M`);
+        break;
+      }
+      default:
+        check(ctx, false, `${where}: unknown reason "${s.reason}"`);
+    }
+  });
+
+  const last = p.steps[p.steps.length - 1];
+  check(ctx, norm(last.statement) === norm(p.prove), `${tag}: final ≠ prove`);
+
+  if (variant === "VerticalAngles") {
+    const m = norm(p.prove).match(/^∠([A-Z]{3}) ≅ ∠([A-Z]{3})$/);
+    check(ctx, m !== null && VERTICAL_PAIRS.has(angPairKeyQ(m[1], m[2])),
+      `${tag}: prove ${p.prove} is not a vertical angle pair`);
+  }
+
+  // Diagram recomputed.
+  const params = p.svgParams;
+  check(ctx, params.kind === "ProofAngleFigure", `${tag}: wrong diagram kind ${params.kind}`);
+  if (params.kind === "ProofAngleFigure") {
+    if (variant === "VerticalAngles") {
+      check(ctx, params.figure === "vertical", `${tag}: figure ${params.figure} ≠ vertical`);
+      const expPair = norm(p.prove).includes("∠AEC") ? 0 : 1;
+      check(ctx, params.markPair === expPair,
+        `${tag}: markPair ${params.markPair} ≠ recomputed ${expPair}`);
+    } else {
+      check(ctx, params.figure === "perpBisector", `${tag}: figure ${params.figure} ≠ perpBisector`);
+      check(ctx, params.markMidpoint === true, `${tag}: midpoint must be marked`);
+      check(ctx, params.markSlants === (variant === "PerpendicularBisectorConverse"),
+        `${tag}: markSlants ${params.markSlants} wrong for ${variant}`);
+    }
+  }
+}

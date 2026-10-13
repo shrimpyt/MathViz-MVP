@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 
-// Classroom Canvas — dark friendly theme.
+// Classroom Canvas, dark friendly theme.
 // Deep indigo-tinted surfaces, glowing indigo accents, warm coral actions,
 // Nunito for the friendly voice. The worksheet engine underneath is untouched.
 const theme = createTheme({

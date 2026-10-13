@@ -2,7 +2,7 @@
 // Topic 2: Reasoning and Proof (TEKS G.4(A), G.4(B)).
 //
 // Lesson ch2-1 (Inductive Reasoning): conjectures from number/figure
-// patterns, and counterexamples that genuinely disprove a conjecture — every
+// patterns, and counterexamples that genuinely disprove a conjecture, every
 // counterexample maker computes its witness and the witness really does
 // falsify the statement (the test checkers re-verify this independently).
 // Chapter-test pool: conditional statements and their forms, biconditionals,
@@ -35,7 +35,7 @@ function makeArithmeticPattern(rng: RNG, difficulty: Difficulty): GeometryProble
       answer: String(an),
       steps: [
         step(`Each term increases by a constant difference: ${terms[1]} − ${terms[0]} = ${d}.`, "Look for a pattern in the differences."),
-        step("Make a conjecture: each new term adds the same difference.", "Inductive reasoning — a conjecture based on observed cases."),
+        step("Make a conjecture: each new term adds the same difference.", "Inductive reasoning, a conjecture based on observed cases."),
         step(`Term n is a₁ + (n − 1)d = ${a1} + (${n} − 1)(${d}).`, "Pattern rule for an arithmetic sequence."),
         step(`The ${n}th term is ${an}.`, "Arithmetic.", [{ label: "answer", answer: String(an) }]),
       ],
@@ -53,7 +53,7 @@ function makeArithmeticPattern(rng: RNG, difficulty: Difficulty): GeometryProble
     answer: `${next1}, ${next2}`,
     steps: [
       step(`Each term changes by the same amount: ${terms[1]} − ${terms[0]} = ${d}.`, "Look for a pattern in the differences."),
-      step("Conjecture: keep adding the same difference to get the next term.", "Inductive reasoning — a conjecture based on observed cases."),
+      step("Conjecture: keep adding the same difference to get the next term.", "Inductive reasoning, a conjecture based on observed cases."),
       step(`${terms[4]} + (${d}) = ${next1}, and ${next1} + (${d}) = ${next2}.`, "Apply the pattern rule.", [
         { label: "next", answer: `${next1}, ${next2}` },
       ]),
@@ -77,7 +77,7 @@ function makeGeometricPattern(rng: RNG): GeometryProblem {
     answer: `${next1}, ${next2}`,
     steps: [
       step(`Each term is the previous term multiplied by ${r}: ${terms[1]} ÷ ${terms[0]} = ${r}.`, "Look for a pattern in the ratios."),
-      step("Conjecture: keep multiplying by the same ratio.", "Inductive reasoning — a conjecture based on observed cases."),
+      step("Conjecture: keep multiplying by the same ratio.", "Inductive reasoning, a conjecture based on observed cases."),
       step(`${terms[4]} × ${r} = ${next1}, and ${next1} × ${r} = ${next2}.`, "Apply the pattern rule.", [
         { label: "next", answer: `${next1}, ${next2}` },
       ]),
@@ -101,7 +101,7 @@ function makeFigurePattern(rng: RNG, difficulty: Difficulty): GeometryProblem {
       answer: `${total} dots`,
       steps: [
         step("The counts grow by 2, then 3, then 4: each new figure adds one more dot than the last figure did.", "Look for a pattern in the counts."),
-        step("Conjecture: Figure n has 1 + 2 + … + n = n(n + 1)/2 dots.", "Inductive reasoning — a conjecture based on observed cases."),
+        step("Conjecture: Figure n has 1 + 2 + … + n = n(n + 1)/2 dots.", "Inductive reasoning, a conjecture based on observed cases."),
         step(`Figure ${n}: ${n} × ${n + 1} / 2 = ${total}.`, "Apply the conjecture.", [{ label: "dots", answer: String(total) }]),
       ],
       svgParams: { kind: "PatternFigure", counts: shown },
@@ -117,7 +117,7 @@ function makeFigurePattern(rng: RNG, difficulty: Difficulty): GeometryProblem {
     answer: "15 dots",
     steps: [
       step("From figure to figure the count grows by 2, then 3, then 4.", "Look for a pattern in the counts."),
-      step("Conjecture: the next increase is 5.", "Inductive reasoning — a conjecture based on observed cases."),
+      step("Conjecture: the next increase is 5.", "Inductive reasoning, a conjecture based on observed cases."),
       step("Figure 5 has 10 + 5 = 15 dots.", "Apply the conjecture.", [{ label: "dots", answer: "15" }]),
     ],
     svgParams: { kind: "PatternFigure", counts: shown },
@@ -136,7 +136,7 @@ function makeOddSumConjecture(rng: RNG): GeometryProblem {
     answer: String(n * n),
     steps: [
       step("The sums 1, 4, 9, 16 are the squares 1², 2², 3², 4².", "Look for a pattern in the results."),
-      step("Conjecture: the sum of the first n odd numbers is n².", "Inductive reasoning — a conjecture based on observed cases."),
+      step("Conjecture: the sum of the first n odd numbers is n².", "Inductive reasoning, a conjecture based on observed cases."),
       step(`The sum of the first ${n} odd numbers is ${n}² = ${n * n}.`, "Apply the conjecture.", [{ label: "sum", answer: String(n * n) }]),
     ],
     verify: { kind: "oddSum", n },
@@ -202,7 +202,7 @@ function makeCounterexample(rng: RNG): GeometryProblem {
     }
     case "primeForm": {
       const x = pick(rng, [4, 7, 10, 13]);
-      const v = 2 * x + 1; // 9, 15, 21, 27 — all composite
+      const v = 2 * x + 1; // 9, 15, 21, 27, all composite
       return {
         type: "GEO.2", subtype: "Counterexample",
         prompt: "Conjecture: If x is a whole number, then 2x + 1 is a prime number. Give a counterexample that disproves the conjecture.",
@@ -212,7 +212,7 @@ function makeCounterexample(rng: RNG): GeometryProblem {
         steps: [
           step("A counterexample is one whole number x that makes 2x + 1 composite.", "Definition of counterexample."),
           step(`For x = ${x}: 2(${x}) + 1 = ${v}.`, "Substitution."),
-          step(`${v} = 3 × ${v / 3}, so ${v} has factors other than 1 and itself — it is not prime.`, "Definition of prime number.", [{ label: "value", answer: String(v) }]),
+          step(`${v} = 3 × ${v / 3}, so ${v} has factors other than 1 and itself, it is not prime.`, "Definition of prime number.", [{ label: "value", answer: String(v) }]),
           step("One counterexample disproves the conjecture.", "A conjecture is false if a single counterexample exists."),
         ],
         verify: { kind: "counterPrimeForm", x },
@@ -230,7 +230,7 @@ function makeCounterexample(rng: RNG): GeometryProblem {
         steps: [
           step("A counterexample is a rectangle that is not a square.", "Definition of counterexample."),
           step(`A ${l}-by-${w} rectangle has four right angles, so it is a rectangle.`, "Definition of rectangle."),
-          step(`Its length ${l} ≠ width ${w}, so its sides are not all congruent — it is not a square.`, "Definition of square.", [{ label: "dims", answer: `${l} by ${w}` }]),
+          step(`Its length ${l} ≠ width ${w}, so its sides are not all congruent, it is not a square.`, "Definition of square.", [{ label: "dims", answer: `${l} by ${w}` }]),
           step("One counterexample disproves the conjecture.", "A conjecture is false if a single counterexample exists."),
         ],
         verify: { kind: "counterRect", l, w },
@@ -306,7 +306,7 @@ function makeConditionalParts(rng: RNG): GeometryProblem {
   return {
     type: "GEO.2",
     subtype: "ConditionalParts",
-    prompt: `For the conditional statement "${ifThen(s.hyp, s.concl)}" — identify the ${askHyp ? "hypothesis" : "conclusion"}.`,
+    prompt: `For the conditional statement "${ifThen(s.hyp, s.concl)}", identify the ${askHyp ? "hypothesis" : "conclusion"}.`,
     given: { statement: ifThen(s.hyp, s.concl) },
     find: askHyp ? "hypothesis" : "conclusion",
     answer,

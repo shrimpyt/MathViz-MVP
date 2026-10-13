@@ -1,10 +1,10 @@
 // sat-math.ts
-// SAT Math Practice Generator — curriculum registry entries grouped by
+// SAT Math Practice Generator, curriculum registry entries grouped by
 // College Board domain, plus a full-module builder entry.
 //
 // Each entry's `generate` returns SATProblem[] cast to MathProblem[]; see
 // tests/sat/WIRING.md for the union addition that makes the cast unnecessary.
-// Generation is pure + seeded; the mode parameter is intentionally ignored —
+// Generation is pure + seeded; the mode parameter is intentionally ignored,
 // SAT problems carry their own MCQ/grid-in format per problem (a ~3:1 mix,
 // like the digital SAT). "Classical" mode is therefore handled exactly like
 // "Review": nothing mode-specific is emitted.
@@ -51,14 +51,14 @@ interface SATCatalogItem {
 // ── The per-skill catalogue, grouped by College Board domain ──────────────────
 
 const SAT_CATALOG: SATCatalogItem[] = [
-  // — Heart of Algebra (topic 21) —
+  //, Heart of Algebra (topic 21),
   {
     id: "sat-hoa-linear-equations",
     topic: 21,
     domain: "HeartOfAlgebra",
     makerIndex: 0,
     title: "SAT: Linear Equations in One Variable",
-    story: "Solve ax + b = c — the most-tested SAT algebra skill.",
+    story: "Solve ax + b = c, the most-tested SAT algebra skill.",
     standard: "H.A.1",
     description: "One- and two-step linear equations, including a(x + b) = c forms.",
   },
@@ -78,7 +78,7 @@ const SAT_CATALOG: SATCatalogItem[] = [
     domain: "HeartOfAlgebra",
     makerIndex: 2,
     title: "SAT: Linear Inequalities",
-    story: "Remember to flip the sign — the classic trap.",
+    story: "Remember to flip the sign, the classic trap.",
     standard: "H.A.2",
     description: "One-variable inequalities, including negative leading coefficients.",
   },
@@ -92,14 +92,14 @@ const SAT_CATALOG: SATCatalogItem[] = [
     standard: "H.A.4",
     description: "Function evaluation, solving f(x) = v, and rate word problems.",
   },
-  // — Problem Solving & Data Analysis (topic 22) —
+  //, Problem Solving & Data Analysis (topic 22),
   {
     id: "sat-psda-percent",
     topic: 22,
     domain: "ProblemSolvingData",
     makerIndex: 0,
     title: "SAT: Percent Increase & Decrease",
-    story: "Percent change with the right base — every time.",
+    story: "Percent change with the right base, every time.",
     standard: "P.D.1",
     description: "Percent increase and decrease from real-world contexts.",
   },
@@ -129,11 +129,11 @@ const SAT_CATALOG: SATCatalogItem[] = [
     domain: "ProblemSolvingData",
     makerIndex: 3,
     title: "SAT: Probability",
-    story: "Favorable over total — read the table carefully.",
+    story: "Favorable over total, read the table carefully.",
     standard: "P.D.4",
     description: "Simple and two-way-table probability, including complements.",
   },
-  // — Passport to Advanced Math (topic 23) —
+  //, Passport to Advanced Math (topic 23),
   {
     id: "sat-pam-quadratics",
     topic: 23,
@@ -160,7 +160,7 @@ const SAT_CATALOG: SATCatalogItem[] = [
     domain: "PassportAdvancedMath",
     makerIndex: 2,
     title: "SAT: Nonlinear Functions",
-    story: "x² means x times x — not 2x.",
+    story: "x² means x times x, not 2x.",
     standard: "P.A.4",
     description: "Evaluate quadratic functions, including negative inputs.",
   },
@@ -170,11 +170,11 @@ const SAT_CATALOG: SATCatalogItem[] = [
     domain: "PassportAdvancedMath",
     makerIndex: 3,
     title: "SAT: Nonlinear Equations",
-    story: "Square roots come in pairs — pick the right one.",
+    story: "Square roots come in pairs, pick the right one.",
     standard: "P.A.3",
     description: "Equations of the form x² = k and (x − h)² + c = k + c.",
   },
-  // — Additional Topics in Math (topic 24) —
+  //, Additional Topics in Math (topic 24),
   {
     id: "sat-atm-triangles",
     topic: 24,
@@ -191,7 +191,7 @@ const SAT_CATALOG: SATCatalogItem[] = [
     domain: "AdditionalTopics",
     makerIndex: 1,
     title: "SAT: Circle Measurement",
-    story: "2πr around, πr² inside — don't mix them up.",
+    story: "2πr around, πr² inside, don't mix them up.",
     standard: "A.T.2",
     description: "Circumference, area, and working backwards from each.",
   },
@@ -211,7 +211,7 @@ const SAT_CATALOG: SATCatalogItem[] = [
     domain: "AdditionalTopics",
     makerIndex: 3,
     title: "SAT: Volume",
-    story: "Multiply — don't add — the dimensions.",
+    story: "Multiply, don't add, the dimensions.",
     standard: "A.T.2",
     description: "Rectangular prisms (forwards and backwards) and cylinders.",
   },
@@ -253,7 +253,7 @@ const satFullModuleEntry: CurriculumEntry = {
   topic: 20,
   topicTitle: "SAT Math: Full Practice Module",
   title: "SAT: Full Timed Module",
-  story: "One complete digital-SAT math module — 22 questions, 35 minutes.",
+  story: "One complete digital-SAT math module, 22 questions, 35 minutes.",
   teks: "SAT Math",
   description:
     "Mixed-domain timed module (Heart of Algebra, Problem Solving & Data Analysis, " +
@@ -265,7 +265,7 @@ const satFullModuleEntry: CurriculumEntry = {
   ): MathProblem[] => {
     // NOTE (accepted behavior): count=N output is NOT a prefix of count=M
     // output for the same seed, by design. Each requested size gets its own
-    // balanced module plan — domain mix scaled to the size (scaledDomainMix),
+    // balanced module plan, domain mix scaled to the size (scaledDomainMix),
     // a size-specific difficulty bag, and an easy→hard sort like the real
     // digital SAT. A 2-question module is a different (smaller, rebalanced)
     // module than the first 2 questions of a 6-question module, not a prefix

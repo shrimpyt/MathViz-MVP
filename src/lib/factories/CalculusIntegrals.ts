@@ -1,5 +1,5 @@
 // CalculusIntegrals.ts
-// AP Calculus — Integrals generators (AP Calc AB + BC).
+// AP Calculus, Integrals generators (AP Calc AB + BC).
 // Indefinite & definite integrals, area between curves, FTC, u-substitution,
 // and BC-only improper integrals.
 //
@@ -333,7 +333,7 @@ function areaBetweenCross(rng: RNG): CalcMCQProblem {
     steps: [
       {
         instruction: `Zeros at x = ${-k}, 0, ${k}. The curve dips below the axis on (${-k}, 0), so split the integral:`,
-        reason: "Area is the integral of the absolute value — split where the curve crosses",
+        reason: "Area is the integral of the absolute value, split where the curve crosses",
         blanks: [{ label: "setup", answer: `|∫_${-k}^0| + |∫_0^${k}|` }],
       },
       {
@@ -369,7 +369,7 @@ function uSubDefinite(rng: RNG): CalcMCQProblem {
     steps: [
       {
         instruction: `Let u = x² + 1 (du = 2x dx). When x = 0, u = 1; when x = 1, u = 2.`,
-        reason: "u-substitution with changed bounds — no need to substitute back",
+        reason: "u-substitution with changed bounds, no need to substitute back",
         blanks: [{ label: "new bounds", answer: "1 to 2" }],
       },
       {

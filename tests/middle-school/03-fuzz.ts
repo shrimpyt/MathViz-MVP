@@ -1,4 +1,4 @@
-// 03-fuzz.ts — validity hunting over thousands of seeds.
+// 03-fuzz.ts, validity hunting over thousands of seeds.
 // Checks every generated problem for invalid output: NaN/undefined answers,
 // degenerate diagrams, negative lengths, dirty text, JSON-serializability,
 // and tier compliance. Both the lesson-filtered path (registry entries) and
@@ -116,7 +116,7 @@ function checkProblem(p: any, tag: string, maxTier: number): void {
 
 export function run(): void {
   resetCounters();
-  const SEED_COUNT = 60; // seeds per (entry, difficulty) — thousands of problems total
+  const SEED_COUNT = 60; // seeds per (entry, difficulty), thousands of problems total
 
   // 1) Lesson-filtered path: every registry entry × difficulty × seed.
   for (const e of MIDDLE_SCHOOL_ENTRIES) {

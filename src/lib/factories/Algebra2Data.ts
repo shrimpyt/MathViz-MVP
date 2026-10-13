@@ -1,5 +1,5 @@
 // Algebra2Data.ts
-// T12 (TEKS A2.12) — Data: analyzing linear/quadratic/exponential data with
+// T12 (TEKS A2.12), Data: analyzing linear/quadratic/exponential data with
 // finite differences and ratios, least-squares regression lines, and using
 // models to make predictions. Tables are built from exact integer models so
 // every value is exact; tests recompute differences, regression coefficients,

@@ -6,7 +6,7 @@
 //
 // Storage is injectable so this module stays testable in Node (which has no
 // localStorage) and safe to import during static-export builds. In the browser,
-// pass nothing — it resolves globalThis.localStorage lazily at call time.
+// pass nothing, it resolves globalThis.localStorage lazily at call time.
 
 import {
   ACCOMMODATION_STORAGE_KEY,
@@ -40,7 +40,7 @@ function resolveBrowserStorage(): KeyValueStorage {
 function newId(): string {
   const c = typeof globalThis !== 'undefined' ? (globalThis as { crypto?: Crypto }).crypto : undefined;
   if (c && typeof c.randomUUID === 'function') return c.randomUUID();
-  // Fallback for older environments — still unique enough for client-side ids.
+  // Fallback for older environments, still unique enough for client-side ids.
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
     const r = (Math.random() * 16) | 0;
     return (ch === 'x' ? r : (r & 0x3) | 0x8).toString(16);
@@ -50,7 +50,7 @@ function newId(): string {
 // ── PII-shape detection ───────────────────────────────────────────────────────
 // The model stores no personal data, but free-text labels could smuggle it in.
 // These heuristics reject the obvious shapes; they are a guardrail, not a
-// guarantee — the UI also carries helper text ("never enter student names").
+// guarantee, the UI also carries helper text ("never enter student names").
 
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const PHONE_RE = /(\+?1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/;
@@ -86,7 +86,7 @@ export function validateGroupInput(input: NewGroupInput): ValidationResult {
     }
     if (looksLikePersonalData(label)) {
       errors.push(
-        'Group labels must stay anonymous — use "Group A", not a student name or ID.',
+        'Group labels must stay anonymous, use "Group A", not a student name or ID.',
       );
     }
   }
@@ -112,9 +112,9 @@ export function validateGroupInput(input: NewGroupInput): ValidationResult {
 export function validateClassLabel(classLabel: string): ValidationResult {
   const errors: string[] = [];
   const label = (classLabel ?? '').trim();
-  if (!label) errors.push('Class label is required (e.g. "Algebra 2 — Period 3").');
+  if (!label) errors.push('Class label is required (e.g. "Algebra 2, Period 3").');
   if (looksLikePersonalData(label)) {
-    errors.push('Class labels must stay anonymous — never enter student names.');
+    errors.push('Class labels must stay anonymous, never enter student names.');
   }
   return { ok: errors.length === 0, errors };
 }
@@ -147,7 +147,7 @@ export function createAccommodationStore(
     try {
       const parsed: unknown = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
-      // Defensive shape check — never trust raw localStorage.
+      // Defensive shape check, never trust raw localStorage.
       return parsed.filter(
         (l): l is ClassAccommodationList =>
           !!l &&

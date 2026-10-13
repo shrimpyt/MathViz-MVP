@@ -1,4 +1,4 @@
-// rt-verify4.ts — Algebra 1: NO verify payloads exist, so we parse the LaTeX
+// rt-verify4.ts, Algebra 1: NO verify payloads exist, so we parse the LaTeX
 // prompt with our own parsers, solve independently, and compare to the answer.
 import { CURRICULUM_REGISTRY } from "@/modules/CurriculumRegistry";
 import { failures, fail, counter, report } from "./util";

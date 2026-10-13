@@ -1,5 +1,5 @@
 // Algebra1Equations.ts
-// TEKS A.5A — Solving multi-step equations & inequalities.
+// TEKS A.5A, Solving multi-step equations & inequalities.
 // Subtypes: MultiStepEquation, VariablesBothSides, EquationWordProblem,
 //           Inequality, AbsoluteValue.
 //
@@ -210,7 +210,7 @@ function makeInequality(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem 
     {
       instruction:
         a < 0
-          ? `Divide by ${a} — dividing by a negative FLIPS the inequality sign:`
+          ? `Divide by ${a}, dividing by a negative FLIPS the inequality sign:`
           : `Divide both sides by ${a}:`,
       reason: "Division Property of Inequality",
       blanks: [{ label: "answer", answer: `x ${fmtRel(answerRel)} ${bound}` }],

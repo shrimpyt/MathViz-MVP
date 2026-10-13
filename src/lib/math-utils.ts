@@ -1,12 +1,12 @@
 // math-utils.ts
 // Canonical PRNG and random-selection helpers.
-// Every file that needs seeded randomness imports from HERE — no copies.
+// Every file that needs seeded randomness imports from HERE, no copies.
 
 /** A seeded random-number generator: () => number in [0, 1). */
 export type RNG = () => number;
 
 /**
- * Mulberry32 — a fast, high-quality 32-bit seeded PRNG.
+ * Mulberry32, a fast, high-quality 32-bit seeded PRNG.
  * Returns an RNG function that yields values in [0, 1).
  */
 export function mulberry32(seed: number): RNG {

@@ -1,5 +1,5 @@
 // PrecalcVectorsFactory.ts
-// AP Precalculus: vectors — component operations, magnitude, dot product,
+// AP Precalculus: vectors, component operations, magnitude, dot product,
 // unit vectors, orthogonality/parallelism, angle between vectors.
 // Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 

@@ -29,7 +29,7 @@ function familyLabel(family: string): string {
     const prop = family.slice("Elements:".length);
     return `Euclid's Elements · Prop. ${prop}`;
   }
-  if (family.startsWith("ParallelLines:")) return `Parallel Lines — ${family.slice("ParallelLines:".length)}`;
+  if (family.startsWith("ParallelLines:")) return `Parallel Lines, ${family.slice("ParallelLines:".length)}`;
   if (family.startsWith("CircleTheorem:")) return family.slice("CircleTheorem:".length);
   if (family.startsWith("Similarity:")) return "AA Similarity Proof";
   if (family.startsWith("CPCTC:")) return `CPCTC via ${family.slice("CPCTC:".length)}`;

@@ -1,6 +1,6 @@
 // checkers.ts
 // INDEPENDENT per-subtype verification for Algebra 2 computational problems.
-// Written from scratch against the documented math — shares NO code with
+// Written from scratch against the documented math, shares NO code with
 // src/lib/factories/* (no imports from there except TYPES). Each checker
 // returns a list of error strings (empty = pass) and the independently
 // recomputed exact answer string.
@@ -1156,7 +1156,7 @@ function chkFTACountZeros(p: Algebra2Problem, v: V): CheckResult {
     if (v["distinct"] !== roots.length) errs.push(`payload distinct != roots count`);
     expected = `${total} zeros counting multiplicity; ${roots.length} distinct zeros`;
   } else {
-    // complexPair: payload omits the optional extra real root — recover the
+    // complexPair: payload omits the optional extra real root, recover the
     // full factor list by parsing the printed function in `given` and
     // cross-checking every piece against the payload.
     const r1 = v["realRoot"] as number;
@@ -1528,7 +1528,7 @@ function chkRationalExponents(p: Algebra2Problem, v: V): CheckResult {
     expected = m < 0 ? `1/${val}` : `${val}`;
   } else {
     // product / power / quotient: payload carries only the final reduced
-    // exponent — re-derive it from the exponents printed in `given`.
+    // exponent, re-derive it from the exponents printed in `given`.
     const base = v["base"] as string, m = v["m"] as number, n = v["n"] as number;
     const expr = String((p.given as Record<string, unknown>)["expression"] ?? "");
     const exps = [...expr.matchAll(/\^{(-?\d+)\/(\d+)}/g)].map((mm) => [Number(mm[1]), Number(mm[2])]);
@@ -1809,7 +1809,7 @@ function chkRadicalTwoRadicals(p: Algebra2Problem, v: V): CheckResult {
 function chkRadicalNoSolution(p: Algebra2Problem, v: V): CheckResult {
   const d = v["d"] as number, e = v["e"] as number;
   const errs: string[] = [];
-  if (e - d >= 0) errs.push(`isolated radical value ${e - d} is not negative — a solution could exist`);
+  if (e - d >= 0) errs.push(`isolated radical value ${e - d} is not negative, a solution could exist`);
   const expected = "No solution";
   if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
   return errs.length ? bad(expected, ...errs) : ok(expected);
@@ -2166,10 +2166,10 @@ function chkVerticalLineTest(p: Algebra2Problem, v: V): CheckResult {
   if (v.isFunction !== isFn) errs.push(`isFunction ${v.isFunction} != recomputed ${isFn}`);
   let expected: string;
   if (isFn) {
-    expected = "Yes — every vertical line crosses the graph at most once";
+    expected = "Yes, every vertical line crosses the graph at most once";
   } else {
     const dup = pts.find((q, i) => pts.some((o, j) => j !== i && o.x === q.x))?.x;
-    expected = `No — the vertical line x = ${dup} crosses the graph more than once`;
+    expected = `No, the vertical line x = ${dup} crosses the graph more than once`;
   }
   return { errors: errs, expectedAnswer: expected };
 }
@@ -2313,8 +2313,8 @@ function chkAbsIneqPointCheck(p: Algebra2Problem, v: V): CheckResult {
   const truth = relHolds(rel, py, fpx);
   if (v.truth !== truth) errs.push(`truth ${v.truth} != recomputed ${truth} (py=${py} vs f(px)=${fpx})`);
   const expected = truth
-    ? `Yes — (${px}, ${py}) satisfies the inequality`
-    : `No — (${px}, ${py}) does not satisfy the inequality`;
+    ? `Yes, (${px}, ${py}) satisfies the inequality`
+    : `No, (${px}, ${py}) does not satisfy the inequality`;
   return { errors: errs, expectedAnswer: expected };
 }
 
@@ -2507,8 +2507,8 @@ function chkSystemClassify(p: Algebra2Problem, v: V): CheckResult {
   const sameLine = parallel && a1 * c2 === a2 * c1 && b1 * c2 === b2 * c1;
   if (coincident !== sameLine) errs.push(`coincident flag ${coincident} != recomputed ${sameLine}`);
   const expected = coincident
-    ? "Infinitely many solutions — the equations describe the same line (dependent system)"
-    : "No solution — the lines are parallel and never meet (inconsistent system)";
+    ? "Infinitely many solutions, the equations describe the same line (dependent system)"
+    : "No solution, the lines are parallel and never meet (inconsistent system)";
   return { errors: errs, expectedAnswer: expected };
 }
 
@@ -2545,8 +2545,8 @@ function chkSystemIneqTestPoint(p: Algebra2Problem, v: V): CheckResult {
   const isSol = t1 && t2;
   if (v.isSolution !== isSol) errs.push(`isSolution ${v.isSolution} != recomputed ${isSol}`);
   const expected = isSol
-    ? `Yes — (${px}, ${py}) satisfies both inequalities`
-    : `No — (${px}, ${py}) fails ${!t1 && !t2 ? "both inequalities" : !t1 ? "the first inequality" : "the second inequality"}`;
+    ? `Yes, (${px}, ${py}) satisfies both inequalities`
+    : `No, (${px}, ${py}) fails ${!t1 && !t2 ? "both inequalities" : !t1 ? "the first inequality" : "the second inequality"}`;
   return { errors: errs, expectedAnswer: expected };
 }
 
@@ -2582,7 +2582,7 @@ function chkSystemIneqCorner(p: Algebra2Problem, v: V): CheckResult {
   if (rels.some((r) => r !== "le" && r !== "ge")) errs.push("corner requires non-strict inequalities");
   if (l1[0] * x + l1[1] * y !== l1[2]) errs.push(`corner not on boundary 1`);
   if (l2[0] * x + l2[1] * y !== l2[2]) errs.push(`corner not on boundary 2`);
-  if (l1[0] * l2[1] - l2[0] * l1[1] === 0) errs.push("boundaries are parallel — no corner");
+  if (l1[0] * l2[1] - l2[0] * l1[1] === 0) errs.push("boundaries are parallel, no corner");
   return { errors: errs, expectedAnswer: `(${x}, ${y})` };
 }
 
@@ -2599,7 +2599,7 @@ function chkThreeVarSystem(p: Algebra2Problem, v: V): CheckResult {
     A[0] * (A[4] * A[8] - A[5] * A[7]) -
     A[1] * (A[3] * A[8] - A[5] * A[6]) +
     A[2] * (A[3] * A[7] - A[4] * A[6]);
-  if (det === 0) errs.push("coefficient matrix singular — solution not unique");
+  if (det === 0) errs.push("coefficient matrix singular, solution not unique");
   return { errors: errs, expectedAnswer: `(${sol[0]}, ${sol[1]}, ${sol[2]})` };
 }
 
@@ -2636,8 +2636,8 @@ function chkMatrixSystemIntro(p: Algebra2Problem, v: V): CheckResult {
     const depRecomputed = a * rhs[1] === c * rhs[0];
     if (dependent !== depRecomputed) errs.push(`dependent flag ${dependent} != recomputed ${depRecomputed}`);
     const expected = dependent
-      ? "Infinitely many solutions — det(A) = 0 and the equations are the same line (dependent)"
-      : "No solution — det(A) = 0 and the equations are parallel lines (inconsistent)";
+      ? "Infinitely many solutions, det(A) = 0 and the equations are the same line (dependent)"
+      : "No solution, det(A) = 0 and the equations are parallel lines (inconsistent)";
     return { errors: errs, expectedAnswer: expected };
   }
   const sol = v.sol as number[];
@@ -2645,6 +2645,334 @@ function chkMatrixSystemIntro(p: Algebra2Problem, v: V): CheckResult {
     errs.push("sol does not satisfy A·X = B");
   if (det === 0) errs.push("solve case must be nonsingular");
   return { errors: errs, expectedAnswer: `(${sol[0]}, ${sol[1]})` };
+}
+
+// ── Wave 3c-2 lessons (independent checkers, recomputed from payloads) ───────
+
+function chkQuadFromThreePoints(p: Algebra2Problem, v: V): CheckResult {
+  const pts = v["points"] as number[];
+  const [x1, y1, x2, y2, x3, y3] = pts;
+  const A = v["a"] as number, B = v["b"] as number, C = v["c"] as number;
+  const errs: string[] = [];
+  const det3 = (r1: number[], r2: number[], r3: number[]) =>
+    r1[0] * (r2[1] * r3[2] - r3[1] * r2[2]) - r1[1] * (r2[0] * r3[2] - r3[0] * r2[2]) + r1[2] * (r2[0] * r3[1] - r3[0] * r2[1]);
+  const D = det3([x1 * x1, x1, 1], [x2 * x2, x2, 1], [x3 * x3, x3, 1]);
+  if (D === 0) errs.push("the three points do not determine a unique quadratic");
+  let sa = A, sb = B, sc = C;
+  if (D !== 0) {
+    const [an, ad] = iReduce(det3([y1, x1, 1], [y2, x2, 1], [y3, x3, 1]), D);
+    const [bn, bd] = iReduce(det3([x1 * x1, y1, 1], [x2 * x2, y2, 1], [x3 * x3, y3, 1]), D);
+    const [cn, cd] = iReduce(det3([x1 * x1, x1, y1], [x2 * x2, x2, y2], [x3 * x3, x3, y3]), D);
+    if (ad !== 1 || bd !== 1 || cd !== 1) errs.push("solved coefficients are not integers");
+    sa = an; sb = bn; sc = cn;
+    if (an !== A || bn !== B || cn !== C) errs.push(`payload (${A}, ${B}, ${C}) != solved (${an}, ${bn}, ${cn})`);
+  }
+  for (const [x, y] of [[x1, y1], [x2, y2], [x3, y3]]) {
+    if (A * x * x + B * x + C !== y) errs.push(`point (${x}, ${y}) not on the claimed parabola`);
+  }
+  const expected = `f(x) = ${fPoly([sa, sb, sc])}`;
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkSystemIneqPointLabels(p: Algebra2Problem, v: V): CheckResult {
+  const l1 = v["l1"] as number[], l2 = v["l2"] as number[];
+  const rels = v["rels"] as string[];
+  const pts = v["points"] as number[];
+  const errs: string[] = [];
+  const holds = (l: number[], rel: string, x: number, y: number): boolean => {
+    const val = l[0] * x + l[1] * y;
+    if (rel === "lt") return val < l[2];
+    if (rel === "le") return val <= l[2];
+    if (rel === "gt") return val > l[2];
+    return val >= l[2];
+  };
+  const labels = ["A", "B", "C", "D"];
+  const good: string[] = [];
+  for (let i = 0; i + 1 < pts.length; i += 2) {
+    if (holds(l1, rels[0], pts[i], pts[i + 1]) && holds(l2, rels[1], pts[i], pts[i + 1])) good.push(labels[i / 2]);
+  }
+  if (good.length === 0) errs.push("no candidate point satisfies the system");
+  if (good.length * 2 === pts.length) errs.push("every candidate satisfies; the test set is not mixed");
+  const expected = good.join(", ");
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkLinQuadContext(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const pB = v["pB"] as number, pC = v["pC"] as number;
+  const errs: string[] = [];
+  const P = (t: number) => -16 * t * t + pB * t + pC;
+  let expected = "";
+  if (kind === "towerHeight") {
+    const H = v["H"] as number, t1 = v["t1"] as number, t2 = v["t2"] as number;
+    if (P(t1) !== H || P(t2) !== H) errs.push("claimed times do not put the ball at the tower height");
+    if (!(t1 > 0 && t2 > t1)) errs.push("times are not positive and increasing");
+    if (pC + 16 * t1 * t2 !== H || 16 * (t1 + t2) !== pB) errs.push("model does not factor through the two times");
+    expected = `t = ${t1} s on the way up and t = ${t2} s on the way down`;
+  } else if (kind === "crossingPaths" || kind === "afterLanding") {
+    const m = v["lineM"] as number, b = v["lineB"] as number;
+    const L = (t: number) => m * t + b;
+    const rA = kind === "crossingPaths" ? (v["r1"] as number) : (v["t1"] as number);
+    const rB = kind === "crossingPaths" ? (v["r2"] as number) : (v["t2"] as number);
+    if (P(rA) !== L(rA) || P(rB) !== L(rB)) errs.push("claimed times are not intersection times");
+    if (rA + rB !== (pB - m) / 16 || -16 * rA * rB !== pC - b) errs.push("difference quadratic has different roots");
+    if (kind === "crossingPaths") {
+      if (!(rA < 0 && rB > 0)) errs.push("expected one negative and one positive root");
+      expected = `t = ${rB} s only; the solution t = ${rA} s is before the launch, so it is not a real meeting`;
+    } else {
+      const negH = v["sharedNeg"] as number;
+      if (!(rA > 0 && rB > rA)) errs.push("times are not positive and increasing");
+      if (L(rB) !== negH || negH >= 0) errs.push("second intersection height is not the claimed negative value");
+      if (L(rA) <= 0) errs.push("first intersection should be above ground");
+      expected = `t = ${rA} s only; at t = ${rB} s the shared height would be ${negH} feet, below the ground, so it is impossible`;
+    }
+  } else {
+    errs.push(`unknown LinQuadContext kind ${kind}`);
+  }
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkInverseVariation(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const errs: string[] = [];
+  let expected = "";
+  if (kind === "findK") {
+    const x0 = v["x0"] as number, y0 = v["y0"] as number, k = v["k"] as number;
+    if (k !== x0 * y0) errs.push(`k ${k} != x0*y0 ${x0 * y0}`);
+    expected = `k = ${k}; ${v["yv"] as string} = ${k}/${v["xv"] as string}`;
+  } else if (kind === "predict") {
+    const k = v["k"] as number, at = v["at"] as number;
+    const [rn, rd] = iReduce(k, at);
+    if (rn !== (v["ansNum"] as number) || rd !== (v["ansDen"] as number)) errs.push("predicted value fraction mismatch");
+    const varName = (v["ask"] as string) === "y" ? (v["yv"] as string) : (v["xv"] as string);
+    expected = `${varName} = ${fFrac(k, at)}`;
+  } else if (kind === "table") {
+    const k = v["k"] as number;
+    const xs = v["xs"] as number[], ys = v["ys"] as number[];
+    const hideIdx = v["hideIdx"] as number;
+    xs.forEach((x, i) => { if (x * ys[i] !== k) errs.push(`table pair (${x}, ${ys[i]}) has product != k`); });
+    expected = `${ys[hideIdx]}`;
+  } else if (kind === "square") {
+    const d0 = v["d0"] as number, y0 = v["y0"] as number, k = v["k"] as number, d1 = v["d1"] as number;
+    if (k !== y0 * d0 * d0) errs.push(`k ${k} != y0*d0^2 ${y0 * d0 * d0}`);
+    const [rn, rd] = iReduce(k, d1 * d1);
+    if (rn !== (v["ansNum"] as number) || rd !== (v["ansDen"] as number)) errs.push("predicted value fraction mismatch");
+    expected = `${v["yv"] as string} = ${fFrac(k, d1 * d1)}`;
+  } else {
+    errs.push(`unknown InverseVariation kind ${kind}`);
+  }
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkRationalWordProblem(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const errs: string[] = [];
+  let expected = "";
+  if (kind === "workTogether") {
+    const a = v["a"] as number, b = v["b"] as number;
+    // T must satisfy 1/a + 1/b = 1/T, i.e. T = ab/(a+b), and be faster
+    // than either solo time.
+    const [tn, td] = iReduce(a * b, a + b);
+    if (Math.abs(1 / a + 1 / b - td / tn) > 1e-12) errs.push("combined time does not satisfy the rate equation");
+    if (!(tn < td * Math.min(a, b))) errs.push("combined time is not faster than both solo times");
+    if (!(tn > 0)) errs.push("combined time not positive");
+    expected = `${fFrac(a * b, a + b)} hours`;
+  } else if (kind === "workFindOther") {
+    const a = v["a"] as number, T = v["T"] as number, b = v["b"] as number;
+    if ((a + b) * T !== a * b) errs.push(`(a+b)T != ab: 1/a + 1/b != 1/T`);
+    if (!(b > 0)) errs.push("solo time not positive");
+    expected = `${b} hours`;
+  } else if (kind === "vanShare") {
+    const n = v["n"] as number, e = v["e"] as number, d = v["d"] as number, C = v["C"] as number;
+    if (C * e !== d * n * (n + e)) errs.push("cost drop equation C/n - C/(n+e) = d fails");
+    if (!(n > 0)) errs.push("student count not positive");
+    expected = `${n} students`;
+  } else if (kind === "workDifference") {
+    const u = v["u"] as number, w = v["v"] as number, d = v["d"] as number;
+    if (d !== w - u) errs.push("difference mismatch");
+    const [tn, td] = iReduce(v["tNum"] as number, v["tDen"] as number);
+    const [un, ud] = iReduce(u * w, u + w);
+    if (tn !== un || td !== ud) errs.push("together time is not uv/(u+v)");
+    if (Math.abs(1 / u + 1 / w - (v["tDen"] as number) / (v["tNum"] as number)) > 1e-12) errs.push("solo times do not produce the stated together time");
+    if ((w * d) % (u + w) !== 0) errs.push("second root is not an integer");
+    const negRoot = -(w * d) / (u + w);
+    if (!(negRoot < 0)) errs.push("second root should be negative");
+    expected = `${u} hours and ${w} hours`;
+  } else {
+    errs.push(`unknown RationalWordProblem kind ${kind}`);
+  }
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkLogReasonableness(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const base = v["base"] as number;
+  const mExp = v["mExp"] as number;
+  const B = Math.pow(base, mExp);
+  const logb = (z: number) => Math.log(z) / Math.log(base);
+  const errs: string[] = [];
+  let expected = "";
+  if (kind === "candidate") {
+    const k = v["k"] as number, cand = v["cand"] as number;
+    const a1 = cand, a2 = cand - k;
+    const inDomain = a1 > 0 && a2 > 0;
+    const holds = inDomain && Math.abs(logb(a1) + logb(a2) - mExp) < 1e-9;
+    if (inDomain && !holds) errs.push("candidate is in the domain but does not satisfy the equation");
+    expected = holds ? "valid" : "extraneous";
+  } else if (kind === "solvePlus") {
+    const k = v["k"] as number, s = v["s"] as number, t = v["t"] as number;
+    if (s * (s + k) !== B) errs.push("s does not solve the cleared equation");
+    if (t * (t + k) !== B) errs.push("t does not solve the cleared equation");
+    if (!(s > 0 && s + k > 0)) errs.push("s violates the domain");
+    if (t > 0 && t + k > 0) errs.push("t is NOT extraneous");
+    if (Math.abs(logb(s) + logb(s + k) - mExp) > 1e-9) errs.push("s fails the original equation");
+    expected = `x = ${s}`;
+  } else if (kind === "solvePlusMinus") {
+    const a = v["a"] as number, r = v["r"] as number;
+    if (r * r - a * a !== B) errs.push("r^2 - a^2 != B");
+    if (!(r > a)) errs.push("positive root does not clear the domain bound");
+    if (-r + a > 0 || -r - a > 0) errs.push("negative root is NOT extraneous");
+    if (Math.abs(logb(r + a) + logb(r - a) - mExp) > 1e-9) errs.push("r fails the original equation");
+    expected = `x = ${r}`;
+  } else {
+    errs.push(`unknown LogReasonableness kind ${kind}`);
+  }
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkExpLogConvert(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const base = v["base"] as number;
+  const eNum = v["eNum"] as number, eDen = v["eDen"] as number;
+  const nNum = v["nNum"] as number, nDen = v["nDen"] as number;
+  const errs: string[] = [];
+  if (Math.abs(Math.pow(base, eNum / eDen) - nNum / nDen) > 1e-9) errs.push("base^(eNum/eDen) != nNum/nDen");
+  const eStr = eDen === 1 ? `${eNum}` : `${eNum}/${eDen}`;
+  const nStr = nDen === 1 ? `${nNum}` : `${nNum}/${nDen}`;
+  let expected = "";
+  if (kind === "expToLog") expected = `${iLogLatex(base, nStr)} = ${eStr}`;
+  else if (kind === "logToExp") expected = `${base}^{${eStr}} = ${nStr}`;
+  else if (kind === "evalLog") expected = `${eStr}`;
+  else if (kind === "evalExp") expected = `x = ${eStr}`;
+  else errs.push(`unknown ExpLogConvert kind ${kind}`);
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkRadicalCandidateCheck(p: Algebra2Problem, v: V): CheckResult {
+  const a = v["a"] as number, b = v["b"] as number, cand = v["cand"] as number;
+  const errs: string[] = [];
+  const valid = cand + a >= 0 && Math.abs(Math.sqrt(cand + a) - (cand - b)) < 1e-9;
+  const expected = `x = ${cand} is ${valid ? "a solution" : "extraneous"}`;
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkRadicalExtraneousSolve(p: Algebra2Problem, v: V): CheckResult {
+  const a = v["a"] as number, b = v["b"] as number;
+  const r = v["validRoot"] as number, r2 = v["extraneousRoot"] as number;
+  const errs: string[] = [];
+  if (r + r2 !== 2 * b + 1) errs.push("roots do not match the squared equation (sum)");
+  if (r * r2 !== b * b - a) errs.push("roots do not match the squared equation (product)");
+  const solves = (x: number) => x + a >= 0 && Math.abs(Math.sqrt(x + a) - (x - b)) < 1e-9;
+  if (!solves(r)) errs.push("claimed valid root fails the original equation");
+  if (solves(r2)) errs.push("claimed extraneous root actually solves the original equation");
+  const expected = `{${r}}`;
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkRadicalExtraneousNoSolution(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const errs: string[] = [];
+  const expected = "no solution";
+  if (kind === "negDisc") {
+    const a = v["a"] as number, b = v["b"] as number;
+    const disc = 4 * b + 1 + 4 * a;
+    if (!(disc < 0)) errs.push(`discriminant ${disc} is not negative`);
+    // numeric sweep: no x with x >= b may satisfy sqrt(x + a) = x - b
+    for (let x = b; x <= b + 400; x += 0.5) {
+      if (x + a >= 0 && Math.abs(Math.sqrt(x + a) - (x - b)) < 1e-9) errs.push(`found a solution near x=${x}`);
+    }
+  } else if (kind === "equalRadicals") {
+    const a = v["a"] as number, b2 = v["b2"] as number;
+    if (a === b2) errs.push("radicands are identical; every domain point would solve it");
+  } else {
+    errs.push(`unknown RadicalExtraneousNoSolution kind ${kind}`);
+  }
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+interface DrSpec { lo: number | null; loIncl: boolean; hi: number | null; hiIncl: boolean }
+
+function iDrInterval(iv: DrSpec): string {
+  const loS = iv.lo === null ? "-\\infty" : `${iv.lo}`;
+  const hiS = iv.hi === null ? "\\infty" : `${iv.hi}`;
+  const loB = iv.lo !== null && iv.loIncl ? "[" : "(";
+  const hiB = iv.hi !== null && iv.hiIncl ? "]" : ")";
+  return `${loB}${loS}, ${hiS}${hiB}`;
+}
+
+function iDrIneq(iv: DrSpec, vr: string): string {
+  if (iv.lo === null && iv.hi === null) return `-\\infty < ${vr} < \\infty`;
+  if (iv.hi === null) return `${vr} ${iv.loIncl ? "\\geq" : ">"} ${iv.lo}`;
+  if (iv.lo === null) return `${vr} ${iv.hiIncl ? "\\leq" : "<"} ${iv.hi}`;
+  return `${iv.lo} ${iv.loIncl ? "\\leq" : "<"} ${vr} ${iv.hiIncl ? "\\leq" : "<"} ${iv.hi}`;
+}
+
+function iDrTriple(iv: DrSpec, vr: string): string {
+  return `interval: ${iDrInterval(iv)}; inequality: ${iDrIneq(iv, vr)}; set: {${vr} | ${iDrIneq(iv, vr)}}`;
+}
+
+function chkDomainRangeNotations(p: Algebra2Problem, v: V): CheckResult {
+  const kind = v["kind"] as string;
+  const errs: string[] = [];
+  let dom: DrSpec = { lo: null, loIncl: false, hi: null, hiIncl: false };
+  let ran: DrSpec = { lo: null, loIncl: false, hi: null, hiIncl: false };
+  if (kind === "sqrtEq") {
+    const s = v["s"] as number, h = v["h"] as number, k = v["k"] as number;
+    dom = { lo: h, loIncl: true, hi: null, hiIncl: false };
+    ran = s === 1 ? { lo: k, loIncl: true, hi: null, hiIncl: false } : { lo: null, loIncl: false, hi: k, hiIncl: true };
+    // numeric endpoints: at x = h the output is k
+    if (s * Math.sqrt(0) + k !== k) errs.push("endpoint value mismatch");
+  } else if (kind === "vertexGraph") {
+    const k = v["k"] as number, up = v["up"] as boolean;
+    ran = up ? { lo: k, loIncl: true, hi: null, hiIncl: false } : { lo: null, loIncl: false, hi: k, hiIncl: true };
+  } else if (kind === "segment") {
+    const x1 = v["x1"] as number, y1 = v["y1"] as number, x2 = v["x2"] as number, y2 = v["y2"] as number;
+    const openLo = v["openLo"] as boolean, openHi = v["openHi"] as boolean;
+    if (!(x1 < x2)) errs.push("segment x-endpoints not increasing");
+    if (y1 === y2) errs.push("segment has a single y-value; range is degenerate");
+    dom = { lo: x1, loIncl: !openLo, hi: x2, hiIncl: !openHi };
+    ran = y2 > y1
+      ? { lo: y1, loIncl: !openLo, hi: y2, hiIncl: !openHi }
+      : { lo: y2, loIncl: !openHi, hi: y1, hiIncl: !openLo };
+  } else {
+    errs.push(`unknown DomainRangeNotations kind ${kind}`);
+  }
+  const expected = `Domain: ${iDrTriple(dom, "x")}; Range: ${iDrTriple(ran, "y")}`;
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
+function chkCubesByGrouping(p: Algebra2Problem, v: V): CheckResult {
+  const m = v["m"] as number, k = v["k"] as number, isSum = v["isSum"] as boolean;
+  const errs: string[] = [];
+  const expanded = isSum ? ipMul([1, k], [1, m - k, k * k]) : ipMul([1, -k], [1, m + k, k * k]);
+  const poly = isSum ? [1, m, m * k, k * k * k] : [1, m, -m * k, -k * k * k];
+  if (JSON.stringify(expanded) !== JSON.stringify(poly)) errs.push("factored form does not expand to the given polynomial");
+  const expected = isSum
+    ? `(x + ${k})(${fPoly([1, m - k, k * k])})`
+    : `(x - ${k})(${fPoly([1, m + k, k * k])})`;
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
 }
 
 // ── Dispatcher ────────────────────────────────────────────────────────────────
@@ -2791,6 +3119,18 @@ export function verifyProblem(p: Algebra2Problem): CheckResult {
     case "LnEvaluate": return chkLnEvaluate(p, v);
     case "LnApprox": return chkLnApprox(p, v);
     case "LnSolveTime": return chkLnSolveTime(p, v);
+    case "QuadFromThreePoints": return chkQuadFromThreePoints(p, v);
+    case "SystemIneqPointLabels": return chkSystemIneqPointLabels(p, v);
+    case "LinQuadContext": return chkLinQuadContext(p, v);
+    case "InverseVariation": return chkInverseVariation(p, v);
+    case "RationalWordProblem": return chkRationalWordProblem(p, v);
+    case "LogReasonableness": return chkLogReasonableness(p, v);
+    case "ExpLogConvert": return chkExpLogConvert(p, v);
+    case "RadicalCandidateCheck": return chkRadicalCandidateCheck(p, v);
+    case "RadicalExtraneousSolve": return chkRadicalExtraneousSolve(p, v);
+    case "RadicalExtraneousNoSolution": return chkRadicalExtraneousNoSolution(p, v);
+    case "DomainRangeNotations": return chkDomainRangeNotations(p, v);
+    case "CubesByGrouping": return chkCubesByGrouping(p, v);
     case "SimplifyRadical": return chkSimplifyRadical(p, v);
     case "RadicalMultiply": return chkRadicalMultiply(p, v);
     case "RadicalDivide": return chkRadicalDivide(p, v);

@@ -1,8 +1,8 @@
 // ParallelLinesFactory.ts
-// Topic 3: Parallel and Perpendicular Lines (TEKS G.5(A), G.5(B)) — chapter
+// Topic 3: Parallel and Perpendicular Lines (TEKS G.5(A), G.5(B)), chapter
 // test pool (Topic 3 has no separate placeholder lesson in the registry).
 // Core of a real Topic 3 test: angle pairs formed by a transversal (find the
-// measure — equal for corresponding/alternate/vertical, supplementary for
+// measure, equal for corresponding/alternate/vertical, supplementary for
 // same-side), algebra with those relationships, proving lines parallel with
 // the CONVERSES, and the coordinate half of the chapter: slopes, parallel /
 // perpendicular slope relationships, and equations of lines.

@@ -85,12 +85,12 @@ function makeTriangleAngles(rng: RNG, difficulty: SATDifficulty): SATProblem {
     });
   }
 
-  // tiers 2–3: isosceles — vertex given, find base (or base given, find vertex)
+  // tiers 2–3: isosceles, vertex given, find base (or base given, find vertex)
   const findBase = rng() < 0.5;
   let given: number, ans: number;
   if (findBase) {
     given = randInt(rng, 20, 80); // vertex
-    ans = (180 - given) / 2; // base — always integer when `given` even
+    ans = (180 - given) / 2; // base, always integer when `given` even
     if (!Number.isInteger(ans)) {
       given += 1;
       ans = (180 - given) / 2;
@@ -181,7 +181,7 @@ function makeTriangleAngles(rng: RNG, difficulty: SATDifficulty): SATProblem {
   });
 }
 
-// ── Maker 2: circle measurement (A.T.2) — MCQ only (answers in terms of π) ────
+// ── Maker 2: circle measurement (A.T.2), MCQ only (answers in terms of π) ────
 
 function makeCircleMeasure(rng: RNG, difficulty: SATDifficulty): SATProblem {
   const t = tier(rng, difficulty);
@@ -384,15 +384,15 @@ function makeRightTriangleTrig(rng: RNG, difficulty: SATDifficulty): SATProblem 
   // wrong ratio entirely (sine ↔ tangent ↔ cosine mix-ups).
   const d1 =
     ratio === "sin"
-      ? { f: q(adj, hyp), note: "Swapped the legs — used adjacent/hypotenuse." }
+      ? { f: q(adj, hyp), note: "Swapped the legs, used adjacent/hypotenuse." }
       : ratio === "cos"
-      ? { f: q(opp, hyp), note: "Swapped the legs — used opposite/hypotenuse." }
+      ? { f: q(opp, hyp), note: "Swapped the legs, used opposite/hypotenuse." }
       : { f: q(adj, opp), note: "Used adjacent/opposite instead of opposite/adjacent." };
   const d2 =
     ratio === "sin"
-      ? { f: q(hyp, opp), note: "Used the reciprocal — hypotenuse/opposite." }
+      ? { f: q(hyp, opp), note: "Used the reciprocal, hypotenuse/opposite." }
       : ratio === "cos"
-      ? { f: q(hyp, adj), note: "Used the reciprocal — hypotenuse/adjacent." }
+      ? { f: q(hyp, adj), note: "Used the reciprocal, hypotenuse/adjacent." }
       : { f: q(opp, hyp), note: "Used sine (opposite/hypotenuse) instead of tangent." };
   const d3 =
     ratio === "sin"
@@ -434,7 +434,7 @@ function makeVolume(rng: RNG, difficulty: SATDifficulty): SATProblem {
   const format = chooseFormat(rng);
 
   if (t === 3) {
-    // Cylinder V = πr²h — MCQ only (π in the answer).
+    // Cylinder V = πr²h, MCQ only (π in the answer).
     const r = randInt(rng, 2, 6);
     const h = randInt(rng, 3, 10);
     const key = { label: piLabel(r * r * h), value: r * r * h * Math.PI };
@@ -552,7 +552,7 @@ function makeVolume(rng: RNG, difficulty: SATDifficulty): SATProblem {
       label: qLabel(q(2 * V)),
       value: 2 * V,
       misconception: "order-of-operations",
-      note: "Doubled the volume — arithmetic slip.",
+      note: "Doubled the volume, arithmetic slip.",
     },
     {
       label: qLabel(q(V + 1)),

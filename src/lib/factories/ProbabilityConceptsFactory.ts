@@ -137,7 +137,7 @@ function makeExperimental(rng: RNG): GeometryProblem {
     find: "experimental probability",
     answer: frac(hits, trials),
     steps: [
-      step("Experimental probability = (times the event occurred) ÷ (total trials) — it comes from data, not from counting a sample space.", "Definition of experimental (relative-frequency) probability."),
+      step("Experimental probability = (times the event occurred) ÷ (total trials), it comes from data, not from counting a sample space.", "Definition of experimental (relative-frequency) probability."),
       step(`P ≈ ${hits}/${trials}.`, "Substitute the trial data."),
       step(`P ≈ ${frac(hits, trials)}.`, "Reduce the fraction.", [{ label: "P", answer: frac(hits, trials) }]),
     ],
@@ -180,7 +180,7 @@ function makeCompare(rng: RNG): GeometryProblem {
   const hits = expected + pick(rng, [-6, -4, -3, 3, 4, 5, 7]);
   return {
     type: "GEO.15", subtype: "CompareProbabilities",
-    prompt: `A spinner has 8 equal sections, 2 of which are blue. The spinner was spun ${trials} times and landed on blue ${hits} times. What is the EXPERIMENTAL probability of landing on blue (reduced fraction)? The theoretical probability is 1/4 — your answer should come from the data.`,
+    prompt: `A spinner has 8 equal sections, 2 of which are blue. The spinner was spun ${trials} times and landed on blue ${hits} times. What is the EXPERIMENTAL probability of landing on blue (reduced fraction)? The theoretical probability is 1/4, your answer should come from the data.`,
     given: { trials, hits, theoretical: "1/4" },
     find: "experimental probability",
     answer: frac(hits, trials),

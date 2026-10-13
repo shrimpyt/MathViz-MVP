@@ -14,6 +14,7 @@ export default function Home() {
           display: "flex", 
           flexDirection: "column", 
           height: "100vh",
+          "@supports (height: 100dvh)": { height: "100dvh" },
           background: '#14161f',
         }}
       >

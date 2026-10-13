@@ -4,7 +4,7 @@
 //   - graph features (areas, sign changes, monotonicity) match independent
 //     recomputation from the stored points
 //   - every subpart answer is recomputed from the STIMULUS ALONE (points,
-//     table cells, or scenario parameters) — hunting contradictions
+//     table cells, or scenario parameters), hunting contradictions
 //   - justifications are present (AP justification language for the key)
 
 import { mulberry32 } from "@/lib/math-utils";

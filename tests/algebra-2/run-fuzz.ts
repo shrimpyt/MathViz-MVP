@@ -451,6 +451,43 @@ function domainInvariants(p: Algebra2Problem): string[] {
     case "RationalizeBinomial":
     case "CubeRootEquations":
       break;
+    // Wave 3c-2 subtypes: constructed from exact integer parameters, so
+    // validity reduces to a few payload sanity checks.
+    case "QuadFromThreePoints": {
+      if (num("a") === 0) errs.push("leading coefficient is 0");
+      const pts = v["points"] as number[];
+      if (new Set([pts[0], pts[2], pts[4]]).size !== 3) errs.push("point x-values not distinct");
+      break;
+    }
+    case "SystemIneqPointLabels": {
+      const pts = v["points"] as number[];
+      if (!(pts.length === 6 || pts.length === 8)) errs.push("expected 3 or 4 candidate points");
+      break;
+    }
+    case "LinQuadContext": {
+      if (!isFinite(num("pB")) || !isFinite(num("pC"))) errs.push("projectile coefficients not finite");
+      break;
+    }
+    case "InverseVariation": {
+      if (!(num("k") > 0)) errs.push("constant of variation not positive");
+      break;
+    }
+    case "ExpLogConvert": {
+      if (!(num("base") >= 2)) errs.push("base below 2");
+      if (num("eDen") === 0 || num("nDen") === 0) errs.push("zero denominator in verify fractions");
+      break;
+    }
+    case "LogReasonableness": {
+      if (!(num("base") >= 2)) errs.push("base below 2");
+      break;
+    }
+    case "RationalWordProblem":
+    case "RadicalCandidateCheck":
+    case "RadicalExtraneousSolve":
+    case "RadicalExtraneousNoSolution":
+    case "DomainRangeNotations":
+    case "CubesByGrouping":
+      break;
     default:
       errs.push(`no fuzz invariants for subtype ${p.subtype}`);
   }

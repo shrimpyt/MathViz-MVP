@@ -17,7 +17,7 @@ function SatSampleDoc({ problems }: { problems: SATProblem[] }) {
   return (
     <Document>
       <Page size="LETTER" style={{ padding: 40, fontFamily: "Times-Roman" }}>
-        <Text style={{ fontSize: 18, marginBottom: 12 }}>SAT Math Practice — Sample</Text>
+        <Text style={{ fontSize: 18, marginBottom: 12 }}>SAT Math Practice, Sample</Text>
         {problems.map((p, i) => (
           <View key={i} style={{ marginBottom: 14 }}>
             <Text style={{ fontSize: 11, marginBottom: 4 }}>

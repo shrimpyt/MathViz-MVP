@@ -1,5 +1,5 @@
 // Algebra2Functions.ts
-// A2.2 — Topic 2: Relations & Functions and Absolute Value (TEKS A2.2).
+// A2.2, Topic 2: Relations & Functions and Absolute Value (TEKS A2.2).
 // Relations/functions with domain & range in the notations Algebra II uses
 // (listing, inequality, set-builder, interval), the vertical line test,
 // function-notation evaluation; absolute value treated as distance and as a
@@ -46,7 +46,9 @@ export type FunctionSubtype =
   | "AbsIneqAnd"
   | "AbsIneqOr"
   | "AbsIneqLinear"
-  | "AbsIneqSpecial";
+  | "AbsIneqSpecial"
+  // Lesson 2-7 (2A.7I: domain and range in three notations)
+  | "DomainRangeNotations";
 
 interface Maker {
   minDifficulty: 1 | 2 | 3;
@@ -328,8 +330,8 @@ function makeVerticalLineTest(rng: RNG): Algebra2Problem {
     given: { graph: "plotted points" },
     find: "whether the graph represents y as a function of x",
     answer: actuallyFn
-      ? "Yes — every vertical line crosses the graph at most once"
-      : `No — the vertical line x = ${dupX} crosses the graph more than once`,
+      ? "Yes, every vertical line crosses the graph at most once"
+      : `No, the vertical line x = ${dupX} crosses the graph more than once`,
     steps: [
       {
         instruction: "Imagine sweeping a vertical line across the graph and count intersections:",
@@ -489,8 +491,8 @@ function makeGraphExtremum(rng: RNG): Algebra2Problem {
       },
       {
         instruction: up
-          ? "The graph opens upward, so the vertex is the lowest point — its y-value is the minimum:"
-          : "The graph opens downward, so the vertex is the highest point — its y-value is the maximum:",
+          ? "The graph opens upward, so the vertex is the lowest point, its y-value is the minimum:"
+          : "The graph opens downward, so the vertex is the highest point, its y-value is the maximum:",
         reason: "Extreme value at the vertex",
         blanks: [{ label: `${word} value`, answer: `${k} at x = ${h}` }],
       },
@@ -734,15 +736,15 @@ function makeAbsIneqGraphDesc(rng: RNG): Algebra2Problem {
       },
       {
         instruction: strict
-          ? `The symbol ${REL_LATEX[rel]} is strict (no "or equal to"), so points on the V itself are NOT solutions — draw the boundary dashed:`
-          : `The symbol ${REL_LATEX[rel]} includes "or equal to", so points on the V itself ARE solutions — draw the boundary solid:`,
+          ? `The symbol ${REL_LATEX[rel]} is strict (no "or equal to"), so points on the V itself are NOT solutions, draw the boundary dashed:`
+          : `The symbol ${REL_LATEX[rel]} includes "or equal to", so points on the V itself ARE solutions, draw the boundary solid:`,
         reason: strict ? "Strict inequality: dashed boundary" : "Inclusive inequality: solid boundary",
         blanks: [{ label: "boundary", answer: strict ? "dashed" : "solid" }],
       },
       {
         instruction: `Test the point (${h}, ${testY}), which sits just above the vertex: substituting gives ${testY} ${REL_LATEX[rel]} ${k}, which is ${testTrue}:`,
         reason: "Test point method",
-        blanks: [{ label: "test result", answer: testTrue ? "true — shade the side containing the point (above)" : "false — shade the opposite side (below)" }],
+        blanks: [{ label: "test result", answer: testTrue ? "true, shade the side containing the point (above)" : "false, shade the opposite side (below)" }],
       },
     ],
     verify: { aNum, aDen: 1, h, k, rel, strict, above },
@@ -810,7 +812,7 @@ function makeAbsIneqPointCheck(rng: RNG): Algebra2Problem {
     subtype: "AbsIneqPointCheck",
     given: { inequality: ineq, point: `(${px}, ${py})` },
     find: "whether the point is a solution of the inequality",
-    answer: truth ? `Yes — (${px}, ${py}) satisfies the inequality` : `No — (${px}, ${py}) does not satisfy the inequality`,
+    answer: truth ? `Yes, (${px}, ${py}) satisfies the inequality` : `No, (${px}, ${py}) does not satisfy the inequality`,
     steps: [
       {
         instruction: `Substitute x = ${px} into the boundary expression: ${absCoeff(aNum, 1)}|${px} - (${h})| ${k === 0 ? "" : k > 0 ? `+ ${k}` : `- ${-k}`} = ${fpx}:`,
@@ -913,7 +915,7 @@ function makeAbsEquationSpecial(rng: RNG): Algebra2Problem {
       answer: "No solution",
       steps: [
         {
-          instruction: `An absolute value is a distance, so |${inside}| is always greater than or equal to 0 — it can never equal ${-c}:`,
+          instruction: `An absolute value is a distance, so |${inside}| is always greater than or equal to 0, it can never equal ${-c}:`,
           reason: "Absolute value is never negative",
           blanks: [{ label: "solutions", answer: "no solution" }],
         },
@@ -1052,7 +1054,7 @@ function makeAbsIneqOr(rng: RNG): Algebra2Problem {
     answer,
     steps: [
       {
-        instruction: `|${absInside(h)}| is the distance from x to ${h}. The inequality says that distance is ${REL_WORD[rel]} ${c} — far away in either direction:`,
+        instruction: `|${absInside(h)}| is the distance from x to ${h}. The inequality says that distance is ${REL_WORD[rel]} ${c}, far away in either direction:`,
         reason: "Absolute value as distance",
         blanks: [{ label: "distance condition", answer: `distance ${REL_LATEX[rel]} ${c}` }],
       },
@@ -1092,7 +1094,7 @@ function makeAbsIneqLinear(rng: RNG, negativeInside: boolean): Algebra2Problem {
   const steps: ProblemStep[] = [];
   if (negativeInside) {
     steps.push({
-      instruction: `Opposites have the same absolute value, so |${insideShown}| = |${insideWork}| — rewrite with a positive leading coefficient:`,
+      instruction: `Opposites have the same absolute value, so |${insideShown}| = |${insideWork}|, rewrite with a positive leading coefficient:`,
       reason: "|−u| = |u|",
       blanks: [{ label: "rewritten", answer: `|${insideWork}| ${REL_LATEX[rel]} ${c}` }],
     });
@@ -1135,7 +1137,7 @@ function makeAbsIneqSpecial(rng: RNG): Algebra2Problem {
       answer: "All real numbers",
       steps: [
         {
-          instruction: `An absolute value is always \\geq 0, and 0 is already greater than ${-c} — so the inequality holds for every x:`,
+          instruction: `An absolute value is always \\geq 0, and 0 is already greater than ${-c}, so the inequality holds for every x:`,
           reason: "Range of absolute value is [0, ∞)",
           blanks: [{ label: "solution set", answer: "all real numbers" }],
         },
@@ -1187,6 +1189,170 @@ function makeAbsIneqSpecial(rng: RNG): Algebra2Problem {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
+// ── 2-7: domain and range in three notations (2A.7I) ─────────────────────────
+// One interval spec drives all three notations so interval, inequality, and
+// set-builder always agree. A null endpoint means unbounded on that side.
+
+interface IntervalSpec { lo: number | null; loIncl: boolean; hi: number | null; hiIncl: boolean }
+
+function drIntervalText(iv: IntervalSpec): string {
+  const loS = iv.lo === null ? "-\\infty" : `${iv.lo}`;
+  const hiS = iv.hi === null ? "\\infty" : `${iv.hi}`;
+  const loB = iv.lo !== null && iv.loIncl ? "[" : "(";
+  const hiB = iv.hi !== null && iv.hiIncl ? "]" : ")";
+  return `${loB}${loS}, ${hiS}${hiB}`;
+}
+
+function drIneqText(iv: IntervalSpec, v: string): string {
+  if (iv.lo === null && iv.hi === null) return `-\\infty < ${v} < \\infty`;
+  if (iv.hi === null) return `${v} ${iv.loIncl ? "\\geq" : ">"} ${iv.lo}`;
+  if (iv.lo === null) return `${v} ${iv.hiIncl ? "\\leq" : "<"} ${iv.hi}`;
+  return `${iv.lo} ${iv.loIncl ? "\\leq" : "<"} ${v} ${iv.hiIncl ? "\\leq" : "<"} ${iv.hi}`;
+}
+
+function drTriple(iv: IntervalSpec, v: string): string {
+  return `interval: ${drIntervalText(iv)}; inequality: ${drIneqText(iv, v)}; set: {${v} | ${drIneqText(iv, v)}}`;
+}
+
+function drAnswer(dom: IntervalSpec, ran: IntervalSpec): string {
+  return `Domain: ${drTriple(dom, "x")}; Range: ${drTriple(ran, "y")}`;
+}
+
+function makeDomainRangeSqrt(rng: RNG): Algebra2Problem {
+  const s = pick(rng, [-1, 1]);
+  const h = randSigned(rng, 4);
+  const k = randSigned(rng, 5);
+  const rad = h === 0 ? "x" : h > 0 ? `x - ${h}` : `x + ${-h}`;
+  const body = `${s === -1 ? "-" : ""}\\sqrt{${rad}}${k === 0 ? "" : k > 0 ? ` + ${k}` : ` - ${-k}`}`;
+  const dom: IntervalSpec = { lo: h, loIncl: true, hi: null, hiIncl: false };
+  const ran: IntervalSpec = s === 1
+    ? { lo: k, loIncl: true, hi: null, hiIncl: false }
+    : { lo: null, loIncl: false, hi: k, hiIncl: true };
+  const answer = drAnswer(dom, ran);
+  return {
+    type: "A2.2",
+    subtype: "DomainRangeNotations",
+    given: { function: `f(x) = ${body}` },
+    find: "the domain and range in interval, inequality, and set notation",
+    answer,
+    steps: [
+      {
+        instruction: `The radicand must be nonnegative: ${rad} \\geq 0 gives x \\geq ${h}, and the endpoint x = ${h} is included because the radicand is 0 there:`,
+        reason: "Domain from the radicand",
+        blanks: [{ label: "domain", answer: drTriple(dom, "x") }],
+      },
+      {
+        instruction: s === 1
+          ? `The square root itself is at least 0, and the vertical shift moves the smallest output to ${k}:`
+          : `The negative sign flips the square root's outputs to at most 0, and the vertical shift moves the largest output to ${k}:`,
+        reason: "Range from the square root's outputs",
+        blanks: [{ label: "range", answer: drTriple(ran, "y") }],
+      },
+      {
+        instruction: "Combine both, each in the three notations:",
+        reason: "Three notations",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    verify: { kind: "sqrtEq", s, h, k },
+  };
+}
+
+function makeDomainRangeVertexGraph(rng: RNG): Algebra2Problem {
+  const useAbs = rng() < 0.5;
+  const h = randSigned(rng, 4);
+  const k = randSigned(rng, 5);
+  let svg: Algebra2FuncGraphParams;
+  let up: boolean;
+  if (useAbs) {
+    const aNum = pick(rng, [-2, -1, 1, 2]);
+    up = aNum > 0;
+    svg = absGraphParams(aNum, 1, h, k);
+  } else {
+    const a = pick(rng, [-2, -1, 1, 2]);
+    up = a > 0;
+    svg = { kind: "FuncGraph", parabolas: [{ h, k, a }] };
+  }
+  const dom: IntervalSpec = { lo: null, loIncl: false, hi: null, hiIncl: false };
+  const ran: IntervalSpec = up
+    ? { lo: k, loIncl: true, hi: null, hiIncl: false }
+    : { lo: null, loIncl: false, hi: k, hiIncl: true };
+  const answer = drAnswer(dom, ran);
+  return {
+    type: "A2.2",
+    subtype: "DomainRangeNotations",
+    given: { function: "f (graphed)" },
+    find: "the domain and range in interval, inequality, and set notation",
+    answer,
+    steps: [
+      {
+        instruction: "The graph extends without bound to the left and right, so every real x-value is used:",
+        reason: "Domain from a graph",
+        blanks: [{ label: "domain", answer: drTriple(dom, "x") }],
+      },
+      {
+        instruction: `The vertex is (${h}, ${k}) and the graph opens ${up ? "upward, so it never goes below" : "downward, so it never goes above"} y = ${k}, and the vertex value itself is reached:`,
+        reason: "Range from the vertex",
+        blanks: [{ label: "range", answer: drTriple(ran, "y") }],
+      },
+      {
+        instruction: "Combine both, each in the three notations:",
+        reason: "Three notations",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    svgParams: svg,
+    verify: { kind: "vertexGraph", sub: useAbs ? "abs" : "parabola", h, k, up },
+  };
+}
+
+function makeDomainRangeSegment(rng: RNG): Algebra2Problem {
+  const x1 = randInt(rng, -5, 2);
+  const w = randInt(rng, 2, 5);
+  const x2 = x1 + w;
+  const m = pick(rng, [-2, -1, 1, 2]);
+  const y1 = randSigned(rng, 5);
+  const y2 = y1 + m * w;
+  const openLo = rng() < 0.5;
+  const openHi = rng() < 0.5;
+  const dom: IntervalSpec = { lo: x1, loIncl: !openLo, hi: x2, hiIncl: !openHi };
+  // Range endpoint inclusion follows the x-endpoint that produces it, which
+  // flips when the segment falls.
+  const ran: IntervalSpec = m > 0
+    ? { lo: y1, loIncl: !openLo, hi: y2, hiIncl: !openHi }
+    : { lo: y2, loIncl: !openHi, hi: y1, hiIncl: !openLo };
+  const answer = drAnswer(dom, ran);
+  const endText = (x: number, y: number, open: boolean) => `(${x}, ${y}) with an ${open ? "open" : "closed"} circle`;
+  return {
+    type: "A2.2",
+    subtype: "DomainRangeNotations",
+    given: { graph: `line segment from ${endText(x1, y1, openLo)} to ${endText(x2, y2, openHi)}` },
+    find: "the domain and range in interval, inequality, and set notation",
+    answer,
+    steps: [
+      {
+        instruction: `The x-values run from ${x1} to ${x2}. The left endpoint is an ${openLo ? "open" : "closed"} circle and the right endpoint is an ${openHi ? "open" : "closed"} circle, which decide the bracket types:`,
+        reason: "Domain from the x-extent",
+        blanks: [{ label: "domain", answer: drTriple(dom, "x") }],
+      },
+      {
+        instruction: m > 0
+          ? `The segment rises, so the y-values run from ${y1} (at the left endpoint) up to ${y2} (at the right endpoint), with the same inclusion as their endpoints:`
+          : `The segment falls, so the y-values run from ${y2} (at the right endpoint) up to ${y1} (at the left endpoint), with the same inclusion as their endpoints:`,
+        reason: "Range from the y-extent",
+        blanks: [{ label: "range", answer: drTriple(ran, "y") }],
+      },
+      {
+        instruction: "Combine both, each in the three notations:",
+        reason: "Three notations",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    svgParams: { kind: "FuncGraph", points: [{ x: x1, y: y1, open: openLo }, { x: x2, y: y2, open: openHi }] },
+    verify: { kind: "segment", x1, y1, x2, y2, openLo, openHi },
+  };
+}
+
 const MAKERS: Maker[] = [
   { minDifficulty: 1, make: (rng) => makeRelationIsFunction(rng, "pairs") },
   { minDifficulty: 1, make: (rng) => makeAbsTransformations(rng, "basic") },
@@ -1215,6 +1381,10 @@ const MAKERS: Maker[] = [
   { minDifficulty: 3, make: makeAbsEquationCheck },
   { minDifficulty: 3, make: (rng) => makeAbsIneqLinear(rng, true) },
   { minDifficulty: 3, make: makeAbsIneqSpecial },
+  // 2-7 domain and range in three notations (2A.7I)
+  { minDifficulty: 1, make: makeDomainRangeSqrt },
+  { minDifficulty: 2, make: makeDomainRangeVertexGraph },
+  { minDifficulty: 3, make: makeDomainRangeSegment },
 ];
 
 /**

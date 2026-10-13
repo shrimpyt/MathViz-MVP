@@ -1,4 +1,4 @@
-// 04-repro.ts — seed reproducibility: same seed → byte-identical output.
+// 04-repro.ts, seed reproducibility: same seed → byte-identical output.
 // Every entry × mode × difficulty is generated twice with the same seed and
 // compared via JSON serialization; a second pass uses different counts.
 

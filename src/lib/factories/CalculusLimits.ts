@@ -1,5 +1,5 @@
 // CalculusLimits.ts
-// AP Calculus — Limits & Continuity generators (AP Calc AB).
+// AP Calculus, Limits & Continuity generators (AP Calc AB).
 // Graphical, numerical, and algebraic limits, incl. one-sided and infinite.
 //
 // Every maker is pure + seeded. Difficulty tiers are cumulative:
@@ -83,7 +83,7 @@ function algebraicCancel(rng: RNG): CalcMCQProblem {
     steps: [
       {
         instruction: `Direct substitution gives 0/0, so factor the numerator: x² − ${a * a} =`,
-        reason: "0/0 is an indeterminate form — factor before substituting",
+        reason: "0/0 is an indeterminate form, factor before substituting",
         blanks: [{ label: "factored", answer: `(x − ${a})(x + ${a})` }],
       },
       {
@@ -173,7 +173,7 @@ function oneSidedJump(rng: RNG): CalcMCQProblem {
         blanks: [{ label: "one-sided limit", answer: fmtNum(L) }],
       },
       {
-        instruction: `Note the open circle at (${c}, ${fmtNum(left ? L1 : L2)}) — the limit follows the approaching values, giving:`,
+        instruction: `Note the open circle at (${c}, ${fmtNum(left ? L1 : L2)}), the limit follows the approaching values, giving:`,
         reason: "Open circles are approached but never taken; the limit follows the approach",
         blanks: [{ label: "answer", answer: fmtNum(L) }],
       },

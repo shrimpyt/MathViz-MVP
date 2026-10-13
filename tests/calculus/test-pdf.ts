@@ -3,7 +3,7 @@
 //
 // Renders real PDF bytes through @react-pdf/renderer using ONLY the new
 // calculus components (CalcGraphPdf, CalcTablePdf) with graph params sampled
-// from actual generated problems — never hand-built shapes. Asserts the
+// from actual generated problems, never hand-built shapes. Asserts the
 // buffer is a plausible PDF (%PDF header, non-trivial size). Also asserts
 // pdfSafeText output never contains ≅ (the one glyph DejaVu Serif lacks).
 

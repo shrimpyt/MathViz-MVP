@@ -66,7 +66,7 @@ const ENUNCIATIONS: Record<ElementsProposition, string> = {
 const TITLES: Record<ElementsProposition, string> = {
   "I.1": "Construction of an equilateral triangle",
   "I.4": "Side-Angle-Side congruence",
-  "I.5": "Pons asinorum — base angles of an isosceles triangle",
+  "I.5": "Pons asinorum, base angles of an isosceles triangle",
   "I.8": "Side-Side-Side congruence",
   "I.29": "Angles formed by a transversal on parallels",
   "I.32": "The exterior angle and the angle sum of a triangle",
@@ -144,7 +144,7 @@ function propI5(rng: RNG): ElementsProof {
       { statement: "Since the whole AF equals the whole AG, and AB equals AC, the remainders BF and CG are equal.", reason: "C.N. 3" },
       { statement: "In the triangles BFC and CGB: BF = CG, FC = GB, and the angle BFC equals the angle CGB; hence the triangles are equal.", reason: "I.4" },
       { statement: "Therefore the angle FBC equals the angle GCB, and the angle BCF equals the angle CBG.", reason: "I.4" },
-      { statement: "Since the angle ABG equals the angle ACF and the angle CBG equals the angle BCF, the remainders — the angle ABC and the angle ACB — are equal.", reason: "C.N. 3" },
+      { statement: "Since the angle ABG equals the angle ACF and the angle CBG equals the angle BCF, the remainders, the angle ABC and the angle ACB, are equal.", reason: "C.N. 3" },
       { statement: "These are the angles at the base of the triangle ABC.", reason: "Def. 20" },
     ]),
   };
@@ -187,7 +187,7 @@ function propI29(rng: RNG): ElementsProof {
       { statement: "If the angle AGH is unequal to the angle GHD, one of them is greater; let AGH be the greater.", reason: "Hypothesis" },
       { statement: "Add the angle BGH to each: then AGH + BGH is greater than GHD + BGH.", reason: "C.N. 4" },
       { statement: "But AGH + BGH is equal to two right angles.", reason: "I.13" },
-      { statement: "Hence GHD + BGH is less than two right angles; so AB and CD, if produced, meet on that side — contrary to AB being parallel to CD.", reason: "Post. 5" },
+      { statement: "Hence GHD + BGH is less than two right angles; so AB and CD, if produced, meet on that side, contrary to AB being parallel to CD.", reason: "Post. 5" },
       { statement: "Therefore the alternate angles AGH and GHD are equal.", reason: "Contradiction" },
       { statement: "The angle AGH equals the angle EGB, being vertical; hence the exterior angle EGB equals the interior and opposite angle GHD.", reason: "I.15" },
       { statement: "Add BGH to each of the equal angles AGH and GHD: then AGH + BGH equals GHD + BGH; the former is two right angles, so the interior angles on the same side are equal to two right angles.", reason: "I.13" },
@@ -207,7 +207,7 @@ function propI32(rng: RNG): ElementsProof {
       { statement: "Through the point C draw CE parallel to the straight line AB.", reason: "I.31" },
       { statement: "The angle BAC equals the angle ACE, for they are alternate angles on the parallels AB and CE.", reason: "I.29" },
       { statement: "The angle ABC equals the angle ECD, for they are corresponding exterior and interior angles.", reason: "I.29" },
-      { statement: "Hence the whole exterior angle ACD — that is, ACE + ECD — equals BAC + ABC.", reason: "C.N. 2" },
+      { statement: "Hence the whole exterior angle ACD, that is, ACE + ECD, equals BAC + ABC.", reason: "C.N. 2" },
       { statement: "Add the angle ACB to each: ACD + ACB equals BAC + ABC + ACB.", reason: "C.N. 2" },
       { statement: "But ACD + ACB is equal to two right angles.", reason: "I.13" },
       { statement: "Therefore the three interior angles BAC, ABC, ACB are equal to two right angles.", reason: "C.N. 1" },
@@ -237,7 +237,7 @@ function propI47(rng: RNG): ElementsProof {
       { statement: "The square GB is double the triangle FBC, being on the same base FB and between the same parallels.", reason: "I.41" },
       { statement: "Doubles of equal things are equal: the parallelogram BL equals the square GB.", reason: "C.N. 2" },
       { statement: "Similarly, if AE and BK be joined, the parallelogram CL equals the square HC.", reason: "I.4, I.41" },
-      { statement: "Therefore the whole square BDEC — that is, BL + CL — equals the squares GB + HC on the sides containing the right angle.", reason: "C.N. 2" },
+      { statement: "Therefore the whole square BDEC, that is, BL + CL, equals the squares GB + HC on the sides containing the right angle.", reason: "C.N. 2" },
     ]),
   };
 }

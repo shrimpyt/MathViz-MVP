@@ -124,7 +124,7 @@ export default function AccommodationsPanel({
     return (
       <Box>
         <Typography sx={{ fontSize: '0.72rem', color: 'rgba(148,163,184,0.85)', mb: 1, lineHeight: 1.5 }}>
-          Save a reusable accommodation profile for a class. Groups are anonymous —
+          Save a reusable accommodation profile for a class. Groups are anonymous,
           student counts only, never names.
         </Typography>
         <TextField
@@ -132,7 +132,7 @@ export default function AccommodationsPanel({
           size="small"
           value={classLabelDraft}
           onChange={(e) => setClassLabelDraft(e.target.value)}
-          placeholder="Class label, e.g. Algebra 2 — Period 3"
+          placeholder="Class label, e.g. Algebra 2, Period 3"
           data-testid="accom-class-label"
           sx={{ mb: 1.25, ...accomFieldSx }}
         />
@@ -183,7 +183,7 @@ export default function AccommodationsPanel({
         sx={{ mb: 0.5, ...accomFieldSx }}
       />
       <Typography sx={{ fontSize: '0.65rem', color: 'rgba(148,163,184,0.6)', mb: 1.5, lineHeight: 1.5 }}>
-        Anonymous groups only — never enter student names.
+        Anonymous groups only, never enter student names.
       </Typography>
 
       {list.groups.map((g) => (

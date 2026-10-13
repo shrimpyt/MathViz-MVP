@@ -1,6 +1,6 @@
 // verify.ts
 // INDEPENDENT verification code for Algebra 2 tests. This file is written
-// from scratch against the documented statement grammar — it shares NO code
+// from scratch against the documented statement grammar, it shares NO code
 // with the factories (no imports from src/lib/factories/*).
 //
 // Canonical statement grammar (used by Algebra2Proofs.ts):

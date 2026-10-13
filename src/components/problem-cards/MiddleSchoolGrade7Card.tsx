@@ -48,6 +48,13 @@ const SUBTYPE_LABEL: Record<Grade7Problem["subtype"], string> = {
   ExpandingAndFactoring: "Expanding & Factoring Expressions",
   DistributiveEquations: "Distributive Property Equations",
   MultiStepInequalities: "Multi-Step Inequalities",
+  SimilarFigures7: "Similar Figures & Scale Drawings",
+  ConversionsBetweenSystems: "Converting Between Measurement Systems",
+  Interest7: "Simple & Compound Interest",
+  NetWorth7: "Net Worth & Financial Records",
+  FamilyBudgets7: "Family Budgets & Wages",
+  ReadingGraphs7: "Reading Bar, Dot & Circle Graphs",
+  NumberSets7: "Rational Number Sets & Subsets",
 };
 
 export function MiddleSchoolGrade7Card({

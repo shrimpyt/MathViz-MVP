@@ -5,7 +5,7 @@
 //
 // Covers:
 //  (a) bank contains exactly the version's blank answers, deduped
-//  (b) determinism — same problems → same bank, every time
+//  (b) determinism, same problems → same bank, every time
 //  (c) bank is NOT in worksheet order (shuffled) when ≥3 distinct terms
 //  (d) problems without steps/blanks yield an empty bank
 //  (e) planVersions: only flagged groups get a bank; base never does
@@ -46,7 +46,7 @@ function assert(cond: unknown, msg: string): asserts cond {
 
 function assertEq<T>(a: T, b: T, msg: string): void {
   if (JSON.stringify(a) !== JSON.stringify(b)) {
-    throw new Error(`${msg} — got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
+    throw new Error(`${msg}, got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
   }
 }
 

@@ -1,5 +1,5 @@
 // Algebra2Quadratics.ts
-// A2.1 — Advanced quadratics: completing the square, vertex form, complex
+// A2.1, Advanced quadratics: completing the square, vertex form, complex
 // solutions, discriminant analysis, quadratic formula, solving by square root.
 // Pure, seeded (mulberry32). Difficulty tiers 1|2|3 are cumulative and live
 // in this factory. `verify` carries machine-readable params for independent
@@ -33,7 +33,9 @@ export type QuadraticSubtype =
   | "FactorDiffSquares"
   | "FactorSolve"
   | "QuadInequality"
-  | "QuadIneqNoCross";
+  | "QuadIneqNoCross"
+  // Lesson 5-12 (2A.4A: write a quadratic from three points)
+  | "QuadFromThreePoints";
 
 interface Maker {
   minDifficulty: 1 | 2 | 3;
@@ -163,7 +165,7 @@ function makeDiscriminant(rng: RNG, hard: boolean): Algebra2Problem {
     const bb = b * b;
     const denom = 4 * a;
     c = bb % denom === 0 ? bb / denom : Math.round(bb / denom);
-    // recompute actual kind from rounded c (may flip) — then report truthfully
+    // recompute actual kind from rounded c (may flip), then report truthfully
   } else {
     c = randInt(rng, -10, 14);
   }
@@ -856,6 +858,100 @@ function makeQuadIneqNoCross(rng: RNG): Algebra2Problem {
   };
 }
 
+// ── 5-12: write a quadratic from three points (2A.4A) ────────────────────────
+
+/** "9a + 3b + c = 20" style display for a linear combination of a, b, c. */
+function linComboStr(coefs: [number, string][], rhs: number): string {
+  const parts: string[] = [];
+  for (const [coef, sym] of coefs) {
+    if (coef === 0) continue;
+    const body = Math.abs(coef) === 1 && sym !== "" ? sym : `${Math.abs(coef)}${sym}`;
+    if (parts.length === 0) parts.push(coef < 0 ? `-${body}` : body);
+    else parts.push(coef < 0 ? `- ${body}` : `+ ${body}`);
+  }
+  return `${parts.join(" ") || "0"} = ${rhs}`;
+}
+
+function makeQuadFromThreePoints(rng: RNG, level: 1 | 2 | 3): Algebra2Problem {
+  const a = level === 1 ? pick(rng, [-2, -1, 1, 2]) : pick(rng, [-3, -2, -1, 1, 2, 3]);
+  const b = randInt(rng, -6, 6);
+  const c = randInt(rng, -8, 8);
+  let xs: number[];
+  if (level === 1) {
+    // One point is the y-intercept, so c is read off directly and the
+    // remaining two points give a 2x2 system in a and b.
+    const x1 = pick(rng, [-3, -2, -1, 1, 2, 3]);
+    let x2 = pick(rng, [-3, -2, -1, 1, 2, 3]);
+    while (x2 === x1) x2 = pick(rng, [-3, -2, -1, 1, 2, 3]);
+    xs = [0, x1, x2];
+  } else {
+    const pool = level === 2 ? [-3, -2, -1, 0, 1, 2, 3, 4] : [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+    xs = [];
+    while (xs.length < 3) {
+      const x = pick(rng, pool);
+      if (!xs.includes(x)) xs.push(x);
+    }
+    xs.sort((m, n) => m - n);
+  }
+  const ys = xs.map((x) => a * x * x + b * x + c);
+  const ptsStr = xs.map((x, i) => `(${x}, ${ys[i]})`).join(", ");
+  const answer = `f(x) = ${polyToLatex([a, b, c])}`;
+  const eqs = xs.map((x, i) => linComboStr([[x * x, "a"], [x, "b"], [1, "c"]], ys[i]));
+  const steps: ProblemStep[] = [
+    {
+      instruction: "Substitute each point into f(x) = ax^2 + bx + c to build a system of three equations:",
+      reason: "Substitute the points",
+      blanks: [{ label: "system", answer: eqs.join("; ") }],
+    },
+  ];
+  if (level === 1) {
+    const ab1 = linComboStr([[xs[1] * xs[1], "a"], [xs[1], "b"]], ys[1] - c);
+    const ab2 = linComboStr([[xs[2] * xs[2], "a"], [xs[2], "b"]], ys[2] - c);
+    steps.push({
+      instruction: `The first equation gives c at once, since the point (0, ${c}) is the y-intercept. Substitute c into the other two equations and solve the 2x2 system for a and b:`,
+      reason: "y-intercept gives c; solve for a and b",
+      blanks: [
+        { label: "c", answer: `${c}` },
+        { label: "2x2 system", answer: `${ab1}; ${ab2}` },
+        { label: "a", answer: `${a}` },
+        { label: "b", answer: `${b}` },
+      ],
+    });
+  } else {
+    const d21 = linComboStr([[xs[1] * xs[1] - xs[0] * xs[0], "a"], [xs[1] - xs[0], "b"]], ys[1] - ys[0]);
+    const d31 = linComboStr([[xs[2] * xs[2] - xs[0] * xs[0], "a"], [xs[2] - xs[0], "b"]], ys[2] - ys[0]);
+    steps.push({
+      instruction: "Eliminate c by subtracting the first equation from each of the others, then solve the 2x2 system for a and b:",
+      reason: "Elimination",
+      blanks: [
+        { label: "2x2 system", answer: `${d21}; ${d31}` },
+        { label: "a", answer: `${a}` },
+        { label: "b", answer: `${b}` },
+      ],
+    });
+    steps.push({
+      instruction: "Back-substitute a and b into the first equation to find c:",
+      reason: "Back-substitution",
+      blanks: [{ label: "c", answer: `${c}` }],
+    });
+  }
+  steps.push({
+    instruction: "Write the quadratic in standard form:",
+    reason: "Standard form",
+    blanks: [{ label: "f(x)", answer }],
+  });
+  return {
+    type: "A2.5",
+    subtype: "QuadFromThreePoints",
+    given: { points: ptsStr },
+    find: "the quadratic function f(x) = ax^2 + bx + c through the three points",
+    answer,
+    steps,
+    svgParams: parabolaGraph(-b / (2 * a), c - (b * b) / (4 * a), a),
+    verify: { a, b, c, points: [xs[0], ys[0], xs[1], ys[1], xs[2], ys[2]] },
+  };
+}
+
 const MAKERS: Maker[] = [
   { minDifficulty: 1, make: makeCompleteSquare },
   { minDifficulty: 1, make: makeVertexFormula },
@@ -900,6 +996,10 @@ const MAKERS: Maker[] = [
   { minDifficulty: 2, make: (rng) => makeQuadInequality(rng, "shift") },
   { minDifficulty: 3, make: (rng) => makeQuadInequality(rng, "scaled") },
   { minDifficulty: 3, make: makeQuadIneqNoCross },
+  // 5-12 three points
+  { minDifficulty: 1, make: (rng) => makeQuadFromThreePoints(rng, 1) },
+  { minDifficulty: 2, make: (rng) => makeQuadFromThreePoints(rng, 2) },
+  { minDifficulty: 3, make: (rng) => makeQuadFromThreePoints(rng, 3) },
 ];
 
 /** Fix makeCompleteSquare for leading != 1: b must be a multiple of a. */

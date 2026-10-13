@@ -1,5 +1,5 @@
 // ProblemFactory.ts
-// Thin orchestrator — re-exports all types and delegates to domain factories.
+// Thin orchestrator, re-exports all types and delegates to domain factories.
 // All existing `import { … } from '@/lib/ProblemFactory'` continue to work.
 
 // ── Re-export every type so consumers don't need to change their imports ──────

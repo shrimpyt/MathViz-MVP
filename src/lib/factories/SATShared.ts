@@ -121,7 +121,7 @@ const LETTERS = ["A", "B", "C", "D"] as const;
 
 /**
  * Assemble 4 options in A–D display order with the key shuffled in.
- * FAILS FAST if any two options share a numeric value — an accidentally
+ * FAILS FAST if any two options share a numeric value, an accidentally
  * correct distractor is a generator bug, never silently shipped.
  */
 export function buildMCQ(
@@ -182,7 +182,7 @@ export function chooseFormat(rng: RNG): SATFormat {
 /**
  * Choose 3 distractors from a pool of documented-error candidates, dropping
  * any candidate that collides with the key or with an already-chosen
- * candidate. Fails fast if fewer than 3 survive — a pool that small is a
+ * candidate. Fails fast if fewer than 3 survive, a pool that small is a
  * maker bug. (buildMCQ re-checks as defense in depth.)
  */
 export function pickDistractors(

@@ -62,7 +62,7 @@ async function main(): Promise<void> {
   const stamp = new Date().toISOString();
 
   const lines = [
-    "# SAT Math Practice Generator — Test Report",
+    "# SAT Math Practice Generator, Test Report",
     "",
     `Generated: ${stamp}`,
     `Suites: ${suites.map((s) => s.name).join(", ")}`,
@@ -72,7 +72,7 @@ async function main(): Promise<void> {
     `- Problems generated: ${totalProblems.toLocaleString()}`,
     `- Headless checks: ${totalChecks.toLocaleString()}`,
     `- Failures: ${totalFailures}`,
-    `- Verdict: ${totalFailures === 0 ? "PASS — zero failures" : "FAIL"}`,
+    `- Verdict: ${totalFailures === 0 ? "PASS, zero failures" : "FAIL"}`,
     "",
     "## Suites",
     "",
@@ -105,7 +105,7 @@ async function main(): Promise<void> {
     lines.push(
       "## Notes",
       "",
-      "- Distractor pools use graceful filtering (pickDistractors): candidates colliding with the key or each other are dropped; generation throws only if fewer than 3 documented-error distractors survive — the fuzz run proves this never happens across 3,000 seeds.",
+      "- Distractor pools use graceful filtering (pickDistractors): candidates colliding with the key or each other are dropped; generation throws only if fewer than 3 documented-error distractors survive, the fuzz run proves this never happens across 3,000 seeds.",
       "- Inequality correctness is decided by the full (boundary, direction) string, not the numeric boundary alone; the flipped-direction distractor is intentionally boundary-equal.",
       "- Classical-notes contract: SAT generators are mode-agnostic (no steps emitted), so 'Classical' is handled exactly like 'Review'; not in the matrix per coordinator instruction.",
       ""
