@@ -698,6 +698,9 @@ export interface PdfDocumentProps {
   /** Word bank terms for accommodated versions (IEP word-bank option).
       Rendered in a plain bank box under the header when non-empty. */
   wordBank?: string[];
+  /** Free-tier exports carry a plain "Made with Euclid Engine Free" footer
+      line (the Free watermark). Pro exports omit it. */
+  watermark?: boolean;
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
@@ -724,6 +727,7 @@ export function PdfVersionPages({
   presentation = DEFAULT_PRESENTATION,
   keyHeading = 'ANSWER KEY',
   wordBank,
+  watermark = false,
 }: PdfDocumentProps) {
   const styles = getStyles(presentation);
   const modeLabel =
@@ -1352,7 +1356,7 @@ export function PdfVersionPages({
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>{standard}</Text>
       <Text style={styles.footerText}>
-        Euclid Engine, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        Euclid Engine, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}{watermark ? ' · Made with Euclid Engine Free' : ''}
       </Text>
     </View>
   );

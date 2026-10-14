@@ -37,6 +37,21 @@ import {
 import { CURRICULUM_REGISTRY } from '../modules/CurriculumRegistry';
 import type { CurriculumEntry, DifficultyLevel } from '../modules/CurriculumRegistry';
 import { DocumentType, problemToQuestion } from '../core/types';
+import {
+  ANON_ACCOUNT,
+  FREE_GENERATION_LIMIT,
+  bumpLocalUsage,
+  isFreeTopic,
+  readLocalUsage,
+  type AccountState,
+} from '../lib/plan';
+import {
+  createPortalUrl,
+  fetchAccount,
+  recordGeneration,
+  requestSignInLink,
+  signOut as apiSignOut,
+} from '../lib/account';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -211,6 +226,19 @@ export default function WorksheetGenerator() {
   const [draftError, setDraftError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  // ── Account / pay gate (soft gate, see lib/plan.ts) ──
+  const [account, setAccount] = useState<AccountState>(ANON_ACCOUNT);
+  const [gateMsg, setGateMsg] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetchAccount().then((a) => {
+      if (live) setAccount(a ?? { ...ANON_ACCOUNT, used: readLocalUsage() });
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  const isPro = account.plan === 'pro';
   // ── Wizard step: 0 Format · 1 Topics · 2 Accommodations · 3 Review ──
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -292,6 +320,12 @@ export default function WorksheetGenerator() {
   );
 
   const toggleTopic = (id: string) => {
+    if (!selectedTopicIds.includes(id) && !isPro && !isFreeTopic(id)) {
+      setGateMsg(
+        'That topic is part of Pro. Free covers Algebra I and middle-school topics, Pro unlocks everything, plus accommodations and answer keys.'
+      );
+      return;
+    }
     setSelectedTopicIds((prev) =>
       prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
     );
@@ -479,6 +513,23 @@ export default function WorksheetGenerator() {
   );
   const hasAccommodations = versionPlan.groups.length > 0;
 
+  // ── Pay-gate verdict for the export button ──
+  const gateReason: 'accommodations' | 'limit' | null = isPro
+    ? null
+    : hasAccommodations
+      ? 'accommodations'
+      : account.used >= (account.limit ?? FREE_GENERATION_LIMIT)
+        ? 'limit'
+        : null;
+  const handleExportCount = async () => {
+    if (isPro) return;
+    if (account.status === 'signed-in') {
+      const verdict = await recordGeneration();
+      if (verdict) setAccount((p) => ({ ...p, used: verdict.used }));
+    } else {
+      setAccount((p) => ({ ...p, used: bumpLocalUsage() }));
+    }
+  };
   const activeVersion = useMemo(
     () =>
       versionPlan.all().find((v) => v.versionId === activeVersionId) ??
@@ -672,7 +723,23 @@ export default function WorksheetGenerator() {
         step={step}
         goTo={goToStep}
         problemCount={advancedProblems.length}
+        accountControl={<AccountControl account={account} onAccountChange={setAccount} />}
       />
+
+      {gateMsg && (
+        <Alert
+          severity="info"
+          onClose={() => setGateMsg(null)}
+          action={
+            <Button color="inherit" size="small" href="/pricing" sx={{ fontWeight: 800 }}>
+              See Pro
+            </Button>
+          }
+          sx={{ mx: 2, mt: 1.5, flexShrink: 0 }}
+        >
+          {gateMsg}
+        </Alert>
+      )}
 
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {step === 0 && (
@@ -703,6 +770,7 @@ export default function WorksheetGenerator() {
             collapseAllFiltered={collapseAllFiltered}
             selectedTopicIds={selectedTopicIds}
             toggleTopic={toggleTopic}
+            isPro={isPro}
             count={count}
             setCount={setCount}
             difficulty={difficulty}
@@ -745,6 +813,14 @@ export default function WorksheetGenerator() {
             proofDocMode={proofDocMode}
             selectedModules={selectedModules}
             errorBoundaryKey={errorBoundaryKey}
+            isPro={isPro}
+            gateReason={gateReason}
+            onExportCount={handleExportCount}
+            usageNote={
+              isPro
+                ? null
+                : `${account.used} of ${account.limit ?? FREE_GENERATION_LIMIT} free exports used this month`
+            }
           />
         )}
       </Box>
@@ -820,6 +896,144 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Compact account control for the topbar: sign-in via emailed magic link,
+// plan chip, sign-out, and (for Pro) the Stripe billing portal. All API
+// calls fail soft, if accounts are not live yet, the button says so.
+function AccountControl({
+  account,
+  onAccountChange,
+}: {
+  account: AccountState;
+  onAccountChange: (a: AccountState) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  if (account.status === 'signed-in') {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Chip
+          label={`${account.email} · ${account.plan === 'pro' ? 'Pro' : 'Free'}`}
+          sx={{
+            fontWeight: 800,
+            fontSize: '0.72rem',
+            maxWidth: { xs: 150, md: 280 },
+            backgroundColor: 'rgba(129,140,248,0.13)',
+            color: '#818cf8',
+            border: '1px solid rgba(129,140,248,0.30)',
+          }}
+        />
+        {account.plan === 'pro' ? (
+          <Button
+            size="small"
+            sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}
+            onClick={async () => {
+              const url = await createPortalUrl();
+              if (url) window.location.href = url;
+            }}
+          >
+            Billing
+          </Button>
+        ) : (
+          <Button size="small" href="/pricing" sx={{ color: '#fb923c', fontWeight: 800, whiteSpace: 'nowrap' }}>
+            Upgrade
+          </Button>
+        )}
+        <Button
+          size="small"
+          sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}
+          onClick={async () => {
+            await apiSignOut();
+            onAccountChange({ ...ANON_ACCOUNT, used: readLocalUsage() });
+          }}
+        >
+          Sign out
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Button size="small" href="/pricing" sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}>
+        Pricing
+      </Button>
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={() => setOpen((o) => !o)}
+        sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '10px', fontWeight: 800, whiteSpace: 'nowrap', '&:hover': { borderColor: '#818cf8' } }}
+      >
+        Sign in
+      </Button>
+      {open && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 'calc(100% + 10px)',
+            right: 0,
+            zIndex: 30,
+            width: 300,
+            bgcolor: '#1e2233',
+            border: '1.5px solid #2c3247',
+            borderRadius: '14px',
+            p: 2,
+            boxShadow: '0 16px 40px rgba(0,0,0,.5)',
+          }}
+        >
+          {sent ? (
+            <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#f2f3fa' }}>
+              Check your email, your sign-in link is on its way. It expires in 15 minutes.
+            </Typography>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#f2f3fa', mb: 1 }}>
+                Sign in with your email
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="email"
+                placeholder="you@school.org"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                sx={{ mb: 1 }}
+              />
+              {error && (
+                <Typography sx={{ fontSize: '0.75rem', color: '#f87171', fontWeight: 700, mb: 1 }}>
+                  {error}
+                </Typography>
+              )}
+              <Button
+                fullWidth
+                variant="contained"
+                disabled={busy || !email.includes('@')}
+                onClick={async () => {
+                  setBusy(true);
+                  setError(null);
+                  const ok = await requestSignInLink(email.trim());
+                  setBusy(false);
+                  if (ok) setSent(true);
+                  else setError('Sign-in is not available yet, accounts are launching soon.');
+                }}
+                sx={{ borderRadius: '10px', fontWeight: 800 }}
+              >
+                {busy ? 'Sending…' : 'Email me a sign-in link'}
+              </Button>
+              <Typography sx={{ fontSize: '0.7rem', color: '#9aa0be', mt: 1, fontWeight: 600 }}>
+                Teacher accounts only. We never collect student data.
+              </Typography>
+            </>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 // ── Wizard chrome ─────────────────────────────────────────────────────────────
 
 const WIZARD_STEPS = ['Format', 'Topics', 'Accommodations', 'Review'] as const;
@@ -829,10 +1043,12 @@ function WizardTopbar({
   step,
   goTo,
   problemCount,
+  accountControl,
 }: {
   step: number;
   goTo: (n: number) => void;
   problemCount: number;
+  accountControl?: React.ReactNode;
 }) {
   return (
     <Box
@@ -933,6 +1149,8 @@ function WizardTopbar({
           </React.Fragment>
         ))}
       </Box>
+
+      {accountControl}
 
       <Chip
         label={`${problemCount} problem${problemCount === 1 ? '' : 's'}`}
@@ -1183,6 +1401,7 @@ function StepTopics({
   collapseAllFiltered,
   selectedTopicIds,
   toggleTopic,
+  isPro,
   count,
   setCount,
   difficulty,
@@ -1205,6 +1424,7 @@ function StepTopics({
   collapseAllFiltered: () => void;
   selectedTopicIds: string[];
   toggleTopic: (id: string) => void;
+  isPro: boolean;
   count: number;
   setCount: (n: number) => void;
   difficulty: DifficultyLevel;
@@ -1411,6 +1631,11 @@ function StepTopics({
                         <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
                           {entry.title}
                         </Typography>
+                        {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
+                          <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, letterSpacing: 0.8, color: '#fb923c' }}>
+                            PRO
+                          </Typography>
+                        )}
                         {!entry.underConstruction && entry.story && (
                           <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.4 }}>
                             {entry.story}
@@ -1607,6 +1832,10 @@ function StepReview({
   proofDocMode,
   selectedModules,
   errorBoundaryKey,
+  isPro,
+  gateReason,
+  onExportCount,
+  usageNote,
 }: {
   hasAccommodations: boolean;
   accommodatedDocument: React.ReactElement | null;
@@ -1632,6 +1861,10 @@ function StepReview({
   proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | undefined;
   selectedModules: CurriculumEntry[];
   errorBoundaryKey: string;
+  isPro: boolean;
+  gateReason: 'accommodations' | 'limit' | null;
+  onExportCount: () => void;
+  usageNote: string | null;
 }) {
   void fileRef;
   return (
@@ -1685,7 +1918,8 @@ function StepReview({
           control={
             <Switch
               size="small"
-              checked={includeAnswerKey}
+              disabled={!isPro}
+              checked={isPro ? includeAnswerKey : false}
               onChange={(e) => setIncludeAnswerKey(e.target.checked)}
               sx={{
                 '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
@@ -1693,10 +1927,21 @@ function StepReview({
               }}
             />
           }
-          label={<Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#f2f3fa' }}>Answer key</Typography>}
+          label={<Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#f2f3fa' }}>Answer key{isPro ? '' : ' (Pro)'}</Typography>}
           sx={{ ml: 0 }}
         />
-        {mounted && selectedModules.length > 0 ? (
+        {mounted && selectedModules.length > 0 && gateReason ? (
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<PictureAsPdf />}
+            href="/pricing"
+            sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
+          >
+            Export PDF 🎉
+          </Button>
+        ) : mounted && selectedModules.length > 0 ? (
+          <Box onClick={() => onExportCount()}>
           <PDFDownloadLink
             document={
               hasAccommodations && accommodatedDocument ? (
@@ -1708,10 +1953,11 @@ function StepReview({
                   advancedProblems={advancedProblems}
                   docType={docType}
                   standard={standards}
-                  includeAnswerKey={includeAnswerKey}
+                  includeAnswerKey={isPro ? includeAnswerKey : false}
                   logoSrc="/logo_light.png"
                   classicalGroups={classicalGroups}
                   seed={seed}
+                  watermark={!isPro}
                 />
               )
             }
@@ -1734,8 +1980,30 @@ function StepReview({
               </Button>
             )}
           </PDFDownloadLink>
+          </Box>
         ) : null}
       </Box>
+
+      {gateReason && (
+        <Alert
+          severity="warning"
+          action={
+            <Button color="inherit" size="small" href="/pricing" sx={{ fontWeight: 800 }}>
+              See Pro
+            </Button>
+          }
+          sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
+        >
+          {gateReason === 'accommodations'
+            ? 'Accommodated versions (IEP groups) export with Pro, the accommodations are the Pro feature.'
+            : 'You have used your free exports for this month. Pro is unlimited.'}
+        </Alert>
+      )}
+      {usageNote && !gateReason && (
+        <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, mb: 1 }}>
+          {usageNote} · Free exports carry a small footer note and no answer key.
+        </Typography>
+      )}
 
       {draftError && (
         <Alert severity="error" sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>

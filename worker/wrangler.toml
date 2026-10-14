@@ -1,0 +1,19 @@
+name = "euclid-api"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Serves the app's /api/* paths on the main domain so session cookies are
+# first-party to euclidengine.tech. Requires the domain's DNS in the same
+# Cloudflare account (it is — Pages hosts the apex).
+routes = [{ pattern = "euclidengine.tech/api/*", zone_name = "euclidengine.tech" }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "euclid"
+database_id = "4c0cf490-d1c9-4629-9bdc-f4f573cdf340"
+
+[vars]
+APP_URL = "https://euclidengine.tech"
+# Secrets — set with `wrangler secret put <NAME>`, never in this file:
+# STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY
+# PRICE_PRO_MONTHLY, PRICE_PRO_ANNUAL, PRICE_SCHOOL, PRICE_FOUNDERS
