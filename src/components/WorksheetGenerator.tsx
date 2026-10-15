@@ -210,6 +210,7 @@ interface DraftFile {
   count: number;
   difficulty: DifficultyLevel;
   includeAnswerKey: boolean;
+  wordProblems?: boolean;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -223,6 +224,7 @@ export default function WorksheetGenerator() {
   const [count, setCount] = useState(3);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(2);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
+  const [wordProblems, setWordProblems] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -462,9 +464,9 @@ export default function WorksheetGenerator() {
   // chunk them back into per-entry groups for its section renderer.
   const moduleProblemSets = useMemo<MathProblem[][]>(() => {
     return selectedModules.map((mod, i) =>
-      mod.generate(toOutputMode(docType), seed + i * 7919, { count, difficulty })
+      mod.generate(toOutputMode(docType), seed + i * 7919, { count, difficulty, wordProblems })
     );
-  }, [selectedModules, docType, seed, count, difficulty]);
+  }, [selectedModules, docType, seed, count, difficulty, wordProblems]);
 
   const advancedProblems = useMemo<MathProblem[]>((
   ) => moduleProblemSets.flat(), [moduleProblemSets]);
@@ -612,6 +614,7 @@ export default function WorksheetGenerator() {
       count,
       difficulty,
       includeAnswerKey,
+      wordProblems,
     };
     const blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -660,6 +663,7 @@ export default function WorksheetGenerator() {
           setDifficulty(d.difficulty);
         }
         if (typeof d.includeAnswerKey === 'boolean') setIncludeAnswerKey(d.includeAnswerKey);
+        if (typeof d.wordProblems === 'boolean') setWordProblems(d.wordProblems);
       } catch (e) {
         setDraftError(e instanceof Error ? e.message : 'Could not read that draft file.');
       }
@@ -670,7 +674,13 @@ export default function WorksheetGenerator() {
 
   const randomizeSeed = () => setSeed(Math.floor(Math.random() * 100000));
 
-  const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${selectedTopicIds.join(',')}`;
+  const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${selectedTopicIds.join(',')}`;
+
+  // Titles of the selected lessons that offer story (word problem) variants.
+  const wordCapableSelected = useMemo(
+    () => selectedModules.filter((m) => m.wordProblems).map((m) => m.title.replace(/^\d+-\d+:\s*/, '')),
+    [selectedModules]
+  );
 
   // ── Wizard footer summary + TEKS coverage ──
   const teksSelected = useMemo(
@@ -775,6 +785,9 @@ export default function WorksheetGenerator() {
             setCount={setCount}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
+            wordProblems={wordProblems}
+            setWordProblems={setWordProblems}
+            wordCapableSelected={wordCapableSelected}
           />
         )}
         {step === 2 && (
@@ -1406,6 +1419,9 @@ function StepTopics({
   setCount,
   difficulty,
   setDifficulty,
+  wordProblems,
+  setWordProblems,
+  wordCapableSelected,
 }: {
   topicSearch: string;
   handleSearchChange: (v: string) => void;
@@ -1429,7 +1445,17 @@ function StepTopics({
   setCount: (n: number) => void;
   difficulty: DifficultyLevel;
   setDifficulty: (d: DifficultyLevel) => void;
+  wordProblems: boolean;
+  setWordProblems: (b: boolean) => void;
+  wordCapableSelected: string[];
 }) {
+  const railCardSx = {
+    bgcolor: '#1e2233',
+    border: '1.5px solid #2c3247',
+    borderRadius: '16px',
+    p: 2.25,
+    width: '100%',
+  } as const;
   return (
     <Box sx={stepScrollSx}>
       <StepHeading
@@ -1437,284 +1463,330 @@ function StepTopics({
         title="Which topics should it cover?"
         sub="Tap to add, mix and match across subjects. We'll keep your TEKS covered."
       />
-      <TextField
-        value={topicSearch}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        placeholder="🔍 Search topics or TEKS…"
-        aria-label="Search topics"
-        sx={{ width: '100%', maxWidth: 520, mb: 1.5 }}
-        slotProps={{
-          input: {
-            endAdornment: topicSearch ? (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  aria-label="Clear search"
-                  onClick={() => handleSearchChange('')}
-                  sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' } }}
-                >
-                  <ClearIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </InputAdornment>
-            ) : undefined,
-          },
-        }}
-      />
       <Box
         sx={{
           display: 'flex',
-          gap: 1,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          mb: 2.5,
-          maxWidth: 920,
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 3,
+          width: '100%',
+          maxWidth: 1240,
+          alignItems: { xs: 'stretch', md: 'flex-start' },
         }}
       >
-        <Chip
-          clickable
-          label="Available only"
-          aria-pressed={availableOnly}
-          onClick={() => setAvailableOnly((v) => !v)}
+        {/* ── Side rail: tuning controls live here, not under the topic list ── */}
+        <Box
           sx={{
-            fontWeight: 800,
-            border: '1.5px solid',
-            borderColor: availableOnly ? '#818cf8' : '#2c3247',
-            backgroundColor: availableOnly ? 'rgba(129,140,248,0.15)' : '#1e2233',
-            color: availableOnly ? '#818cf8' : '#9aa0be',
-            '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
+            order: { xs: 1, md: 2 },
+            width: { xs: '100%', md: 300 },
+            flexShrink: 0,
+            position: { md: 'sticky' },
+            top: { md: 0 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <Box sx={railCardSx}>
+            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Problems per topic 🔢</Typography>
+            <TextField
+              type="number"
+              value={count}
+              inputProps={{ min: 1, max: 25 }}
+              onChange={(e) => {
+                const v = Math.floor(Number(e.target.value));
+                if (Number.isFinite(v)) setCount(Math.min(25, Math.max(1, v)));
+              }}
+              sx={{ width: 120 }}
+            />
+          </Box>
+          <Box sx={railCardSx}>
+            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Difficulty 💪</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+              {[
+                { value: 1, label: 'Easy 😌' },
+                { value: 2, label: 'Medium 🙂' },
+                { value: 3, label: 'Hard 🥵' },
+              ].map((d) => {
+                const selected = difficulty === d.value;
+                return (
+                  <Button
+                    key={d.value}
+                    onClick={() => setDifficulty(d.value as DifficultyLevel)}
+                    sx={{
+                      py: 1,
+                      borderRadius: '10px',
+                      fontSize: '0.78rem',
+                      border: '2px solid',
+                      borderColor: selected ? '#818cf8' : '#2c3247',
+                      backgroundColor: selected ? 'rgba(129,140,248,0.15)' : 'transparent',
+                      color: selected ? '#818cf8' : '#9aa0be',
+                      '&:hover': { borderColor: '#818cf8' },
+                    }}
+                  >
+                    {d.label}
+                  </Button>
+                );
+              })}
+            </Box>
+          </Box>
+          <Box sx={railCardSx}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Word problems 📖</Typography>
+              <Switch
+                checked={wordProblems}
+                onChange={(e) => setWordProblems(e.target.checked)}
+                inputProps={{ 'aria-label': 'Include word problems' }}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
+                }}
+              />
+            </Box>
+            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+              {wordProblems
+                ? wordCapableSelected.length > 0
+                  ? `Story versions on for: ${wordCapableSelected.join(' · ')}`
+                  : 'On, but none of the selected lessons offer story versions yet. Grade 7 angle lessons do, and more are coming.'
+                : 'The same problems in story form, where a lesson offers them.'}
+            </Typography>
+          </Box>
+        </Box>
+        {/* ── Main column: search, filters, topic list ── */}
+        <Box
+          sx={{
+            order: { xs: 2, md: 1 },
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+        <TextField
+          value={topicSearch}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="🔍 Search topics or TEKS…"
+          aria-label="Search topics"
+          sx={{ width: '100%', maxWidth: 520, mb: 1.5 }}
+          slotProps={{
+            input: {
+              endAdornment: topicSearch ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    aria-label="Clear search"
+                    onClick={() => handleSearchChange('')}
+                    sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' } }}
+                  >
+                    <ClearIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : undefined,
+            },
           }}
         />
-        {subjectOptions.map((s) => {
-          const active = subjectFilter === s;
-          return (
-            <Chip
-              key={s}
-              clickable
-              label={s === 'All' ? 'All subjects' : s}
-              onClick={() => setSubjectFilter(s)}
-              sx={{
-                fontWeight: 800,
-                border: '1.5px solid',
-                borderColor: active ? '#818cf8' : '#2c3247',
-                backgroundColor: active ? 'rgba(129,140,248,0.15)' : '#1e2233',
-                color: active ? '#818cf8' : '#9aa0be',
-                '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
-              }}
-            />
-          );
-        })}
-        {isFiltering && (
-          <Button
-            size="small"
-            onClick={clearTopicFilters}
-            sx={{ color: '#9aa0be', fontWeight: 800, '&:hover': { color: '#818cf8' } }}
-          >
-            Clear
-          </Button>
-        )}
-      </Box>
-
-      <Box sx={{ width: '100%', maxWidth: 920 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <Button
-            size="small"
-            onClick={allEffectiveExpanded ? collapseAllFiltered : expandAllFiltered}
-            sx={{ color: '#9aa0be', fontWeight: 800, fontSize: '0.75rem', '&:hover': { color: '#818cf8' } }}
-          >
-            {allEffectiveExpanded ? 'Collapse all' : 'Expand all'}
-          </Button>
-        </Box>
-        {effectiveGroups.map(([groupTitle, entries]) => {
-          const open = expandedGroups.has(groupTitle);
-          const selectedCount = entries.filter((e) => selectedTopicIds.includes(e.id)).length;
-          return (
-            <Box
-              key={groupTitle}
-              sx={{
-                mb: 1.25,
-                borderRadius: '16px',
-                border: '1.5px solid #2c3247',
-                backgroundColor: '#1e2233',
-                overflow: 'hidden',
-              }}
-            >
-              <Button
-                fullWidth
-                onClick={() => toggleGroup(groupTitle)}
-                aria-expanded={open}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            mb: 2.5,
+            maxWidth: 920,
+          }}
+        >
+          <Chip
+            clickable
+            label="Available only"
+            aria-pressed={availableOnly}
+            onClick={() => setAvailableOnly((v) => !v)}
+            sx={{
+              fontWeight: 800,
+              border: '1.5px solid',
+              borderColor: availableOnly ? '#818cf8' : '#2c3247',
+              backgroundColor: availableOnly ? 'rgba(129,140,248,0.15)' : '#1e2233',
+              color: availableOnly ? '#818cf8' : '#9aa0be',
+              '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
+            }}
+          />
+          {subjectOptions.map((s) => {
+            const active = subjectFilter === s;
+            return (
+              <Chip
+                key={s}
+                clickable
+                label={s === 'All' ? 'All subjects' : s}
+                onClick={() => setSubjectFilter(s)}
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  px: 2,
-                  py: 1.25,
-                  borderRadius: 0,
-                  '&:hover': { backgroundColor: 'rgba(129,140,248,0.06)' },
+                  fontWeight: 800,
+                  border: '1.5px solid',
+                  borderColor: active ? '#818cf8' : '#2c3247',
+                  backgroundColor: active ? 'rgba(129,140,248,0.15)' : '#1e2233',
+                  color: active ? '#818cf8' : '#9aa0be',
+                  '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
                 }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                  <ExpandMore
-                    sx={{
-                      color: open ? '#818cf8' : '#9aa0be',
-                      transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
-                      transition: 'transform .2s',
-                    }}
-                  />
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f2f3fa', textAlign: 'left' }}>
-                    {groupTitle}
-                  </Typography>
-                </Box>
-                {selectedCount > 0 && (
-                  <Chip
-                    size="small"
-                    label={`${selectedCount} selected`}
-                    sx={{ backgroundColor: 'rgba(129,140,248,0.15)', color: '#818cf8', fontWeight: 800 }}
-                  />
-                )}
-              </Button>
-              <Collapse in={open} timeout={220} unmountOnExit>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-                    gap: 1.25,
-                    p: 2,
-                    pt: 0.5,
-                  }}
-                >
-                  {entries.map((entry) => {
-                    const checked = selectedTopicIds.includes(entry.id);
-                    return (
-                      <Button
-                        key={entry.id}
-                        disabled={entry.underConstruction}
-                        onClick={() => toggleTopic(entry.id)}
-                        title={entry.underConstruction ? 'Not available yet' : entry.description}
-                        sx={topicCardSx(checked)}
-                      >
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 10,
-                            right: 10,
-                            width: 24,
-                            height: 24,
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                            fontWeight: 900,
-                            backgroundColor: checked ? '#818cf8' : 'transparent',
-                            border: '2px solid',
-                            borderColor: checked ? '#818cf8' : '#2c3247',
-                            color: checked ? '#14161f' : 'transparent',
-                          }}
-                        >
-                          ✓
-                        </Box>
-                        <Typography
-                          sx={{
-                            fontSize: '0.64rem',
-                            fontWeight: 800,
-                            letterSpacing: 0.6,
-                            color: '#818cf8',
-                            backgroundColor: 'rgba(129,140,248,0.12)',
-                            px: 1,
-                            py: 0.35,
-                            borderRadius: '6px',
-                            pr: 4,
-                          }}
-                        >
-                          {entry.underConstruction ? 'COMING SOON' : entry.teks}
-                        </Typography>
-                        <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
-                          {entry.title}
-                        </Typography>
-                        {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
-                          <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, letterSpacing: 0.8, color: '#fb923c' }}>
-                            PRO
-                          </Typography>
-                        )}
-                        {!entry.underConstruction && entry.story && (
-                          <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.4 }}>
-                            {entry.story}
-                          </Typography>
-                        )}
-                      </Button>
-                    );
-                  })}
-                </Box>
-              </Collapse>
-            </Box>
-          );
-        })}
-        {effectiveGroups.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography sx={{ color: '#9aa0be', fontWeight: 700, mb: 2 }}>
-              No topics match your search. 🔍
-            </Typography>
-            <Button onClick={clearTopicFilters} sx={{ color: '#818cf8', fontWeight: 800 }}>
-              Clear search & filters
+              />
+            );
+          })}
+          {isFiltering && (
+            <Button
+              size="small"
+              onClick={clearTopicFilters}
+              sx={{ color: '#9aa0be', fontWeight: 800, '&:hover': { color: '#818cf8' } }}
+            >
+              Clear
+            </Button>
+          )}
+        </Box>
+
+        <Box sx={{ width: '100%', maxWidth: 920 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <Button
+              size="small"
+              onClick={allEffectiveExpanded ? collapseAllFiltered : expandAllFiltered}
+              sx={{ color: '#9aa0be', fontWeight: 800, fontSize: '0.75rem', '&:hover': { color: '#818cf8' } }}
+            >
+              {allEffectiveExpanded ? 'Collapse all' : 'Expand all'}
             </Button>
           </Box>
-        )}
-      </Box>
-
-      {/* ── Tuning ── */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2.5,
-          mt: 3,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          width: '100%',
-          maxWidth: 920,
-        }}
-      >
-        <Box sx={{ bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '16px', p: 2.25, minWidth: 220, flex: 1, maxWidth: 320 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Problems per topic 🔢</Typography>
-          <TextField
-            type="number"
-            value={count}
-            inputProps={{ min: 1, max: 25 }}
-            onChange={(e) => {
-              const v = Math.floor(Number(e.target.value));
-              if (Number.isFinite(v)) setCount(Math.min(25, Math.max(1, v)));
-            }}
-            sx={{ width: 120 }}
-          />
-        </Box>
-        <Box sx={{ bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '16px', p: 2.25, minWidth: 220, flex: 1, maxWidth: 320 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Difficulty 💪</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-            {[
-              { value: 1, label: 'Easy 😌' },
-              { value: 2, label: 'Medium 🙂' },
-              { value: 3, label: 'Hard 🥵' },
-            ].map((d) => {
-              const selected = difficulty === d.value;
-              return (
+          {effectiveGroups.map(([groupTitle, entries]) => {
+            const open = expandedGroups.has(groupTitle);
+            const selectedCount = entries.filter((e) => selectedTopicIds.includes(e.id)).length;
+            return (
+              <Box
+                key={groupTitle}
+                sx={{
+                  mb: 1.25,
+                  borderRadius: '16px',
+                  border: '1.5px solid #2c3247',
+                  backgroundColor: '#1e2233',
+                  overflow: 'hidden',
+                }}
+              >
                 <Button
-                  key={d.value}
-                  onClick={() => setDifficulty(d.value as DifficultyLevel)}
+                  fullWidth
+                  onClick={() => toggleGroup(groupTitle)}
+                  aria-expanded={open}
                   sx={{
-                    py: 1,
-                    borderRadius: '10px',
-                    fontSize: '0.78rem',
-                    border: '2px solid',
-                    borderColor: selected ? '#818cf8' : '#2c3247',
-                    backgroundColor: selected ? 'rgba(129,140,248,0.15)' : 'transparent',
-                    color: selected ? '#818cf8' : '#9aa0be',
-                    '&:hover': { borderColor: '#818cf8' },
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    px: 2,
+                    py: 1.25,
+                    borderRadius: 0,
+                    '&:hover': { backgroundColor: 'rgba(129,140,248,0.06)' },
                   }}
                 >
-                  {d.label}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <ExpandMore
+                      sx={{
+                        color: open ? '#818cf8' : '#9aa0be',
+                        transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+                        transition: 'transform .2s',
+                      }}
+                    />
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f2f3fa', textAlign: 'left' }}>
+                      {groupTitle}
+                    </Typography>
+                  </Box>
+                  {selectedCount > 0 && (
+                    <Chip
+                      size="small"
+                      label={`${selectedCount} selected`}
+                      sx={{ backgroundColor: 'rgba(129,140,248,0.15)', color: '#818cf8', fontWeight: 800 }}
+                    />
+                  )}
                 </Button>
-              );
-            })}
-          </Box>
+                <Collapse in={open} timeout={220} unmountOnExit>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                      gap: 1.25,
+                      p: 2,
+                      pt: 0.5,
+                    }}
+                  >
+                    {entries.map((entry) => {
+                      const checked = selectedTopicIds.includes(entry.id);
+                      return (
+                        <Button
+                          key={entry.id}
+                          disabled={entry.underConstruction}
+                          onClick={() => toggleTopic(entry.id)}
+                          title={entry.underConstruction ? 'Not available yet' : entry.description}
+                          sx={topicCardSx(checked)}
+                        >
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 10,
+                              right: 10,
+                              width: 24,
+                              height: 24,
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.75rem',
+                              fontWeight: 900,
+                              backgroundColor: checked ? '#818cf8' : 'transparent',
+                              border: '2px solid',
+                              borderColor: checked ? '#818cf8' : '#2c3247',
+                              color: checked ? '#14161f' : 'transparent',
+                            }}
+                          >
+                            ✓
+                          </Box>
+                          <Typography
+                            sx={{
+                              fontSize: '0.64rem',
+                              fontWeight: 800,
+                              letterSpacing: 0.6,
+                              color: '#818cf8',
+                              backgroundColor: 'rgba(129,140,248,0.12)',
+                              px: 1,
+                              py: 0.35,
+                              borderRadius: '6px',
+                              pr: 4,
+                            }}
+                          >
+                            {entry.underConstruction ? 'COMING SOON' : entry.teks}
+                          </Typography>
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
+                            {entry.title}
+                          </Typography>
+                          {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
+                            <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, letterSpacing: 0.8, color: '#fb923c' }}>
+                              PRO
+                            </Typography>
+                          )}
+                          {!entry.underConstruction && entry.story && (
+                            <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.4 }}>
+                              {entry.story}
+                            </Typography>
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </Box>
+                </Collapse>
+              </Box>
+            );
+          })}
+          {effectiveGroups.length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography sx={{ color: '#9aa0be', fontWeight: 700, mb: 2 }}>
+                No topics match your search. 🔍
+              </Typography>
+              <Button onClick={clearTopicFilters} sx={{ color: '#818cf8', fontWeight: 800 }}>
+                Clear search & filters
+              </Button>
+            </Box>
+          )}
+        </Box>
+
         </Box>
       </Box>
     </Box>

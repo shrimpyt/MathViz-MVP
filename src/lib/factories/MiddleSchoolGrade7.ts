@@ -56,7 +56,7 @@ import {
 
 export type Grade7Difficulty = 1 | 2 | 3;
 
-type Maker = (rng: RNG) => Grade7Problem;
+type Maker = (rng: RNG, wordProblems?: boolean) => Grade7Problem;
 interface MakerEntry {
   tier: Grade7Difficulty;
   subtype: Grade7Subtype;
@@ -504,12 +504,19 @@ function makeEquationWord7(rng: RNG): Grade7Problem {
 
 // ── Lesson: Measuring Angles ─────────────────────────────────────────────────
 
-function makeClassifyAngle(rng: RNG): Grade7Problem {
+function makeClassifyAngle(rng: RNG, word = false): Grade7Problem {
   const kind = pick(rng, ["acute", "right", "obtuse"] as const);
   const angle = kind === "acute" ? randInt(rng, 10, 80) : kind === "right" ? 90 : randInt(rng, 100, 170);
+  const prompt = word
+    ? pick(rng, [
+        `The two sides of a pitched roof form a ${angle}° angle at the peak. Classify the angle as acute, right, or obtuse.`,
+        `A door is opened so that it forms a ${angle}° angle with its frame. Classify the angle as acute, right, or obtuse.`,
+        `The blades of a pair of scissors form a ${angle}° angle. Classify the angle as acute, right, or obtuse.`,
+      ])
+    : `An angle measures ${angle}°. Classify the angle as acute, right, or obtuse.`;
   return build(
     "MeasuringAngles",
-    `An angle measures ${angle}°. Classify the angle as acute, right, or obtuse.`,
+    prompt,
     "the classification",
     kind,
     [
@@ -525,12 +532,18 @@ function makeClassifyAngle(rng: RNG): Grade7Problem {
 
 // ── Lesson: Adjacent, Complementary, Supplementary & Vertical Angles ──────────
 
-function makeComplementary(rng: RNG): Grade7Problem {
+function makeComplementary(rng: RNG, word = false): Grade7Problem {
   const known = randInt(rng, 15, 75);
   const missing = 90 - known;
+  const prompt = word
+    ? pick(rng, [
+        `A picture frame has a square corner, a right angle. A ribbon crosses the corner and splits it into two complementary angles. One angle measures ${known}°. What is the measure of the other angle?`,
+        `A carpenter builds a corner brace shaped like a right angle and splits it into two complementary angles. One angle measures ${known}°. What is the measure of the other angle?`,
+      ])
+    : `Two angles are complementary. One angle measures ${known}°. What is the measure of the other angle?`;
   return build(
     "AnglePairs",
-    `Two angles are complementary. One angle measures ${known}°. What is the measure of the other angle?`,
+    prompt,
     "the other angle",
     `${missing}°`,
     [
@@ -548,12 +561,18 @@ function makeComplementary(rng: RNG): Grade7Problem {
   );
 }
 
-function makeSupplementary(rng: RNG): Grade7Problem {
+function makeSupplementary(rng: RNG, word = false): Grade7Problem {
   const known = randInt(rng, 25, 150);
   const missing = 180 - known;
+  const prompt = word
+    ? pick(rng, [
+        `A straight sidewalk edge is split by a chalk line into two supplementary angles. One angle measures ${known}°. What is the measure of the other angle?`,
+        `A fence runs in a straight line. A gate post on the line forms two supplementary angles with the fence. One angle measures ${known}°. What is the measure of the other angle?`,
+      ])
+    : `Two angles are supplementary. One angle measures ${known}°. What is the measure of the other angle?`;
   return build(
     "AnglePairs",
-    `Two angles are supplementary. One angle measures ${known}°. What is the measure of the other angle?`,
+    prompt,
     "the other angle",
     `${missing}°`,
     [
@@ -571,11 +590,17 @@ function makeSupplementary(rng: RNG): Grade7Problem {
   );
 }
 
-function makeVerticalAngles(rng: RNG): Grade7Problem {
+function makeVerticalAngles(rng: RNG, word = false): Grade7Problem {
   const known = randInt(rng, 25, 150);
+  const prompt = word
+    ? pick(rng, [
+        `Two straight roads cross each other, forming vertical angles. One angle at the crossing measures ${known}°. What is the measure of the angle opposite (vertical to) it?`,
+        `Two straight wires cross, forming vertical angles. One angle measures ${known}°. What is the measure of the angle opposite (vertical to) it?`,
+      ])
+    : `Two lines intersect, forming vertical angles. One angle measures ${known}°. What is the measure of the angle opposite (vertical to) it?`;
   return build(
     "AnglePairs",
-    `Two lines intersect, forming vertical angles. One angle measures ${known}°. What is the measure of the angle opposite (vertical to) it?`,
+    prompt,
     "the vertical angle",
     `${known}°`,
     [
@@ -3356,7 +3381,8 @@ export function generateGrade7Problems(
   rng: RNG,
   n: number,
   difficulty: Grade7Difficulty = 2,
-  subtypes?: readonly Grade7Subtype[]
+  subtypes?: readonly Grade7Subtype[],
+  wordProblems = false
 ): Grade7Problem[] {
   // Lesson-first, like the registry's filterAllowed: intersect the lesson's own
   // makers with the difficulty filter, falling back to the lesson's full list
@@ -3369,7 +3395,7 @@ export function generateGrade7Problems(
   const finalPool = tierPool.length > 0 ? tierPool : lessonPool;
   return Array.from({ length: n }, () => {
     const entry = pick(rng, finalPool);
-    const problem = entry.make(rng);
+    const problem = entry.make(rng, wordProblems);
     problem.tier = entry.tier;
     return problem;
   });

@@ -65,7 +65,7 @@ function ConicGraphSVG(params: Algebra2ConicSVGParams) {
         const ctr = p(c.h, c.k);
         return (
           <circle key={`c${i}`} cx={ctr.x} cy={ctr.y} r={c.r * rx}
-            fill="none" stroke={BLUE} strokeWidth={2} />
+            fill="none" stroke={INK} strokeWidth={2} />
         );
       })}
       {(params.parabolas ?? []).map((pb, i) => {
@@ -77,8 +77,8 @@ function ConicGraphSVG(params: Algebra2ConicSVGParams) {
         const v = p(pb.h, pb.k);
         return (
           <g key={`p${i}`}>
-            <path d={d} fill="none" stroke={RED} strokeWidth={2} />
-            <circle cx={v.x} cy={v.y} r={3} fill={RED} />
+            <path d={d} fill="none" stroke={INK} strokeWidth={2} />
+            <circle cx={v.x} cy={v.y} r={3} fill={INK} />
           </g>
         );
       })}
@@ -112,11 +112,11 @@ function RationalGraphSVG(params: Algebra2RationalSVGParams) {
           const s = p(pt.x, pt.y);
           return `${j === 0 ? "M" : "L"} ${s.x.toFixed(1)} ${s.y.toFixed(1)}`;
         }).join(" ");
-        return <path key={`s${i}`} d={d} fill="none" stroke={BLUE} strokeWidth={2} />;
+        return <path key={`s${i}`} d={d} fill="none" stroke={INK} strokeWidth={2} />;
       })}
       {params.hole && (() => {
         const s = p(params.hole.x, params.hole.y);
-        return <circle cx={s.x} cy={s.y} r={4} fill="#fff" stroke={RED} strokeWidth={2} />;
+        return <circle cx={s.x} cy={s.y} r={4} fill="#fff" stroke={INK} strokeWidth={2} />;
       })()}
     </svg>
   );
@@ -138,7 +138,7 @@ function FuncGraphSVG(params: Algebra2FuncGraphParams) {
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Function graph">
       <Grid view={view} />
       {(params.shade ?? []).map((poly, i) => (
-        <path key={`sh${i}`} d={`${toPath(poly)} Z`} fill={BLUE} opacity={0.13} stroke="none" />
+        <path key={`sh${i}`} d={`${toPath(poly)} Z`} fill={INK} opacity={0.13} stroke="none" />
       ))}
       {(params.lines ?? []).map((ln, i) => {
         const m = ln.mNum / ln.mDen;

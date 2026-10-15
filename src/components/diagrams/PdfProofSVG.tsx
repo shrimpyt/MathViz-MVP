@@ -25,7 +25,7 @@ const INK = "#111111";
 
 // ── Shared mark helpers ──────────────────────────────────────────────────────
 
-function PdfTickMarks({ p1, p2, count, color = "#1d4ed8" }: { p1: Pt; p2: Pt; count: number; color?: string }) {
+function PdfTickMarks({ p1, p2, count, color = "#111111" }: { p1: Pt; p2: Pt; count: number; color?: string }) {
   if (count <= 0) return null;
   const mx = (p1.x + p2.x) / 2;
   const my = (p1.y + p2.y) / 2;
@@ -58,7 +58,7 @@ function PdfTickMarks({ p1, p2, count, color = "#1d4ed8" }: { p1: Pt; p2: Pt; co
   );
 }
 
-function PdfAngleArc({ v, p1, p2, color = "#e11d48", r = 11 }: { v: Pt; p1: Pt; p2: Pt; color?: string; r?: number }) {
+function PdfAngleArc({ v, p1, p2, color = "#111111", r = 11 }: { v: Pt; p1: Pt; p2: Pt; color?: string; r?: number }) {
   const a1 = Math.atan2(p1.y - v.y, p1.x - v.x);
   const a2 = Math.atan2(p2.y - v.y, p2.x - v.x);
   const x1 = v.x + r * Math.cos(a1);
@@ -252,12 +252,12 @@ function PdfSlotArc({ n, marked }: { n: number; marked: boolean }) {
       <Path
         d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
         fill="none"
-        stroke={marked ? "#e11d48" : "#94a3b8"}
+        stroke={marked ? "#111111" : "#94a3b8"}
         strokeWidth={marked ? 2 : 1}
       />
       <Text
         x={lx - 3} y={ly + 3}
-        style={{ fontSize: marked ? 10 : 8.5, fontFamily: marked ? "Times-Bold" : FONT, color: marked ? "#e11d48" : "#64748b" }}
+        style={{ fontSize: marked ? 10 : 8.5, fontFamily: marked ? "Times-Bold" : FONT, color: marked ? "#111111" : "#64748b" }}
       >
         {String(n)}
       </Text>
@@ -272,7 +272,7 @@ function PdfParallelTicks({ y }: { y: number }) {
         <Path
           key={x}
           d={`M ${x - 4} ${y - 4} L ${x + 3} ${y} L ${x - 4} ${y + 4}`}
-          fill="none" stroke="#1d4ed8" strokeWidth={1.4}
+          fill="none" stroke="#111111" strokeWidth={1.4}
         />
       ))}
     </>
@@ -303,7 +303,7 @@ export function PdfProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
         <Text
           x={ANGLE_SLOTS[p.givenAngleIndex].v.x - 29}
           y={ANGLE_SLOTS[p.givenAngleIndex].v.y - 13}
-          style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#1d4ed8" }}
+          style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}
         >
           {`${p.givenAngle}°`}
         </Text>
@@ -329,7 +329,7 @@ export function PdfProofCircleSVG(p: ProofCircleSVGParams) {
     return (
       <Svg viewBox="0 0 200 200" width="130" height="130">
         <Circle cx={CX} cy={CY} r={R} fill="none" stroke={INK} strokeWidth={1.5} />
-        <Path d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${C.x} ${C.y}`} fill="none" stroke="#3b82f6" strokeWidth={3} />
+        <Path d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${C.x} ${C.y}`} fill="none" stroke="#111111" strokeWidth={3} />
         <Line x1={B.x} y1={B.y} x2={A.x} y2={A.y} stroke={INK} strokeWidth={1.2} />
         <Line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke={INK} strokeWidth={1.2} />
         {[A, B, C].map((pt, i) => (
@@ -339,10 +339,10 @@ export function PdfProofCircleSVG(p: ProofCircleSVGParams) {
         <PdfLabel pt={C} text="C" dx={9} dy={2} />
         <PdfLabel pt={B} text="B" dy={12} />
         <PdfAngleArc v={B} p1={A} p2={C} r={14} />
-        <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#1d4ed8" }}>
+        <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
           {`${p.arc}°`}
         </Text>
-        <Text x={B.x - 8} y={B.y - 15} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#e11d48" }}>
+        <Text x={B.x - 8} y={B.y - 15} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
           {`${p.angle}°`}
         </Text>
       </Svg>
@@ -354,8 +354,8 @@ export function PdfProofCircleSVG(p: ProofCircleSVGParams) {
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <Circle cx={CX} cy={CY} r={R} fill="none" stroke={INK} strokeWidth={1.5} />
-      <Path d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${Bp.x} ${Bp.y}`} fill="none" stroke="#3b82f6" strokeWidth={3} />
-      <Line x1={A.x - 55} y1={A.y} x2={A.x + 55} y2={A.y} stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="5,3" />
+      <Path d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${Bp.x} ${Bp.y}`} fill="none" stroke="#111111" strokeWidth={3} />
+      <Line x1={A.x - 55} y1={A.y} x2={A.x + 55} y2={A.y} stroke="#6b7280" strokeWidth={1.5} strokeDasharray="5,3" />
       <Line x1={A.x} y1={A.y} x2={Bp.x} y2={Bp.y} stroke={INK} strokeWidth={1.2} />
       {[A, Bp].map((pt, i) => (
         <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill={INK} />
@@ -363,10 +363,10 @@ export function PdfProofCircleSVG(p: ProofCircleSVGParams) {
       <PdfLabel pt={A} text="A" dx={-9} dy={-6} />
       <PdfLabel pt={Bp} text="B" dx={9} dy={2} />
       <PdfLabel pt={{ x: A.x + 48, y: A.y }} text="t" dy={-6} size={10} />
-      <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#1d4ed8" }}>
+      <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
         {`${p.arc}°`}
       </Text>
-      <Text x={A.x + 12} y={A.y + 19} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#e11d48" }}>
+      <Text x={A.x + 12} y={A.y + 19} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
         {`${p.angle}°`}
       </Text>
     </Svg>
@@ -458,7 +458,7 @@ function PdfElementsI32() {
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <Line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke={INK} strokeWidth={1.5} />
       <Polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke={INK} strokeWidth={1.5} />
-      <Line x1={C.x} y1={C.y} x2={E.x} y2={E.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
+      <Line x1={C.x} y1={C.y} x2={E.x} y2={E.y} stroke="#6b7280" strokeWidth={1.2} strokeDasharray="5,3" />
       <PdfAngleArc v={C} p1={D} p2={A} r={16} />
       <PdfLabel pt={A} text="A" dy={-8} />
       <PdfLabel pt={B} text="B" dx={-9} dy={6} />
@@ -508,9 +508,9 @@ function PdfElementsI47({ a = 6, b = 8 }: { a?: number; b?: number }) {
   };
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
-      <Polygon points={poly([B, B2, A2, A])} fill="#dbeafe" stroke={INK} strokeWidth={1.2} />
-      <Polygon points={poly([A, C, C2, A3])} fill="#dbeafe" stroke={INK} strokeWidth={1.2} />
-      <Polygon points={poly([B, C, C3, B3])} fill="#e0e7ff" stroke={INK} strokeWidth={1.2} />
+      <Polygon points={poly([B, B2, A2, A])} fill="#e2e8f0" stroke={INK} strokeWidth={1.2} />
+      <Polygon points={poly([A, C, C2, A3])} fill="#e2e8f0" stroke={INK} strokeWidth={1.2} />
+      <Polygon points={poly([B, C, C3, B3])} fill="#f1f5f9" stroke={INK} strokeWidth={1.2} />
       <Polygon points={poly([A, B, C])} fill="#ffffff" stroke={INK} strokeWidth={1.8} />
       {dot(A, "A", -8, 8)}
       {dot(B, "B", -8, -4)}
@@ -528,8 +528,8 @@ function PdfElementsI48({ a = 3, b = 4 }: { a?: number; b?: number }) {
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <Polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke={INK} strokeWidth={1.8} />
-      <Line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
-      <Line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
+      <Line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#6b7280" strokeWidth={1.2} strokeDasharray="5,3" />
+      <Line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke="#6b7280" strokeWidth={1.2} strokeDasharray="5,3" />
       <PdfRightAngleMark v={A} p1={D} p2={C} />
       <PdfLabel pt={A} text="A" dx={-9} dy={2} />
       <PdfLabel pt={B} text="B" dx={-8} dy={-4} />
@@ -578,7 +578,7 @@ function PdfSideChevron({ p1, p2 }: { p1: Pt; p2: Pt }) {
   return (
     <Path
       d={`M ${mx - ux * 4 + px * 4} ${my - uy * 4 + py * 4} L ${mx + ux * 3} ${my + uy * 3} L ${mx - ux * 4 - px * 4} ${my - uy * 4 - py * 4}`}
-      fill="none" stroke="#1d4ed8" strokeWidth={1.4}
+      fill="none" stroke="#111111" strokeWidth={1.4}
     />
   );
 }

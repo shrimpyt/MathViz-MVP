@@ -92,7 +92,7 @@ export function PdfInscribedAngleSVG({
       <Path
         d={arcPath(CX, CY, R, arcStart, arcEnd, largeArc)}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#111111"
         strokeWidth={3}
       />
       <Line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
@@ -128,7 +128,7 @@ export function PdfCentralAngleSVG({ interceptedArc, variant }: { interceptedArc
       <Path
         d={arcPath(CX, CY, R, arcStart, arcEnd, largeArc)}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#111111"
         strokeWidth={3}
       />
       <Line x1={CX} y1={CY} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
@@ -161,7 +161,7 @@ export function PdfTangentSVG({ tangentAngle, variant }: TangentSVGParams) {
       <CircleBase />
       <Line
         x1={tx1} y1={A.y} x2={tx2} y2={A.y}
-        stroke="#7c3aed"
+        stroke="#6b7280"
         strokeWidth={1.5}
         strokeDasharray="4,2"
       />
@@ -169,7 +169,7 @@ export function PdfTangentSVG({ tangentAngle, variant }: TangentSVGParams) {
       <Path
         d={arcPath(CX, CY, R, chordStart, chordEnd)}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#111111"
         strokeWidth={3}
       />
       {[A, B].map((pt, i) => (
@@ -208,11 +208,11 @@ export function PdfTwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams) {
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <CircleBase />
-      <Path d={arcPath(CX, CY, R, a0, a1)} fill="none" stroke="#3b82f6" strokeWidth={3} />
-      <Path d={arcPath(CX, CY, R, a2, a3)} fill="none" stroke="#10b981" strokeWidth={3} />
+      <Path d={arcPath(CX, CY, R, a0, a1)} fill="none" stroke="#111111" strokeWidth={3} />
+      <Path d={arcPath(CX, CY, R, a2, a3)} fill="none" stroke="#6b7280" strokeWidth={3} />
       <Line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.2} />
       <Line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.2} />
-      <Circle cx={P.x} cy={P.y} r={2.5} fill="#e11d48" />
+      <Circle cx={P.x} cy={P.y} r={2.5} fill="#111111" />
       {[A, B, C, D].map((pt, i) => (
         <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
@@ -252,11 +252,11 @@ export function PdfTwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <CircleBase />
-      <Path d={arcPath(CX, CY, R, arcStart, arcEnd)} fill="none" stroke="#3b82f6" strokeWidth={3} />
+      <Path d={arcPath(CX, CY, R, arcStart, arcEnd)} fill="none" stroke="#111111" strokeWidth={3} />
       <Path
         d={arcPath(CX, CY, R, arcStart - near, arcEnd + near)}
         fill="none"
-        stroke="#10b981"
+        stroke="#6b7280"
         strokeWidth={3}
       />
       <Line x1={EX} y1={EY} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
@@ -264,7 +264,7 @@ export function PdfTwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: 
       {[A, B, C, D].map((pt, i) => (
         <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
-      <Circle cx={EX} cy={EY} r={2.5} fill="#e11d48" />
+      <Circle cx={EX} cy={EY} r={2.5} fill="#111111" />
       <Label x={EX} y={EY} text="P" offset={{ x: 8, y: 0 }} />
       <Label x={EX} y={EY} text="?" offset={{ x: 8, y: 10 }} />
     </Svg>
@@ -284,15 +284,15 @@ export function PdfConcentricCirclesSVG({ outerR, innerR, variant }: ConcentricS
 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
-      <Circle cx={CX} cy={CY} r={scaledOuter} fill="#dbeafe" stroke="#111111" strokeWidth={1.5} />
+      <Circle cx={CX} cy={CY} r={scaledOuter} fill="#f1f5f9" stroke="#111111" strokeWidth={1.5} />
       <Circle
         cx={CX} cy={CY} r={scaledInner}
-        fill="#3b82f6" fillOpacity={0.55}
-        stroke="#1d4ed8" strokeWidth={1.5}
+        fill="#111111" fillOpacity={0.12}
+        stroke="#111111" strokeWidth={1.5}
       />
       <Line
         x1={CX} y1={CY} x2={CX + scaledInner} y2={CY}
-        stroke="#1d4ed8" strokeWidth={1} strokeDasharray="3,2"
+        stroke="#111111" strokeWidth={1} strokeDasharray="3,2"
       />
       <Line
         x1={CX} y1={CY} x2={oxEnd} y2={oyEnd}
@@ -436,7 +436,7 @@ export function PdfShadedSectorSVG({ sectorAngle, variant }: SectorSVGParams) {
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <Circle cx={CX} cy={CY} r={R} fill="#f1f5f9" stroke="#111111" strokeWidth={1.5} />
-      <Path d={pathD} fill="#3b82f6" fillOpacity={0.55} stroke="#1d4ed8" strokeWidth={1.2} />
+      <Path d={pathD} fill="#111111" fillOpacity={0.12} stroke="#111111" strokeWidth={1.2} />
       {(() => {
         const mid = polarToCart(CX, CY, R * 0.5, startDeg + 90 + sectorAngle / 2);
         return (
@@ -521,7 +521,7 @@ function AngleArc({ v, p1, p2 }: { v: Pt; p1: Pt; p2: Pt }) {
     <Path
       d={`M ${x1} ${y1} A ${r} ${r} 0 0 ${sweepFlag} ${x2} ${y2}`}
       fill="none"
-      stroke="#e11d48"
+      stroke="#111111"
       strokeWidth={1.2}
     />
   );
@@ -593,8 +593,8 @@ export function PdfCongruenceSVG({
       {sideMarks.map((count, i) =>
         count > 0 ? (
           <React.Fragment key={i}>
-            <TickMarks p1={sides1[i][0]} p2={sides1[i][1]} count={count} color="#1d4ed8" />
-            <TickMarks p1={sides2[i][0]} p2={sides2[i][1]} count={count} color="#1d4ed8" />
+            <TickMarks p1={sides1[i][0]} p2={sides1[i][1]} count={count} color="#111111" />
+            <TickMarks p1={sides2[i][0]} p2={sides2[i][1]} count={count} color="#111111" />
           </React.Fragment>
         ) : null
       )}

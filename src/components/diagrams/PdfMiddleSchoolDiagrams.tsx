@@ -421,14 +421,28 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       const r1 = rot2(len, 0, k);
       const aRad = ((360 - ang) * Math.PI) / 180;
       const r2 = rot2(len * Math.cos(aRad), len * Math.sin(aRad), k);
-      const arc1 = rot2(26, 0, k);
-      const arc2 = rot2(26 * Math.cos(aRad), 26 * Math.sin(aRad), k);
-      const lp = rot2(44, -16, k);
+      // Print polish: rays as one joined path (clean vertex), ink marks only,
+      // a square mark instead of an arc for a right angle, and the measure
+      // label riding the angle bisector (arc grows for narrow angles).
+      const arcR = ang < 30 ? 34 : 26;
+      const arc1 = rot2(arcR, 0, k);
+      const arc2 = rot2(arcR * Math.cos(aRad), arcR * Math.sin(aRad), k);
+      const half = (ang / 2) * (Math.PI / 180);
+      // Narrow angles cannot fit the label inside the wedge, so it sits
+      // just outside the second ray. Wider angles ride the bisector.
+      const out = ((ang + 24) * Math.PI) / 180;
+      const lp = ang < 30
+        ? rot2(46 * Math.cos(out), -46 * Math.sin(out), k)
+        : rot2(48 * Math.cos(half), -48 * Math.sin(half), k);
+      const sq1 = rot2(14, 0, k), sq2 = rot2(14, -14, k), sq3 = rot2(0, -14, k);
       return (
         <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
-          <Line x1={vx} y1={vy} x2={vx + r1.x} y2={vy + r1.y} stroke={INK} strokeWidth={1.6} />
-          <Line x1={vx} y1={vy} x2={vx + r2.x} y2={vy + r2.y} stroke={INK} strokeWidth={1.6} />
-          <Path d={`M ${vx + arc1.x} ${vy + arc1.y} A 26 26 0 0 0 ${vx + arc2.x} ${vy + arc2.y}`} fill="none" stroke={ACCENT} strokeWidth={1.6} />
+          <Path d={`M ${vx + r1.x} ${vy + r1.y} L ${vx} ${vy} L ${vx + r2.x} ${vy + r2.y}`} fill="none" stroke={INK} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+          {ang === 90 ? (
+            <Path d={`M ${vx + sq1.x} ${vy + sq1.y} L ${vx + sq2.x} ${vy + sq2.y} L ${vx + sq3.x} ${vy + sq3.y}`} fill="none" stroke={INK} strokeWidth={1.3} />
+          ) : (
+            <Path d={`M ${vx + arc1.x} ${vy + arc1.y} A ${arcR} ${arcR} 0 0 0 ${vx + arc2.x} ${vy + arc2.y}`} fill="none" stroke={INK} strokeWidth={1.3} />
+          )}
           {label(vx + lp.x, vy + lp.y, `${ang}°`)}
         </Svg>
       );
@@ -441,14 +455,17 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       const rVert = rot2(0, -68, k);
       const kRad = ((360 - known) * Math.PI) / 180;
       const rKnown = rot2(64 * Math.cos(kRad), 64 * Math.sin(kRad), k);
-      const l1 = rot2(34, -12, k);
-      const l2 = rot2(10, -56, k);
+      // Labels ride the bisector of each sub-angle; divider ray is ink like
+      // every other ray (no accent color in print figures).
+      const b1 = (known / 2) * (Math.PI / 180);
+      const l1 = rot2(44 * Math.cos(b1), -44 * Math.sin(b1), k);
+      const m2 = ((known + 90) / 2) * (Math.PI / 180);
+      const l2 = rot2(44 * Math.cos(m2), -44 * Math.sin(m2), k);
       const sq1 = rot2(12, 0, k), sq2 = rot2(12, -12, k), sq3 = rot2(0, -12, k);
       return (
         <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
-          <Line x1={vx} y1={vy} x2={vx + rBase.x} y2={vy + rBase.y} stroke={INK} strokeWidth={1.6} />
-          <Line x1={vx} y1={vy} x2={vx + rVert.x} y2={vy + rVert.y} stroke={INK} strokeWidth={1.6} />
-          <Line x1={vx} y1={vy} x2={vx + rKnown.x} y2={vy + rKnown.y} stroke={ACCENT} strokeWidth={1.6} />
+          <Path d={`M ${vx + rBase.x} ${vy + rBase.y} L ${vx} ${vy} L ${vx + rVert.x} ${vy + rVert.y}`} fill="none" stroke={INK} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+          <Line x1={vx} y1={vy} x2={vx + rKnown.x} y2={vy + rKnown.y} stroke={INK} strokeWidth={1.6} strokeLinecap="round" />
           <Path d={`M ${vx + sq1.x} ${vy + sq1.y} L ${vx + sq2.x} ${vy + sq2.y} L ${vx + sq3.x} ${vy + sq3.y}`} fill="none" stroke={INK} strokeWidth={1.2} />
           {label(vx + l1.x, vy + l1.y, `${known}°`)}
           {label(vx + l2.x, vy + l2.y, "?")}
@@ -463,12 +480,18 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       const rR = rot2(68, 0, k);
       const kRad = ((180 - known) * Math.PI) / 180;
       const rK = rot2(64 * Math.cos(kRad), -64 * Math.sin(kRad), k);
-      const l1 = rot2(-46, -16, k);
-      const l2 = rot2(40, -16, k);
+      // Labels ride the bisector of each region (known on the left of the
+      // divider, unknown on the right); divider ray is ink, not accent.
+      const nrm = (x: number, y: number) => { const m = Math.hypot(x, y) || 1; return { x: x / m, y: y / m }; };
+      const du = { x: Math.cos(kRad), y: -Math.sin(kRad) };
+      const bk = nrm(du.x - 1, du.y);
+      const bu = nrm(du.x + 1, du.y);
+      const l1 = rot2(46 * bk.x, 46 * bk.y, k);
+      const l2 = rot2(46 * bu.x, 46 * bu.y, k);
       return (
         <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
           <Line x1={vx + rL.x} y1={vy + rL.y} x2={vx + rR.x} y2={vy + rR.y} stroke={INK} strokeWidth={1.6} />
-          <Line x1={vx} y1={vy} x2={vx + rK.x} y2={vy + rK.y} stroke={ACCENT} strokeWidth={1.6} />
+          <Line x1={vx} y1={vy} x2={vx + rK.x} y2={vy + rK.y} stroke={INK} strokeWidth={1.6} strokeLinecap="round" />
           {label(vx + l1.x, vy + l1.y, `${known}°`)}
           {label(vx + l2.x, vy + l2.y, "?")}
         </Svg>
@@ -481,8 +504,11 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
       const rad = ((known / 2) * Math.PI) / 180;
       const d1 = rot2(len * Math.cos(rad), len * Math.sin(rad), k);
       const d2 = rot2(len * Math.cos(rad), -len * Math.sin(rad), k);
-      const l1 = rot2(70 * Math.cos(rad) * 0.45, -70 * Math.sin(rad) * 0.45 - 10, k);
-      const l2 = rot2(-70 * Math.cos(rad) * 0.45, 70 * Math.sin(rad) * 0.45 + 14, k);
+      // Labels centered on the bisector of each vertical region, clear of
+      // the lines (farther out when the known wedge is narrow).
+      const lr = known < 40 ? 54 : 46;
+      const l1 = rot2(lr, 0, k);
+      const l2 = rot2(-lr, 0, k);
       return (
         <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
           <Line x1={cx - d1.x} y1={cy - d1.y} x2={cx + d1.x} y2={cy + d1.y} stroke={INK} strokeWidth={1.6} />

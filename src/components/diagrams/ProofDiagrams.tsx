@@ -24,7 +24,7 @@ type Pt = { x: number; y: number };
 
 // ── Shared mark helpers ──────────────────────────────────────────────────────
 
-function TickMarks({ p1, p2, count, color = "#1d4ed8" }: { p1: Pt; p2: Pt; count: number; color?: string }) {
+function TickMarks({ p1, p2, count, color = "#111111" }: { p1: Pt; p2: Pt; count: number; color?: string }) {
   if (count <= 0) return null;
   const mx = (p1.x + p2.x) / 2;
   const my = (p1.y + p2.y) / 2;
@@ -57,7 +57,7 @@ function TickMarks({ p1, p2, count, color = "#1d4ed8" }: { p1: Pt; p2: Pt; count
   );
 }
 
-function AngleArc({ v, p1, p2, color = "#e11d48", r = 11 }: { v: Pt; p1: Pt; p2: Pt; color?: string; r?: number }) {
+function AngleArc({ v, p1, p2, color = "#111111", r = 11 }: { v: Pt; p1: Pt; p2: Pt; color?: string; r?: number }) {
   const a1 = Math.atan2(p1.y - v.y, p1.x - v.x);
   const a2 = Math.atan2(p2.y - v.y, p2.x - v.x);
   const x1 = v.x + r * Math.cos(a1);
@@ -265,13 +265,13 @@ function SlotArc({ n, marked }: { n: number; marked: boolean }) {
       <path
         d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
         fill="none"
-        stroke={marked ? "#e11d48" : "#94a3b8"}
+        stroke={marked ? "#111111" : "#94a3b8"}
         strokeWidth={marked ? 2 : 1}
       />
       <text
         x={lx} y={ly + 3}
         fontSize={marked ? 10 : 8.5} fontFamily="Georgia, serif" textAnchor="middle"
-        fill={marked ? "#e11d48" : "#64748b"}
+        fill={marked ? "#111111" : "#64748b"}
         fontWeight={marked ? "bold" : "normal"}
       >
         {n}
@@ -288,7 +288,7 @@ function ParallelTicks({ y }: { y: number }) {
         <path
           key={x}
           d={`M ${x - 4} ${y - 4} L ${x + 3} ${y} L ${x - 4} ${y + 4}`}
-          fill="none" stroke="#1d4ed8" strokeWidth={1.4}
+          fill="none" stroke="#111111" strokeWidth={1.4}
         />
       ))}
     </>
@@ -319,7 +319,7 @@ export function ProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
         <text
           x={ANGLE_SLOTS[p.givenAngleIndex].v.x - 26}
           y={ANGLE_SLOTS[p.givenAngleIndex].v.y - 16}
-          fontSize={9} fontFamily="Georgia, serif" fill="#1d4ed8" fontWeight="bold"
+          fontSize={9} fontFamily="Georgia, serif" fill="#111111" fontWeight="bold"
         >
           {p.givenAngle}°
         </text>
@@ -347,7 +347,7 @@ export function ProofCircleSVG(p: ProofCircleSVGParams) {
         <circle cx={CX} cy={CY} r={R} fill="none" stroke="#111111" strokeWidth={1.5} />
         <path
           d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${C.x} ${C.y}`}
-          fill="none" stroke="#3b82f6" strokeWidth={3}
+          fill="none" stroke="#111111" strokeWidth={3}
         />
         <line x1={B.x} y1={B.y} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
         <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.2} />
@@ -358,10 +358,10 @@ export function ProofCircleSVG(p: ProofCircleSVGParams) {
         <VertexLabel pt={C} text="C" dx={9} dy={2} />
         <VertexLabel pt={B} text="B" dy={12} />
         <AngleArc v={B} p1={A} p2={C} r={14} />
-        <text x={mid.x} y={mid.y + 3} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#1d4ed8" fontWeight="bold">
+        <text x={mid.x} y={mid.y + 3} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111" fontWeight="bold">
           {p.arc}°
         </text>
-        <text x={B.x} y={B.y - 18} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#e11d48" fontWeight="bold">
+        <text x={B.x} y={B.y - 18} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111" fontWeight="bold">
           {p.angle}°
         </text>
       </svg>
@@ -376,9 +376,9 @@ export function ProofCircleSVG(p: ProofCircleSVGParams) {
       <circle cx={CX} cy={CY} r={R} fill="none" stroke="#111111" strokeWidth={1.5} />
       <path
         d={`M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${Bp.x} ${Bp.y}`}
-        fill="none" stroke="#3b82f6" strokeWidth={3}
+        fill="none" stroke="#111111" strokeWidth={3}
       />
-      <line x1={A.x - 55} y1={A.y} x2={A.x + 55} y2={A.y} stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="5,3" />
+      <line x1={A.x - 55} y1={A.y} x2={A.x + 55} y2={A.y} stroke="#6b7280" strokeWidth={1.5} strokeDasharray="5,3" />
       <line x1={A.x} y1={A.y} x2={Bp.x} y2={Bp.y} stroke="#111111" strokeWidth={1.2} />
       {[A, Bp].map((pt, i) => (
         <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
@@ -386,10 +386,10 @@ export function ProofCircleSVG(p: ProofCircleSVGParams) {
       <VertexLabel pt={A} text="A" dx={-9} dy={-6} />
       <VertexLabel pt={Bp} text="B" dx={9} dy={2} />
       <text x={A.x + 48} y={A.y - 6} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">t</text>
-      <text x={mid.x} y={mid.y + 3} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#1d4ed8" fontWeight="bold">
+      <text x={mid.x} y={mid.y + 3} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111" fontWeight="bold">
         {p.arc}°
       </text>
-      <text x={A.x + 20} y={A.y + 16} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#e11d48" fontWeight="bold">
+      <text x={A.x + 20} y={A.y + 16} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111" fontWeight="bold">
         {p.angle}°
       </text>
     </svg>
@@ -487,7 +487,7 @@ function ElementsI32() {
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.32 angle sum figure">
       <line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.5} />
       <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
-      <line x1={C.x} y1={C.y} x2={E.x} y2={E.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
+      <line x1={C.x} y1={C.y} x2={E.x} y2={E.y} stroke="#6b7280" strokeWidth={1.2} strokeDasharray="5,3" />
       <AngleArc v={C} p1={D} p2={A} r={16} />
       <VertexLabel pt={A} text="A" dy={-8} />
       <VertexLabel pt={B} text="B" dx={-9} dy={6} />
@@ -543,9 +543,9 @@ function ElementsI47({ a = 6, b = 8 }: { a?: number; b?: number }) {
   };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.47 Pythagoras figure">
-      <polygon points={poly([B, B2, A2, A])} fill="#dbeafe" stroke="#111111" strokeWidth={1.2} />
-      <polygon points={poly([A, C, C2, A3])} fill="#dbeafe" stroke="#111111" strokeWidth={1.2} />
-      <polygon points={poly([B, C, C3, B3])} fill="#e0e7ff" stroke="#111111" strokeWidth={1.2} />
+      <polygon points={poly([B, B2, A2, A])} fill="#e2e8f0" stroke="#111111" strokeWidth={1.2} />
+      <polygon points={poly([A, C, C2, A3])} fill="#e2e8f0" stroke="#111111" strokeWidth={1.2} />
+      <polygon points={poly([B, C, C3, B3])} fill="#f1f5f9" stroke="#111111" strokeWidth={1.2} />
       <polygon points={poly([A, B, C])} fill="#ffffff" stroke="#111111" strokeWidth={1.8} />
       {dot(A, "A", -8, 8)} {dot(B, "B", -8, -4)} {dot(C, "C", 8, 8)}
     </svg>
@@ -561,8 +561,8 @@ function ElementsI48({ a = 3, b = 4 }: { a?: number; b?: number }) {
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Elements I.48 converse figure">
       <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke="#111111" strokeWidth={1.8} />
-      <line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
-      <line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke="#1d4ed8" strokeWidth={1.2} strokeDasharray="5,3" />
+      <line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#6b7280" strokeWidth={1.2} strokeDasharray="5,3" />
+      <line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke="#6b7280" strokeWidth={1.2} strokeDasharray="5,3" />
       <RightAngleMark v={A} p1={D} p2={C} />
       <VertexLabel pt={A} text="A" dx={-9} dy={2} />
       <VertexLabel pt={B} text="B" dx={-8} dy={-4} />
@@ -609,7 +609,7 @@ function SideChevron({ p1, p2 }: { p1: Pt; p2: Pt }) {
   return (
     <path
       d={`M ${mx - ux * 4 + px * 4} ${my - uy * 4 + py * 4} L ${mx + ux * 3} ${my + uy * 3} L ${mx - ux * 4 - px * 4} ${my - uy * 4 - py * 4}`}
-      fill="none" stroke="#1d4ed8" strokeWidth={1.4}
+      fill="none" stroke="#111111" strokeWidth={1.4}
     />
   );
 }

@@ -62,7 +62,7 @@ export function PdfConicGraphSVG(params: Algebra2ConicSVGParams) {
         const ctr = p(c.h, c.k);
         return (
           <Circle key={`c${i}`} cx={ctr.x} cy={ctr.y} r={c.r * rx}
-            fill="none" stroke="#1d4ed8" strokeWidth={2} />
+            fill="none" stroke="#111111" strokeWidth={2} />
         );
       })}
       {(params.parabolas ?? []).map((pb, i) => {
@@ -74,8 +74,8 @@ export function PdfConicGraphSVG(params: Algebra2ConicSVGParams) {
         const v = p(pb.h, pb.k);
         return (
           <React.Fragment key={`p${i}`}>
-            <Path d={d} fill="none" stroke="#e11d48" strokeWidth={2} />
-            <Circle cx={v.x} cy={v.y} r={3} fill="#e11d48" />
+            <Path d={d} fill="none" stroke="#111111" strokeWidth={2} />
+            <Circle cx={v.x} cy={v.y} r={3} fill="#111111" />
           </React.Fragment>
         );
       })}
@@ -109,11 +109,11 @@ export function PdfRationalGraphSVG(params: Algebra2RationalSVGParams) {
           const s = p(pt.x, pt.y);
           return `${j === 0 ? "M" : "L"} ${s.x.toFixed(1)} ${s.y.toFixed(1)}`;
         }).join(" ");
-        return <Path key={`s${i}`} d={d} fill="none" stroke="#1d4ed8" strokeWidth={2} />;
+        return <Path key={`s${i}`} d={d} fill="none" stroke="#111111" strokeWidth={2} />;
       })}
       {params.hole && (() => {
         const s = p(params.hole.x, params.hole.y);
-        return <Circle cx={s.x} cy={s.y} r={4} fill="#ffffff" stroke="#e11d48" strokeWidth={2} />;
+        return <Circle cx={s.x} cy={s.y} r={4} fill="#ffffff" stroke="#111111" strokeWidth={2} />;
       })()}
     </Svg>
   );
@@ -135,7 +135,7 @@ export function PdfFuncGraphSVG(params: Algebra2FuncGraphParams) {
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <PdfGrid view={view} />
       {(params.shade ?? []).map((poly, i) => (
-        <Path key={`sh${i}`} d={`${toPath(poly)} Z`} fill="#1d4ed8" fillOpacity={0.13} stroke="none" />
+        <Path key={`sh${i}`} d={`${toPath(poly)} Z`} fill="#111111" fillOpacity={0.13} stroke="none" />
       ))}
       {(params.lines ?? []).map((ln, i) => {
         const m = ln.mNum / ln.mDen;

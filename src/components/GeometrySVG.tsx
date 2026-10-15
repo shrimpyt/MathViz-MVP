@@ -101,7 +101,7 @@ export function InscribedAngleSVG({
       <path
         d={arcPath(CX, CY, R, arcStart, arcEnd, largeArc)}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#111111"
         strokeWidth={3}
         strokeLinecap="round"
       />
@@ -137,7 +137,7 @@ export function CentralAngleSVG({ interceptedArc, variant }: { interceptedArc: n
       <path
         d={arcPath(CX, CY, R, arcStart, arcEnd, largeArc)}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#111111"
         strokeWidth={3}
         strokeLinecap="round"
       />
@@ -173,7 +173,7 @@ export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind:
       <CircleBase />
       <line
         x1={tx1} y1={A.y} x2={tx2} y2={A.y}
-        stroke="#7c3aed"
+        stroke="#6b7280"
         strokeWidth={1.5}
         strokeDasharray="4 2"
       />
@@ -181,7 +181,7 @@ export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind:
       <path
         d={arcPath(CX, CY, R, chordStart, chordEnd)}
         fill="none"
-        stroke="#3b82f6"
+        stroke="#111111"
         strokeWidth={3}
         strokeLinecap="round"
       />
@@ -223,11 +223,11 @@ export function TwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams & { kind: "
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Two chords diagram">
       <CircleBase />
-      <path d={arcPath(CX, CY, R, a0, a1)} fill="none" stroke="#3b82f6" strokeWidth={3} />
-      <path d={arcPath(CX, CY, R, a2, a3)} fill="none" stroke="#10b981" strokeWidth={3} />
+      <path d={arcPath(CX, CY, R, a0, a1)} fill="none" stroke="#111111" strokeWidth={3} />
+      <path d={arcPath(CX, CY, R, a2, a3)} fill="none" stroke="#6b7280" strokeWidth={3} />
       <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.2} />
       <line x1={B.x} y1={B.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.2} />
-      <circle cx={P.x} cy={P.y} r={2.5} fill="#e11d48" />
+      <circle cx={P.x} cy={P.y} r={2.5} fill="#111111" />
       {[A, B, C, D].map((pt, i) => (
         <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
@@ -269,11 +269,11 @@ export function TwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: num
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Two secants diagram">
       <CircleBase />
-      <path d={arcPath(CX, CY, R, arcStart, arcEnd)} fill="none" stroke="#3b82f6" strokeWidth={3} />
+      <path d={arcPath(CX, CY, R, arcStart, arcEnd)} fill="none" stroke="#111111" strokeWidth={3} />
       <path
         d={arcPath(CX, CY, R, arcStart - near, arcEnd + near)}
         fill="none"
-        stroke="#10b981"
+        stroke="#6b7280"
         strokeWidth={3}
       />
       <line x1={EX} y1={EY} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
@@ -281,7 +281,7 @@ export function TwoSecantsSVG({ interceptedArc, variant }: { interceptedArc: num
       {[A, B, C, D].map((pt, i) => (
         <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
-      <circle cx={EX} cy={EY} r={2.5} fill="#e11d48" />
+      <circle cx={EX} cy={EY} r={2.5} fill="#111111" />
       <Label x={EX} y={EY} text="P" offset={{ x: 8, y: 0 }} />
       <Label x={EX} y={EY} text="?" offset={{ x: 8, y: 10 }} />
     </svg>
@@ -318,17 +318,17 @@ export function ConcentricCirclesSVG({
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Concentric circles probability diagram">
       {/* Outer circle */}
-      <circle cx={CX} cy={CY} r={scaledOuter} fill="#dbeafe" stroke="#111111" strokeWidth={1.5} />
+      <circle cx={CX} cy={CY} r={scaledOuter} fill="#f1f5f9" stroke="#111111" strokeWidth={1.5} />
       {/* Inner (favorable) circle */}
       <circle
         cx={CX} cy={CY} r={scaledInner}
-        fill="#3b82f6" fillOpacity={0.55}
-        stroke="#1d4ed8" strokeWidth={1.5}
+        fill="#111111" fillOpacity={0.12}
+        stroke="#111111" strokeWidth={1.5}
       />
       {/* Inner radius line, horizontal, 0° */}
       <line
         x1={CX} y1={CY} x2={CX + scaledInner} y2={CY}
-        stroke="#1d4ed8" strokeWidth={1} strokeDasharray="3 2"
+        stroke="#111111" strokeWidth={1} strokeDasharray="3 2"
       />
       {/* Outer radius line, diagonal, 45° */}
       <line
@@ -370,7 +370,7 @@ export function ShadedSectorSVG({
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Shaded sector probability diagram">
       <circle cx={CX} cy={CY} r={R} fill="#f1f5f9" stroke="#111111" strokeWidth={1.5} />
-      <path d={pathD} fill="#3b82f6" fillOpacity={0.55} stroke="#1d4ed8" strokeWidth={1.2} />
+      <path d={pathD} fill="#111111" fillOpacity={0.12} stroke="#111111" strokeWidth={1.2} />
       {(() => {
         const mid = polarToCart(CX, CY, R * 0.5, startDeg + 90 + sectorAngle / 2);
         return (
@@ -469,7 +469,7 @@ function AngleArc({ v, p1, p2 }: { v: Pt; p1: Pt; p2: Pt }) {
     <path
       d={`M ${x1} ${y1} A ${r} ${r} 0 0 ${sweepFlag} ${x2} ${y2}`}
       fill="none"
-      stroke="#e11d48"
+      stroke="#111111"
       strokeWidth={1.2}
     />
   );
@@ -548,8 +548,8 @@ export function CongruenceSVG({
       {sideMarks.map((count, i) =>
         count > 0 ? (
           <React.Fragment key={i}>
-            <TickMarks p1={sides1[i][0]} p2={sides1[i][1]} count={count} color="#1d4ed8" />
-            <TickMarks p1={sides2[i][0]} p2={sides2[i][1]} count={count} color="#1d4ed8" />
+            <TickMarks p1={sides1[i][0]} p2={sides1[i][1]} count={count} color="#111111" />
+            <TickMarks p1={sides2[i][0]} p2={sides2[i][1]} count={count} color="#111111" />
           </React.Fragment>
         ) : null
       )}

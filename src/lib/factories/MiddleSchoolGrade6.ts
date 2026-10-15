@@ -45,7 +45,7 @@ import {
 
 export type Grade6Difficulty = 1 | 2 | 3;
 
-type Maker = (rng: RNG) => Grade6Problem;
+type Maker = (rng: RNG, wordProblems?: boolean) => Grade6Problem;
 interface MakerEntry {
   tier: Grade6Difficulty;
   subtype: Grade6Subtype;
@@ -2860,7 +2860,8 @@ export function generateGrade6Problems(
   rng: RNG,
   n: number,
   difficulty: Grade6Difficulty = 2,
-  subtypes?: readonly Grade6Subtype[]
+  subtypes?: readonly Grade6Subtype[],
+  wordProblems = false
 ): Grade6Problem[] {
   // Lesson-first, like the registry's filterAllowed: intersect the lesson's own
   // makers with the difficulty filter, falling back to the lesson's full list
@@ -2873,7 +2874,7 @@ export function generateGrade6Problems(
   const finalPool = tierPool.length > 0 ? tierPool : lessonPool;
   return Array.from({ length: n }, () => {
     const entry = pick(rng, finalPool);
-    const problem = entry.make(rng);
+    const problem = entry.make(rng, wordProblems);
     problem.tier = entry.tier;
     return problem;
   });

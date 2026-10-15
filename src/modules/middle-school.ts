@@ -35,6 +35,7 @@ interface LessonDef {
   description: string;
   grade: Grade;
   subtypes: LessonSubtype[];
+  wordProblems?: boolean;
 }
 
 function difficultyOf(options?: GenerateOptions): 1 | 2 | 3 {
@@ -49,13 +50,14 @@ function generateFor(def: LessonDef, mode: OutputMode, seed: number, options?: G
   // Stamp seeded per-diagram presentation variants + de-duplicate
   // visually identical figures within this generation run.
   const stamp = (ps: MathProblem[]) => assignDiagramVariants(ps, rng);
+  const wordProblems = options?.wordProblems ?? false;
   if (def.grade === 6) {
-    return stamp(generateGrade6Problems(rng, count, difficulty, def.subtypes as Grade6Subtype[]));
+    return stamp(generateGrade6Problems(rng, count, difficulty, def.subtypes as Grade6Subtype[], wordProblems));
   }
   if (def.grade === 7) {
-    return stamp(generateGrade7Problems(rng, count, difficulty, def.subtypes as Grade7Subtype[]));
+    return stamp(generateGrade7Problems(rng, count, difficulty, def.subtypes as Grade7Subtype[], wordProblems));
   }
-  return stamp(generateGrade8Problems(rng, count, difficulty, def.subtypes as Grade8Subtype[]));
+  return stamp(generateGrade8Problems(rng, count, difficulty, def.subtypes as Grade8Subtype[], wordProblems));
 }
 
 const G6 = "Grade 6 Math";
@@ -296,14 +298,14 @@ const LESSONS: LessonDef[] = [
     title: "3-1: Measuring Angles",
     story: "Acute, right, or obtuse, classify by measure.",
     teks: "TEKS 7.11C", description: "Classify angles by degree measure.",
-    grade: 7, subtypes: ["MeasuringAngles"],
+    grade: 7, subtypes: ["MeasuringAngles"], wordProblems: true,
   },
   {
     id: "ms7-3-2-angle-pairs", topic: 31, topicTitle: `${G7} · T3 Measurement & Geometry`,
     title: "3-2: Adjacent, Complementary, Supplementary & Vertical Angles",
     story: "Angle pairs that add to 90°, add to 180°, or match across.",
     teks: "TEKS 7.11C", description: "Complementary, supplementary, and vertical angle problems with diagrams.",
-    grade: 7, subtypes: ["AnglePairs"],
+    grade: 7, subtypes: ["AnglePairs"], wordProblems: true,
   },
   {
     id: "ms7-3-3-triangle-angle-sum", topic: 31, topicTitle: `${G7} · T3 Measurement & Geometry`,
@@ -654,6 +656,7 @@ export const MIDDLE_SCHOOL_ENTRIES: CurriculumEntry[] = LESSONS.map((def) => ({
   story: def.story,
   teks: def.teks,
   description: def.description,
+  wordProblems: def.wordProblems,
   generate: (mode: OutputMode, seed: number, options?: GenerateOptions) =>
     generateFor(def, mode, seed, options),
 }));

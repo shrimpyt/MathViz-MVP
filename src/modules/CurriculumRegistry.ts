@@ -164,6 +164,8 @@ export interface CurriculumEntry {
   description: string;
   /** True when this lesson has no real generator yet (shows "under construction"). */
   underConstruction?: boolean;
+  /** True when the lesson offers story-framed (word problem) variants. */
+  wordProblems?: boolean;
   /**
    * Generate problems for the given mode and seed.
    * Base counts: GuidedNote = 1×, Review = 3×, Test = 1× (but clean blanks).
@@ -188,6 +190,13 @@ export interface GenerateOptions {
   count?: number;
   /** Difficulty tier filter. Defaults to 2 (Medium). */
   difficulty?: DifficultyLevel;
+  /**
+   * Word problems: where a lesson offers story-framed variants of its
+   * problems (same math, same answers), prefer them. Lessons without story
+   * variants ignore the flag. Entries that support it set
+   * `CurriculumEntry.wordProblems`.
+   */
+  wordProblems?: boolean;
 }
 
 /** Trig subtypes unlocked at each difficulty tier (cumulative). */
