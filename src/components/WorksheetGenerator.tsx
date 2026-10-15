@@ -211,6 +211,7 @@ interface DraftFile {
   difficulty: DifficultyLevel;
   includeAnswerKey: boolean;
   wordProblems?: boolean;
+  includeDiagrams?: boolean;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -225,6 +226,7 @@ export default function WorksheetGenerator() {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(2);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [wordProblems, setWordProblems] = useState(false);
+  const [includeDiagrams, setIncludeDiagrams] = useState(true);
   const [draftError, setDraftError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -468,15 +470,26 @@ export default function WorksheetGenerator() {
     );
   }, [selectedModules, docType, seed, count, difficulty, wordProblems]);
 
+  // Words-only mode (render-side transform, generation untouched): every
+  // diagram rides on the problem's svgParams or on the built question's
+  // diagramType/diagramData. Strip the problem channel here and the
+  // question channel where questions are built.
+  const displayProblemSets = useMemo<MathProblem[][]>(() => {
+    if (includeDiagrams) return moduleProblemSets;
+    return moduleProblemSets.map((set) =>
+      set.map((p) => ('svgParams' in p ? ({ ...p, svgParams: null } as MathProblem) : p))
+    );
+  }, [moduleProblemSets, includeDiagrams]);
+
   const advancedProblems = useMemo<MathProblem[]>((
-  ) => moduleProblemSets.flat(), [moduleProblemSets]);
+  ) => displayProblemSets.flat(), [displayProblemSets]);
 
   // Classical Notes groups: one definitions block + narration per entry.
   const classicalGroups = useMemo<ClassicalGroup[] | undefined>(() => {
     if (docType !== 'classical-notes') return undefined;
     let start = 0;
     return selectedModules.map((mod, i) => {
-      const problems = moduleProblemSets[i] ?? [];
+      const problems = displayProblemSets[i] ?? [];
       const group: ClassicalGroup = {
         entryId: mod.id,
         title: mod.title,
@@ -487,7 +500,7 @@ export default function WorksheetGenerator() {
       start += problems.length;
       return group;
     });
-  }, [docType, selectedModules, moduleProblemSets]);
+  }, [docType, selectedModules, displayProblemSets]);
 
   // Proof document flavor, threaded to EuclidEngine → ProofProblemCard.
   const proofDocMode = useMemo(
@@ -501,9 +514,12 @@ export default function WorksheetGenerator() {
   );
 
   // Questions for the PDF (paired with problems inside PdfDocument)
+  const stripQuestionDiagram = (q: ReturnType<typeof problemToQuestion>) =>
+    includeDiagrams ? q : { ...q, diagramType: undefined, diagramData: undefined };
   const questions = useMemo(() => {
-    return advancedProblems.map((p, i) => problemToQuestion(p, i));
-  }, [advancedProblems]);
+    return advancedProblems.map((p, i) => stripQuestionDiagram(problemToQuestion(p, i)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [advancedProblems, includeDiagrams]);
 
   // ── Version plan (IEP accommodations) ──
   // One base version plus one version per accommodation group, all derived
@@ -543,9 +559,10 @@ export default function WorksheetGenerator() {
   const versionQuestions = useMemo(
     () => new Map(versionPlan.all().map((v) => [
       v.versionId,
-      v.problems.map((p, i) => problemToQuestion(p, i)),
+      v.problems.map((p, i) => stripQuestionDiagram(problemToQuestion(p, i))),
     ])),
-    [versionPlan]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [versionPlan, includeDiagrams]
   );
 
   // ── Title & standards ──
@@ -615,6 +632,7 @@ export default function WorksheetGenerator() {
       difficulty,
       includeAnswerKey,
       wordProblems,
+      includeDiagrams,
     };
     const blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -664,6 +682,7 @@ export default function WorksheetGenerator() {
         }
         if (typeof d.includeAnswerKey === 'boolean') setIncludeAnswerKey(d.includeAnswerKey);
         if (typeof d.wordProblems === 'boolean') setWordProblems(d.wordProblems);
+        if (typeof d.includeDiagrams === 'boolean') setIncludeDiagrams(d.includeDiagrams);
       } catch (e) {
         setDraftError(e instanceof Error ? e.message : 'Could not read that draft file.');
       }
@@ -674,7 +693,7 @@ export default function WorksheetGenerator() {
 
   const randomizeSeed = () => setSeed(Math.floor(Math.random() * 100000));
 
-  const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${selectedTopicIds.join(',')}`;
+  const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${includeDiagrams}-${selectedTopicIds.join(',')}`;
 
   // Titles of the selected lessons that offer story (word problem) variants.
   const wordCapableSelected = useMemo(
@@ -788,6 +807,8 @@ export default function WorksheetGenerator() {
             wordProblems={wordProblems}
             setWordProblems={setWordProblems}
             wordCapableSelected={wordCapableSelected}
+            includeDiagrams={includeDiagrams}
+            setIncludeDiagrams={setIncludeDiagrams}
           />
         )}
         {step === 2 && (
@@ -1422,6 +1443,8 @@ function StepTopics({
   wordProblems,
   setWordProblems,
   wordCapableSelected,
+  includeDiagrams,
+  setIncludeDiagrams,
 }: {
   topicSearch: string;
   handleSearchChange: (v: string) => void;
@@ -1448,6 +1471,8 @@ function StepTopics({
   wordProblems: boolean;
   setWordProblems: (b: boolean) => void;
   wordCapableSelected: string[];
+  includeDiagrams: boolean;
+  setIncludeDiagrams: (b: boolean) => void;
 }) {
   const railCardSx = {
     bgcolor: '#1e2233',
@@ -1548,6 +1573,23 @@ function StepTopics({
                   ? `Story versions on for: ${wordCapableSelected.join(' · ')}`
                   : 'On, but none of the selected lessons offer story versions yet. Grade 7 angle lessons do, and more are coming.'
                 : 'The same problems in story form, where a lesson offers them.'}
+            </Typography>
+          </Box>
+          <Box sx={railCardSx}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Diagrams 🖼️</Typography>
+              <Switch
+                checked={includeDiagrams}
+                onChange={(e) => setIncludeDiagrams(e.target.checked)}
+                inputProps={{ 'aria-label': 'Include diagrams' }}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
+                }}
+              />
+            </Box>
+            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+              {includeDiagrams ? 'Problems show their drawings.' : 'Words only: every drawing is left off the worksheet.'}
             </Typography>
           </Box>
         </Box>
