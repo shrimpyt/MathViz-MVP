@@ -494,7 +494,9 @@ function makeEquationWord7(rng: RNG): Grade7Problem {
         blanks: [{ label: "m =", answer: String(months) }],
       },
     ],
-    { rate, fee, total, wordKind: "two-step" }
+    { rate, fee, total, wordKind: "two-step" },
+    null,
+    "months"
   );
 }
 

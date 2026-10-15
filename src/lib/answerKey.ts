@@ -108,7 +108,13 @@ export function latexToText(input: string | number | null | undefined): string {
   let s = String(input);
 
   // Strip inline/display math delimiters: \( \) \[ \] and $
-  s = s.replace(/\\\(|\\\)|\\\[|\\\]/g, "").replace(/\$/g, "");
+  // A $ directly before a digit is currency, not a delimiter (word problems
+  // price things: "a $12 sign-up fee"). Protect currency through the strip
+  // and restore it after, or every price loses its dollar sign.
+  s = s.replace(/\\\(|\\\)|\\\[|\\\]/g, "");
+  s = s.replace(/\$(?=\d)/g, "\u0001");
+  s = s.replace(/\$/g, "");
+  s = s.replace(/\u0001/g, "$");
 
   // Fractions first: a \frac inside a radicand must already read "a/b"
   // when the radical grouping decision is made.
@@ -229,8 +235,16 @@ export function formatAnswer(p: MathProblem): string {
       return formatAlgebra2Answer(p);
     case "MS.6":
     case "MS.7":
-    case "MS.8":
-      return latexToText(p.answer);
+    case "MS.8": {
+      // Word problems carry their unit on the problem (months, feet,
+      // dollars): the key should show it, unless the answer already does.
+      const base = latexToText(p.answer);
+      const unit = (p as { unit?: string }).unit;
+      if (unit && !base.includes(unit) && !(unit === "dollars" && base.includes("$"))) {
+        return `${base} ${unit}`;
+      }
+      return base;
+    }
     case "SAT":
       return p.format === "GridIn" && p.acceptedForms && p.acceptedForms.length > 1
         ? `${latexToText(p.key)} (also: ${p.acceptedForms.filter((f) => f !== p.key).map(latexToText).join(", ")})`
