@@ -44,6 +44,20 @@ CREATE TABLE IF NOT EXISTS school_licenses (
   seats TEXT NOT NULL DEFAULT '[]'             -- JSON array of teacher emails, max 10
 );
 
+-- Export telemetry for signed-in accounts: one row per PDF export
+-- (topics + format + size, never worksheet contents).
+CREATE TABLE IF NOT EXISTS events (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,                          -- 'export'
+  topics TEXT NOT NULL DEFAULT '[]',           -- JSON array of registry entry ids
+  doc_type TEXT NOT NULL DEFAULT 'worksheet',
+  problems INTEGER NOT NULL DEFAULT 0,
+  versions INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_user ON events(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_tokens_hash ON magic_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_users_customer ON users(stripe_customer_id);

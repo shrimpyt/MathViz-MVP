@@ -48,6 +48,7 @@ import {
 import {
   createPortalUrl,
   fetchAccount,
+  logExportEvent,
   recordGeneration,
   requestSignInLink,
   signOut as apiSignOut,
@@ -540,6 +541,14 @@ export default function WorksheetGenerator() {
         ? 'limit'
         : null;
   const handleExportCount = async () => {
+    if (account.status === 'signed-in') {
+      void logExportEvent({
+        topics: selectedTopicIds,
+        docType,
+        problems: advancedProblems.length,
+        versions: versionPlan.all().length,
+      });
+    }
     if (isPro) return;
     if (account.status === 'signed-in') {
       const verdict = await recordGeneration();

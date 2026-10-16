@@ -86,6 +86,23 @@ export interface GenerationVerdict {
   limit: number | null;
 }
 
+/** One PDF export by a signed-in account: which topics and format, never
+ *  worksheet contents. Fire-and-forget telemetry so we can see which
+ *  lessons teachers actually run; fails soft like every call here. */
+export interface ExportEventPayload {
+  topics: string[];
+  docType: string;
+  problems: number;
+  versions: number;
+}
+
+export async function logExportEvent(payload: ExportEventPayload): Promise<void> {
+  await api("/event", {
+    method: "POST",
+    body: JSON.stringify({ type: "export", ...payload }),
+  });
+}
+
 /** Record one generation against the signed-in account. Null when the API
  *  is unreachable, the caller falls back to the local counter. */
 export async function recordGeneration(): Promise<GenerationVerdict | null> {

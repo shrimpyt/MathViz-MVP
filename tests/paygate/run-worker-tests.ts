@@ -11,6 +11,7 @@ import {
   monthKeyUTC,
   planUpdateFromStripeEvent,
   sha256Hex,
+  validateExportEvent,
   verifyStripeSignature,
 } from "../../worker/src/core";
 
@@ -133,6 +134,28 @@ async function main() {
     planUpdateFromStripeEvent({ type: "ping", data: { object: {} } }),
     null,
   );
+
+  // export telemetry validation
+  const good = validateExportEvent({
+    type: "export",
+    topics: ["ms7-3-2-angle-pairs", "a1-5-2-systems"],
+    docType: "worksheet",
+    problems: 10,
+    versions: 2,
+  });
+  ck("export event: valid payload accepted", good !== null);
+  eq("export event: topics kept", JSON.stringify(good?.topics), JSON.stringify(["ms7-3-2-angle-pairs", "a1-5-2-systems"]));
+  eq("export event: problems", good?.problems, 10);
+  eq("export event: versions", good?.versions, 2);
+  eq("export event: wrong type rejected", validateExportEvent({ type: "click", topics: [] }), null);
+  eq("export event: topics must be an array", validateExportEvent({ type: "export", topics: "x" }), null);
+  eq("export event: null body rejected", validateExportEvent(null), null);
+  const clamped = validateExportEvent({ type: "export", topics: [], problems: 1e9, versions: 0 });
+  eq("export event: problems clamped", clamped?.problems, 100000);
+  eq("export event: versions floored at 1", clamped?.versions, 1);
+  const filtered = validateExportEvent({ type: "export", topics: ["ok", 42, "", "x".repeat(200)] });
+  eq("export event: bad topic entries dropped", JSON.stringify(filtered?.topics), JSON.stringify(["ok"]));
+  eq("export event: docType defaults", filtered?.docType, "worksheet");
 
   console.log(`run-worker-tests: ${checks} checks, ${failures} failures`);
   if (failures > 0) process.exit(1);

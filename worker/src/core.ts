@@ -61,6 +61,44 @@ export function generationAllowed(plan: Plan, usedThisMonth: number): boolean {
   return plan === "pro" || usedThisMonth < FREE_GENERATION_LIMIT;
 }
 
+// ── Export telemetry ─────────────────────────────────────────────────────────
+// Signed-in clients report each PDF export (topics + format + size) so the
+// product can see which lessons teachers actually run. Worksheet contents
+// are never sent. Validation is strict about shape and caps every field;
+// anything unrecognized returns null and the caller answers 400.
+
+export interface ExportEvent {
+  topics: string[];
+  docType: string;
+  problems: number;
+  versions: number;
+}
+
+function clampIntField(v: unknown, lo: number, hi: number, fallback: number): number {
+  if (typeof v !== "number" || !Number.isFinite(v)) return fallback;
+  return Math.min(hi, Math.max(lo, Math.floor(v)));
+}
+
+export function validateExportEvent(body: unknown): ExportEvent | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+  if (b["type"] !== "export") return null;
+  if (!Array.isArray(b["topics"])) return null;
+  const topics = b["topics"]
+    .filter((t): t is string => typeof t === "string" && t.length > 0 && t.length <= 80)
+    .slice(0, 24);
+  const docType =
+    typeof b["docType"] === "string" && b["docType"].length > 0 && b["docType"].length <= 40
+      ? b["docType"]
+      : "worksheet";
+  return {
+    topics,
+    docType,
+    problems: clampIntField(b["problems"], 0, 100_000, 0),
+    versions: clampIntField(b["versions"], 1, 50, 1),
+  };
+}
+
 // ── Stripe webhook signature verification ────────────────────────────────────
 // Stripe signs `${timestamp}.${rawBody}` with HMAC-SHA256 (hex) using the
 // endpoint secret; the header looks like `t=123,v1=abc,v1=def`.

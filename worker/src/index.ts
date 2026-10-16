@@ -17,6 +17,7 @@ import {
   planUpdateFromStripeEvent,
   randomTokenHex,
   sha256Hex,
+  validateExportEvent,
   verifyStripeSignature,
   type Plan,
   type StripeEventLike,
@@ -295,6 +296,28 @@ async function handleCount(env: Env, req: Request): Promise<Response> {
   });
 }
 
+async function handleEvent(env: Env, req: Request): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  const body = await req.json().catch(() => null);
+  const event = validateExportEvent(body);
+  if (!event) return json(req, { error: "invalid event" }, 400);
+  await env.DB.prepare(
+    "INSERT INTO events (id, user_id, type, topics, doc_type, problems, versions, created_at) VALUES (?, ?, 'export', ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      randomTokenHex(16),
+      user.id,
+      JSON.stringify(event.topics),
+      event.docType,
+      event.problems,
+      event.versions,
+      Math.floor(Date.now() / 1000),
+    )
+    .run();
+  return json(req, { ok: true });
+}
+
 const CHECKOUT_KINDS: Record<
   string,
   { priceEnv: keyof Env; mode: "subscription" | "payment" }
@@ -427,6 +450,8 @@ export default {
         return await handleMe(env, req);
       if (req.method === "POST" && pathname.endsWith("/count"))
         return await handleCount(env, req);
+      if (req.method === "POST" && pathname.endsWith("/event"))
+        return await handleEvent(env, req);
       if (req.method === "POST" && pathname.endsWith("/checkout"))
         return await handleCheckout(env, req);
       if (req.method === "POST" && pathname.endsWith("/portal"))

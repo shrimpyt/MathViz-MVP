@@ -18,8 +18,10 @@ export default function PrivacyPage() {
       <p>
         <strong>Plan and usage data.</strong> Your subscription plan and status,
         and a monthly count of worksheet exports (used to enforce Free-plan
-        limits). Worksheet settings you save in your library are stored with your
-        account.
+        limits). For signed-in accounts we also record which topics and format
+        each export used, so we can tell which lessons teachers actually run.
+        We never receive or store the worksheets themselves. Worksheet settings
+        you save in your library are stored with your account.
       </p>
       <p>
         <strong>Payment data.</strong> Payments are processed by Stripe. We never
