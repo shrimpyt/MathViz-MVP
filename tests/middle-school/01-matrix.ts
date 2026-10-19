@@ -33,11 +33,11 @@ export function run(): void {
 
   // sanity: 80 entries, ids unique, grouped by grade
   const ids = MIDDLE_SCHOOL_ENTRIES.map((e) => e.id);
-  check(MIDDLE_SCHOOL_ENTRIES.length === 80, `expected 80 entries, got ${MIDDLE_SCHOOL_ENTRIES.length}`);
+  check(MIDDLE_SCHOOL_ENTRIES.length === 81, `expected 81 entries, got ${MIDDLE_SCHOOL_ENTRIES.length}`);
   check(new Set(ids).size === ids.length, "entry ids are unique");
   check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 30).length === 24, "24 grade-6 entries");
-  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 31).length === 38, "38 grade-7 entries");
-  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 32).length === 18, "18 grade-8 entries");
+  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 31).length === 57, "57 Pre-Algebra entries");
+  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 32).length === 0, "0 entries left in the retired grade-8 bucket");
 
   // every subtype in the unions is covered by at least one entry
   const covered = new Set<string>();

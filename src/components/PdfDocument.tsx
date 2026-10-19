@@ -122,8 +122,7 @@ const SECTION_DEFS: SectionDef[] = [
   { label: "Algebra 1", match: (p) => (p as { type: string }).type.startsWith("A.") },
   { label: "Algebra 2", match: (p) => (p as { type: string }).type.startsWith("A2.") },
   { label: "Grade 6 Math", match: (p) => p.type === "MS.6" },
-  { label: "Grade 7 Math", match: (p) => p.type === "MS.7" },
-  { label: "Grade 8 Math", match: (p) => p.type === "MS.8" },
+  { label: "Pre-Algebra", match: (p) => p.type === "MS.7" || p.type === "MS.8" },
   { label: "SAT Math Practice", match: (p) => p.type === "SAT" },
   { label: "AP Precalculus, Multiple Choice", match: (p) => p.type === "PRECALC_MCQ" },
   {

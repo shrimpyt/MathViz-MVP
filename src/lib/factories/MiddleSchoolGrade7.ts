@@ -620,6 +620,124 @@ function makeVerticalAngles(rng: RNG, word = false): Grade7Problem {
   );
 }
 
+
+// ── Lesson: Finding Missing Angles ───────────────────────────────────────────
+// The application lesson for T3: every problem names an unknown angle and
+// asks for an equation first, then the measure. Complementary and
+// supplementary forms reuse the pair diagrams (known angle labeled, the
+// missing one marked ?).
+
+function makeMissingAngleComplementary(rng: RNG): Grade7Problem {
+  const known = randInt(rng, 15, 75);
+  const missing = 90 - known;
+  return build(
+    "FindingMissingAngles",
+    `The two angles in the diagram are complementary. One angle measures ${known}°. Find the measure of the missing angle.`,
+    "the missing angle",
+    `${missing}°`,
+    [
+      {
+        instruction: "Complementary angles add to 90°. Let x be the missing angle, then write an equation.",
+        blanks: [{ label: "equation", answer: `x + ${known} = 90` }],
+      },
+      {
+        instruction: `Subtract ${known} from both sides: x = 90 − ${known}.`,
+        blanks: [{ label: "answer", answer: `${missing}°` }],
+      },
+    ],
+    { known, missing, pair: "complementary", form: "equation" },
+    { kind: "MSGeometryFigure", figure: "angle-complementary", dims: { angle: known } }
+  );
+}
+
+function makeMissingAngleSupplementary(rng: RNG): Grade7Problem {
+  const known = randInt(rng, 25, 150);
+  const missing = 180 - known;
+  return build(
+    "FindingMissingAngles",
+    `The two angles in the diagram form a straight line. One angle measures ${known}°. Find the measure of the missing angle.`,
+    "the missing angle",
+    `${missing}°`,
+    [
+      {
+        instruction: "Angles on a straight line add to 180°. Let x be the missing angle, then write an equation.",
+        blanks: [{ label: "equation", answer: `x + ${known} = 180` }],
+      },
+      {
+        instruction: `Subtract ${known} from both sides: x = 180 − ${known}.`,
+        blanks: [{ label: "answer", answer: `${missing}°` }],
+      },
+    ],
+    { known, missing, pair: "supplementary", form: "equation" },
+    { kind: "MSGeometryFigure", figure: "angle-supplementary", dims: { angle: known } }
+  );
+}
+
+function makeMissingAngleAroundPoint(rng: RNG): Grade7Problem {
+  let a = 0, b = 0, c = 0, missing = 0;
+  for (let tries = 0; tries < 25; tries++) {
+    a = randInt(rng, 60, 130);
+    b = randInt(rng, 50, 120);
+    c = randInt(rng, 50, 120);
+    missing = 360 - a - b - c;
+    if (missing >= 40 && missing <= 140) break;
+  }
+  if (missing < 40 || missing > 140) {
+    c = 360 - a - b - 90;
+    missing = 90;
+  }
+  const sum = a + b + c;
+  return build(
+    "FindingMissingAngles",
+    `Four angles meet at a point. Three of the angles measure ${a}°, ${b}°, and ${c}°. Find the measure of the fourth angle.`,
+    "the fourth angle",
+    `${missing}°`,
+    [
+      {
+        instruction: "Angles around a point add to 360°.",
+        blanks: [{ label: "sum", answer: "360°" }],
+      },
+      {
+        instruction: `The three known angles add to ${a} + ${b} + ${c} = ${sum}, so x = 360 − ${sum}.`,
+        blanks: [{ label: "answer", answer: `${missing}°` }],
+      },
+    ],
+    { a, b, c, missing, form: "around-point" },
+    null
+  );
+}
+
+function makeMissingAngleAlgebraic(rng: RNG): Grade7Problem {
+  const supplementary = pick(rng, [true, false]);
+  const total = supplementary ? 180 : 90;
+  const x = supplementary ? pick(rng, [45, 50, 55, 60, 65, 70, 75]) : pick(rng, [20, 25, 30, 35, 40]);
+  const d = total - 2 * x;
+  const other = x + d;
+  const pairWord = supplementary ? "supplementary" : "complementary";
+  return build(
+    "FindingMissingAngles",
+    `Two angles are ${pairWord}. Their measures are x° and (x + ${d})°. Find both angle measures.`,
+    "both angle measures",
+    `${x}° and ${other}°`,
+    [
+      {
+        instruction: `${supplementary ? "Supplementary" : "Complementary"} angles add to ${total}°, so x + (x + ${d}) = ${total}. Combine like terms.`,
+        blanks: [{ label: "equation", answer: `2x + ${d} = ${total}` }],
+      },
+      {
+        instruction: `Subtract ${d} from both sides, then divide by 2.`,
+        blanks: [{ label: "x", answer: `${x}°` }],
+      },
+      {
+        instruction: `The other angle measures x + ${d}.`,
+        blanks: [{ label: "other angle", answer: `${other}°` }],
+      },
+    ],
+    { x, d, total, pair: pairWord, form: "algebraic" },
+    null
+  );
+}
+
 // ── Lesson: Triangle Angle Sum ───────────────────────────────────────────────
 
 function makeTriangleAngleSum7(rng: RNG): Grade7Problem {
@@ -3236,6 +3354,10 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "AnglePairs", make: makeComplementary },
   { tier: 1, subtype: "AnglePairs", make: makeSupplementary },
   { tier: 2, subtype: "AnglePairs", make: makeVerticalAngles },
+  { tier: 1, subtype: "FindingMissingAngles", make: makeMissingAngleComplementary },
+  { tier: 1, subtype: "FindingMissingAngles", make: makeMissingAngleSupplementary },
+  { tier: 2, subtype: "FindingMissingAngles", make: makeMissingAngleAroundPoint },
+  { tier: 2, subtype: "FindingMissingAngles", make: makeMissingAngleAlgebraic },
   { tier: 1, subtype: "TriangleAngleSum", make: makeTriangleAngleSum7 },
   { tier: 1, subtype: "CircleParts", make: makeCircleParts },
   { tier: 1, subtype: "CircumferenceAndArea", make: makeCircumference },
@@ -3344,6 +3466,7 @@ export const GRADE7_SUBTYPES: Grade7Subtype[] = [
   "WritingProblemSituations",
   "MeasuringAngles",
   "AnglePairs",
+  "FindingMissingAngles",
   "TriangleAngleSum",
   "CircleParts",
   "CircumferenceAndArea",

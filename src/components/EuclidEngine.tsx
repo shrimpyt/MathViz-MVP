@@ -482,29 +482,22 @@ export function EuclidEngine({
           </>
         )}
 
-        {/* Grade 7 Math */}
-        {ms7Problems.length > 0 && (
+        {/* Pre-Algebra (the former Grade 7 and Grade 8 courses, merged) */}
+        {(ms7Problems.length > 0 || ms8Problems.length > 0) && (
           <>
-            <SectionDivider label="Grade 7 Math" />
+            <SectionDivider label="Pre-Algebra" />
             {ms7Problems.map((p, i) => (
               <MiddleSchoolGrade7Card
-                key={i}
+                key={`pa7-${i}`}
                 problem={p}
                 index={ms7Offset + i}
                 mode={mode}
                 revealed={revealed}
               />
             ))}
-          </>
-        )}
-
-        {/* Grade 8 Math */}
-        {ms8Problems.length > 0 && (
-          <>
-            <SectionDivider label="Grade 8 Math" />
             {ms8Problems.map((p, i) => (
               <MiddleSchoolGrade8Card
-                key={i}
+                key={`pa8-${i}`}
                 problem={p}
                 index={ms8Offset + i}
                 mode={mode}

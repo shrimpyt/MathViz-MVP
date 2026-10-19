@@ -512,6 +512,15 @@ function recompute7(p: MiddleSchoolProblem): string | number {
       if (pair === "supplementary") return `${180 - known}°`;
       return `${known}°`;
     }
+    case "FindingMissingAngles": {
+      const form = istr(g, "form");
+      if (form === "equation") {
+        return istr(g, "pair") === "complementary" ? `${90 - inum(g, "known")}°` : `${180 - inum(g, "known")}°`;
+      }
+      if (form === "around-point") return `${360 - inum(g, "a") - inum(g, "b") - inum(g, "c")}°`;
+      const fx = inum(g, "x");
+      return `${fx}° and ${fx + inum(g, "d")}°`;
+    }
     case "TriangleAngleSum":
       return `${180 - inum(g, "a1") - inum(g, "a2")}°`;
     case "CircleParts": {

@@ -1580,7 +1580,7 @@ function StepTopics({
               {wordProblems
                 ? wordCapableSelected.length > 0
                   ? `Story versions on for: ${wordCapableSelected.join(' · ')}`
-                  : 'On, but none of the selected lessons offer story versions yet. Grade 7 angle lessons do, and more are coming.'
+                  : 'On, but none of the selected lessons offer story versions yet. Pre-Algebra angle lessons do, and more are coming.'
                 : 'The same problems in story form, where a lesson offers them.'}
             </Typography>
           </Box>

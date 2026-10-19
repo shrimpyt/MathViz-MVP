@@ -68,6 +68,7 @@ export type Grade7Subtype =
   | "WritingProblemSituations"
   | "MeasuringAngles"
   | "AnglePairs"
+  | "FindingMissingAngles"
   | "TriangleAngleSum"
   | "CircleParts"
   | "CircumferenceAndArea"

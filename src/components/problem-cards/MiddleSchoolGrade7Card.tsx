@@ -26,6 +26,7 @@ const SUBTYPE_LABEL: Record<Grade7Problem["subtype"], string> = {
   WritingProblemSituations: "Writing Problem Situations",
   MeasuringAngles: "Measuring Angles",
   AnglePairs: "Angle Pairs",
+  FindingMissingAngles: "Finding Missing Angles",
   TriangleAngleSum: "Triangle Angle Sum",
   CircleParts: "Center, Radius & Diameter",
   CircumferenceAndArea: "Circumference & Area of Circles",
