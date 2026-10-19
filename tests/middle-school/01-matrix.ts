@@ -4,7 +4,7 @@
 // PDF-safe strings, non-empty steps/blanks.
 
 import { check, resetCounters, result, printResult, isMain } from "./helpers";
-import { MIDDLE_SCHOOL_ENTRIES } from "@/modules/middle-school";
+import { MIDDLE_SCHOOL_ENTRIES, getMiddleSchoolSubtypes } from "@/modules/middle-school";
 import type { OutputMode } from "@/lib/ProblemFactory";
 import type {
   MiddleSchoolProblem,
@@ -22,10 +22,9 @@ const DIFFS = [1, 2, 3] as const;
 const COUNTS = [1, 3, 12, 25];
 
 function lessonSubtypes(entryId: string): string[] {
-  const entry = MIDDLE_SCHOOL_ENTRIES.find((e) => e.id === entryId)!;
-  // regenerate one problem and read its subtype (stable per lesson)
-  const ps = entry.generate("GuidedNote", 7, { count: 1 }) as unknown as MiddleSchoolProblem[];
-  return [ps[0].subtype];
+  // The lesson's declared subtype list from the module (a lesson may draw
+  // from several subtypes; sampling one problem only ever sees one of them).
+  return getMiddleSchoolSubtypes(entryId) ?? [];
 }
 
 export function run(): void {

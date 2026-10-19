@@ -445,6 +445,12 @@ function makeFractionToPercent(rng: RNG): Grade6Problem {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── Lesson: Integer Operations ───────────────────────────────────────────────
+// Subcategories: comparing & ordering; adding & subtracting; multiplying &
+// dividing; plus two word-problem families (add/subtract situations and
+// multiply/divide situations). The word families give plain computation
+// prompts normally and story prompts when the word-problems option is on;
+// the `word` flag stored in `given` tells the checker which answer form
+// to expect.
 
 function makeCompareIntegers(rng: RNG): Grade6Problem {
   const a = randNonZero(rng, -15, 15);
@@ -454,7 +460,7 @@ function makeCompareIntegers(rng: RNG): Grade6Problem {
   const lo = Math.min(a, b) - 2;
   const hi = Math.max(a, b) + 2;
   return build(
-    "IntegerOperations",
+    "ComparingOrderingIntegers",
     `Compare: ${a} ___ ${b}. Write <, >, or =.`,
     "the comparison symbol",
     ans,
@@ -478,7 +484,7 @@ function makeOrderIntegers(rng: RNG): Grade6Problem {
   const lo = Math.min(...arr) - 1;
   const hi = Math.max(...arr) + 1;
   return build(
-    "IntegerOperations",
+    "ComparingOrderingIntegers",
     `Order the integers from least to greatest: ${arr.join(", ")}.`,
     "the ordered list",
     ans,
@@ -500,7 +506,7 @@ function makeAddSubtractIntegers(rng: RNG): Grade6Problem {
   const ans = isAdd ? a + b : a - b;
   const cleanExpr = isAdd ? `${a} ${b < 0 ? "−" : "+"} ${Math.abs(b)}` : `${a} − ${b < 0 ? `(${b})` : b}`;
   return build(
-    "IntegerOperations",
+    "AddingSubtractingIntegers",
     `Find: ${cleanExpr}.`,
     "the result",
     ans,
@@ -532,7 +538,7 @@ function makeMulDivIntegers(rng: RNG): Grade6Problem {
     prompt = `Find: ${product} ÷ (${b}).`;
   }
   return build(
-    "IntegerOperations",
+    "MultiplyingDividingIntegers",
     prompt,
     "the result",
     result,
@@ -548,61 +554,221 @@ function makeMulDivIntegers(rng: RNG): Grade6Problem {
   );
 }
 
-const INTEGER_WORDS = [
-  {
-    text: "temperature",
-    make: (rng: RNG) => {
-      const start = randInt(rng, 5, 20);
-      const drop = randInt(rng, 10, 25);
-      const ans = start - drop;
-      return {
-        prompt: `The temperature was ${start}°F in the afternoon. Overnight it dropped ${drop} degrees. What was the morning temperature?`,
-        answer: `${ans}°F`,
-        given: { start, drop } as Record<string, number | string>,
-      };
-    },
-  },
-  {
-    text: "elevation",
-    make: (rng: RNG) => {
-      const start = randInt(rng, 3, 12);
-      const down = randInt(rng, 8, 20);
-      const ans = start - down;
-      return {
-        prompt: `A hiker starts at an elevation of ${start} feet above sea level, then descends ${down} feet into a canyon. What is the hiker's new elevation?`,
-        answer: `${ans} feet`,
-        given: { start, down } as Record<string, number | string>,
-      };
-    },
-  },
-  {
-    text: "money",
-    make: (rng: RNG) => {
-      const owed = randInt(rng, 10, 40);
-      const paid = randInt(rng, 5, owed + 10);
-      const ans = paid - owed;
-      return {
-        prompt: `Maya owes her brother $${owed}. She pays him $${paid}. Represent her net change as an integer.`,
-        answer: `$${ans}`,
-        given: { owed, paid } as Record<string, number | string>,
-      };
-    },
-  },
-];
+function signedAddExpr(a: number, b: number): string {
+  return b < 0 ? `${a} + (${b})` : `${a} + ${b}`;
+}
 
-function makeIntegerWord(rng: RNG): Grade6Problem {
-  const w = pick(rng, INTEGER_WORDS);
-  const { prompt, answer, given } = w.make(rng);
+function unitAnswer(unit: string, v: number): string {
+  return unit === "$" ? `$${v}` : unit === "°F" ? `${v}°F` : `${v} feet`;
+}
+
+function makeWordTemperature(rng: RNG, word = false): Grade6Problem {
+  const start = randInt(rng, -8, 28);
+  const change = randNonZero(rng, -22, 22);
+  const ans = start + change;
+  const expr = signedAddExpr(start, change);
+  const given = { wordKind: "temperature", start, change, word: word ? 1 : 0 };
+  if (!word) {
+    return build(
+      "IntegerWordAddSubtract",
+      `Find: ${expr}.`,
+      "the result",
+      ans,
+      [
+        {
+          instruction: "Add the integers, keeping track of the signs:",
+          blanks: [{ label: "result", answer: String(ans) }],
+        },
+      ],
+      given
+    );
+  }
   return build(
-    "IntegerOperations",
-    prompt,
-    "the answer",
-    answer,
+    "IntegerWordAddSubtract",
+    `The temperature was ${start}°F at noon. By midnight it had ${change > 0 ? `risen by ${change}` : `dropped by ${-change}`} degrees. What was the temperature at midnight?`,
+    "the midnight temperature",
+    `${ans}°F`,
     [
-      { instruction: "Write an integer expression for the situation:", blanks: [{ label: "expression", answer: "see work" }] },
-      { instruction: "Compute:", blanks: [{ label: "answer", answer: String(answer) }] },
+      {
+        instruction: `Write the change as adding a signed number: ${expr}.`,
+        blanks: [{ label: "expression", answer: expr }],
+      },
+      { instruction: "Compute:", blanks: [{ label: "answer", answer: `${ans}°F` }] },
     ],
-    { wordKind: w.text, ...given }
+    given
+  );
+}
+
+function makeWordElevation(rng: RNG, word = false): Grade6Problem {
+  const start = randInt(rng, 0, 30);
+  const change = randNonZero(rng, -35, 25);
+  const ans = start + change;
+  const expr = signedAddExpr(start, change);
+  const given = { wordKind: "elevation", start, change, word: word ? 1 : 0 };
+  if (!word) {
+    return build(
+      "IntegerWordAddSubtract",
+      `Find: ${expr}.`,
+      "the result",
+      ans,
+      [
+        {
+          instruction: "Add the integers, keeping track of the signs:",
+          blanks: [{ label: "result", answer: String(ans) }],
+        },
+      ],
+      given
+    );
+  }
+  return build(
+    "IntegerWordAddSubtract",
+    `A hiker starts at an elevation of ${start} feet above sea level and ${change > 0 ? `climbs ${change} feet` : `descends ${-change} feet`}. What is the hiker's new elevation? (Use a negative number for below sea level.)`,
+    "the new elevation",
+    `${ans} feet`,
+    [
+      {
+        instruction: `Write the change as adding a signed number: ${expr}.`,
+        blanks: [{ label: "expression", answer: expr }],
+      },
+      { instruction: "Compute:", blanks: [{ label: "answer", answer: `${ans} feet` }] },
+    ],
+    given
+  );
+}
+
+function makeWordMoney(rng: RNG, word = false): Grade6Problem {
+  const start = randInt(rng, 10, 80);
+  const change = randNonZero(rng, -100, 60);
+  const ans = start + change;
+  const expr = signedAddExpr(start, change);
+  const given = { wordKind: "money", start, change, word: word ? 1 : 0 };
+  if (!word) {
+    return build(
+      "IntegerWordAddSubtract",
+      `Find: ${expr}.`,
+      "the result",
+      ans,
+      [
+        {
+          instruction: "Add the integers, keeping track of the signs:",
+          blanks: [{ label: "result", answer: String(ans) }],
+        },
+      ],
+      given
+    );
+  }
+  return build(
+    "IntegerWordAddSubtract",
+    change > 0
+      ? `Maya has $${start} in her bank account. She deposits $${change}. What is her new balance?`
+      : `Maya has $${start} in her bank account. She withdraws $${-change}. What is her new balance? (Use a negative number if the account is overdrawn.)`,
+    "the new balance",
+    `$${ans}`,
+    [
+      {
+        instruction: `Write the change as adding a signed number: ${expr}.`,
+        blanks: [{ label: "expression", answer: expr }],
+      },
+      { instruction: "Compute:", blanks: [{ label: "answer", answer: `$${ans}` }] },
+    ],
+    given
+  );
+}
+
+function makeWordRepeatedChange(rng: RNG, word = false): Grade6Problem {
+  const flavor = pick(rng, ["temperature", "descent", "loss"] as const);
+  const times = randInt(rng, 3, 9);
+  let per = 0;
+  let unit = "";
+  let story = "";
+  if (flavor === "temperature") {
+    const drop = randInt(rng, 2, 8);
+    per = -drop;
+    unit = "°F";
+    story = `The temperature drops ${drop} degrees every hour. What is the total change in temperature after ${times} hours?`;
+  } else if (flavor === "descent") {
+    const d = randInt(rng, 8, 25);
+    per = -d;
+    unit = "feet";
+    story = `A diver descends ${d} feet each minute. What is the diver's change in elevation after ${times} minutes?`;
+  } else {
+    const l = randInt(rng, 5, 30);
+    per = -l;
+    unit = "$";
+    story = `A snack stand loses $${l} on each slow day. What is the stand's total change in money after ${times} slow days?`;
+  }
+  const ans = per * times;
+  const given = { wordKind: "repeated", per, times, unit, word: word ? 1 : 0 };
+  if (!word) {
+    return build(
+      "IntegerWordMultiplyDivide",
+      `Find: ${per} × ${times}.`,
+      "the result",
+      ans,
+      [
+        {
+          instruction: "Multiply. The product is negative only when the signs differ:",
+          blanks: [{ label: "result", answer: String(ans) }],
+        },
+      ],
+      given
+    );
+  }
+  return build(
+    "IntegerWordMultiplyDivide",
+    story,
+    "the total change",
+    unitAnswer(unit, ans),
+    [
+      {
+        instruction: `Multiply the change each time by the number of times: ${per} × ${times}.`,
+        blanks: [{ label: "expression", answer: `${per} × ${times}` }],
+      },
+      { instruction: "Compute:", blanks: [{ label: "answer", answer: unitAnswer(unit, ans) }] },
+    ],
+    given
+  );
+}
+
+function makeWordEqualShares(rng: RNG, word = false): Grade6Problem {
+  const n = pick(rng, [2, 3, 4, 5, 6]);
+  const share = -randInt(rng, 4, 25);
+  const total = share * n;
+  const flavor = pick(rng, ["debt", "dives"] as const);
+  const unit = flavor === "debt" ? "$" : "feet";
+  const story =
+    flavor === "debt"
+      ? `${n} friends share a debt of $${-total} equally. How much of the debt does each friend owe?`
+      : `Over ${n} dives, a submarine's elevation changed by ${total} feet in all, the same amount on each dive. What was the change in elevation per dive?`;
+  const given = { wordKind: "shares", total, n, unit, word: word ? 1 : 0 };
+  if (!word) {
+    return build(
+      "IntegerWordMultiplyDivide",
+      `Find: ${total} ÷ ${n}.`,
+      "the result",
+      share,
+      [
+        {
+          instruction: "Divide. The quotient is negative only when the signs differ:",
+          blanks: [{ label: "result", answer: String(share) }],
+        },
+      ],
+      given
+    );
+  }
+  return build(
+    "IntegerWordMultiplyDivide",
+    story,
+    flavor === "debt" ? "each friend's share of the debt" : "the change per dive",
+    unitAnswer(unit, share),
+    [
+      {
+        instruction: `Divide the total by the number of shares: ${total} ÷ ${n}.`,
+        blanks: [{ label: "expression", answer: `${total} ÷ ${n}` }],
+      },
+      { instruction: "Compute:", blanks: [{ label: "answer", answer: unitAnswer(unit, share) }] },
+    ],
+    given
   );
 }
 
@@ -2739,11 +2905,15 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "FDPConversions", make: makePercentToFraction },
   { tier: 2, subtype: "FDPConversions", make: makeFractionToPercent },
   // T2 · Integers & Rational Numbers
-  { tier: 1, subtype: "IntegerOperations", make: makeCompareIntegers },
-  { tier: 1, subtype: "IntegerOperations", make: makeOrderIntegers },
-  { tier: 2, subtype: "IntegerOperations", make: makeAddSubtractIntegers },
-  { tier: 2, subtype: "IntegerOperations", make: makeMulDivIntegers },
-  { tier: 3, subtype: "IntegerOperations", make: makeIntegerWord },
+  { tier: 1, subtype: "ComparingOrderingIntegers", make: makeCompareIntegers },
+  { tier: 1, subtype: "ComparingOrderingIntegers", make: makeOrderIntegers },
+  { tier: 2, subtype: "AddingSubtractingIntegers", make: makeAddSubtractIntegers },
+  { tier: 2, subtype: "MultiplyingDividingIntegers", make: makeMulDivIntegers },
+  { tier: 1, subtype: "IntegerWordAddSubtract", make: makeWordTemperature },
+  { tier: 1, subtype: "IntegerWordAddSubtract", make: makeWordElevation },
+  { tier: 2, subtype: "IntegerWordAddSubtract", make: makeWordMoney },
+  { tier: 2, subtype: "IntegerWordMultiplyDivide", make: makeWordRepeatedChange },
+  { tier: 2, subtype: "IntegerWordMultiplyDivide", make: makeWordEqualShares },
   // T3 · Expressions, Equations & Relationships
   { tier: 1, subtype: "VariablesAndExpressions", make: makeEvaluate },
   { tier: 2, subtype: "VariablesAndExpressions", make: makeEvaluateTwoVar },
@@ -2829,7 +2999,11 @@ export const GRADE6_SUBTYPES: Grade6Subtype[] = [
   "MultiplyingDividingFractions",
   "DecimalFluency",
   "FDPConversions",
-  "IntegerOperations",
+  "ComparingOrderingIntegers",
+  "AddingSubtractingIntegers",
+  "MultiplyingDividingIntegers",
+  "IntegerWordAddSubtract",
+  "IntegerWordMultiplyDivide",
   "VariablesAndExpressions",
   "EquivalentExpressions",
   "EquationsAndInequalities",

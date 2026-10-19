@@ -95,7 +95,7 @@ const LESSONS: LessonDef[] = [
     title: "2-1: Integer Operations",
     story: "Compare, order, and compute with positive and negative integers.",
     teks: "TEKS 6.2C · 6.2D · 6.3D", description: "Compare/order on a number line; +/−/×/÷ integers; integer word problems.",
-    grade: 6, subtypes: ["IntegerOperations"],
+    grade: 6, subtypes: ["ComparingOrderingIntegers", "AddingSubtractingIntegers", "MultiplyingDividingIntegers", "IntegerWordAddSubtract", "IntegerWordMultiplyDivide"], wordProblems: true,
   },
   // ── Grade 6 · T3 Expressions, Equations & Relationships ────────────────────
   {
@@ -670,6 +670,12 @@ export const MIDDLE_SCHOOL_ENTRIES: CurriculumEntry[] = LESSONS.map((def) => ({
   generate: (mode: OutputMode, seed: number, options?: GenerateOptions) =>
     generateFor(def, mode, seed, options),
 }));
+
+/** The factory subtypes a lesson draws from (inspection/test helper). */
+export function getMiddleSchoolSubtypes(id: string): string[] | undefined {
+  const def = LESSONS.find((d) => d.id === id);
+  return def ? [...def.subtypes] : undefined;
+}
 
 /** Look up a middle-school entry by id. */
 export function getMiddleSchoolEntry(id: string): CurriculumEntry | undefined {

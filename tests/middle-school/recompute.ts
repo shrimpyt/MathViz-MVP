@@ -129,31 +129,42 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       // makeFractionToPercent vs makeFracToDecimal: distinguished by the prompt
       return p.prompt.includes("as a percent") ? `${Math.round(val * 100)}%` : ifmt(val);
     }
-    case "IntegerOperations": {
-      if (g.wordKind !== undefined) {
-        const wk = istr(g, "wordKind");
-        if (wk === "temperature") return `${inum(g, "start") - inum(g, "drop")}°F`;
-        if (wk === "elevation") return `${inum(g, "start") - inum(g, "down")} feet`;
-        if (wk === "money") return `$${inum(g, "paid") - inum(g, "owed")}`;
-        throw new Error(`unhandled integer wordKind=${wk}`);
-      }
+    case "ComparingOrderingIntegers": {
       if (g.values !== undefined) {
         const vals = istr(g, "values").split(",").map(Number);
         return [...vals].sort((x, y) => x - y).join(", ");
       }
-      if (g.op === undefined) {
-        const a = inum(g, "a");
-        const b = inum(g, "b");
-        return a < b ? "<" : ">";
-      }
-      const op = istr(g, "op");
-      if (op === "div") return inum(g, "product") / inum(g, "b");
       const a = inum(g, "a");
       const b = inum(g, "b");
-      if (op === "add") return a + b;
-      if (op === "sub") return a - b;
-      if (op === "mul") return a * b;
-      throw new Error(`unhandled IntegerOperations op=${op}`);
+      return a < b ? "<" : ">";
+    }
+    case "AddingSubtractingIntegers": {
+      const a = inum(g, "a");
+      const b = inum(g, "b");
+      return istr(g, "op") === "add" ? a + b : a - b;
+    }
+    case "MultiplyingDividingIntegers": {
+      if (istr(g, "op") === "div") return inum(g, "product") / inum(g, "b");
+      return inum(g, "a") * inum(g, "b");
+    }
+    case "IntegerWordAddSubtract": {
+      const ans = inum(g, "start") + inum(g, "change");
+      if (inum(g, "word") !== 1) return ans;
+      const wk = istr(g, "wordKind");
+      if (wk === "temperature") return `${ans}°F`;
+      if (wk === "elevation") return `${ans} feet`;
+      if (wk === "money") return `$${ans}`;
+      throw new Error(`unhandled integer wordKind=${wk}`);
+    }
+    case "IntegerWordMultiplyDivide": {
+      const unit = istr(g, "unit");
+      const fmtU = (v: number) => (unit === "$" ? `$${v}` : unit === "°F" ? `${v}°F` : `${v} feet`);
+      if (istr(g, "wordKind") === "repeated") {
+        const ans = inum(g, "per") * inum(g, "times");
+        return inum(g, "word") === 1 ? fmtU(ans) : ans;
+      }
+      const ans = inum(g, "total") / inum(g, "n");
+      return inum(g, "word") === 1 ? fmtU(ans) : ans;
     }
     case "VariablesAndExpressions": {
       if (istr(g, "kind") === "power") {
