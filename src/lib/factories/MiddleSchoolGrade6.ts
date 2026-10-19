@@ -2907,13 +2907,13 @@ const MAKERS: MakerEntry[] = [
   // T2 · Integers & Rational Numbers
   { tier: 1, subtype: "ComparingOrderingIntegers", make: makeCompareIntegers },
   { tier: 1, subtype: "ComparingOrderingIntegers", make: makeOrderIntegers },
-  { tier: 2, subtype: "AddingSubtractingIntegers", make: makeAddSubtractIntegers },
-  { tier: 2, subtype: "MultiplyingDividingIntegers", make: makeMulDivIntegers },
+  { tier: 1, subtype: "AddingSubtractingIntegers", make: makeAddSubtractIntegers },
+  { tier: 1, subtype: "MultiplyingDividingIntegers", make: makeMulDivIntegers },
   { tier: 1, subtype: "IntegerWordAddSubtract", make: makeWordTemperature },
   { tier: 1, subtype: "IntegerWordAddSubtract", make: makeWordElevation },
   { tier: 2, subtype: "IntegerWordAddSubtract", make: makeWordMoney },
-  { tier: 2, subtype: "IntegerWordMultiplyDivide", make: makeWordRepeatedChange },
-  { tier: 2, subtype: "IntegerWordMultiplyDivide", make: makeWordEqualShares },
+  { tier: 1, subtype: "IntegerWordMultiplyDivide", make: makeWordRepeatedChange },
+  { tier: 1, subtype: "IntegerWordMultiplyDivide", make: makeWordEqualShares },
   // T3 · Expressions, Equations & Relationships
   { tier: 1, subtype: "VariablesAndExpressions", make: makeEvaluate },
   { tier: 2, subtype: "VariablesAndExpressions", make: makeEvaluateTwoVar },

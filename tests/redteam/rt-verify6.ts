@@ -21,7 +21,7 @@ function gen(id: string, seed: number): any[] {
 const numAns = (a: unknown): number => Number(String(a).replace(/[^0-9.\-]/g, ""));
 
 // ── DecimalFluency / IntegerOperations: "Find: 5.32 * 9.8." ────────────────
-for (const [id, tag] of [["ms6-1-2-decimal-fluency", "DEC"], ["ms6-2-1-integer-operations", "INT"]] as const) {
+for (const [id, tag] of [["ms6-1-2-decimal-fluency", "DEC"], ["ms6-2-2-adding-subtracting-integers", "INT"]] as const) {
   for (let s = 0; s < 40; s++) for (const p of gen(id, s * 7 + 1)) {
     bump();
     const nc = N(p.prompt);

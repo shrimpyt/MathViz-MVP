@@ -60,7 +60,7 @@ export async function run(): Promise<void> {
 
   // Sample 2: diagram-heavy lessons at fixed seeds.
   const diagramEntries = [
-    "ms6-2-1-integer-operations",
+    "ms6-2-2-adding-subtracting-integers",
     "ms6-6-2-measures-center-variation",
     "ms7-3-3-triangle-angle-sum",
     "ms7-5-4-compound-events",

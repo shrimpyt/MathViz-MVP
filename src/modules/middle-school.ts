@@ -91,11 +91,39 @@ const LESSONS: LessonDef[] = [
   },
   // ── Grade 6 · T2 Integers & Rational Numbers ───────────────────────────────
   {
-    id: "ms6-2-1-integer-operations", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
-    title: "2-1: Integer Operations",
-    story: "Compare, order, and compute with positive and negative integers.",
-    teks: "TEKS 6.2C · 6.2D · 6.3D", description: "Compare/order on a number line; +/−/×/÷ integers; integer word problems.",
-    grade: 6, subtypes: ["ComparingOrderingIntegers", "AddingSubtractingIntegers", "MultiplyingDividingIntegers", "IntegerWordAddSubtract", "IntegerWordMultiplyDivide"], wordProblems: true,
+    id: "ms6-2-1-comparing-ordering-integers", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
+    title: "2-1: Comparing & Ordering Integers",
+    story: "Which is greater, and how do they line up on the number line?",
+    teks: "TEKS 6.2C · 6.2D", description: "Compare integers with < and >; order integers from least to greatest on a number line.",
+    grade: 6, subtypes: ["ComparingOrderingIntegers"],
+  },
+  {
+    id: "ms6-2-2-adding-subtracting-integers", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
+    title: "2-2: Adding & Subtracting Integers",
+    story: "Add and subtract positive and negative integers.",
+    teks: "TEKS 6.3D", description: "Integer addition and subtraction, including subtracting a negative.",
+    grade: 6, subtypes: ["AddingSubtractingIntegers"],
+  },
+  {
+    id: "ms6-2-3-multiplying-dividing-integers", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
+    title: "2-3: Multiplying & Dividing Integers",
+    story: "Sign rules for multiplying and dividing integers.",
+    teks: "TEKS 6.3D", description: "Integer multiplication and division with the sign rules.",
+    grade: 6, subtypes: ["MultiplyingDividingIntegers"],
+  },
+  {
+    id: "ms6-2-4-integer-word-add-subtract", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
+    title: "2-4: Word Problems: Adding & Subtracting Integers",
+    story: "Temperature, elevation, and money situations with signed changes.",
+    teks: "TEKS 6.3D", description: "Story problems: temperature changes, hiker elevation, bank deposits and withdrawals.",
+    grade: 6, subtypes: ["IntegerWordAddSubtract"], wordProblems: true,
+  },
+  {
+    id: "ms6-2-5-integer-word-multiply-divide", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
+    title: "2-5: Word Problems: Multiplying & Dividing Integers",
+    story: "Repeated changes and equal shares with integers.",
+    teks: "TEKS 6.3D", description: "Story problems: repeated temperature drops, a diver's descent, daily losses, sharing a debt, equal change per dive.",
+    grade: 6, subtypes: ["IntegerWordMultiplyDivide"], wordProblems: true,
   },
   // ── Grade 6 · T3 Expressions, Equations & Relationships ────────────────────
   {
@@ -655,7 +683,7 @@ const LESSONS: LessonDef[] = [
 ];
 
 /**
- * The 81 middle-school registry entries (24 grade 6 + 57 Pre-Algebra).
+ * The 85 middle-school registry entries (28 grade 6 + 57 Pre-Algebra).
  * The coordinator spreads these into CURRICULUM_REGISTRY.
  */
 export const MIDDLE_SCHOOL_ENTRIES: CurriculumEntry[] = LESSONS.map((def) => ({
