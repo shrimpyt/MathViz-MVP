@@ -290,7 +290,9 @@ function createStyles(presentation: Presentation) {
   problemNumber: {
     ...fam('WorksheetSerifBold'),
     fontSize: fs(12),
-    width: 22,
+    // 30pt gutter: a two-digit number ("10.") measures ~21pt at this size,
+    // so the old 22pt box left it nearly touching the problem text.
+    width: 30,
     color: '#111111',
   },
   problemContent: {
@@ -1407,9 +1409,17 @@ export function PdfVersionPages({
                 {sec.items.map(({ item, n }) => {
                   const el = renderProblem(item, n);
                   // Fewer-per-page accommodation: force a page break every K
-                  // problems. (Classical-notes entry sections keep natural flow.)
+                  // problems. The cap only binds when an accommodation
+                  // actually lowered it below the default; the standard
+                  // worksheet flows naturally and fills each page.
+                  // (Classical-notes entry sections keep natural flow.)
+                  const capActive =
+                    presentation.maxProblemsPerPage <
+                    DEFAULT_PRESENTATION.maxProblemsPerPage;
                   const needsBreak =
-                    n > 1 && (n - 1) % presentation.maxProblemsPerPage === 0;
+                    capActive &&
+                    n > 1 &&
+                    (n - 1) % presentation.maxProblemsPerPage === 0;
                   return needsBreak ? React.cloneElement(el, { break: true }) : el;
                 })}
               </View>
