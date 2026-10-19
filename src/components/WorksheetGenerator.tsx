@@ -613,7 +613,6 @@ export default function WorksheetGenerator() {
               docType={docType}
               standard={standards}
               includeAnswerKey={includeAnswerKey}
-              logoSrc="/logo_light.png"
               classicalGroups={classicalGroups}
               seed={seed}
               presentation={v.presentation}
@@ -2077,7 +2076,6 @@ function StepReview({
                   docType={docType}
                   standard={standards}
                   includeAnswerKey={isPro ? includeAnswerKey : false}
-                  logoSrc="/logo_light.png"
                   classicalGroups={classicalGroups}
                   seed={seed}
                   watermark={!isPro}

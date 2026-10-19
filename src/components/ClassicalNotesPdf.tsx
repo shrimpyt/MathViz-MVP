@@ -365,7 +365,7 @@ function PdfClassicalStep({
   styles: ClassicalStyles;
 }) {
   return (
-    <View style={styles.stepRow}>
+    <View style={styles.stepRow} wrap={false}>
       <View style={styles.stepMain}>
         <Text style={styles.stepText}>
           <Text style={styles.stepNum}>Step {stepIndex + 1}. </Text>
@@ -458,11 +458,11 @@ export function ClassicalNotesPdfSection({
 
       {/* 1. DEFINITIONS block */}
       {definitions && definitions.length > 0 && (
-        <View style={styles.definitionsBox} wrap={false}>
+        <View style={styles.definitionsBox}>
           <Text style={styles.blockTitle}>Definitions</Text>
           <Text style={styles.blockSub}>Copy each definition exactly as written.</Text>
           {definitions.map((d, i) => (
-            <View key={i}>
+            <View key={i} wrap={false}>
               <Text style={styles.definitionText}>
                 <Text style={styles.definitionNum}>{i + 1}. </Text>
                 {pdfSafeText(d)}
@@ -481,8 +481,8 @@ export function ClassicalNotesPdfSection({
         const stepPrompts = promptsFor(steps.length);
         const diagram = classicalDiagram(p);
         return (
-          <View key={pi} style={styles.problemBlock} wrap={false}>
-            <View style={styles.problemHead}>
+          <View key={pi} style={styles.problemBlock}>
+            <View style={styles.problemHead} wrap={false}>
               <Text style={styles.problemNumber}>{startIndex + pi + 1}.</Text>
               <Text style={styles.questionText}>{pdfSafeText(q.text)}</Text>
             </View>
@@ -495,12 +495,12 @@ export function ClassicalNotesPdfSection({
                 styles={styles}
               />
             ))}
-            <View style={styles.answerLine}>
+            <View style={styles.answerLine} wrap={false}>
               <Text style={styles.answerLabel}>Answer:</Text>
               <Text style={styles.answerText}>{pdfSafeText(formatAnswer(p))}</Text>
             </View>
             {diagram && (
-              <View style={styles.diagramBox}>
+              <View style={styles.diagramBox} wrap={false}>
                 {diagram.kind.startsWith('Proof') ? (
                   <PdfProofSVG params={diagram as unknown as ProofSVGParams} />
                 ) : (

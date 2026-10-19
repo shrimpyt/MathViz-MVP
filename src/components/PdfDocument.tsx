@@ -684,8 +684,6 @@ export interface PdfDocumentProps {
   standard?: string;
   /** Append an answer-key page. Defaults to true. */
   includeAnswerKey?: boolean;
-  /** Optional logo image src for the header (e.g. "/logo_light.png"). */
-  logoSrc?: string;
   /** Per-entry problem groups for Classical Notes mode (built by WorksheetGenerator). */
   classicalGroups?: ClassicalGroup[];
   /** Worksheet seed, drives deterministic margin-prompt rotation in Classical mode. */
@@ -722,7 +720,6 @@ export function PdfVersionPages({
   docType = 'worksheet',
   standard = 'Texas TEKS Geometry',
   includeAnswerKey = true,
-  logoSrc,
   classicalGroups,
   seed = 1,
   presentation = DEFAULT_PRESENTATION,
@@ -1287,13 +1284,7 @@ export function PdfVersionPages({
     <View style={styles.headerWrapper}>
       <View style={styles.headerTopRule}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-          {logoSrc ? (
-            // eslint-disable-next-line jsx-a11y/alt-text
-            <Image
-              src={logoSrc}
-              style={{ width: 30, height: 30, marginRight: 10 }}
-            />
-          ) : null}
+          
           <Text style={styles.title}>{pdfSafeText(heading)}</Text>
         </View>
         <Text style={styles.modeLabel}>{sub}</Text>
