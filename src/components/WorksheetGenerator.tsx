@@ -71,6 +71,7 @@ export function toOutputMode(docType: DocumentType): OutputMode {
   if (docType === 'proof-two-column') return 'Review';
   if (docType === 'proof-fill-reasons') return 'Test';
   if (docType === 'proof-elements') return 'Test';
+  if (docType === 'proof-blank') return 'Test';
   if (docType === 'sat-practice') return 'Test';
   return 'Review'; // 'worksheet' → Review style (no step hints)
 }
@@ -82,6 +83,7 @@ function modeWord(docType: DocumentType): string {
   if (docType === 'classical-notes') return 'Classical Notes';
   if (docType === 'proof-two-column') return 'Two-Column Proofs';
   if (docType === 'proof-fill-reasons') return 'Proof Practice';
+  if (docType === 'proof-blank') return 'Proof Workspace';
   if (docType === 'proof-elements') return "Elements";
   if (docType === 'sat-practice') return 'SAT Practice';
   return 'Practice';
@@ -100,9 +102,8 @@ const DOC_MODES: {
   { value: 'test', label: 'Test', emoji: '✅', blurb: 'Formal assessment, no hints' },
   { value: 'worksheet', label: 'Worksheet', emoji: '📄', blurb: 'Everyday practice set' },
   { value: 'classical-notes', label: 'Classical Notes', emoji: '🏛️', blurb: 'Definitions printed, reasoning yours' },
-  { value: 'proof-two-column', label: 'Two-Column Proofs', emoji: '⚖️', blurb: 'Full proofs, statement + reason' },
-  { value: 'proof-fill-reasons', label: 'Fill Reasons', emoji: '✏️', blurb: 'Statements given, reasons blanked' },
-  { value: 'proof-elements', label: 'Elements', emoji: '📜', blurb: "Euclid's Elements, enunciation to Q.E.D." },
+  { value: 'proof-fill-reasons', label: 'Proofs: Fill in the Blanks', emoji: '✏️', blurb: 'Proof table printed, blanks left for students to complete' },
+  { value: 'proof-blank', label: 'Proofs: Blank Workspace', emoji: '⬜', blurb: 'Just Given and Prove, one big open space to write the whole proof' },
   { value: 'sat-practice', label: 'SAT Practice', emoji: '⏱️', blurb: 'Timed SAT-style module' },
 ];
 
@@ -508,7 +509,8 @@ export default function WorksheetGenerator() {
     () =>
       docType === 'proof-two-column' ||
       docType === 'proof-fill-reasons' ||
-      docType === 'proof-elements'
+      docType === 'proof-elements' ||
+      docType === 'proof-blank'
         ? docType
         : undefined,
     [docType]
@@ -1980,7 +1982,7 @@ function StepReview({
   fileRef: React.RefObject<HTMLInputElement | null>;
   mounted: boolean;
   draftError: string | null;
-  proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | undefined;
+  proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | 'proof-blank' | undefined;
   selectedModules: CurriculumEntry[];
   errorBoundaryKey: string;
   isPro: boolean;

@@ -73,7 +73,7 @@ interface EuclidEngineProps {
   /** Worksheet seed, drives deterministic margin-prompt rotation in Classical mode. */
   seed?: number;
   /** Proof document flavor: controls two-column vs Elements presentation. */
-  proofDocMode?: "proof-two-column" | "proof-fill-reasons" | "proof-elements";
+  proofDocMode?: "proof-two-column" | "proof-fill-reasons" | "proof-elements" | "proof-blank";
   /** Standards line for the footer (defaults to the geometry list). */
   standard?: string;
   /** Presentation overrides from the IEP accommodation generator. The web
@@ -407,11 +407,13 @@ export function EuclidEngine({
                 mode={mode}
                 revealed={revealed}
                 presentation={
-                  proofDocMode === "proof-elements"
-                    ? p.elementsProposition
-                      ? "elements"
+                  proofDocMode === "proof-blank"
+                    ? "blank"
+                    : proofDocMode === "proof-elements"
+                      ? p.elementsProposition
+                        ? "elements"
+                        : "two-column"
                       : "two-column"
-                    : "two-column"
                 }
               />
             ))}

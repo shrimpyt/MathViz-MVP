@@ -25,7 +25,7 @@ export interface ProofStep {
   blankReason?: boolean;
 }
 
-export type ProofPresentation = "two-column" | "elements";
+export type ProofPresentation = "two-column" | "elements" | "blank";
 
 export interface BaseProofProblem {
   type: "Proof";

@@ -7,6 +7,7 @@ export type DocumentType =
   | 'proof-two-column'   // full two-column proofs (answers per answer-key toggle)
   | 'proof-fill-reasons' // statements given, reasons blanked for the student
   | 'proof-elements'     // classical Elements exposition (enunciation → Q.E.D.)
+  | 'proof-blank'        // Given/Prove + diagram + open workspace, no table
   | 'sat-practice';      // timed SAT-style practice module
 
 export interface ScaffoldingStep {

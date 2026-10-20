@@ -174,6 +174,8 @@ export function ProofProblemCard({
           </div>
           {style === "elements" ? (
             <ElementsExposition problem={problem} mode={mode} revealed={revealed} />
+          ) : style === "blank" ? (
+            <div className="border-2 border-slate-400 min-h-[280px] w-full" aria-label="Proof workspace" />
           ) : (
             <TwoColumnTable problem={problem} mode={mode} revealed={revealed} />
           )}

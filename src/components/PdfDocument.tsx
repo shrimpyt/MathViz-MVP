@@ -424,6 +424,7 @@ function createStyles(presentation: Presentation) {
   },
 
   // ── Proof tables ──
+  proofWorkspace: { borderWidth: 1.2, borderColor: '#8a8a8a', minHeight: 300, marginTop: 6 },
   proofTable: {
     marginTop: sp(6),
     borderWidth: 1,
@@ -743,6 +744,8 @@ export function PdfVersionPages({
       ? 'Proof Practice'
       : docType === 'proof-elements'
       ? "Euclid's Elements"
+      : docType === 'proof-blank'
+      ? 'Proof Workspace'
       : docType === 'sat-practice'
       ? 'SAT Practice'
       : 'Practice Worksheet';
@@ -1004,6 +1007,31 @@ export function PdfVersionPages({
       elementsEnunciation?: string;
       svgParams?: { kind: string };
     };
+    // Blank Workspace format: Given/Prove + diagram, then one big open
+    // space spanning the full width. No table, no steps shown.
+    if (docType === 'proof-blank') {
+      return (
+        <View key={n} style={styles.problemRow} wrap={false}>
+          <Text style={styles.problemNumber}>{n}.</Text>
+          <View style={styles.problemContent}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.questionText}>
+                  <Text style={styles.answerLabel}>Prove: </Text>
+                  {pdfSafeText(p.prove)}
+                </Text>
+                <Text style={styles.givenText}>
+                  <Text style={styles.answerLabel}>Given: </Text>
+                  {p.given.map((g) => pdfSafeText(g)).join('; ')}
+                </Text>
+              </View>
+              {renderScaledDiagram(item)}
+            </View>
+            <View style={styles.proofWorkspace} />
+          </View>
+        </View>
+      );
+    }
     // Mirrors EuclidEngine: proof-elements mode shows the Elements
     // exposition for Elements problems; every other mode is two-column.
     const useElements = docType === 'proof-elements' && !!p.elementsProposition;
