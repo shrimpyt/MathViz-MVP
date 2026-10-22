@@ -115,6 +115,7 @@ function TwoTrianglesSVG({
   rightAngleAt,
   centerSymbol,
   bisectors,
+  midpoints,
   labels1 = ["A", "B", "C"],
   labels2 = ["D", "E", "F"],
 }: {
@@ -123,6 +124,7 @@ function TwoTrianglesSVG({
   rightAngleAt: number;
   centerSymbol: string;
   bisectors?: [boolean, boolean, boolean];
+  midpoints?: number[];
   labels1?: [string, string, string];
   labels2?: [string, string, string];
 }) {
@@ -194,6 +196,29 @@ function TwoTrianglesSVG({
           <RightAngleMark v={verts2[rightAngleAt]} p1={neighbors2[rightAngleAt][0]} p2={neighbors2[rightAngleAt][1]} />
         </>
       )}
+      {midpoints && midpoints.length > 0 && midpoints.map((si) => {
+        const renderMid = (verts: Pt[], sides: [Pt, Pt][], label: string) => {
+          const [p1, p2] = sides[si];
+          const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+          const c = { x: (verts[0].x + verts[1].x + verts[2].x) / 3, y: (verts[0].y + verts[1].y + verts[2].y) / 3 };
+          const dx = mid.x - c.x, dy = mid.y - c.y;
+          const len = Math.hypot(dx, dy) || 1;
+          return (
+            <React.Fragment key={label}>
+              <circle cx={mid.x} cy={mid.y} r={1.8} fill="#111111" />
+              <text x={mid.x + (dx / len) * 10} y={mid.y + (dy / len) * 10 + 3} fontSize={9} fontFamily="Georgia, serif" textAnchor="middle" fill="#111111">
+                {label}
+              </text>
+            </React.Fragment>
+          );
+        };
+        return (
+          <React.Fragment key={si}>
+            {renderMid(verts1, sides1, "T")}
+            {renderMid(verts2, sides2, "S")}
+          </React.Fragment>
+        );
+      })}
       {verts1.map((v, i) => (
         <VertexLabel key={i} pt={v} text={labels1[i]} dx={off1[i].x} dy={off1[i].y} />
       ))}
@@ -215,6 +240,7 @@ export function ProofCongruenceSVG(p: ProofCongruenceSVGParams) {
       rightAngleAt={p.rightAngleAt}
       centerSymbol="≅"
       bisectors={p.bisectors}
+      midpoints={p.midpoints}
     />
   );
 }
@@ -224,7 +250,7 @@ export function ProofSimilaritySVG(p: ProofSimilaritySVGParams) {
     <TwoTrianglesSVG
       sideMarks={[0, 0, 0]}
       angleMarks={p.angleMarks}
-      rightAngleAt={-1}
+      rightAngleAt={p.rightAngleAt ?? -1}
       centerSymbol="~"
       bisectors={p.bisectors}
     />
@@ -285,7 +311,7 @@ const ANGLE_SLOTS: Record<number, { v: Pt; a1: number; a2: number }> = (() => {
   };
 })();
 
-function SlotArc({ n, marked }: { n: number; marked: boolean }) {
+function SlotArc({ n, marked, givenAngle }: { n: number; marked: boolean; givenAngle?: number }) {
   const { v, a1, a2 } = ANGLE_SLOTS[n];
   const r = marked ? 16 : 12;
   const rad = (d: number) => (d * Math.PI) / 180;
@@ -306,11 +332,11 @@ function SlotArc({ n, marked }: { n: number; marked: boolean }) {
       />
       <text
         x={lx} y={ly + 3}
-        fontSize={marked ? 10 : 8.5} fontFamily="Georgia, serif" textAnchor="middle"
-        fill={marked ? "#111111" : "#64748b"}
-        fontWeight={marked ? "bold" : "normal"}
+        fontSize={givenAngle !== undefined ? 9.5 : marked ? 10 : 8.5} fontFamily="Georgia, serif" textAnchor="middle"
+        fill={marked || givenAngle !== undefined ? "#111111" : "#64748b"}
+        fontWeight={marked || givenAngle !== undefined ? "bold" : "normal"}
       >
-        {n}
+        {givenAngle !== undefined ? `${givenAngle}°` : n}
       </text>
     </>
   );
@@ -349,17 +375,8 @@ export function ProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
       <text x={x0 - 8} y={mY - 4} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">m</text>
       <text x={tBot.x + 6} y={tBot.y - 2} fontSize={10} fontFamily="Georgia, serif" fontStyle="italic" fill="#111111">t</text>
       {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-        <SlotArc key={n} n={n} marked={n === m1 || n === m2} />
+        <SlotArc key={n} n={n} marked={n === m1 || n === m2} givenAngle={n === p.givenAngleIndex ? p.givenAngle : undefined} />
       ))}
-      {p.givenAngle !== undefined && p.givenAngleIndex !== undefined && (
-        <text
-          x={ANGLE_SLOTS[p.givenAngleIndex].v.x - 26}
-          y={ANGLE_SLOTS[p.givenAngleIndex].v.y - 16}
-          fontSize={9} fontFamily="Georgia, serif" fill="#111111" fontWeight="bold"
-        >
-          {p.givenAngle}°
-        </text>
-      )}
     </svg>
   );
 }

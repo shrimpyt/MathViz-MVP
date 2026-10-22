@@ -113,7 +113,10 @@ export function makeSimilarityProof(
     steps: applyStudentMode(steps, studentMode),
     svgParams: {
       kind: "ProofSimilarity",
-      angleMarks: [true, true, false],
+      // Tier 2's second pair is the right angles at B/E: drawn as squares
+      // (rightAngleAt), not plain arcs.
+      angleMarks: difficulty === 2 ? [true, false, false] : [true, true, false],
+      rightAngleAt: difficulty === 2 ? 1 : undefined,
       // Tier 3 derives angle B from bisectors (ray BQ / ray ER givens).
       bisectors: difficulty >= 3 ? [false, true, false] : undefined,
     },

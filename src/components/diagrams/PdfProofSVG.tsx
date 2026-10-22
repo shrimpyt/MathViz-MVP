@@ -132,12 +132,13 @@ const T1: [Pt, Pt, Pt] = [{ x: 50, y: 38 }, { x: 18, y: 148 }, { x: 88, y: 148 }
 const T2: [Pt, Pt, Pt] = [{ x: 150, y: 38 }, { x: 182, y: 148 }, { x: 112, y: 148 }];
 
 function PdfTwoTrianglesSVG({
-  sideMarks, angleMarks, rightAngleAt, centerSymbol, bisectors,
+  sideMarks, angleMarks, rightAngleAt, centerSymbol, bisectors, midpoints,
   labels1 = ["A", "B", "C"], labels2 = ["D", "E", "F"],
 }: {
   sideMarks: [number, number, number];
   angleMarks: [boolean, boolean, boolean];
   bisectors?: [boolean, boolean, boolean];
+  midpoints?: number[];
   rightAngleAt: number;
   centerSymbol: string;
   labels1?: [string, string, string];
@@ -212,6 +213,29 @@ function PdfTwoTrianglesSVG({
           <PdfRightAngleMark v={verts2[rightAngleAt]} p1={neighbors2[rightAngleAt][0]} p2={neighbors2[rightAngleAt][1]} />
         </>
       )}
+      {midpoints && midpoints.length > 0 && midpoints.map((si) => {
+        const renderMid = (verts: Pt[], sides: [Pt, Pt][], label: string) => {
+          const [p1, p2] = sides[si];
+          const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+          const c = { x: (verts[0].x + verts[1].x + verts[2].x) / 3, y: (verts[0].y + verts[1].y + verts[2].y) / 3 };
+          const dx = mid.x - c.x, dy = mid.y - c.y;
+          const len = Math.hypot(dx, dy) || 1;
+          return (
+            <React.Fragment key={label}>
+              <Circle cx={mid.x} cy={mid.y} r={1.8} fill={INK} />
+              <Text x={mid.x + (dx / len) * 10 - 3} y={mid.y + (dy / len) * 10 + 3} style={{ fontSize: 9, fontFamily: FONT, color: "#111111" }}>
+                {label}
+              </Text>
+            </React.Fragment>
+          );
+        };
+        return (
+          <React.Fragment key={si}>
+            {renderMid(verts1, sides1, "T")}
+            {renderMid(verts2, sides2, "S")}
+          </React.Fragment>
+        );
+      })}
       {verts1.map((v, i) => (
         <PdfLabel key={i} pt={v} text={labels1[i]} dx={off1[i].x} dy={off1[i].y} />
       ))}
@@ -229,7 +253,7 @@ export function PdfProofCongruenceSVG(p: ProofCongruenceSVGParams) {
   return (
     <PdfTwoTrianglesSVG
       sideMarks={p.sideMarks} angleMarks={p.angleMarks}
-      rightAngleAt={p.rightAngleAt} centerSymbol="≅" bisectors={p.bisectors}
+      rightAngleAt={p.rightAngleAt} centerSymbol="≅" bisectors={p.bisectors} midpoints={p.midpoints}
     />
   );
 }
@@ -238,7 +262,7 @@ export function PdfProofSimilaritySVG(p: ProofSimilaritySVGParams) {
   return (
     <PdfTwoTrianglesSVG
       sideMarks={[0, 0, 0]} angleMarks={p.angleMarks}
-      rightAngleAt={-1} centerSymbol="~" bisectors={p.bisectors}
+      rightAngleAt={p.rightAngleAt ?? -1} centerSymbol="~" bisectors={p.bisectors}
     />
   );
 }
@@ -289,7 +313,7 @@ const ANGLE_SLOTS: Record<number, { v: Pt; a1: number; a2: number }> = (() => {
   };
 })();
 
-function PdfSlotArc({ n, marked }: { n: number; marked: boolean }) {
+function PdfSlotArc({ n, marked, givenAngle }: { n: number; marked: boolean; givenAngle?: number }) {
   const { v, a1, a2 } = ANGLE_SLOTS[n];
   const r = marked ? 16 : 12;
   const rad = (d: number) => (d * Math.PI) / 180;
@@ -309,10 +333,10 @@ function PdfSlotArc({ n, marked }: { n: number; marked: boolean }) {
         strokeWidth={marked ? 2 : 1}
       />
       <Text
-        x={lx - 3} y={ly + 3}
-        style={{ fontSize: marked ? 10 : 8.5, fontFamily: marked ? "Times-Bold" : FONT, color: marked ? "#111111" : "#64748b" }}
+        x={givenAngle !== undefined ? lx - 10 : lx - 3} y={ly + 3}
+        style={{ fontSize: givenAngle !== undefined ? 9.5 : marked ? 10 : 8.5, fontFamily: marked || givenAngle !== undefined ? "Times-Bold" : FONT, color: marked || givenAngle !== undefined ? "#111111" : "#64748b" }}
       >
-        {String(n)}
+        {givenAngle !== undefined ? `${givenAngle}°` : String(n)}
       </Text>
     </>
   );
@@ -350,17 +374,8 @@ export function PdfProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
       <PdfLabel pt={{ x: x0, y: mY }} text="m" dx={-8} dy={-4} size={10} />
       <PdfLabel pt={tBot} text="t" dx={6} dy={-2} size={10} />
       {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-        <PdfSlotArc key={n} n={n} marked={n === m1 || n === m2} />
+        <PdfSlotArc key={n} n={n} marked={n === m1 || n === m2} givenAngle={n === p.givenAngleIndex ? p.givenAngle : undefined} />
       ))}
-      {p.givenAngle !== undefined && p.givenAngleIndex !== undefined && (
-        <Text
-          x={ANGLE_SLOTS[p.givenAngleIndex].v.x - 29}
-          y={ANGLE_SLOTS[p.givenAngleIndex].v.y - 13}
-          style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}
-        >
-          {`${p.givenAngle}°`}
-        </Text>
-      )}
     </Svg>
   );
 }

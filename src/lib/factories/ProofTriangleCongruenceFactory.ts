@@ -52,6 +52,8 @@ interface CongProof {
   rightAngles: boolean;
   /** Vertices whose angles are derived via bisectorAngle (diagram rays). */
   bisectors?: ("A" | "B" | "C")[];
+  /** Side indices (0=AB, 1=BC, 2=CA) whose midpoints the givens name. */
+  midpointSides?: number[];
 }
 
 function bisectorFlags(p: CongProof): [boolean, boolean, boolean] {
@@ -90,7 +92,7 @@ function midpointSide(
   side1: [string, string], // e.g. ["A","B"] for AB
   side2: [string, string], // e.g. ["D","E"] for DE
   m: number
-): { given: string[]; steps: ProofStep[] } {
+): { given: string[]; steps: ProofStep[]; side: number } {
   const [x1, y1] = side1;
   const [x2, y2] = side2;
   const T = "T";
@@ -101,12 +103,14 @@ function midpointSide(
   const half1b = `${T}${y1}`;
   const half2a = `${x2}${S}`;
   const half2b = `${S}${y2}`;
+  const side = ["AB", "BC", "CA"].indexOf(`${x1}${y1}`);
   return {
     given: [
       `${T} is the midpoint of ${seg1}`,
       `${S} is the midpoint of ${seg2}`,
       `${half1a} = ${half2a} = ${m}`,
     ],
+    side,
     steps: [
       givenStep(`${T} is the midpoint of ${seg1}`),
       { statement: `${half1a} ≅ ${half1b}`, reason: R.defMidpoint },
@@ -232,6 +236,7 @@ function buildSSS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
       sides: ["AB", "BC", "CA"],
       angles: [],
       rightAngles: false,
+      midpointSides: [d2.side],
     };
   }
   const d3 = midpointSide(["B", "C"], ["E", "F"], sBC / 2);
@@ -241,6 +246,7 @@ function buildSSS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
     sides: ["AB", "BC", "CA"],
     angles: [],
     rightAngles: false,
+    midpointSides: [d2.side, d3.side],
   };
 }
 
@@ -291,6 +297,7 @@ function buildSAS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
     angles: ["B"],
     rightAngles: false,
     bisectors: ["B"],
+    midpointSides: [dSide.side],
   };
 }
 
@@ -376,6 +383,7 @@ function buildAAS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
       sides: ["BC"],
       angles: ["A", "B"],
       rightAngles: false,
+      midpointSides: [dSide.side],
     };
   }
   const hB = Math.max(1, Math.round(angB / 2));
@@ -387,6 +395,7 @@ function buildAAS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
     angles: ["A", "B"],
     rightAngles: false,
     bisectors: ["B"],
+    midpointSides: [dSide.side],
   };
 }
 
@@ -446,6 +455,7 @@ function buildHL(rng: RNG, difficulty: 1 | 2 | 3): CongProof {
     sides: ["AB", "BC"],
     angles: [],
     rightAngles: true,
+    midpointSides: [dLeg.side],
   };
 }
 
@@ -544,6 +554,7 @@ export function makeCongruenceProof(
       angleMarks,
       rightAngleAt,
       bisectors: bisectorFlags(proof),
+      midpoints: proof.midpointSides,
     },
     teks: FAMILY_TEKS[family],
     studentMode,
@@ -632,6 +643,7 @@ export function makeCPCTCProof(
       angleMarks,
       rightAngleAt: baseFamily === "HL" ? 2 : proof.rightAngles && baseFamily === "SAS" ? 1 : -1,
       bisectors: bisectorFlags(proof),
+      midpoints: proof.midpointSides,
     },
     teks: "G.6(B)",
     studentMode,

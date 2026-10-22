@@ -32,6 +32,9 @@ export interface ProofCongruenceSVGParams {
    *  (R in triangle 2), drawn with equal half-angle arcs. Set when the
    *  proof's givens use angle bisectors (see bisectorAngle). */
   bisectors?: [boolean, boolean, boolean];
+  /** Sides (0=AB, 1=BC, 2=CA) whose midpoint is named in the givens
+   *  (T in triangle 1, S in triangle 2); drawn as a labeled dot. */
+  midpoints?: number[];
 }
 
 /** Isosceles-triangle proof figure: single triangle ABC with AB = AC. */
@@ -63,6 +66,9 @@ export interface ProofSimilaritySVGParams {
   angleMarks: [boolean, boolean, boolean];
   /** Same convention as ProofCongruenceSVGParams.bisectors. */
   bisectors?: [boolean, boolean, boolean];
+  /** Right-angle vertex index (0=A, 1=B, 2=C), drawn as a square in both
+   *  triangles; omit or -1 when the proof has no right-angle given. */
+  rightAngleAt?: number;
 }
 
 /** Euclid's Elements flagship propositions. */

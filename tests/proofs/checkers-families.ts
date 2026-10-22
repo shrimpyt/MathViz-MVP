@@ -519,8 +519,18 @@ export function checkSimilarityProof(ctx: Ctx, p: ProofProblem, tag: string): vo
   const params = p.svgParams;
   check(ctx, params.kind === "ProofSimilarity", `${tag}: wrong diagram kind ${params.kind}`);
   if (params.kind === "ProofSimilarity") {
-    check(ctx, JSON.stringify(params.angleMarks) === JSON.stringify([true, true, false]),
-      `${tag}: angleMarks ≠ [true,true,false]`);
+    // The right-angle variant (givens name right angles at B/E) draws
+    // squares instead of a plain arc at B: angleMarks [true,false,false]
+    // plus rightAngleAt 1. All other variants mark A and B with arcs.
+    const rightVariant = p.given.some((g) => g.includes("right angles"));
+    if (rightVariant) {
+      check(ctx, JSON.stringify(params.angleMarks) === JSON.stringify([true, false, false]),
+        `${tag}: right-angle variant angleMarks ≠ [true,false,false]`);
+      check(ctx, params.rightAngleAt === 1, `${tag}: right-angle variant rightAngleAt ≠ 1`);
+    } else {
+      check(ctx, JSON.stringify(params.angleMarks) === JSON.stringify([true, true, false]),
+        `${tag}: angleMarks ≠ [true,true,false]`);
+    }
   }
 }
 
