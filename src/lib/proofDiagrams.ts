@@ -28,6 +28,10 @@ export interface ProofCongruenceSVGParams {
   angleMarks: [boolean, boolean, boolean];
   /** Right-angle vertex index (0=A, 1=B, 2=C), -1 when none. */
   rightAngleAt: number;
+  /** Vertices (A, B, C) whose angle is bisected by a ray to point Q
+   *  (R in triangle 2), drawn with equal half-angle arcs. Set when the
+   *  proof's givens use angle bisectors (see bisectorAngle). */
+  bisectors?: [boolean, boolean, boolean];
 }
 
 /** Isosceles-triangle proof figure: single triangle ABC with AB = AC. */
@@ -57,6 +61,8 @@ export interface ProofSimilaritySVGParams {
   kind: "ProofSimilarity";
   /** Angle arcs at vertices A, B, C. */
   angleMarks: [boolean, boolean, boolean];
+  /** Same convention as ProofCongruenceSVGParams.bisectors. */
+  bisectors?: [boolean, boolean, boolean];
 }
 
 /** Euclid's Elements flagship propositions. */

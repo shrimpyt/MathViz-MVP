@@ -50,6 +50,16 @@ interface CongProof {
   /** Established angle pairs: "A" | "B" | "C". */
   angles: ("A" | "B" | "C")[];
   rightAngles: boolean;
+  /** Vertices whose angles are derived via bisectorAngle (diagram rays). */
+  bisectors?: ("A" | "B" | "C")[];
+}
+
+function bisectorFlags(p: CongProof): [boolean, boolean, boolean] {
+  return [
+    p.bisectors?.includes("A") ?? false,
+    p.bisectors?.includes("B") ?? false,
+    p.bisectors?.includes("C") ?? false,
+  ];
 }
 
 // ── Small step builders ──────────────────────────────────────────────────────
@@ -280,6 +290,7 @@ function buildSAS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
     sides: ["AB", "BC"],
     angles: ["B"],
     rightAngles: false,
+    bisectors: ["B"],
   };
 }
 
@@ -317,6 +328,7 @@ function buildASA(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
       sides: ["AB"],
       angles: ["A", "B"],
       rightAngles: false,
+      bisectors: ["B"],
     };
   }
   const hA = Math.max(1, Math.round(angA / 2));
@@ -327,6 +339,7 @@ function buildASA(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
     sides: ["AB"],
     angles: ["A", "B"],
     rightAngles: false,
+    bisectors: ["A", "B"],
   };
 }
 
@@ -373,6 +386,7 @@ function buildAAS(rng: RNG, t: TriangleDims, difficulty: 1 | 2 | 3): CongProof {
     sides: ["BC"],
     angles: ["A", "B"],
     rightAngles: false,
+    bisectors: ["B"],
   };
 }
 
@@ -510,6 +524,7 @@ export function makeCongruenceProof(
       sideMarks,
       angleMarks,
       rightAngleAt,
+      bisectors: bisectorFlags(proof),
     },
     teks: FAMILY_TEKS[family],
     studentMode,
@@ -600,6 +615,7 @@ export function makeCPCTCProof(
       sideMarks,
       angleMarks,
       rightAngleAt: baseFamily === "HL" ? 2 : proof.rightAngles && baseFamily === "SAS" ? 1 : -1,
+      bisectors: bisectorFlags(proof),
     },
     teks: "G.6(B)",
     studentMode,

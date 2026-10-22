@@ -114,6 +114,8 @@ export function makeSimilarityProof(
     svgParams: {
       kind: "ProofSimilarity",
       angleMarks: [true, true, false],
+      // Tier 3 derives angle B from bisectors (ray BQ / ray ER givens).
+      bisectors: difficulty >= 3 ? [false, true, false] : undefined,
     },
     teks: "G.7(A)",
     studentMode,

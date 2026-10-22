@@ -113,11 +113,12 @@ const T1: [Pt, Pt, Pt] = [{ x: 50, y: 38 }, { x: 18, y: 148 }, { x: 88, y: 148 }
 const T2: [Pt, Pt, Pt] = [{ x: 150, y: 38 }, { x: 182, y: 148 }, { x: 112, y: 148 }];
 
 function PdfTwoTrianglesSVG({
-  sideMarks, angleMarks, rightAngleAt, centerSymbol,
+  sideMarks, angleMarks, rightAngleAt, centerSymbol, bisectors,
   labels1 = ["A", "B", "C"], labels2 = ["D", "E", "F"],
 }: {
   sideMarks: [number, number, number];
   angleMarks: [boolean, boolean, boolean];
+  bisectors?: [boolean, boolean, boolean];
   rightAngleAt: number;
   centerSymbol: string;
   labels1?: [string, string, string];
@@ -133,6 +134,37 @@ function PdfTwoTrianglesSVG({
   const neighbors2: [Pt, Pt][] = [[F, E], [D, F], [E, D]];
   const off1 = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 8, y: 7 }];
   const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -8, y: 7 }];
+  // Angle bisectors: rays from each bisected vertex to a shared interior
+  // point (Q in triangle 1, R in triangle 2; the midpoint of the opposite
+  // side when only one vertex is bisected), with equal half-angle arcs.
+  const bisectorFigure = (verts: Pt[], neighbors: [Pt, Pt][], label: string) => {
+    if (!bisectors) return null;
+    const idxs = [0, 1, 2].filter((i) => bisectors[i]);
+    if (idxs.length === 0) return null;
+    let q: Pt;
+    if (idxs.length >= 2) {
+      q = {
+        x: (verts[0].x + verts[1].x + verts[2].x) / 3,
+        y: (verts[0].y + verts[1].y + verts[2].y) / 3,
+      };
+    } else {
+      const [j, k] = [0, 1, 2].filter((i) => i !== idxs[0]);
+      q = { x: (verts[j].x + verts[k].x) / 2, y: (verts[j].y + verts[k].y) / 2 };
+    }
+    return (
+      <React.Fragment>
+        {idxs.map((i) => (
+          <React.Fragment key={i}>
+            <Line x1={verts[i].x} y1={verts[i].y} x2={q.x} y2={q.y} stroke={INK} strokeWidth={1.2} />
+            <PdfAngleArc v={verts[i]} p1={neighbors[i][0]} p2={q} />
+            <PdfAngleArc v={verts[i]} p1={q} p2={neighbors[i][1]} />
+          </React.Fragment>
+        ))}
+        <Circle cx={q.x} cy={q.y} r={1.8} fill={INK} />
+        <PdfLabel pt={q} text={label} dx={5} dy={-4} />
+      </React.Fragment>
+    );
+  };
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <Polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke={INK} strokeWidth={1.5} />
@@ -146,13 +178,15 @@ function PdfTwoTrianglesSVG({
         ) : null
       )}
       {angleMarks.map((marked, i) =>
-        marked ? (
+        marked && !bisectors?.[i] ? (
           <React.Fragment key={i}>
             <PdfAngleArc v={verts1[i]} p1={neighbors1[i][0]} p2={neighbors1[i][1]} />
             <PdfAngleArc v={verts2[i]} p1={neighbors2[i][0]} p2={neighbors2[i][1]} />
           </React.Fragment>
         ) : null
       )}
+      {bisectorFigure(verts1, neighbors1, "Q")}
+      {bisectorFigure(verts2, neighbors2, "R")}
       {rightAngleAt >= 0 && (
         <>
           <PdfRightAngleMark v={verts1[rightAngleAt]} p1={neighbors1[rightAngleAt][0]} p2={neighbors1[rightAngleAt][1]} />
@@ -176,7 +210,7 @@ export function PdfProofCongruenceSVG(p: ProofCongruenceSVGParams) {
   return (
     <PdfTwoTrianglesSVG
       sideMarks={p.sideMarks} angleMarks={p.angleMarks}
-      rightAngleAt={p.rightAngleAt} centerSymbol="≅"
+      rightAngleAt={p.rightAngleAt} centerSymbol="≅" bisectors={p.bisectors}
     />
   );
 }
@@ -185,7 +219,7 @@ export function PdfProofSimilaritySVG(p: ProofSimilaritySVGParams) {
   return (
     <PdfTwoTrianglesSVG
       sideMarks={[0, 0, 0]} angleMarks={p.angleMarks}
-      rightAngleAt={-1} centerSymbol="~"
+      rightAngleAt={-1} centerSymbol="~" bisectors={p.bisectors}
     />
   );
 }
