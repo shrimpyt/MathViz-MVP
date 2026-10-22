@@ -6,9 +6,13 @@
 //   ∠1 upper-left, ∠2 upper-right, ∠3 lower-right, ∠4 lower-left.
 // Angles at the bottom intersection (m ∩ t):
 //   ∠5 upper-left, ∠6 upper-right, ∠7 lower-right, ∠8 lower-left.
-// Then corresponding = (1,5) (2,6) (3,7) (4,8); alternate interior = (3,6)
-// (4,5); alternate exterior = (1,8) (2,7); same-side interior = (3,5) (4,6);
+// Then corresponding = (1,5) (2,6) (3,7) (4,8); alternate interior = (3,5)
+// (4,6); alternate exterior = (1,7) (2,8); same-side interior = (3,6) (4,5);
 // vertical = (1,3) (2,4) (5,7) (6,8); linear pairs share a side.
+// (Interior angles are 3,4, which sit below l, and 5,6, which sit above m.
+// Alternate pairs cross sides; same-side pairs share a side. An earlier
+// version of this table had alternate and same-side SWAPPED, which
+// produced invalid proofs, e.g. a supplementary test on (4,6).)
 //
 // Difficulty:
 //   1: one theorem application (corresponding / alternate / vertical /
@@ -42,9 +46,9 @@ export const PARALLEL_VARIANTS: readonly ParallelVariant[] = [
 
 const PAIRS: Record<ParallelVariant, [number, number][]> = {
   corresponding: [[1, 5], [2, 6], [3, 7], [4, 8]],
-  "alternate-interior": [[3, 6], [4, 5]],
-  "alternate-exterior": [[1, 8], [2, 7]],
-  "same-side-interior": [[3, 5], [4, 6]],
+  "alternate-interior": [[3, 5], [4, 6]],
+  "alternate-exterior": [[1, 7], [2, 8]],
+  "same-side-interior": [[3, 6], [4, 5]],
   vertical: [[1, 3], [2, 4], [5, 7], [6, 8]],
 };
 
@@ -133,7 +137,7 @@ function buildDirect(rng: RNG, variant: ParallelVariant): ParallelProof {
 /**
  * Difficulty 2: two-theorem chains.
  *  chain A: corresponding ∠2→∠6, then linear pair ∠6→∠7.
- *  chain B: alternate interior ∠4→∠5, then vertical ∠5→∠7.
+ *  chain B: alternate interior ∠3→∠5, then vertical ∠5→∠7.
  *  chain C: vertical ∠1→∠3, then corresponding ∠3→∠7.
  */
 function buildChain(rng: RNG): ParallelProof {
@@ -149,7 +153,7 @@ function buildChain(rng: RNG): ParallelProof {
     firstReason = R.corrAngles;
     secondReason = R.linearPair;
   } else if (chain === "B") {
-    [start, mid, end] = [4, 5, 7];
+    [start, mid, end] = [3, 5, 7];
     firstReason = R.altIntAngles;
     secondReason = R.verticalAngles;
   } else {

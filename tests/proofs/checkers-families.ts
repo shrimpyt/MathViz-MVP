@@ -171,12 +171,17 @@ export function checkIsoscelesProof(ctx: Ctx, p: ProofProblem, tag: string): voi
 // ── Parallel lines ───────────────────────────────────────────────────────────
 
 const CORR: [number, number][] = [[1, 5], [2, 6], [3, 7], [4, 8]];
-const ALTINT: [number, number][] = [[3, 6], [4, 5]];
-const ALTEXT: [number, number][] = [[1, 8], [2, 7]];
-const SAMESIDE: [number, number][] = [[3, 5], [4, 6]];
+// TRUE figure geometry (numbering as drawn: 1-4 top UL/UR/LR/LL, 5-8 bottom
+// UL/UR/LR/LL). These tables once mirrored the factory's swapped
+// alternate/same-side lists, which is why the suite never caught the
+// invalid proofs the factory produced; they are now written from the
+// figure itself and must not be "reconciled" back to the factory.
+const ALTINT: [number, number][] = [[3, 5], [4, 6]];
+const ALTEXT: [number, number][] = [[1, 7], [2, 8]];
+const SAMESIDE: [number, number][] = [[3, 6], [4, 5]];
 const VERT: [number, number][] = [[1, 3], [2, 4], [5, 7], [6, 8]];
 const LINEAR: [number, number][] = [[1, 2], [2, 3], [3, 4], [4, 1], [5, 6], [6, 7], [7, 8], [8, 5]];
-const CHAIN: [number, number][] = [[2, 7], [4, 7], [1, 7]];
+const CHAIN: [number, number][] = [[2, 7], [3, 7], [1, 7]];
 
 const hasPair = (pairs: [number, number][], i: number, j: number) =>
   pairs.some(([a, b]) => (a === i && b === j) || (a === j && b === i));
