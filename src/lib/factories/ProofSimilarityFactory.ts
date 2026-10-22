@@ -92,8 +92,10 @@ export function makeSimilarityProof(
       { statement: prove, reason: R.AA },
     ];
   } else {
-    const [, b] = randomAngleTriple(rng);
-    const [a] = randomAngleTriple(rng);
+    // ONE triple for both angles: drawing a and b from two independent
+    // triples can sum past 180 degrees (an impossible triangle), which
+    // an independent QA pass caught (84 + 98 = 182).
+    const [a, b] = randomAngleTriple(rng);
     const h = Math.max(1, Math.round(b / 2));
     const d = bisectorSteps(h);
     given = [`m∠A = ${a}°, m∠D = ${a}°`, ...d.given];

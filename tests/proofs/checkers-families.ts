@@ -516,6 +516,18 @@ export function checkSimilarityProof(ctx: Ctx, p: ProofProblem, tag: string): vo
   check(ctx, last.reason === "AA Similarity", `${tag}: final reason not AA`);
   check(ctx, p.prove === "△ABC ~ △DEF", `${tag}: prove mismatch`);
   check(ctx, st.angCong.length >= 2, `${tag}: fewer than 2 angle pairs established for AA`);
+  {
+    // Feasibility: the two established angles of a triangle must sum to
+    // less than 180. (Tier 3 once drew them from two independent angle
+    // triples and produced 84 + 98 = 182; caught by independent QA.)
+    const blob = [...p.given, ...p.steps.map((x) => x.statement)].join(" ");
+    const aM = blob.match(/m∠A = (\d+)°/);
+    const bM = blob.match(/m∠ABC = [^=]* = (\d+)°/) || blob.match(/m∠B = (\d+)°/);
+    if (aM && bM) {
+      check(ctx, parseInt(aM[1], 10) + parseInt(bM[1], 10) < 180,
+        `${tag}: angles A + B = ${parseInt(aM[1], 10) + parseInt(bM[1], 10)} ≥ 180, impossible triangle`);
+    }
+  }
   const params = p.svgParams;
   check(ctx, params.kind === "ProofSimilarity", `${tag}: wrong diagram kind ${params.kind}`);
   if (params.kind === "ProofSimilarity") {
