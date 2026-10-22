@@ -134,8 +134,8 @@ function TwoTrianglesSVG({
   const verts2 = [D, E, F];
   const neighbors1: [Pt, Pt][] = [[C, B], [A, C], [B, A]];
   const neighbors2: [Pt, Pt][] = [[F, E], [D, F], [E, D]];
-  const off1 = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 8, y: 7 }];
-  const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -8, y: 7 }];
+  const off1 = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 1, y: 11 }];
+  const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -1, y: 11 }];
   // Angle bisectors: same figure as the PDF twin (rays to Q / R with
   // equal half-angle arcs); see PdfProofSVG.tsx.
   const bisectorFigure = (verts: Pt[], neighbors: [Pt, Pt][], label: string) => {

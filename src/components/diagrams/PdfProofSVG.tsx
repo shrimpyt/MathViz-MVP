@@ -4,7 +4,26 @@
 // same labels. Web shows ≅; PDF uses ≃ (DejaVu Serif lacks U+2245).
 
 import React from "react";
-import { Svg, Circle, Line, Path, Text, Polygon } from "@react-pdf/renderer";
+import { Svg, Circle, Line, Path, Text, Polygon, Font } from "@react-pdf/renderer";
+
+// The two-triangle center symbol needs ≃ (U+2243), which Times-Roman (the
+// label font below) does not have: it silently renders as a stray "C".
+// Register the document serif in THIS module so the figure is
+// self-contained; standalone renders (test harnesses) never import
+// PdfDocument, where the family is also registered with identical files.
+function proofFontSrc(file: string): string {
+  if (typeof window === "undefined") {
+    return `${process.cwd()}/public/fonts/${file}`;
+  }
+  return `/fonts/${file}`;
+}
+Font.register({
+  family: "WorksheetSerif",
+  fonts: [
+    { src: proofFontSrc("DejaVuSerif.ttf"), fontWeight: 400 },
+    { src: proofFontSrc("DejaVuSerif-Italic.ttf"), fontWeight: 400, fontStyle: "italic" },
+  ],
+});
 import { pdfSafeText } from "@/lib/answerKey";
 import type {
   ProofSVGParams,
@@ -132,8 +151,8 @@ function PdfTwoTrianglesSVG({
   const verts2 = [D, E, F];
   const neighbors1: [Pt, Pt][] = [[C, B], [A, C], [B, A]];
   const neighbors2: [Pt, Pt][] = [[F, E], [D, F], [E, D]];
-  const off1 = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 8, y: 7 }];
-  const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -8, y: 7 }];
+  const off1 = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 1, y: 11 }];
+  const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -1, y: 11 }];
   // Angle bisectors: rays from each bisected vertex to a shared interior
   // point (Q in triangle 1, R in triangle 2; the midpoint of the opposite
   // side when only one vertex is bisected), with equal half-angle arcs.
@@ -199,7 +218,7 @@ function PdfTwoTrianglesSVG({
       {verts2.map((v, i) => (
         <PdfLabel key={i} pt={v} text={labels2[i]} dx={off2[i].x} dy={off2[i].y} />
       ))}
-      <Text x={96} y={104} style={{ fontSize: 13, fontFamily: FONT, color: "#64748b" }}>
+      <Text x={96} y={104} style={{ fontSize: 13, fontFamily: "WorksheetSerif", color: "#64748b" }}>
         {pdfSafeText(centerSymbol)}
       </Text>
     </Svg>

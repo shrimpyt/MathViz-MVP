@@ -474,6 +474,27 @@ function angleMarkIndex(ang: "A" | "B" | "C"): number {
   return ang === "A" ? 0 : ang === "B" ? 1 : 2;
 }
 
+/** Quiz-length cap: no generated congruence proof may exceed this many
+ *  steps. Stacked derivations (two bisector blocks at ASA tier 3, two
+ *  midpoint blocks at SSS tier 3) step down a tier until the proof fits;
+ *  a 20-row table is a lesson, not a quiz item. */
+const MAX_PROOF_STEPS = 14;
+
+function buildForFamily(
+  family: CongruenceFamily,
+  rng: RNG,
+  t: TriangleDims,
+  tier: 1 | 2 | 3
+): CongProof {
+  switch (family) {
+    case "SSS": return buildSSS(rng, t, tier);
+    case "SAS": return buildSAS(rng, t, tier);
+    case "ASA": return buildASA(rng, t, tier);
+    case "AAS": return buildAAS(rng, t, tier);
+    case "HL": return buildHL(rng, tier);
+  }
+}
+
 export function makeCongruenceProof(
   rng: RNG,
   family: CongruenceFamily,
@@ -490,13 +511,11 @@ export function makeCongruenceProof(
       ? randomRightTriangleAtB(rng)
       : randomTriangle(rng, { evenAB: needEvenAB, evenBC: needEvenBC });
 
-  let proof: CongProof;
-  switch (family) {
-    case "SSS": proof = buildSSS(rng, t, difficulty); break;
-    case "SAS": proof = buildSAS(rng, t, difficulty); break;
-    case "ASA": proof = buildASA(rng, t, difficulty); break;
-    case "AAS": proof = buildAAS(rng, t, difficulty); break;
-    case "HL": proof = buildHL(rng, difficulty); break;
+  let tier = difficulty;
+  let proof = buildForFamily(family, rng, t, tier);
+  while (proof.steps.length > MAX_PROOF_STEPS && tier > 1) {
+    tier = (tier - 1) as 1 | 2 | 3;
+    proof = buildForFamily(family, rng, t, tier);
   }
 
   // Diagram marks computed from the established facts, never hand-written.
@@ -567,15 +586,12 @@ export function makeCPCTCProof(
   studentMode: ProofStudentMode = "complete"
 ): ProofProblem {
   const baseFamily = CONGRUENCE_FAMILIES[randInt(rng, 0, CONGRUENCE_FAMILIES.length - 1)];
-  const tier = randInt(rng, 1, difficulty) as 1 | 2 | 3;
+  let tier = randInt(rng, 1, difficulty) as 1 | 2 | 3;
   const t = randomTriangle(rng, {});
-  let proof: CongProof;
-  switch (baseFamily) {
-    case "SSS": proof = buildSSS(rng, t, tier); break;
-    case "SAS": proof = buildSAS(rng, t, tier); break;
-    case "ASA": proof = buildASA(rng, t, tier); break;
-    case "AAS": proof = buildAAS(rng, t, tier); break;
-    case "HL": proof = buildHL(rng, tier); break;
+  let proof = buildForFamily(baseFamily, rng, t, tier);
+  while (proof.steps.length + 1 > MAX_PROOF_STEPS && tier > 1) {
+    tier = (tier - 1) as 1 | 2 | 3;
+    proof = buildForFamily(baseFamily, rng, t, tier);
   }
 
   // Choose a corresponding part not already established as a given pair.
