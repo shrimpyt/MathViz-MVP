@@ -132,9 +132,99 @@ function PdfLabel({ pt, text, dx = 0, dy = 0, size = 9, color = "#111111", bold 
 const T1: [Pt, Pt, Pt] = [{ x: 50, y: 38 }, { x: 18, y: 148 }, { x: 88, y: 148 }];
 const T2: [Pt, Pt, Pt] = [{ x: 150, y: 38 }, { x: 182, y: 148 }, { x: 112, y: 148 }];
 
+// ── Dimensioned frames ───────────────────────────────────────────────────────
+// When a problem carries its real side lengths, the triangles are drawn to
+// that shape (base BC on a baseline, apex placed by the law of cosines)
+// inside a layout slot, instead of the fixed T1/T2 silhouette. Triangle 2
+// is the mirror image, as in the legacy figure (E bottom-right, F
+// bottom-left), so tick/arc correspondence by vertex index is unchanged.
+
+interface TriSlot {
+  x0: number;
+  x1: number;
+  base: number;
+  top: number;
+}
+const SLOT_LEFT: TriSlot = { x0: 12, x1: 94, base: 148, top: 28 };
+const SLOT_RIGHT: TriSlot = { x0: 106, x1: 188, base: 148, top: 28 };
+const SLOT_TOP: TriSlot = { x0: 32, x1: 168, base: 86, top: 14 };
+const SLOT_BOT: TriSlot = { x0: 32, x1: 168, base: 190, top: 112 };
+
+function frameFromDims(
+  dims: { sAB: number; sBC: number; sCA: number },
+  slot: TriSlot,
+  mirror: boolean
+): [Pt, Pt, Pt] {
+  const { sAB, sBC, sCA } = dims;
+  const axRaw = (sAB * sAB - sCA * sCA + sBC * sBC) / (2 * sBC);
+  const ay = Math.sqrt(Math.max(sAB * sAB - axRaw * axRaw, 0.04));
+  // Visual clamp only: an extremely obtuse apex leans just past the base.
+  const ax = Math.min(Math.max(axRaw, -0.6 * sBC), 1.6 * sBC);
+  // Fit the FULL horizontal extent: an obtuse apex projects past the base,
+  // so scaling to the base alone would push the apex out of the slot.
+  const apexProj = mirror ? sBC - ax : ax;
+  const xMin = Math.min(0, apexProj);
+  const xMax = Math.max(sBC, apexProj);
+  const span = Math.max(xMax - xMin, 0.01);
+  const scale = Math.min(
+    (slot.x1 - slot.x0) / span,
+    (slot.base - slot.top) / ay
+  );
+  const baseLeft = slot.x0 + (slot.x1 - slot.x0 - span * scale) / 2 - xMin * scale;
+  const y = slot.base;
+  if (!mirror) {
+    return [
+      { x: baseLeft + ax * scale, y: y - ay * scale },
+      { x: baseLeft, y },
+      { x: baseLeft + sBC * scale, y },
+    ];
+  }
+  return [
+    { x: baseLeft + apexProj * scale, y: y - ay * scale },
+    { x: baseLeft + sBC * scale, y },
+    { x: baseLeft, y },
+  ];
+}
+
+function frameOffsets(verts: [Pt, Pt, Pt], stacked: boolean): [Pt, Pt, Pt] {
+  const offs: [Pt, Pt, Pt] = [{ x: 0, y: -7 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
+  if (stacked) {
+    const cx = (verts[1].x + verts[2].x) / 2;
+    offs[1] = { x: verts[1].x < cx ? -8 : 8, y: 7 };
+    offs[2] = { x: verts[2].x < cx ? -8 : 8, y: 7 };
+    return offs;
+  }
+  const inner = Math.abs(verts[1].x - 100) < Math.abs(verts[2].x - 100) ? 1 : 2;
+  const outer = inner === 1 ? 2 : 1;
+  offs[inner] = { x: verts[inner].x < 100 ? 1 : -1, y: 11 };
+  offs[outer] = { x: verts[outer].x < 100 ? -8 : 8, y: 7 };
+  return offs;
+}
+
+/** True when a side-by-side pair stands back to back with tick marks on a
+ *  near-vertical inner side at the center symbol's height (the
+ *  perpendicular-SAS arrangement): the symbol would print on the ticks. */
+function steepInnerTicks(
+  verts1: [Pt, Pt, Pt],
+  verts2: [Pt, Pt, Pt],
+  layout: 0 | 1 | 2,
+  sideMarks: [number, number, number]
+): boolean {
+  if (layout === 1) return false;
+  const innerIdx = layout === 2 ? 0 : 2;
+  if (sideMarks[innerIdx] === 0) return false;
+  const [t1, b1] = layout === 2 ? [verts1[0], verts1[1]] : [verts1[0], verts1[2]];
+  const [t2, b2] = layout === 2 ? [verts2[0], verts2[1]] : [verts2[0], verts2[2]];
+  const steep =
+    Math.abs(t1.x - b1.x) <= 12 || Math.abs(t2.x - b2.x) <= 12;
+  const tickY = (t1.y + b1.y) / 2;
+  return steep && Math.abs(tickY - 104) < 20;
+}
+
 function PdfTwoTrianglesSVG({
   sideMarks, angleMarks, rightAngleAt, centerSymbol, bisectors, midpoints,
   labels1 = ["A", "B", "C"], labels2 = ["D", "E", "F"],
+  dims, layout = 0,
 }: {
   sideMarks: [number, number, number];
   angleMarks: [boolean, boolean, boolean];
@@ -144,17 +234,42 @@ function PdfTwoTrianglesSVG({
   centerSymbol: string;
   labels1?: [string, string, string];
   labels2?: [string, string, string];
+  dims?: { sAB: number; sBC: number; sCA: number };
+  layout?: 0 | 1 | 2;
 }) {
-  const [A, B, C] = T1;
-  const [D, E, F] = T2;
+  let verts1: [Pt, Pt, Pt] = T1;
+  let verts2: [Pt, Pt, Pt] = T2;
+  let off1: [Pt, Pt, Pt] = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 1, y: 11 }];
+  let off2: [Pt, Pt, Pt] = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -1, y: 11 }];
+  let symbolPt: Pt = { x: 96, y: 104 };
+  if (dims) {
+    const s1 = layout === 1 ? SLOT_TOP : layout === 2 ? SLOT_RIGHT : SLOT_LEFT;
+    const s2 = layout === 1 ? SLOT_BOT : layout === 2 ? SLOT_LEFT : SLOT_RIGHT;
+    verts1 = frameFromDims(dims, s1, false);
+    verts2 = frameFromDims(dims, s2, true);
+    off1 = frameOffsets(verts1, layout === 1);
+    off2 = frameOffsets(verts2, layout === 1);
+    if (layout === 1) symbolPt = { x: 4, y: 104 };
+    else {
+      // Very flat pairs put both apexes near the vertical middle, where
+      // the center symbol sits: lift the symbol above the apexes so the
+      // three glyphs never merge into one blob.
+      const apexY = Math.min(verts1[0].y, verts2[0].y);
+      if (apexY > 86) symbolPt = { x: 96, y: apexY - 24 };
+      else if (steepInnerTicks(verts1, verts2, layout, sideMarks)) {
+        // Back-to-back pairs (perpendicular SAS) put the ticked inner
+        // sides vertical in the center gap at the symbol's own height:
+        // lift the symbol above the apexes, as flat pairs already do.
+        symbolPt = { x: 96, y: Math.max(apexY - 24, 16) };
+      }
+    }
+  }
+  const [A, B, C] = verts1;
+  const [D, E, F] = verts2;
   const sides1: [Pt, Pt][] = [[A, B], [B, C], [C, A]];
   const sides2: [Pt, Pt][] = [[D, E], [E, F], [F, D]];
-  const verts1 = [A, B, C];
-  const verts2 = [D, E, F];
   const neighbors1: [Pt, Pt][] = [[C, B], [A, C], [B, A]];
   const neighbors2: [Pt, Pt][] = [[F, E], [D, F], [E, D]];
-  const off1 = [{ x: 0, y: -7 }, { x: -8, y: 7 }, { x: 1, y: 11 }];
-  const off2 = [{ x: 0, y: -7 }, { x: 8, y: 7 }, { x: -1, y: 11 }];
   // Angle bisectors: rays from each bisected vertex to a shared interior
   // point (Q in triangle 1, R in triangle 2; the midpoint of the opposite
   // side when only one vertex is bisected), with equal half-angle arcs.
@@ -243,7 +358,7 @@ function PdfTwoTrianglesSVG({
       {verts2.map((v, i) => (
         <PdfLabel key={i} pt={v} text={labels2[i]} dx={off2[i].x} dy={off2[i].y} />
       ))}
-      <Text x={96} y={104} style={{ fontSize: 13, fontFamily: "WorksheetSerif", color: "#64748b" }}>
+      <Text x={symbolPt.x} y={symbolPt.y} style={{ fontSize: 13, fontFamily: "WorksheetSerif", color: "#64748b" }}>
         {pdfSafeText(centerSymbol)}
       </Text>
     </Svg>
@@ -255,6 +370,7 @@ export function PdfProofCongruenceSVG(p: ProofCongruenceSVGParams) {
     <PdfTwoTrianglesSVG
       sideMarks={p.sideMarks} angleMarks={p.angleMarks}
       rightAngleAt={p.rightAngleAt} centerSymbol="≅" bisectors={p.bisectors} midpoints={p.midpoints}
+      dims={p.dims} layout={p.layout}
     />
   );
 }
@@ -264,16 +380,21 @@ export function PdfProofSimilaritySVG(p: ProofSimilaritySVGParams) {
     <PdfTwoTrianglesSVG
       sideMarks={[0, 0, 0]} angleMarks={p.angleMarks}
       rightAngleAt={p.rightAngleAt ?? -1} centerSymbol="~" bisectors={p.bisectors}
+      dims={p.dims} layout={p.layout}
     />
   );
 }
 
 // ── Isosceles triangle ───────────────────────────────────────────────────────
 
+const ISO_SILHOUETTES: [Pt, Pt, Pt][] = [
+  [{ x: 100, y: 42 }, { x: 52, y: 152 }, { x: 148, y: 152 }],
+  [{ x: 100, y: 24 }, { x: 64, y: 152 }, { x: 136, y: 152 }],
+  [{ x: 100, y: 68 }, { x: 36, y: 152 }, { x: 164, y: 152 }],
+];
+
 export function PdfProofIsoscelesSVG(p: ProofIsoscelesSVGParams) {
-  const A: Pt = { x: 100, y: 42 };
-  const B: Pt = { x: 52, y: 152 };
-  const C: Pt = { x: 148, y: 152 };
+  const [A, B, C] = ISO_SILHOUETTES[p.silhouette ?? 0];
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <Polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}`} fill="none" stroke={INK} strokeWidth={1.5} />
@@ -314,8 +435,18 @@ const ANGLE_SLOTS: Record<number, { v: Pt; a1: number; a2: number }> = (() => {
   };
 })();
 
-function PdfSlotArc({ n, marked, givenAngle }: { n: number; marked: boolean; givenAngle?: number }) {
-  const { v, a1, a2 } = ANGLE_SLOTS[n];
+const MIRROR_NUM: Record<number, number> = { 1: 2, 2: 1, 3: 4, 4: 3, 5: 6, 6: 5, 7: 8, 8: 7 };
+
+/** Slot for angle n; with flip, the mirrored corner's slot reflected, so
+ *  angle numbers keep their standard positions on a down-left transversal. */
+function slotFor(n: number, flip?: boolean): { v: Pt; a1: number; a2: number } {
+  if (!flip) return ANGLE_SLOTS[n];
+  const s = ANGLE_SLOTS[MIRROR_NUM[n]];
+  return { v: { x: 200 - s.v.x, y: s.v.y }, a1: 180 - s.a2, a2: 180 - s.a1 };
+}
+
+function PdfSlotArc({ n, slot, marked, givenAngle }: { n: number; slot: { v: Pt; a1: number; a2: number }; marked: boolean; givenAngle?: number }) {
+  const { v, a1, a2 } = slot;
   const r = marked ? 16 : 12;
   const rad = (d: number) => (d * Math.PI) / 180;
   const x1 = v.x + r * Math.cos(rad(a1));
@@ -358,7 +489,9 @@ function PdfParallelTicks({ y }: { y: number }) {
 }
 
 export function PdfProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
-  const { lY, mY, x0, x1, tTop, tBot } = PL;
+  const { lY, mY, x0, x1 } = PL;
+  const tTop = p.flip ? { x: 200 - PL.tTop.x, y: PL.tTop.y } : PL.tTop;
+  const tBot = p.flip ? { x: 200 - PL.tBot.x, y: PL.tBot.y } : PL.tBot;
   const [m1, m2] = p.markedAngles;
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
@@ -375,7 +508,7 @@ export function PdfProofParallelLinesSVG(p: ProofParallelLinesSVGParams) {
       <PdfLabel pt={{ x: x0, y: mY }} text="m" dx={-8} dy={-4} size={10} />
       <PdfLabel pt={tBot} text="t" dx={6} dy={-2} size={10} />
       {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-        <PdfSlotArc key={n} n={n} marked={n === m1 || n === m2} givenAngle={n === p.givenAngleIndex ? p.givenAngle : undefined} />
+        <PdfSlotArc key={n} n={n} slot={slotFor(n, p.flip)} marked={n === m1 || n === m2} givenAngle={n === p.givenAngleIndex ? p.givenAngle : undefined} />
       ))}
     </Svg>
   );

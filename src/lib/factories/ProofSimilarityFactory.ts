@@ -19,6 +19,11 @@ import {
   randomAngleTriple,
   randomRightTriangleAtB,
   applyStudentMode,
+  figureDimsOf,
+  figureLayoutOf,
+  rightTriangleDims,
+  dimsFromAngles,
+  type FigureDims,
 } from "./ProofFactoryShared";
 
 export type SimilarityFamily = "AA";
@@ -69,9 +74,11 @@ export function makeSimilarityProof(
   const prove = "△ABC ~ △DEF";
   let given: string[];
   let steps: ProofStep[];
+  let figDims: FigureDims;
 
   if (difficulty === 1) {
     const [a, b] = randomAngleTriple(rng);
+    figDims = dimsFromAngles(a, b);
     given = [`m∠A = ${a}°, m∠D = ${a}°`, `m∠B = ${b}°, m∠E = ${b}°`];
     steps = [
       ...angCongSteps("∠A", "∠D", a),
@@ -80,6 +87,7 @@ export function makeSimilarityProof(
     ];
   } else if (difficulty === 2) {
     const t = randomRightTriangleAtB(rng);
+    figDims = rightTriangleDims(t);
     const a = t.angA;
     given = [
       "∠B and ∠E are right angles",
@@ -96,6 +104,7 @@ export function makeSimilarityProof(
     // triples can sum past 180 degrees (an impossible triangle), which
     // an independent QA pass caught (84 + 98 = 182).
     const [a, b] = randomAngleTriple(rng);
+    figDims = dimsFromAngles(a, b);
     const h = Math.max(1, Math.round(b / 2));
     const d = bisectorSteps(h);
     given = [`m∠A = ${a}°, m∠D = ${a}°`, ...d.given];
@@ -115,6 +124,8 @@ export function makeSimilarityProof(
     steps: applyStudentMode(steps, studentMode),
     svgParams: {
       kind: "ProofSimilarity",
+      dims: figDims,
+      layout: figureLayoutOf(figDims),
       // Tier 2's second pair is the right angles at B/E: drawn as squares
       // (rightAngleAt), not plain arcs.
       angleMarks: difficulty === 2 ? [true, false, false] : [true, true, false],

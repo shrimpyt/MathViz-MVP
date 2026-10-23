@@ -18,10 +18,29 @@ export type ProofStudentMode =
   | "supply-reasons" // reasons blanked for the student to supply
   | "guided"; // mixed scaffolding
 
+/** Side lengths of the problem's actual triangles (AB, BC, CA), when the
+ *  factory has them: renderers draw the figure shaped by these instead of
+ *  the one fixed silhouette. Absent = legacy fixed figure. */
+export interface ProofFigureDims {
+  sAB: number;
+  sBC: number;
+  sCA: number;
+}
+
+/** Two-triangle layout: 0 = side by side (triangle 2 right), 1 = stacked
+ *  (triangle 2 below), 2 = swapped (triangle 2 left). Derived from the
+ *  problem's own dimensions by the factory, never from extra RNG draws,
+ *  so all student modes of a seed share one figure. */
+export type ProofFigureLayout = 0 | 1 | 2;
+
 /** Triangle congruence proof figure: two marked triangles ABC and DEF. */
 export interface ProofCongruenceSVGParams {
   kind: "ProofCongruence";
   subtype: "SSS" | "SAS" | "ASA" | "AAS" | "HL";
+  /** The problem's real side lengths; the figure is drawn to their shape. */
+  dims?: ProofFigureDims;
+  /** Pair arrangement (see ProofFigureLayout). Default 0. */
+  layout?: ProofFigureLayout;
   /** Tick counts for sides AB, BC, CA (0 = unmarked). */
   sideMarks: [number, number, number];
   /** Angle arcs at vertices A, B, C. */
@@ -44,6 +63,9 @@ export interface ProofIsoscelesSVGParams {
   markEqualLegs: boolean;
   /** Draw angle arcs at the base angles B and C. */
   markBaseAngles: boolean;
+  /** Silhouette variety: 0 = standard, 1 = tall and narrow, 2 = wide and
+   *  flat. Derived from the problem's own numbers by the factory. */
+  silhouette?: 0 | 1 | 2;
 }
 
 /** Parallel-lines figure: lines l and m cut by transversal t, angles 1–8. */
@@ -57,11 +79,20 @@ export interface ProofParallelLinesSVGParams {
   givenAngle?: number;
   /** 1-based index of the angle carrying givenAngle. */
   givenAngleIndex?: number;
+  /** Mirror the transversal (slants down-left instead of down-right).
+   *  Angle numbers keep their standard positions (1 is always upper-left
+   *  of the top intersection); only the drawing mirrors. */
+  flip?: boolean;
 }
 
 /** Similarity proof figure: two triangles with marked angles, "~" between. */
 export interface ProofSimilaritySVGParams {
   kind: "ProofSimilarity";
+  /** The problem's real side lengths (or law-of-sines equivalents of its
+   *  angles); the figure is drawn to their shape. */
+  dims?: ProofFigureDims;
+  /** Pair arrangement (see ProofFigureLayout). Default 0. */
+  layout?: ProofFigureLayout;
   /** Angle arcs at vertices A, B, C. */
   angleMarks: [boolean, boolean, boolean];
   /** Same convention as ProofCongruenceSVGParams.bisectors. */

@@ -274,6 +274,14 @@ export function makeParallelLineProof(
       parallel: proof.parallel,
       givenAngle: proof.givenAngle,
       givenAngleIndex: proof.givenAngleIndex,
+      // Transversal slant variety, hashed from numbers the problem already
+      // drew (no extra RNG: all modes of a seed share one figure).
+      flip:
+        ((proof.givenAngle ?? 0) +
+          proof.markedAngles[0] * 7 +
+          proof.markedAngles[1] * 13) %
+          2 ===
+        1,
     },
     teks: "G.5(A)",
     studentMode,

@@ -29,6 +29,10 @@ import {
   randomRightTriangleAtB,
   randomHLTriangle,
   applyStudentMode,
+  figureDimsOf,
+  figureLayoutOf,
+  rightTriangleDims,
+  type FigureDims,
   type TriangleDims,
 } from "./ProofFactoryShared";
 
@@ -505,6 +509,50 @@ function buildForFamily(
   }
 }
 
+/**
+ * Figure dimensions for an assembled proof. Most families draw their
+ * numbers from the TriangleDims they were built on, but HL draws a
+ * Pythagorean triple inside its builder, so its sides are read back from
+ * the proof's own givens (hypotenuse AB, leg BC direct or halved through
+ * a midpoint). A right-triangle-at-B draw carries sCA as a 0 sentinel;
+ * complete it by Pythagoras.
+ */
+function assembledFigureDims(
+  family: CongruenceFamily,
+  t: TriangleDims,
+  proof: CongProof
+): FigureDims {
+  if (family === "HL") {
+    const joined = proof.given.join("; ");
+    const hyp = /AB = (\d+(?:\.\d+)?)/.exec(joined)?.[1];
+    const legDirect = /BC = (\d+(?:\.\d+)?)/.exec(joined)?.[1];
+    const legHalf = /BT = ES = (\d+(?:\.\d+)?)/.exec(joined)?.[1];
+    const leg = legDirect
+      ? parseFloat(legDirect)
+      : legHalf
+        ? 2 * parseFloat(legHalf)
+        : NaN;
+    if (hyp && Number.isFinite(leg)) {
+      const h = parseFloat(hyp);
+      return {
+        sAB: h,
+        sBC: leg,
+        sCA: Math.sqrt(Math.max(h * h - leg * leg, 0.01)),
+      };
+    }
+    return figureDimsOf(t);
+  }
+  // A perpendicular SAS variant (AB ⊥ BC) states a right angle at B, so the
+  // drawn triangle must satisfy Pythagoras there. Its TriangleDims are a
+  // plain randomTriangle, whose third side is NOT the hypotenuse of the
+  // stated legs (drawn angle at B came out at 18 degrees in QA) — complete
+  // it from the legs, which do match the stated lengths. The sCA === 0
+  // sentinel from randomRightTriangleAtB lands here too.
+  if (family === "SAS" && proof.rightAngles) return rightTriangleDims(t);
+  if (t.sCA === 0) return rightTriangleDims(t);
+  return figureDimsOf(t);
+}
+
 export function makeCongruenceProof(
   rng: RNG,
   family: CongruenceFamily,
@@ -555,6 +603,8 @@ export function makeCongruenceProof(
       rightAngleAt,
       bisectors: bisectorFlags(proof),
       midpoints: proof.midpointSides,
+      dims: assembledFigureDims(family, t, proof),
+      layout: figureLayoutOf(assembledFigureDims(family, t, proof)),
     },
     teks: FAMILY_TEKS[family],
     studentMode,
@@ -644,6 +694,8 @@ export function makeCPCTCProof(
       rightAngleAt: baseFamily === "HL" ? 2 : proof.rightAngles && baseFamily === "SAS" ? 1 : -1,
       bisectors: bisectorFlags(proof),
       midpoints: proof.midpointSides,
+      dims: assembledFigureDims(baseFamily, t, proof),
+      layout: figureLayoutOf(assembledFigureDims(baseFamily, t, proof)),
     },
     teks: "G.6(B)",
     studentMode,
@@ -677,9 +729,11 @@ export function makeIsoscelesProof(
   let given: string[];
   let steps: ProofStep[];
   let prove: string;
+  let silhouette: 0 | 1 | 2 = 0;
 
   if (tier === 1) {
     const s = randInt(rng, 6, 12);
+    silhouette = (s % 3) as 0 | 1 | 2;
     given = [`AB = ${s}, AC = ${s}`, "△ABC is isosceles"];
     prove = "∠B ≅ ∠C";
     steps = [
@@ -693,6 +747,7 @@ export function makeIsoscelesProof(
     ];
   } else if (tier === 2) {
     const s = randInt(rng, 6, 12);
+    silhouette = (s % 3) as 0 | 1 | 2;
     given = [`AB = ${s}, AC = ${s}`, "△ABC is isosceles"];
     prove = "∠B ≅ ∠C";
     steps = [
@@ -706,6 +761,7 @@ export function makeIsoscelesProof(
     ];
   } else {
     const b = randInt(rng, 30, 70);
+    silhouette = (b % 3) as 0 | 1 | 2;
     given = [`m∠B = ${b}°, m∠C = ${b}°`];
     prove = "AB ≅ AC";
     steps = [
@@ -730,6 +786,7 @@ export function makeIsoscelesProof(
       kind: "ProofIsosceles",
       markEqualLegs: true,
       markBaseAngles: true,
+      silhouette,
     },
     teks: "G.6(B)",
     studentMode,

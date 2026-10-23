@@ -131,6 +131,50 @@ export function randomAngleTriple(rng: RNG): [number, number, number] {
   return [60, 70, 50];
 }
 
+// ── Figure variety (derived from drawn data, never extra RNG) ───────────────
+// Diagram variety must not consume the generation RNG: identical seeds must
+// yield identical problems across output modes (see applyStudentMode), so
+// layouts and silhouettes are hashed from numbers the problem already drew.
+
+export interface FigureDims {
+  sAB: number;
+  sBC: number;
+  sCA: number;
+}
+
+export function figureDimsOf(t: TriangleDims): FigureDims {
+  return { sAB: t.sAB, sBC: t.sBC, sCA: t.sCA };
+}
+
+/** Dims for a right-triangle-at-B draw: randomRightTriangleAtB leaves sCA
+ *  as a 0 sentinel (the proofs never name the hypotenuse), so the figure
+ *  completes it from the legs by Pythagoras. */
+export function rightTriangleDims(t: TriangleDims): FigureDims {
+  return {
+    sAB: t.sAB,
+    sBC: t.sBC,
+    sCA: Math.sqrt(t.sAB * t.sAB + t.sBC * t.sBC),
+  };
+}
+
+/** Pair layout for two-triangle figures: 0 side by side, 1 stacked, 2 swapped. */
+export function figureLayoutOf(d: FigureDims): 0 | 1 | 2 {
+  return (Math.round(d.sAB * 7 + d.sBC * 13 + d.sCA * 17) % 3) as 0 | 1 | 2;
+}
+
+/** Side lengths for a triangle with the given angles at A and B (BC = 10),
+ *  by the law of sines. For similarity figures, which know angles only. */
+export function dimsFromAngles(angA: number, angB: number): FigureDims {
+  const angC = 180 - angA - angB;
+  const rad = (deg: number) => (deg * Math.PI) / 180;
+  const sBC = 10;
+  return {
+    sBC,
+    sCA: (sBC * Math.sin(rad(angB))) / Math.sin(rad(angA)),
+    sAB: (sBC * Math.sin(rad(angC))) / Math.sin(rad(angA)),
+  };
+}
+
 // ── Student-mode blanking ────────────────────────────────────────────────────
 
 /**
