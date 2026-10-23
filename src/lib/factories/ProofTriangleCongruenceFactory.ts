@@ -784,8 +784,12 @@ export function makeIsoscelesProof(
     steps: applyStudentMode(steps, studentMode),
     svgParams: {
       kind: "ProofIsosceles",
-      markEqualLegs: true,
-      markBaseAngles: true,
+      // Marks assert givens only, never the conclusion (Trystan, Oct 23):
+      // tiers 1-2 are given the equal legs and prove the base angles, so
+      // only the legs are ticked; tier 3 (converse) is given the equal
+      // base angles and proves the legs, so only the angles are arced.
+      markEqualLegs: tier < 3,
+      markBaseAngles: tier === 3,
       silhouette,
     },
     teks: "G.6(B)",

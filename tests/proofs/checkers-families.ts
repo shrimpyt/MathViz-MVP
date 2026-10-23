@@ -166,6 +166,18 @@ export function checkIsoscelesProof(ctx: Ctx, p: ProofProblem, tag: string): voi
   }
   const params = p.svgParams;
   check(ctx, params.kind === "ProofIsosceles", `${tag}: wrong diagram kind ${params.kind}`);
+  if (params.kind === "ProofIsosceles") {
+    // Figure marks assert givens only, never the conclusion (spec from the
+    // printed Given/Prove lines): whichever pair the proof must prove stays
+    // unmarked; the given pair carries the marks.
+    if (p.prove.startsWith("∠")) {
+      check(ctx, params.markEqualLegs && !params.markBaseAngles,
+        `${tag}: base-angles proof must tick the given legs only, not arc the angles it proves`);
+    } else {
+      check(ctx, params.markBaseAngles && !params.markEqualLegs,
+        `${tag}: converse proof must arc the given base angles only, not tick the legs it proves`);
+    }
+  }
 }
 
 // ── Parallel lines ───────────────────────────────────────────────────────────
