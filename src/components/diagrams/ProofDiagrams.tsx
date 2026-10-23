@@ -17,6 +17,7 @@ import type {
   ProofCircleSVGParams,
   ProofQuadrilateralSVGParams,
   ProofAngleFigureSVGParams,
+  ProofOverlappingSVGParams,
   ElementsProposition,
 } from "@/lib/proofDiagrams";
 
@@ -779,6 +780,56 @@ export function ProofAngleFigureSVG(p: ProofAngleFigureSVGParams) {
   );
 }
 
+// ── Overlapping-triangles figures ────────────────────────────────────────────
+
+export function ProofOverlappingSVG(p: ProofOverlappingSVGParams) {
+  if (p.figure === "bowtie") {
+    const A: Pt = { x: 42, y: 42 };
+    const B: Pt = { x: 158, y: 42 };
+    const C: Pt = { x: 42, y: 158 };
+    const D: Pt = { x: 158, y: 158 };
+    const E: Pt = { x: 100, y: 100 };
+    return (
+      <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Overlapping triangles, bowtie diagram">
+        <line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke="#111111" strokeWidth={1.5} />
+        <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
+        <TickMarks p1={A} p2={E} count={1} />
+        <TickMarks p1={E} p2={D} count={1} />
+        <TickMarks p1={B} p2={E} count={2} />
+        <TickMarks p1={E} p2={C} count={2} />
+        <AngleArc v={E} p1={A} p2={B} r={17} />
+        <AngleArc v={E} p1={D} p2={C} r={17} />
+        <VertexLabel pt={A} text="A" dx={-8} dy={-2} />
+        <VertexLabel pt={B} text="B" dx={8} dy={-2} />
+        <VertexLabel pt={C} text="C" dx={-8} dy={8} />
+        <VertexLabel pt={D} text="D" dx={8} dy={8} />
+        <VertexLabel pt={E} text="E" dx={0} dy={-10} />
+      </svg>
+    );
+  }
+  const B: Pt = { x: 40, y: 150 };
+  const C: Pt = { x: 160, y: 150 };
+  const A: Pt = { x: 70, y: 52 };
+  const D: Pt = { x: 132, y: 58 };
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Overlapping triangles, shared side diagram">
+      <line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.5} />
+      <line x1={D.x} y1={D.y} x2={C.x} y2={C.y} stroke="#111111" strokeWidth={1.5} />
+      <TickMarks p1={A} p2={B} count={1} />
+      <TickMarks p1={D} p2={B} count={1} />
+      <TickMarks p1={A} p2={C} count={2} />
+      <TickMarks p1={D} p2={C} count={2} />
+      <VertexLabel pt={B} text="B" dx={-8} dy={8} />
+      <VertexLabel pt={C} text="C" dx={8} dy={8} />
+      <VertexLabel pt={A} text="A" dx={-6} dy={-4} />
+      <VertexLabel pt={D} text="D" dx={6} dy={-4} />
+    </svg>
+  );
+}
+
 // ── Dispatcher ───────────────────────────────────────────────────────────────
 
 export function ProofGeometrySVG({ params }: { params: ProofSVGParams }) {
@@ -799,6 +850,8 @@ export function ProofGeometrySVG({ params }: { params: ProofSVGParams }) {
       return <ProofQuadrilateralSVG {...(params as ProofQuadrilateralSVGParams)} />;
     case "ProofAngleFigure":
       return <ProofAngleFigureSVG {...(params as ProofAngleFigureSVGParams)} />;
+    case "ProofOverlapping":
+      return <ProofOverlappingSVG {...(params as ProofOverlappingSVGParams)} />;
     default:
       return null;
   }

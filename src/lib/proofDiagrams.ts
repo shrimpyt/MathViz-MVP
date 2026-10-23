@@ -128,6 +128,17 @@ export interface ProofAngleFigureSVGParams {
   markSlants?: boolean;
 }
 
+/** Overlapping-triangles proof figure: two triangles sharing a vertex
+ *  (bowtie, segments AD and BC intersecting at E) or sharing the side BC
+ *  on the same side of it (sharedSide, △ABC and △DBC). Tick marks follow
+ *  the canonical givens of each figure: bowtie ticks AE ≅ DE (1) and
+ *  BE ≅ CE (2) with the vertical angle pair at E arced; sharedSide ticks
+ *  AB ≅ DB (1) and AC ≅ DC (2), the shared side BC left unmarked. */
+export interface ProofOverlappingSVGParams {
+  kind: "ProofOverlapping";
+  figure: "bowtie" | "sharedSide";
+}
+
 export type ProofSVGParams =
   | ProofCongruenceSVGParams
   | ProofIsoscelesSVGParams
@@ -136,7 +147,8 @@ export type ProofSVGParams =
   | ProofElementsSVGParams
   | ProofCircleSVGParams
   | ProofQuadrilateralSVGParams
-  | ProofAngleFigureSVGParams;
+  | ProofAngleFigureSVGParams
+  | ProofOverlappingSVGParams;
 
 /**
  * A generated geometry proof problem. Extends BaseProofProblem with the

@@ -35,6 +35,7 @@ import type {
   ProofCircleSVGParams,
   ProofQuadrilateralSVGParams,
   ProofAngleFigureSVGParams,
+  ProofOverlappingSVGParams,
   ElementsProposition,
 } from "@/lib/proofDiagrams";
 
@@ -763,6 +764,56 @@ export function PdfProofAngleFigureSVG(p: ProofAngleFigureSVGParams) {
   );
 }
 
+// ── Overlapping-triangles figures ────────────────────────────────────────────
+
+export function PdfProofOverlappingSVG(p: ProofOverlappingSVGParams) {
+  if (p.figure === "bowtie") {
+    const A: Pt = { x: 42, y: 42 };
+    const B: Pt = { x: 158, y: 42 };
+    const C: Pt = { x: 42, y: 158 };
+    const D: Pt = { x: 158, y: 158 };
+    const E: Pt = { x: 100, y: 100 };
+    return (
+      <Svg viewBox="0 0 200 200" width="130" height="130">
+        <Line x1={A.x} y1={A.y} x2={D.x} y2={D.y} stroke={INK} strokeWidth={1.5} />
+        <Line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke={INK} strokeWidth={1.5} />
+        <PdfTickMarks p1={A} p2={E} count={1} />
+        <PdfTickMarks p1={E} p2={D} count={1} />
+        <PdfTickMarks p1={B} p2={E} count={2} />
+        <PdfTickMarks p1={E} p2={C} count={2} />
+        <PdfAngleArc v={E} p1={A} p2={B} r={17} />
+        <PdfAngleArc v={E} p1={D} p2={C} r={17} />
+        <PdfLabel pt={A} text="A" dx={-8} dy={-2} />
+        <PdfLabel pt={B} text="B" dx={8} dy={-2} />
+        <PdfLabel pt={C} text="C" dx={-8} dy={8} />
+        <PdfLabel pt={D} text="D" dx={8} dy={8} />
+        <PdfLabel pt={E} text="E" dx={0} dy={-10} />
+      </Svg>
+    );
+  }
+  const B: Pt = { x: 40, y: 150 };
+  const C: Pt = { x: 160, y: 150 };
+  const A: Pt = { x: 70, y: 52 };
+  const D: Pt = { x: 132, y: 58 };
+  return (
+    <Svg viewBox="0 0 200 200" width="130" height="130">
+      <Line x1={B.x} y1={B.y} x2={C.x} y2={C.y} stroke={INK} strokeWidth={1.5} />
+      <Line x1={A.x} y1={A.y} x2={B.x} y2={B.y} stroke={INK} strokeWidth={1.5} />
+      <Line x1={A.x} y1={A.y} x2={C.x} y2={C.y} stroke={INK} strokeWidth={1.5} />
+      <Line x1={D.x} y1={D.y} x2={B.x} y2={B.y} stroke={INK} strokeWidth={1.5} />
+      <Line x1={D.x} y1={D.y} x2={C.x} y2={C.y} stroke={INK} strokeWidth={1.5} />
+      <PdfTickMarks p1={A} p2={B} count={1} />
+      <PdfTickMarks p1={D} p2={B} count={1} />
+      <PdfTickMarks p1={A} p2={C} count={2} />
+      <PdfTickMarks p1={D} p2={C} count={2} />
+      <PdfLabel pt={B} text="B" dx={-8} dy={8} />
+      <PdfLabel pt={C} text="C" dx={8} dy={8} />
+      <PdfLabel pt={A} text="A" dx={-6} dy={-4} />
+      <PdfLabel pt={D} text="D" dx={6} dy={-4} />
+    </Svg>
+  );
+}
+
 // ── Dispatcher ───────────────────────────────────────────────────────────────
 
 export function PdfProofSVG({ params }: { params: ProofSVGParams }) {
@@ -784,6 +835,8 @@ export function PdfProofSVG({ params }: { params: ProofSVGParams }) {
       return <PdfProofQuadrilateralSVG {...(params as ProofQuadrilateralSVGParams)} />;
     case "ProofAngleFigure":
       return <PdfProofAngleFigureSVG {...(params as ProofAngleFigureSVGParams)} />;
+    case "ProofOverlapping":
+      return <PdfProofOverlappingSVG {...(params as ProofOverlappingSVGParams)} />;
     default:
       return null;
   }
