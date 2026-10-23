@@ -355,6 +355,11 @@ export default function WorksheetGenerator() {
     );
   };
 
+  // One-tap reset: selections otherwise persist for the whole session, so a
+  // packet built earlier (say Algebra 2) silently rides along into the next
+  // one (say Geometry) unless every topic is untapped by hand.
+  const clearTopics = () => setSelectedTopicIds([]);
+
   // ── Topic group accordion state ──
   // Collapsed by default; no topic is pre-selected, so no group starts open.
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -827,6 +832,7 @@ export default function WorksheetGenerator() {
             collapseAllFiltered={collapseAllFiltered}
             selectedTopicIds={selectedTopicIds}
             toggleTopic={toggleTopic}
+            clearTopics={clearTopics}
             isPro={isPro}
             count={count}
             setCount={setCount}
@@ -1464,6 +1470,7 @@ function StepTopics({
   collapseAllFiltered,
   selectedTopicIds,
   toggleTopic,
+  clearTopics,
   isPro,
   count,
   setCount,
@@ -1492,6 +1499,7 @@ function StepTopics({
   collapseAllFiltered: () => void;
   selectedTopicIds: string[];
   toggleTopic: (id: string) => void;
+  clearTopics: () => void;
   isPro: boolean;
   count: number;
   setCount: (n: number) => void;
@@ -1712,7 +1720,18 @@ function StepTopics({
         </Box>
 
         <Box sx={{ width: '100%', maxWidth: 920 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            {selectedTopicIds.length > 0 ? (
+              <Button
+                size="small"
+                onClick={clearTopics}
+                sx={{ color: '#f0a0a0', fontWeight: 800, fontSize: '0.75rem', '&:hover': { color: '#f87171' } }}
+              >
+                Clear selections ({selectedTopicIds.length})
+              </Button>
+            ) : (
+              <span />
+            )}
             <Button
               size="small"
               onClick={allEffectiveExpanded ? collapseAllFiltered : expandAllFiltered}
