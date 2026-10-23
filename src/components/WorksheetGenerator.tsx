@@ -89,6 +89,24 @@ function modeWord(docType: DocumentType): string {
   return 'Practice';
 }
 
+// ── Export scope guard ───────────────────────────────────────────────────────
+// Course label for a registry entry, from its id prefix (the same prefix
+// convention plan.ts isFreeTopic uses). Ids with no known prefix fall back
+// to the entry's topic title. Used by StepReview to show exactly which
+// lessons are in the packet before export, and to warn when the selection
+// mixes courses (e.g. stale Algebra 2 selections inside a Geometry packet).
+function courseOfEntry(entry: CurriculumEntry): string {
+  const id = entry.id;
+  if (id.startsWith('proofs-') || id.startsWith('g-')) return 'Geometry';
+  if (id.startsWith('a1-')) return 'Algebra 1';
+  if (id.startsWith('a2-') || id.startsWith('a2x-')) return 'Algebra 2';
+  if (id.startsWith('ms6-') || id.startsWith('ms7-') || id.startsWith('ms8-')) return 'Middle School';
+  if (id.startsWith('sat-')) return 'SAT';
+  if (id.startsWith('calc-')) return 'Calculus';
+  if (id.startsWith('precalc-') || id.startsWith('trig-')) return 'Precalculus';
+  return entry.topicTitle;
+}
+
 // ── Document mode definitions (sidebar segmented control) ────────────────────
 
 const DOC_MODES: {
@@ -856,6 +874,7 @@ export default function WorksheetGenerator() {
             draftError={draftError}
             proofDocMode={proofDocMode}
             selectedModules={selectedModules}
+            moduleProblemCounts={displayProblemSets.map((set) => set.length)}
             errorBoundaryKey={errorBoundaryKey}
             isPro={isPro}
             gateReason={gateReason}
@@ -1955,6 +1974,7 @@ function StepReview({
   draftError,
   proofDocMode,
   selectedModules,
+  moduleProblemCounts,
   errorBoundaryKey,
   isPro,
   gateReason,
@@ -1984,6 +2004,8 @@ function StepReview({
   draftError: string | null;
   proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | 'proof-blank' | undefined;
   selectedModules: CurriculumEntry[];
+  /** Per-module generated problem counts, parallel to selectedModules. */
+  moduleProblemCounts: number[];
   errorBoundaryKey: string;
   isPro: boolean;
   gateReason: 'accommodations' | 'limit' | null;
@@ -1991,6 +2013,36 @@ function StepReview({
   usageNote: string | null;
 }) {
   void fileRef;
+  // Export scope guard: exactly which lessons are in the packet, grouped by
+  // course, so a mixed selection can never slip into an export unnoticed.
+  const problemsWord = (n: number) => `${n} problem${n === 1 ? '' : 's'}`;
+  const scopeRows = selectedModules.map((mod, i) => ({
+    title: mod.title,
+    course: courseOfEntry(mod),
+    count: moduleProblemCounts[i] ?? 0,
+  }));
+  const scopeCourses: { course: string; count: number }[] = [];
+  for (const row of scopeRows) {
+    const found = scopeCourses.find((c) => c.course === row.course);
+    if (found) found.count += row.count;
+    else scopeCourses.push({ course: row.course, count: row.count });
+  }
+  const mixesCourses = scopeCourses.length > 1;
+  const mixParts = scopeCourses.map((c) => `${c.course} (${problemsWord(c.count)})`);
+  const mixSummary =
+    mixParts.length > 1
+      ? `${mixParts.slice(0, -1).join(', ')} and ${mixParts[mixParts.length - 1]}`
+      : (mixParts[0] ?? '');
+  const scopeList = (
+    <Box sx={{ mt: 0.5 }}>
+      {scopeRows.map((row, i) => (
+        <Typography key={i} sx={{ fontSize: '0.78rem', fontWeight: 600, lineHeight: 1.55 }}>
+          {row.title} · {problemsWord(row.count)}
+          {mixesCourses ? ` · ${row.course}` : ''}
+        </Typography>
+      ))}
+    </Box>
+  );
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Action bar */}
@@ -2106,6 +2158,37 @@ function StepReview({
           </Box>
         ) : null}
       </Box>
+
+      {/* Export scope guard: packet contents, with a warning on course mixes */}
+      {selectedModules.length > 0 &&
+        (mixesCourses ? (
+          <Alert severity="warning" sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800 }}>
+              This packet mixes {mixSummary}.
+            </Typography>
+            {scopeList}
+          </Alert>
+        ) : (
+          <Box
+            sx={{
+              mx: 'auto',
+              mb: 1.5,
+              maxWidth: '8.5in',
+              width: 'calc(100% - 32px)',
+              bgcolor: '#1e2233',
+              border: '1.5px solid #2c3247',
+              borderRadius: '12px',
+              px: 2,
+              py: 1.25,
+              color: '#f2f3fa',
+            }}
+          >
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#9aa0be', letterSpacing: '0.04em' }}>
+              IN THIS PACKET
+            </Typography>
+            {scopeList}
+          </Box>
+        ))}
 
       {gateReason && (
         <Alert
