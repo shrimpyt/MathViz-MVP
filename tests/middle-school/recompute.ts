@@ -186,8 +186,20 @@ function recompute6(p: MiddleSchoolProblem): string | number {
         if (rest > 1) factors.push(rest);
         return factors.join(" × ");
       }
-      if (istr(g, "wordKind") === "expression") return `${inum(g, "price")}m + ${inum(g, "fee")}`;
-      if (g.y !== undefined) return inum(g, "a") * inum(g, "x") + inum(g, "b") * inum(g, "y");
+      if (istr(g, "wordKind") === "expression") {
+        const v = istr(g, "variable") || "m";
+        return istr(g, "form") === "difference"
+          ? `${inum(g, "fee")} − ${inum(g, "price")}${v}`
+          : `${inum(g, "price")}${v} + ${inum(g, "fee")}`;
+      }
+      if (istr(g, "form") === "const-minus") return inum(g, "c") - inum(g, "a") * inum(g, "x");
+      if (istr(g, "form") === "square") return inum(g, "x") * inum(g, "x") + inum(g, "b");
+      if (g.y !== undefined) {
+        const second = inum(g, "b") * inum(g, "y");
+        return istr(g, "sign") === "−"
+          ? inum(g, "a") * inum(g, "x") - second
+          : inum(g, "a") * inum(g, "x") + second;
+      }
       return inum(g, "a") * inum(g, "x") + inum(g, "b");
     }
     case "EquivalentExpressions": {

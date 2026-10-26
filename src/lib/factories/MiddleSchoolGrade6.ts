@@ -41,6 +41,7 @@ import {
   randNonZero,
   shuffled,
   signStr,
+  dedupeGenerate,
 } from "./MiddleSchoolUtils";
 
 export type Grade6Difficulty = 1 | 2 | 3;
@@ -779,6 +780,53 @@ function makeWordEqualShares(rng: RNG, word = false): Grade6Problem {
 // ── Lesson: Variables & Expressions ──────────────────────────────────────────
 
 function makeEvaluate(rng: RNG): Grade6Problem {
+  const form = pick(rng, ["lin", "lin", "lin", "const-minus", "square"] as const);
+  if (form === "const-minus") {
+    const c = randInt(rng, 12, 40);
+    const a = randInt(rng, 2, 6);
+    const x = randInt(rng, 2, 9);
+    const ans = c - a * x;
+    return build(
+      "VariablesAndExpressions",
+      `Evaluate ${c} − ${a}x when x = ${x}.`,
+      "the value",
+      ans,
+      [
+        {
+          instruction: `Substitute ${x} for x: ${c} − ${a}(${x}).`,
+          blanks: [{ label: "substituted", answer: `${c} − ${a * x}` }],
+        },
+        {
+          instruction: "Simplify:",
+          blanks: [{ label: "answer", answer: String(ans) }],
+        },
+      ],
+      { form, c, a, x }
+    );
+  }
+  if (form === "square") {
+    const x = randInt(rng, 2, 12);
+    const b = randInt(rng, -10, 20);
+    const ans = x * x + b;
+    const expr = b === 0 ? "x²" : `x² ${signStr(b)} ${Math.abs(b)}`;
+    return build(
+      "VariablesAndExpressions",
+      `Evaluate ${expr} when x = ${x}.`,
+      "the value",
+      ans,
+      [
+        {
+          instruction: `Substitute ${x} for x and square it: ${x}² = ${x * x}.`,
+          blanks: [{ label: "squared", answer: String(x * x) }],
+        },
+        {
+          instruction: "Finish simplifying:",
+          blanks: [{ label: "answer", answer: String(ans) }],
+        },
+      ],
+      { form, x, b }
+    );
+  }
   const a = randNonZero(rng, -6, 6);
   const b = randInt(rng, -10, 10);
   const x = randInt(rng, 2, 9);
@@ -808,42 +856,130 @@ function makeEvaluateTwoVar(rng: RNG): Grade6Problem {
   const b = randInt(rng, 2, 6);
   const x = randInt(rng, 2, 9);
   const y = randInt(rng, 2, 9);
-  const ans = a * x + b * y;
+  const sign = rng() < 0.5 ? "−" : "+";
+  const ans = sign === "−" ? a * x - b * y : a * x + b * y;
   return build(
     "VariablesAndExpressions",
-    `Evaluate ${a}x + ${b}y when x = ${x} and y = ${y}.`,
+    `Evaluate ${a}x ${sign} ${b}y when x = ${x} and y = ${y}.`,
     "the value",
     ans,
     [
       {
-        instruction: `Substitute: ${a}(${x}) + ${b}(${y}) = ${a * x} + ${b * y}.`,
-        blanks: [{ label: "substituted", answer: `${a * x} + ${b * y}` }],
+        instruction: `Substitute: ${a}(${x}) ${sign} ${b}(${y}) = ${a * x} ${sign} ${b * y}.`,
+        blanks: [{ label: "substituted", answer: `${a * x} ${sign} ${b * y}` }],
       },
-      { instruction: "Add:", blanks: [{ label: "answer", answer: String(ans) }] },
+      { instruction: "Simplify:", blanks: [{ label: "answer", answer: String(ans) }] },
     ],
-    { a, b, x, y }
+    { a, b, x, y, sign }
   );
 }
 
+// Writing an expression from a situation used to be a single club-fee story,
+// so a worksheet could ask it four times (twice word-for-word). The pool now
+// spans per-unit-plus-flat totals in six settings and three "amount left"
+// situations whose expression subtracts, with the variable letter following
+// the story.
+interface ExpressionStory {
+  id: string;
+  variable: string;
+  form: "sum" | "difference";
+  priceRange: [number, number];
+  feeRange: [number, number];
+  text: (price: number, fee: number) => string;
+  variablePart: string;
+  flatPart: string;
+}
+
+const EXPRESSION_STORIES: ExpressionStory[] = [
+  {
+    id: "club", variable: "m", form: "sum", priceRange: [3, 8], feeRange: [1, 5],
+    text: (p, f) => `A club charges $${p} per member plus a $${f} registration fee. Write an algebraic expression for the total cost for m members.`,
+    variablePart: "per-member charges", flatPart: "one-time registration fee",
+  },
+  {
+    id: "amusement-park", variable: "t", form: "sum", priceRange: [8, 20], feeRange: [3, 8],
+    text: (p, f) => `An amusement park charges $${p} per ticket plus a flat $${f} parking fee. Write an algebraic expression for the total cost of t tickets with parking.`,
+    variablePart: "ticket charges", flatPart: "flat parking fee",
+  },
+  {
+    id: "taxi", variable: "m", form: "sum", priceRange: [2, 5], feeRange: [3, 6],
+    text: (p, f) => `A taxi charges $${p} per mile plus a $${f} pickup fee. Write an algebraic expression for the fare for a trip of m miles.`,
+    variablePart: "per-mile charges", flatPart: "pickup fee",
+  },
+  {
+    id: "print-shop", variable: "n", form: "sum", priceRange: [1, 4], feeRange: [2, 6],
+    text: (p, f) => `A print shop charges $${p} per photo plus a $${f} shipping fee. Write an algebraic expression for the total cost of ordering n photos.`,
+    variablePart: "per-photo charges", flatPart: "shipping fee",
+  },
+  {
+    id: "gym", variable: "m", form: "sum", priceRange: [10, 30], feeRange: [20, 50],
+    text: (p, f) => `A gym charges a $${f} joining fee plus $${p} per month. Write an algebraic expression for the total cost of a membership that lasts m months.`,
+    variablePart: "monthly charges", flatPart: "one-time joining fee",
+  },
+  {
+    id: "bowling", variable: "g", form: "sum", priceRange: [4, 9], feeRange: [5, 10],
+    text: (p, f) => `A bowling alley charges $${p} per game plus a flat $${f} lane fee. Write an algebraic expression for the total cost of g games on one lane.`,
+    variablePart: "per-game charges", flatPart: "flat lane fee",
+  },
+  {
+    id: "gift-card", variable: "n", form: "difference", priceRange: [1, 3], feeRange: [15, 50],
+    text: (p, f) => `Sofia has a $${f} gift card. Songs cost $${p} each. Write an algebraic expression for the amount left on the gift card after Sofia buys n songs.`,
+    variablePart: "song purchases", flatPart: "starting gift card amount",
+  },
+  {
+    id: "book-pages", variable: "d", form: "difference", priceRange: [8, 25], feeRange: [120, 320],
+    text: (p, f) => `A book has ${f} pages. Leo reads ${p} pages each day. Write an algebraic expression for the number of pages Leo has left to read after d days.`,
+    variablePart: "pages Leo reads", flatPart: "total number of pages",
+  },
+  {
+    id: "savings", variable: "w", form: "difference", priceRange: [3, 9], feeRange: [40, 120],
+    text: (p, f) => `Mia has saved $${f}. She spends $${p} per week on snacks. Write an algebraic expression for the amount Mia has left after w weeks.`,
+    variablePart: "weekly spending", flatPart: "amount Mia started with",
+  },
+];
+
 function makeExpressionWord(rng: RNG): Grade6Problem {
-  const price = randInt(rng, 3, 8);
-  const fee = randInt(rng, 1, 5);
+  const story = pick(rng, EXPRESSION_STORIES);
+  const price = randInt(rng, story.priceRange[0], story.priceRange[1]);
+  const fee = randInt(rng, story.feeRange[0], story.feeRange[1]);
+  const v = story.variable;
+  if (story.form === "difference") {
+    const answer = `${fee} − ${price}${v}`;
+    return build(
+      "VariablesAndExpressions",
+      story.text(price, fee),
+      "the expression",
+      answer,
+      [
+        {
+          instruction: `The ${story.variablePart} give the amount that comes off, in terms of ${v}:`,
+          blanks: [{ label: "variable term", answer: `${price}${v}` }],
+        },
+        {
+          instruction: `Subtract that from the ${story.flatPart}. Write the full expression:`,
+          blanks: [{ label: "answer", answer }],
+        },
+      ],
+      { price, fee, variable: v, form: story.form, story: story.id, wordKind: "expression" }
+    );
+  }
+  const answer = `${price}${v} + ${fee}`;
   return build(
     "VariablesAndExpressions",
-    `A club charges $${price} per member plus a $${fee} registration fee. Write an algebraic expression for the total cost for m members.`,
+    story.text(price, fee),
     "the expression",
-    `${price}m + ${fee}`,
+    answer,
     [
       {
-        instruction: "The variable part is the per-member charge times m:",
-        blanks: [{ label: "variable term", answer: `${price}m` }],
+        instruction: `The ${story.variablePart} give the variable term, in terms of ${v}:`,
+        blanks: [{ label: "variable term", answer: `${price}${v}` }],
       },
       {
-        instruction: "Add the one-time fee. Write the full expression:",
-        blanks: [{ label: "answer", answer: `${price}m + ${fee}` }],
+        instruction: `Add the ${story.flatPart}. Write the full expression:`,
+        blanks: [{ label: "answer", answer }],
       },
     ],
-    { price, fee, wordKind: "expression" }
+    { price, fee, variable: v, form: story.form, story: story.id, wordKind: "expression" }
   );
 }
 
@@ -3046,10 +3182,10 @@ export function generateGrade6Problems(
       : MAKERS;
   const tierPool = lessonPool.filter((m) => m.tier <= difficulty);
   const finalPool = tierPool.length > 0 ? tierPool : lessonPool;
-  return Array.from({ length: n }, () => {
+  return dedupeGenerate(() => {
     const entry = pick(rng, finalPool);
     const problem = entry.make(rng, wordProblems);
     problem.tier = entry.tier;
     return problem;
-  });
+  }, n);
 }
