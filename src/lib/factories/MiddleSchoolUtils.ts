@@ -172,3 +172,34 @@ export function twoStepEquation(a: number, b: number, c: number, variable = "x")
   const lhs = b === 0 ? coeffTerm(a, variable) : `${coeffTerm(a, variable)} ${signStr(b)} ${Math.abs(b)}`;
   return `${lhs} = ${c}`;
 }
+
+/**
+ * Draw n problems while suppressing repeats inside the set. An exact
+ * duplicate prompt is never accepted while redraws remain, and one
+ * template (the prompt with its numbers masked out) is capped at two
+ * appearances per set while alternatives exist. Worksheets were shipping
+ * with the same story four times (twice word-for-word identical) because
+ * the raw draw never looked back; this is the look-back. Degenerate pools
+ * still return n problems: a repeat is accepted rather than a short set.
+ */
+export function dedupeGenerate<T extends { prompt: string }>(draw: () => T, n: number): T[] {
+  const out: T[] = [];
+  const seen = new Set<string>();
+  const templateCount = new Map<string, number>();
+  const templateOf = (prompt: string) => prompt.replace(/[0-9]+/g, "#");
+  for (let i = 0; i < n; i++) {
+    let chosen: T | undefined;
+    for (let attempt = 0; attempt < 24 && chosen === undefined; attempt++) {
+      const cand = draw();
+      if (seen.has(cand.prompt)) continue;
+      if (attempt < 12 && (templateCount.get(templateOf(cand.prompt)) ?? 0) >= 2) continue;
+      chosen = cand;
+    }
+    const problem = chosen ?? draw();
+    out.push(problem);
+    seen.add(problem.prompt);
+    const t = templateOf(problem.prompt);
+    templateCount.set(t, (templateCount.get(t) ?? 0) + 1);
+  }
+  return out;
+}

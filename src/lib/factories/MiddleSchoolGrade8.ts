@@ -26,6 +26,7 @@ import {
   shuffled,
   signStr,
   linearEquation,
+  dedupeGenerate,
 } from "./MiddleSchoolUtils";
 
 export type Grade8Difficulty = 1 | 2 | 3;
@@ -2438,10 +2439,10 @@ export function generateGrade8Problems(
       : MAKERS;
   const tierPool = lessonPool.filter((m) => m.tier <= difficulty);
   const finalPool = tierPool.length > 0 ? tierPool : lessonPool;
-  return Array.from({ length: n }, () => {
+  return dedupeGenerate(() => {
     const entry = pick(rng, finalPool);
     const problem = entry.make(rng, wordProblems);
     problem.tier = entry.tier;
     return problem;
-  });
+  }, n);
 }
