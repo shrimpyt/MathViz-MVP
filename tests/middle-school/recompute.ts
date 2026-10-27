@@ -194,6 +194,10 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       }
       if (istr(g, "form") === "const-minus") return inum(g, "c") - inum(g, "a") * inum(g, "x");
       if (istr(g, "form") === "square") return inum(g, "x") * inum(g, "x") + inum(g, "b");
+      if (istr(g, "kind") === "eval-division") {
+        if (istr(g, "form") === "single") return (inum(g, "a") * inum(g, "m")) / inum(g, "b");
+        return (inum(g, "a") * inum(g, "y") - inum(g, "c")) / inum(g, "x");
+      }
       if (g.y !== undefined) {
         const second = inum(g, "b") * inum(g, "y");
         return istr(g, "sign") === "−"
@@ -201,6 +205,94 @@ function recompute6(p: MiddleSchoolProblem): string | number {
           : inum(g, "a") * inum(g, "x") + second;
       }
       return inum(g, "a") * inum(g, "x") + inum(g, "b");
+    }
+    case "Exponents": {
+      const base = inum(g, "base");
+      const exp = inum(g, "exp");
+      let v = 1;
+      for (let i = 0; i < exp; i++) v *= base;
+      return v;
+    }
+    case "PrimeFactorization": {
+      let rest = inum(g, "n");
+      const factors: number[] = [];
+      for (let p = 2; p * p <= rest; p++) {
+        while (rest % p === 0) {
+          factors.push(p);
+          rest /= p;
+        }
+      }
+      if (rest > 1) factors.push(rest);
+      if (istr(g, "kind") === "prime-exponents") {
+        const sup: Record<number, string> = { 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶" };
+        const parts: string[] = [];
+        let i = 0;
+        while (i < factors.length) {
+          let j = i;
+          while (j < factors.length && factors[j] === factors[i]) j++;
+          const count = j - i;
+          parts.push(count === 1 ? String(factors[i]) : `${factors[i]}${sup[count]}`);
+          i = j;
+        }
+        return parts.join(" × ");
+      }
+      return factors.join(" × ");
+    }
+    case "OrderOfOperations": {
+      const kind = istr(g, "kind");
+      if (kind === "basic") {
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c");
+        const form = istr(g, "form");
+        if (form === "add-mul") return a + b * c;
+        if (form === "mul-sub") return a * b - c;
+        if (form === "sub-mul") return a - b * c;
+        return a + b / c;
+      }
+      if (kind === "powers") return inum(g, "p") ** 2 + inum(g, "q") ** 2 - inum(g, "r") + inum(g, "s");
+      if (kind === "parens") {
+        const inner = inum(g, "b") - inum(g, "c");
+        return inum(g, "a") * inner * inner - inum(g, "d") * inum(g, "e");
+      }
+      if (kind === "neg-squares") return inum(g, "a") * inum(g, "p") ** 2 - inum(g, "b") * inum(g, "q") ** 2;
+      if (kind === "compare") {
+        const k = inum(g, "k"), a = inum(g, "a"), b = inum(g, "b");
+        const mode = istr(g, "mode");
+        const grouped = `${k}(${a} − ${b})`;
+        const differenced = `${a} − ${b}`;
+        if (mode === "equal") return "The expressions are equivalent.";
+        // In both "times" modes the grouped expression is the 3x value and
+        // the plain difference is the 1x value, whichever printed first.
+        return `The value of ${grouped} is 3 times the value of ${differenced}.`;
+      }
+      throw new Error(`unhandled OrderOfOperations kind=${kind}`);
+    }
+    case "PartsOfExpression": {
+      const kind = istr(g, "kind");
+      if (kind === "identify-algebraic") {
+        const items = istr(g, "items").split("|");
+        return items.filter((t) => /[a-z]/.test(t)).join(", ");
+      }
+      if (kind === "factors") return `${inum(g, "a")}, ${istr(g, "variable")} ${istr(g, "op")} ${inum(g, "b")}`;
+      if (kind === "product-terms") return `${istr(g, "part1")} and ${istr(g, "part2")}`;
+      if (kind === "variable-quantity") return istr(g, "expected");
+      throw new Error(`unhandled PartsOfExpression kind=${kind}`);
+    }
+    case "WritingExpressions": {
+      if (istr(g, "wordKind") === "expression") {
+        const v = istr(g, "variable") || "m";
+        return istr(g, "form") === "difference"
+          ? `${inum(g, "fee")} − ${inum(g, "price")}${v}`
+          : `${inum(g, "price")}${v} + ${inum(g, "fee")}`;
+      }
+      const kind = istr(g, "kind");
+      if (kind === "translate") return istr(g, "direction") === "to-algebra" ? istr(g, "expr") : istr(g, "phrase");
+      if (kind === "two-var-cost") return `${inum(g, "a")}x + ${inum(g, "b")}y`;
+      if (kind === "division-expression") return `${istr(g, "total")} ÷ ${inum(g, "rate")}`;
+      if (kind === "write-evaluate") return inum(g, "fee") + inum(g, "rate") * inum(g, "amount");
+      if (kind === "rate-compare") {
+        return inum(g, "r1") * inum(g, "h1") >= inum(g, "r2") * inum(g, "h2") ? "Job A" : "Job B";
+      }
+      throw new Error(`unhandled WritingExpressions kind=${kind}`);
     }
     case "EquivalentExpressions": {
       if (g.d !== undefined) {
