@@ -1488,6 +1488,47 @@ const MS6_VARIABLES_EXPRESSIONS: string[] = [
   "Term: A number, a variable, or a product of numbers and variables in an expression; the terms of 3x + 2 are 3x and 2.",
 ];
 
+const MS6_EXPONENTS: string[] = [
+  "Base: The number that is multiplied repeatedly in a power; in the power with base 5 and exponent 2, the base is 5.",
+  "Exponent: The small raised number in a power that tells how many times the base is used as a factor.",
+  "Power: A base raised to an exponent; the word also names the value of that expression.",
+  "Repeated Multiplication: Writing a power as a product of the same factor, such as writing 4 x 4 x 4 for the power with base 4 and exponent 3.",
+  "Squared: Raised to the second power; a number squared is that number times itself.",
+];
+
+const MS6_PRIME_FACTORIZATION: string[] = [
+  "Prime Number: A whole number greater than 1 that has exactly two factors, the number itself and 1.",
+  "Composite Number: A whole number greater than 1 that has factors other than the number itself and 1.",
+  "Factor: A whole number that divides another number evenly, with no remainder.",
+  "Prime Factorization: Writing a composite number as a product of prime numbers, listed from least to greatest.",
+  "Factor Tree: A diagram that breaks a number into factors, branch by branch, until every factor is prime.",
+];
+
+const MS6_ORDER_OF_OPERATIONS: string[] = [
+  "Order of Operations: The agreed order for evaluating an expression: parentheses first, then exponents, then multiplication and division from left to right, then addition and subtraction from left to right.",
+  "Numerical Expression: A math phrase with numbers and operation symbols but no variables and no equals sign.",
+  "Parentheses: Grouping symbols that show which part of an expression to evaluate first.",
+  "Evaluate: To find the value of an expression by computing it, following the order of operations.",
+  "Equivalent Expressions: Different expressions that have the same value, such as 3(30 - 5) and 90 - 15, which both equal 75.",
+];
+
+const MS6_PARTS_OF_AN_EXPRESSION: string[] = [
+  "Algebraic Expression: A math phrase that has numbers, variables, and operations but no equals sign.",
+  "Numerical Expression: A math phrase with numbers and operation symbols but no variables.",
+  "Term: A number, a variable, or a product of numbers and variables; the terms of an expression are separated by addition and subtraction.",
+  "Factor: One of the quantities multiplied together in a product; in 6(x + 2), the factors are 6 and x + 2.",
+  "Variable Quantity: An amount that can change or take different values, such as the number of rides a person goes on at a park.",
+];
+
+const MS6_WRITING_EXPRESSIONS: string[] = [
+  "Translate: To rewrite a phrase in words as an algebraic expression, or to rewrite an algebraic expression as a phrase in words.",
+  "Sum: The result of adding two quantities; the phrase 'the sum of a number and 9' translates to x + 9.",
+  "Difference: The result of subtracting one quantity from another; the phrase 'a number decreased by 9' translates to x - 9.",
+  "Product: The result of multiplying two quantities; the phrase 'the product of 9 and a number' translates to 9x.",
+  "Quotient: The result of dividing one quantity by another; the phrase 'the quotient of a number and 9' translates to a number divided by 9.",
+];
+
+
 const MS6_EQUIVALENT_EXPRESSIONS: string[] = [
   "Equivalent Expressions: Expressions that have the same value for every value of the variable; 2(x + 3) and 2x + 6 are equivalent expressions.",
   "Like Terms: Terms that have the same variable raised to the same power, such as 4x and 7x; like terms can be combined into one term.",
@@ -2361,7 +2402,12 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ms6-2-3-multiplying-dividing-integers": MS_INTEGER_CORE,
   "ms6-2-4-integer-word-add-subtract": MS_INTEGER_CORE,
   "ms6-2-5-integer-word-multiply-divide": MS_INTEGER_CORE,
-  "ms6-3-1-variables-expressions": MS6_VARIABLES_EXPRESSIONS,
+  "ms6-3-5-exponents": MS6_EXPONENTS,
+  "ms6-3-6-prime-factorization": MS6_PRIME_FACTORIZATION,
+  "ms6-3-7-order-of-operations": MS6_ORDER_OF_OPERATIONS,
+  "ms6-3-8-parts-of-an-expression": MS6_PARTS_OF_AN_EXPRESSION,
+  "ms6-3-9-writing-expressions": MS6_WRITING_EXPRESSIONS,
+  "ms6-3-10-evaluating-expressions": MS6_VARIABLES_EXPRESSIONS,
   "ms6-3-2-equivalent-expressions": MS6_EQUIVALENT_EXPRESSIONS,
   "ms6-3-3-equations-inequalities": MS6_EQUATIONS_INEQUALITIES,
   "ms6-3-4-two-variable-relationships": MS6_TWO_VARIABLE,

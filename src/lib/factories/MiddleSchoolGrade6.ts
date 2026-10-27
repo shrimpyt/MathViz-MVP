@@ -946,7 +946,7 @@ function makeExpressionWord(rng: RNG): Grade6Problem {
   if (story.form === "difference") {
     const answer = `${fee} − ${price}${v}`;
     return build(
-      "VariablesAndExpressions",
+      "WritingExpressions",
       story.text(price, fee),
       "the expression",
       answer,
@@ -965,7 +965,7 @@ function makeExpressionWord(rng: RNG): Grade6Problem {
   }
   const answer = `${price}${v} + ${fee}`;
   return build(
-    "VariablesAndExpressions",
+    "WritingExpressions",
     story.text(price, fee),
     "the expression",
     answer,
@@ -1001,38 +1001,102 @@ function primeFactorsOf(n: number): number[] {
   return out;
 }
 
-function makeExponentsPrime(rng: RNG): Grade6Problem {
-  if (rng() < 0.5) {
-    const base = randInt(rng, 2, 9);
-    const exp = pick(rng, [2, 2, 3, 3, 4]);
-    const sup = exp === 2 ? "²" : exp === 3 ? "³" : "⁴";
-    let value = 1;
-    for (let i = 0; i < exp; i++) value *= base;
-    const expanded = Array.from({ length: exp }, () => String(base)).join(" × ");
-    return build(
-      "VariablesAndExpressions",
-      `Evaluate the power ${base}${sup}.`,
-      "the value",
-      value,
-      [
-        {
-          instruction: `The exponent tells how many times the base is used as a factor: ${base}${sup} = ${expanded}.`,
-          blanks: [{ label: "expanded", answer: expanded }],
-        },
-        {
-          instruction: "Multiply the factors:",
-          blanks: [{ label: "answer", answer: String(value) }],
-        },
-      ],
-      { kind: "power", base, exp }
-    );
-  }
+// ── Lesson: Exponents ──────────────────────────────────────────────────────
+
+const SUP_DIGITS: Record<number, string> = { 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶" };
+
+function powerValue(base: number, exp: number): number {
+  let v = 1;
+  for (let i = 0; i < exp; i++) v *= base;
+  return v;
+}
+
+function makePowerEvaluate(rng: RNG): Grade6Problem {
+  const base = randInt(rng, 2, 9);
+  const exp = pick(rng, [2, 2, 3, 3, 4]);
+  const sup = SUP_DIGITS[exp];
+  const value = powerValue(base, exp);
+  const expanded = Array.from({ length: exp }, () => String(base)).join(" × ");
+  return build(
+    "Exponents",
+    `Evaluate the power ${base}${sup}.`,
+    "the value",
+    value,
+    [
+      {
+        instruction: `The exponent tells how many times the base is used as a factor: ${base}${sup} = ${expanded}.`,
+        blanks: [{ label: "expanded", answer: expanded }],
+      },
+      {
+        instruction: "Multiply the factors:",
+        blanks: [{ label: "answer", answer: String(value) }],
+      },
+    ],
+    { kind: "power", base, exp }
+  );
+}
+
+function makePowerIdentify(rng: RNG): Grade6Problem {
+  const base = randInt(rng, 2, 12);
+  const exp = pick(rng, [2, 3, 4]);
+  const sup = SUP_DIGITS[exp];
+  const value = powerValue(base, exp);
+  return build(
+    "Exponents",
+    `Identify the base and exponent of ${base}${sup}. Then simplify the expression.`,
+    "the value",
+    value,
+    [
+      {
+        instruction: "The base is the number being multiplied, and the exponent tells how many times it is used as a factor:",
+        blanks: [
+          { label: "base", answer: String(base) },
+          { label: "exponent", answer: String(exp) },
+        ],
+      },
+      {
+        instruction: `Simplify: ${base}${sup} = `,
+        blanks: [{ label: "answer", answer: String(value) }],
+      },
+    ],
+    { kind: "identify", base, exp }
+  );
+}
+
+function makePowerRepeated(rng: RNG): Grade6Problem {
+  const base = randInt(rng, 2, 9);
+  const exp = pick(rng, [3, 4, 4, 5]);
+  const sup = SUP_DIGITS[exp];
+  const value = powerValue(base, exp);
+  const expanded = Array.from({ length: exp }, () => String(base)).join(" × ");
+  return build(
+    "Exponents",
+    `Write ${base}${sup} using repeated multiplication. Then give its value.`,
+    "the value",
+    value,
+    [
+      {
+        instruction: `Use the base as a factor ${exp} times:`,
+        blanks: [{ label: "repeated multiplication", answer: expanded }],
+      },
+      {
+        instruction: "Multiply the factors:",
+        blanks: [{ label: "answer", answer: String(value) }],
+      },
+    ],
+    { kind: "repeated", base, exp }
+  );
+}
+
+// ── Lesson: Prime Factorization ────────────────────────────────────────────
+
+function makePrimeFactorization(rng: RNG): Grade6Problem {
   const n = pick(rng, PRIME_FACTOR_POOL);
   const factors = primeFactorsOf(n);
   const ans = factors.join(" × ");
   const first = factors[0];
   return build(
-    "VariablesAndExpressions",
+    "PrimeFactorization",
     `Write the prime factorization of ${n}. List the prime factors from least to greatest, joined by multiplication signs.`,
     "the prime factorization",
     ans,
@@ -1047,6 +1111,655 @@ function makeExponentsPrime(rng: RNG): Grade6Problem {
       },
     ],
     { kind: "prime-factorization", n }
+  );
+}
+
+function makePrimeFactorizationExponents(rng: RNG): Grade6Problem {
+  const n = pick(rng, PRIME_FACTOR_POOL);
+  const factors = primeFactorsOf(n);
+  const counts = new Map<number, number>();
+  for (const f of factors) counts.set(f, (counts.get(f) ?? 0) + 1);
+  const plain = factors.join(" × ");
+  const withExp = [...counts.entries()]
+    .map(([p, c]) => (c === 1 ? String(p) : `${p}${SUP_DIGITS[c]}`))
+    .join(" × ");
+  return build(
+    "PrimeFactorization",
+    `Write the prime factorization of ${n} using exponents.`,
+    "the prime factorization",
+    withExp,
+    [
+      {
+        instruction: "First write the prime factorization in order:",
+        blanks: [{ label: "prime factorization", answer: plain }],
+      },
+      {
+        instruction: "Group the repeated primes and write each group with an exponent:",
+        blanks: [{ label: "answer", answer: withExp }],
+      },
+    ],
+    { kind: "prime-exponents", n }
+  );
+}
+
+// ── Lesson: Order of Operations ────────────────────────────────────────────
+
+function makeOOOBasic(rng: RNG): Grade6Problem {
+  const form = pick(rng, ["add-mul", "mul-sub", "sub-mul", "add-div"] as const);
+  let a = 0, b = 0, c = 0, expr = "", firstStep = "", ans = 0;
+  if (form === "add-mul") {
+    a = randInt(rng, 2, 30); b = randInt(rng, 2, 9); c = randInt(rng, 2, 9);
+    expr = `${a} + ${b} × ${c}`; firstStep = `${b} × ${c} = ${b * c}`; ans = a + b * c;
+  } else if (form === "mul-sub") {
+    a = randInt(rng, 2, 9); b = randInt(rng, 3, 9); c = randInt(rng, 1, a * b - 1);
+    expr = `${a} × ${b} − ${c}`; firstStep = `${a} × ${b} = ${a * b}`; ans = a * b - c;
+  } else if (form === "sub-mul") {
+    b = randInt(rng, 2, 9); c = randInt(rng, 2, 9); a = b * c + randInt(rng, 1, 30);
+    expr = `${a} − ${b} × ${c}`; firstStep = `${b} × ${c} = ${b * c}`; ans = a - b * c;
+  } else {
+    c = randInt(rng, 2, 9); b = c * randInt(rng, 2, 9); a = randInt(rng, 2, 30);
+    expr = `${a} + ${b} ÷ ${c}`; firstStep = `${b} ÷ ${c} = ${b / c}`; ans = a + b / c;
+  }
+  return build(
+    "OrderOfOperations",
+    `Evaluate ${expr}.`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Multiply or divide before adding or subtracting: ${firstStep}.`,
+        blanks: [{ label: "first step", answer: firstStep.split(" = ")[1] }],
+      },
+      {
+        instruction: "Finish evaluating:",
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "basic", form, a, b, c }
+  );
+}
+
+function makeOOOPowers(rng: RNG): Grade6Problem {
+  const p = randInt(rng, 2, 9);
+  const q = randInt(rng, 2, 9);
+  const r = randInt(rng, 1, 20);
+  const s = randInt(rng, 1, 20);
+  const ans = p * p + q * q - r + s;
+  return build(
+    "OrderOfOperations",
+    `Use the order of operations to simplify ${p}² + ${q}² − ${r} + ${s}.`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Evaluate the powers first: ${p}² = ${p * p} and ${q}² = ${q * q}.`,
+        blanks: [{ label: "powers", answer: `${p * p} + ${q * q}` }],
+      },
+      {
+        instruction: "Now add and subtract from left to right:",
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "powers", p, q, r, s }
+  );
+}
+
+function makeOOOParens(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 6);
+  const b = randInt(rng, 5, 12);
+  const c = randInt(rng, 1, b - 1);
+  const d = randInt(rng, 2, 5);
+  const e = randInt(rng, 2, 9);
+  const inner = b - c;
+  const ans = a * inner * inner - d * e;
+  return build(
+    "OrderOfOperations",
+    `Evaluate ${a}(${b} − ${c})² − ${d}(${e}).`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Start inside the parentheses: ${b} − ${c} = `,
+        blanks: [{ label: "parentheses", answer: String(inner) }],
+      },
+      {
+        instruction: `Square it and multiply: ${a} × ${inner}² = ${a * inner * inner}, and ${d}(${e}) = ${d * e}.`,
+        blanks: [{ label: "products", answer: `${a * inner * inner} − ${d * e}` }],
+      },
+      {
+        instruction: "Subtract:",
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "parens", a, b, c, d, e }
+  );
+}
+
+function makeOOONegativeSquares(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 7);
+  const p = randInt(rng, 2, 6);
+  const b = randInt(rng, 2, 7);
+  const q = randInt(rng, 2, 6);
+  const ans = a * p * p - b * q * q;
+  return build(
+    "OrderOfOperations",
+    `Use the order of operations to simplify ${a}(−${p})² − ${b}(−${q})².`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Square first. A negative number squared is positive: (−${p})² = ${p * p} and (−${q})² = ${q * q}.`,
+        blanks: [{ label: "squares", answer: `${p * p} and ${q * q}` }],
+      },
+      {
+        instruction: `Multiply, then subtract: ${a} × ${p * p} − ${b} × ${q * q} = `,
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "neg-squares", a, p, b, q }
+  );
+}
+
+function makeOOOCompare(rng: RNG): Grade6Problem {
+  const mode = pick(rng, ["equal", "first-times", "second-times"] as const);
+  const k = 3;
+  const a = randInt(rng, 15, 40);
+  const b = randInt(rng, 2, a - 5);
+  const grouped = `${k}(${a} − ${b})`;
+  const differenced = `${a} − ${b}`;
+  const distributed = `${k * a} − ${k * b}`;
+  const e1 = mode === "second-times" ? differenced : grouped;
+  const e2 = mode === "equal" ? distributed : mode === "first-times" ? differenced : grouped;
+  const base = a - b;
+  const v1 = mode === "second-times" ? base : k * base;
+  const v2 = mode === "equal" ? k * base : mode === "first-times" ? base : k * base;
+  const relation =
+    mode === "equal"
+      ? "The expressions are equivalent."
+      : mode === "first-times"
+        ? `The value of ${e1} is 3 times the value of ${e2}.`
+        : `The value of ${e2} is 3 times the value of ${e1}.`;
+  return build(
+    "OrderOfOperations",
+    `Evaluate each numerical expression. Then compare the values of the expressions. ${e1}   and   ${e2}`,
+    "the comparison",
+    relation,
+    [
+      {
+        instruction: `Evaluate ${e1}:`,
+        blanks: [{ label: "first value", answer: String(v1) }],
+      },
+      {
+        instruction: `Evaluate ${e2}:`,
+        blanks: [{ label: "second value", answer: String(v2) }],
+      },
+      {
+        instruction: "Compare the two values. Are they equal, or is one 3 times the other?",
+        blanks: [{ label: "answer", answer: relation }],
+      },
+    ],
+    { kind: "compare", mode, k, a, b }
+  );
+}
+
+// ── Lesson: Parts of an Expression ─────────────────────────────────────────
+
+function makeIdentifyAlgebraic(rng: RNG): Grade6Problem {
+  const v = pick(rng, ["x", "y", "n", "m"]);
+  const w = v === "x" ? "y" : "x";
+  const algebraicPool = [
+    () => `${randInt(rng, 11, 19)}${v}${w}`,
+    () => `${randInt(rng, 40, 90)} − ${randInt(rng, 20, 60)}${v}`,
+    () => `${randInt(rng, 11, 19)}${v} − ${randInt(rng, 20, 40)}${w}`,
+    () => `${randInt(rng, 2, 9)}(${v} + ${randInt(rng, 2, 9)})`,
+  ];
+  const numericPool = [
+    () => `${randInt(rng, 2, 12)}(${randInt(rng, 100, 200)} ÷ ${randInt(rng, 20, 40)})`,
+    () => `${randInt(rng, 11, 30)} + ${randInt(rng, 20, 40)} · ${randInt(rng, 11, 19)}`,
+    () => `${randInt(rng, 60, 99)} − ${randInt(rng, 20, 59)}`,
+  ];
+  const algIdx = new Set<number>();
+  const items: string[] = [];
+  const alg = shuffled(rng, algebraicPool).slice(0, 3).map((f) => f());
+  const num = shuffled(rng, numericPool).slice(0, 2).map((f) => f());
+  const merged = shuffled(rng, [
+    ...alg.map((t) => ({ t, isAlg: true })),
+    ...num.map((t) => ({ t, isAlg: false })),
+  ]);
+  merged.forEach((it, i) => {
+    items.push(it.t);
+    if (it.isAlg) algIdx.add(i);
+  });
+  const answer = items.filter((_, i) => algIdx.has(i)).join(", ");
+  return build(
+    "PartsOfExpression",
+    `Which of these expressions are algebraic expressions? ${items.join("    ")} Select all that apply.`,
+    "the algebraic expressions",
+    answer,
+    [
+      {
+        instruction: "An algebraic expression contains at least one variable. A numerical expression contains only numbers and operation symbols. Classify each expression:",
+        blanks: items.map((t, i) => ({ label: t, answer: algIdx.has(i) ? "algebraic" : "numerical" })),
+      },
+      {
+        instruction: "List the algebraic expressions:",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "identify-algebraic", items: items.join("|"), algebraic: [...algIdx].join(",") }
+  );
+}
+
+function makeIdentifyFactors(rng: RNG): Grade6Problem {
+  const variable = pick(rng, ["x", "y", "n"]);
+  const a = randInt(rng, 2, 9);
+  const b = randInt(rng, 2, 12);
+  const op = pick(rng, ["+", "−"] as const);
+  const grouped = `${variable} ${op} ${b}`;
+  const answer = `${a}, ${grouped}`;
+  return build(
+    "PartsOfExpression",
+    `Identify the factors in the algebraic expression ${a}(${grouped}).`,
+    "the factors",
+    answer,
+    [
+      {
+        instruction: "Factors are the quantities being multiplied. The expression is a product of two factors:",
+        blanks: [
+          { label: "first factor", answer: String(a) },
+          { label: "second factor", answer: grouped },
+        ],
+      },
+      {
+        instruction: "Write the factors, separated by a comma:",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "factors", a, b, variable, op }
+  );
+}
+
+function makeProductOfTwoTerms(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 9);
+  const b = randInt(rng, 2, 9);
+  const c = randInt(rng, 2, 12);
+  const d = randInt(rng, 2, 9);
+  const e = randInt(rng, 30, 60);
+  const f = randInt(rng, 5, 12);
+  const g = randInt(rng, 11, 19);
+  const h = randInt(rng, 2, 9);
+  const part1 = `${a}(${b}x + ${c})`;
+  const part2 = `${g}(${h}z)`;
+  const distractor = `(${e}y ÷ ${f})`;
+  const expr = `${part1} − ${distractor} + ${part2}`;
+  const answer = `${part1} and ${part2}`;
+  return build(
+    "PartsOfExpression",
+    `Within the expression ${expr}, which parts can you describe as the product of two terms?`,
+    "the parts",
+    answer,
+    [
+      {
+        instruction: "A product of two terms is one quantity multiplied by another single quantity. A quotient in parentheses is not a product, and a difference of two parts is not a single product. Find the two products:",
+        blanks: [
+          { label: "first product", answer: part1 },
+          { label: "second product", answer: part2 },
+        ],
+      },
+      {
+        instruction: "Write the two parts:",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "product-terms", part1, part2 }
+  );
+}
+
+const VARIABLE_QUANTITY_SCENARIOS: { text: string; answer: "Yes" | "No"; why: string }[] = [
+  {
+    text: "Justin is at the amusement park for 5 hours. The number of rides he goes on depends on how long the line is for each ride. Is the amount of time he spends at the park a variable quantity?",
+    answer: "No",
+    why: "The time is set at 5 hours and does not change.",
+  },
+  {
+    text: "Justin is at the amusement park. The number of rides he goes on depends on how long the line is for each ride. Is the number of rides he goes on a variable quantity?",
+    answer: "Yes",
+    why: "The number of rides can change; it depends on the lines.",
+  },
+  {
+    text: "A book has 240 pages. Is the total number of pages in the book a variable quantity?",
+    answer: "No",
+    why: "The book always has 240 pages; the amount does not change.",
+  },
+  {
+    text: "The temperature outside changes throughout the day. Is the temperature a variable quantity?",
+    answer: "Yes",
+    why: "The temperature takes different values at different times.",
+  },
+  {
+    text: "Each movie ticket costs $12. Is the price of one ticket a variable quantity?",
+    answer: "No",
+    why: "The price of one ticket stays $12.",
+  },
+  {
+    text: "The total cost of the tickets depends on how many tickets are bought. Is the total cost a variable quantity?",
+    answer: "Yes",
+    why: "The total changes with the number of tickets.",
+  },
+];
+
+function makeVariableQuantity(rng: RNG): Grade6Problem {
+  const idx = randInt(rng, 0, VARIABLE_QUANTITY_SCENARIOS.length - 1);
+  const sc = VARIABLE_QUANTITY_SCENARIOS[idx];
+  return build(
+    "PartsOfExpression",
+    sc.text,
+    "the answer (Yes or No)",
+    sc.answer,
+    [
+      {
+        instruction: `A variable quantity is an amount that can change or take different values. ${sc.why}`,
+        blanks: [{ label: "answer", answer: sc.answer }],
+      },
+    ],
+    { kind: "variable-quantity", scenario: idx, expected: sc.answer }
+  );
+}
+
+// ── Lesson: Writing Expressions (additional makers) ────────────────────────
+
+const TRANSLATE_PAIRS: { phrase: (v: string, k: number) => string; expr: (v: string, k: number) => string; operation: string }[] = [
+  { phrase: (v, k) => `the sum of a number and ${k}`, expr: (v, k) => `${v} + ${k}`, operation: "addition" },
+  { phrase: (v, k) => `a number increased by ${k}`, expr: (v, k) => `${v} + ${k}`, operation: "addition" },
+  { phrase: (v, k) => `a number decreased by ${k}`, expr: (v, k) => `${v} − ${k}`, operation: "subtraction" },
+  { phrase: (v, k) => `${k} less than a number`, expr: (v, k) => `${v} − ${k}`, operation: "subtraction" },
+  { phrase: (v, k) => `the difference of a number and ${k}`, expr: (v, k) => `${v} − ${k}`, operation: "subtraction" },
+  { phrase: (v, k) => `the product of ${k} and a number`, expr: (v, k) => `${k}${v}`, operation: "multiplication" },
+  { phrase: (v, k) => `a number multiplied by ${k}`, expr: (v, k) => `${k}${v}`, operation: "multiplication" },
+  { phrase: (v, k) => `twice a number`, expr: (v) => `2${v}`, operation: "multiplication" },
+  { phrase: (v, k) => `the quotient of a number and ${k}`, expr: (v, k) => `${v} ÷ ${k}`, operation: "division" },
+  { phrase: (v, k) => `a number divided by ${k}`, expr: (v, k) => `${v} ÷ ${k}`, operation: "division" },
+  { phrase: (v) => `half of a number`, expr: (v) => `${v} ÷ 2`, operation: "division" },
+];
+
+function makeTranslatePhrase(rng: RNG): Grade6Problem {
+  const pair = pick(rng, TRANSLATE_PAIRS);
+  const v = pick(rng, ["x", "n", "h", "m", "y"]);
+  const k = randInt(rng, 2, 15);
+  const phrase = pair.phrase(v, k);
+  const expr = pair.expr(v, k);
+  const toAlgebra = rng() < 0.5;
+  if (toAlgebra) {
+    return build(
+      "WritingExpressions",
+      `Express the given statement as an algebraic expression. "${phrase}" Use ${v} for the number.`,
+      "the expression",
+      expr,
+      [
+        {
+          instruction: `The phrase signals ${pair.operation}:`,
+          blanks: [{ label: "operation", answer: pair.operation }],
+        },
+        {
+          instruction: "Write the algebraic expression:",
+          blanks: [{ label: "answer", answer: expr }],
+        },
+      ],
+      { kind: "translate", direction: "to-algebra", phrase, expr }
+    );
+  }
+  return build(
+    "WritingExpressions",
+    `Let ${v} be a number. Translate the expression ${expr} into an English phrase.`,
+    "the phrase",
+    phrase,
+    [
+      {
+        instruction: `The expression uses ${pair.operation}:`,
+        blanks: [{ label: "operation", answer: pair.operation }],
+      },
+      {
+        instruction: "Write the English phrase:",
+        blanks: [{ label: "answer", answer: phrase }],
+      },
+    ],
+    { kind: "translate", direction: "to-phrase", phrase, expr }
+  );
+}
+
+const TWO_VAR_COST_CONTEXTS: { text: (a: number, b: number) => string; first: string; second: string }[] = [
+  {
+    text: (a, b) => `A team is ordering sweatshirts and sweatpants for its players. Each sweatshirt costs $${a} and each pair of sweatpants costs $${b}. Write an algebraic expression to represent the total cost if x players want sweatshirts and y players want sweatpants.`,
+    first: "sweatshirts", second: "sweatpants",
+  },
+  {
+    text: (a, b) => `A theater sells adult tickets for $${a} each and child tickets for $${b} each. Write an algebraic expression to represent the total ticket sales if x adult tickets and y child tickets are sold.`,
+    first: "adult tickets", second: "child tickets",
+  },
+  {
+    text: (a, b) => `A snack bar sells popcorn for $${a} a bag and drinks for $${b} each. Write an algebraic expression to represent the total cost if x bags of popcorn and y drinks are bought.`,
+    first: "popcorn", second: "drinks",
+  },
+  {
+    text: (a, b) => `A school store sells notebooks for $${a} each and pens for $${b} each. Write an algebraic expression to represent the total cost if x notebooks and y pens are bought.`,
+    first: "notebooks", second: "pens",
+  },
+];
+
+function makeExpressionTwoVar(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, TWO_VAR_COST_CONTEXTS);
+  const a = randInt(rng, 3, 30);
+  const b = randInt(rng, 2, 25);
+  const answer = `${a}x + ${b}y`;
+  return build(
+    "WritingExpressions",
+    ctx.text(a, b),
+    "the expression",
+    answer,
+    [
+      {
+        instruction: `The ${ctx.first} contribute a term with x, and the ${ctx.second} contribute a term with y:`,
+        blanks: [
+          { label: "first term", answer: `${a}x` },
+          { label: "second term", answer: `${b}y` },
+        ],
+      },
+      {
+        instruction: "Add the terms. Write the full expression:",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "two-var-cost", a, b }
+  );
+}
+
+const DIVISION_EXPRESSION_CONTEXTS: { text: (rate: number, total: string) => string; totalName: string }[] = [
+  {
+    text: (r, t) => `Adam shovels driveways. He charges $${r} per driveway. Yesterday, he made ${t} dollars shoveling driveways. Write an algebraic expression for the number of driveways he shoveled yesterday.`,
+    totalName: "total dollars earned",
+  },
+  {
+    text: (r, t) => `A group spent ${t} dollars in all on tickets that cost $${r} each. Write an algebraic expression for the number of tickets the group bought.`,
+    totalName: "total dollars spent",
+  },
+  {
+    text: (r, t) => `A ribbon is ${t} inches long. It is cut into pieces that are each ${r} inches long. Write an algebraic expression for the number of pieces.`,
+    totalName: "total length",
+  },
+  {
+    text: (r, t) => `There are ${t} students going on a field trip. Each bus holds ${r} students. Write an algebraic expression for the number of buses needed.`,
+    totalName: "total number of students",
+  },
+  {
+    text: (r, t) => `Lena wants to save ${t} dollars. She saves $${r} each week. Write an algebraic expression for the number of weeks it will take her to reach her goal.`,
+    totalName: "total dollars to save",
+  },
+];
+
+function makeExpressionDivision(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, DIVISION_EXPRESSION_CONTEXTS);
+  const rate = randInt(rng, 4, 30);
+  const total = pick(rng, ["d", "c", "m", "t", "s"]);
+  const answer = `${total} ÷ ${rate}`;
+  return build(
+    "WritingExpressions",
+    ctx.text(rate, total),
+    "the expression",
+    answer,
+    [
+      {
+        instruction: `The number of groups is the ${ctx.totalName} divided by the size of each group:`,
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "division-expression", total, rate }
+  );
+}
+
+const WRITE_EVALUATE_CONTEXTS: {
+  text: (fee: number, rate: number, v: string) => string;
+  ask: (amount: number, v: string) => string;
+  unitName: string;
+}[] = [
+  {
+    text: (f, r, v) => `A taxi charges an initial fee of $${f} and then $${r} per mile. Write an algebraic expression for the cost of a taxi ride of ${v} miles. Then evaluate the expression to find the cost of a ${"${amount}"} trip.`,
+    ask: (n, v) => `${n}-mile`,
+    unitName: "miles",
+  },
+  {
+    text: (f, r, v) => `Leonard pays $${f} a month for his book club membership. With the membership, each book costs $${r}. Write an algebraic expression for his total bill for one month if he buys ${v} books that month. Then evaluate the expression to find the bill when he buys ${"${amount}"} books.`,
+    ask: (n) => `${n}`,
+    unitName: "books",
+  },
+  {
+    text: (f, r, v) => `A car rental costs $${f} per day plus $${r} per mile driven. Write an algebraic expression for the cost of a one-day rental driven ${v} miles. Then evaluate the expression for a trip of ${"${amount}"} miles.`,
+    ask: (n) => `${n}`,
+    unitName: "miles",
+  },
+];
+
+function makeWriteThenEvaluate(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, WRITE_EVALUATE_CONTEXTS);
+  const fee = randInt(rng, 2, 15);
+  const rate = randInt(rng, 2, 9);
+  const v = pick(rng, ["m", "b", "n"]);
+  const amount = randInt(rng, 3, 12);
+  const expr = `${fee} + ${rate}${v}`;
+  const total = fee + rate * amount;
+  const storyText = ctx.text(fee, rate, v).replace("${amount}", ctx.ask(amount, v));
+  return build(
+    "WritingExpressions",
+    storyText,
+    "the total cost",
+    total,
+    [
+      {
+        instruction: "Write the expression (flat fee first, then the per-unit charge times the variable):",
+        blanks: [{ label: "expression", answer: expr }],
+      },
+      {
+        instruction: `Substitute ${amount} for ${v}: ${fee} + ${rate}(${amount}).`,
+        blanks: [{ label: "substituted", answer: `${fee} + ${rate * amount}` }],
+      },
+      {
+        instruction: "The total cost is:",
+        blanks: [{ label: "answer", answer: String(total) }],
+      },
+    ],
+    { kind: "write-evaluate", fee, rate, amount },
+    null,
+    "$"
+  );
+}
+
+function makeTwoRateCompare(rng: RNG): Grade6Problem {
+  const r1 = randInt(rng, 9, 15);
+  const r2 = randInt(rng, 6, r1 - 1);
+  const h1 = randInt(rng, 10, 16);
+  const h2 = randInt(rng, 12, 20);
+  const t1 = r1 * h1;
+  const t2 = r2 * h2;
+  const winner = t1 >= t2 ? "Job A" : "Job B";
+  return build(
+    "WritingExpressions",
+    `Ann has two job offers. Job A pays $${r1} per hour. Job B pays $${r2} per hour. Assume she works n hours per week. Write an expression for the number of dollars she would earn at each job. She would work ${h1} hours each week at Job A and ${h2} hours each week at Job B. At which job would she earn more money?`,
+    "the job that pays more",
+    winner,
+    [
+      {
+        instruction: "Write an expression for her weekly pay at each job:",
+        blanks: [
+          { label: "Job A expression", answer: `${r1}n` },
+          { label: "Job B expression", answer: `${r2}n` },
+        ],
+      },
+      {
+        instruction: `Evaluate each expression at the stated hours: Job A gives ${r1}(${h1}) and Job B gives ${r2}(${h2}).`,
+        blanks: [
+          { label: "Job A weekly pay", answer: `$${t1}` },
+          { label: "Job B weekly pay", answer: `$${t2}` },
+        ],
+      },
+      {
+        instruction: "She would earn more money at:",
+        blanks: [{ label: "answer", answer: winner }],
+      },
+    ],
+    { kind: "rate-compare", r1, r2, h1, h2 }
+  );
+}
+
+// ── Lesson: Evaluating Expressions (additional maker) ──────────────────────
+
+function makeEvaluateDivision(rng: RNG): Grade6Problem {
+  if (rng() < 0.5) {
+    const a = randInt(rng, 2, 6);
+    const m = randInt(rng, 3, 9);
+    const divisors: number[] = [];
+    for (let d = 2; d <= a * m; d++) if ((a * m) % d === 0) divisors.push(d);
+    const b = pick(rng, divisors);
+    const ans = (a * m) / b;
+    return build(
+      "VariablesAndExpressions",
+      `Evaluate ${a}m ÷ ${b} for m = ${m}.`,
+      "the value",
+      ans,
+      [
+        {
+          instruction: `Substitute ${m} for m and multiply first: ${a}(${m}) ÷ ${b} = ${a * m} ÷ ${b}.`,
+          blanks: [{ label: "substituted", answer: `${a * m} ÷ ${b}` }],
+        },
+        {
+          instruction: "Divide:",
+          blanks: [{ label: "answer", answer: String(ans) }],
+        },
+      ],
+      { kind: "eval-division", form: "single", a, m, b }
+    );
+  }
+  const x = randInt(rng, 2, 6);
+  const y = randInt(rng, 3, 9);
+  const a = randInt(rng, 2, 4);
+  const q = randInt(rng, 2, 9);
+  const c = a * y - q * x;
+  if (c <= 0) return makeEvaluateDivision(rng);
+  const ans = q;
+  return build(
+    "VariablesAndExpressions",
+    `Evaluate (${a}y − ${c}) ÷ x for x = ${x} and y = ${y}.`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Substitute and work inside the parentheses: (${a}(${y}) − ${c}) ÷ ${x} = ${a * y - c} ÷ ${x}.`,
+        blanks: [{ label: "parentheses", answer: String(a * y - c) }],
+      },
+      {
+        instruction: "Divide:",
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "eval-division", form: "parens", a, y, c, x }
   );
 }
 
@@ -3051,10 +3764,29 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "IntegerWordMultiplyDivide", make: makeWordRepeatedChange },
   { tier: 1, subtype: "IntegerWordMultiplyDivide", make: makeWordEqualShares },
   // T3 · Expressions, Equations & Relationships
+  { tier: 1, subtype: "Exponents", make: makePowerEvaluate },
+  { tier: 1, subtype: "Exponents", make: makePowerIdentify },
+  { tier: 2, subtype: "Exponents", make: makePowerRepeated },
+  { tier: 1, subtype: "PrimeFactorization", make: makePrimeFactorization },
+  { tier: 2, subtype: "PrimeFactorization", make: makePrimeFactorizationExponents },
+  { tier: 1, subtype: "OrderOfOperations", make: makeOOOBasic },
+  { tier: 2, subtype: "OrderOfOperations", make: makeOOOPowers },
+  { tier: 2, subtype: "OrderOfOperations", make: makeOOOParens },
+  { tier: 3, subtype: "OrderOfOperations", make: makeOOONegativeSquares },
+  { tier: 3, subtype: "OrderOfOperations", make: makeOOOCompare },
+  { tier: 1, subtype: "PartsOfExpression", make: makeIdentifyAlgebraic },
+  { tier: 1, subtype: "PartsOfExpression", make: makeIdentifyFactors },
+  { tier: 2, subtype: "PartsOfExpression", make: makeProductOfTwoTerms },
+  { tier: 2, subtype: "PartsOfExpression", make: makeVariableQuantity },
+  { tier: 1, subtype: "WritingExpressions", make: makeTranslatePhrase },
+  { tier: 2, subtype: "WritingExpressions", make: makeExpressionWord },
+  { tier: 2, subtype: "WritingExpressions", make: makeExpressionTwoVar },
+  { tier: 2, subtype: "WritingExpressions", make: makeExpressionDivision },
+  { tier: 3, subtype: "WritingExpressions", make: makeWriteThenEvaluate },
+  { tier: 3, subtype: "WritingExpressions", make: makeTwoRateCompare },
   { tier: 1, subtype: "VariablesAndExpressions", make: makeEvaluate },
   { tier: 2, subtype: "VariablesAndExpressions", make: makeEvaluateTwoVar },
-  { tier: 3, subtype: "VariablesAndExpressions", make: makeExpressionWord },
-  { tier: 3, subtype: "VariablesAndExpressions", make: makeExponentsPrime },
+  { tier: 2, subtype: "VariablesAndExpressions", make: makeEvaluateDivision },
   { tier: 1, subtype: "EquivalentExpressions", make: makeCombineLikeTerms },
   { tier: 2, subtype: "EquivalentExpressions", make: makeDistributiveExpand },
   { tier: 1, subtype: "EquationsAndInequalities", make: makeAddEquation },
@@ -3140,6 +3872,11 @@ export const GRADE6_SUBTYPES: Grade6Subtype[] = [
   "MultiplyingDividingIntegers",
   "IntegerWordAddSubtract",
   "IntegerWordMultiplyDivide",
+  "Exponents",
+  "PrimeFactorization",
+  "OrderOfOperations",
+  "PartsOfExpression",
+  "WritingExpressions",
   "VariablesAndExpressions",
   "EquivalentExpressions",
   "EquationsAndInequalities",
