@@ -401,6 +401,7 @@ function domainInvariants(p: Algebra2Problem): string[] {
     case "ComplexRoots":
     case "QuadraticFormula":
     case "CompleteSquare":
+    case "SolveByCompletingTheSquare":
     case "VertexFormula":
     case "SolveByRoot":
     case "RationalRootTheorem":

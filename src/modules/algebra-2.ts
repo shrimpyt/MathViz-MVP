@@ -170,7 +170,10 @@ export const a2_5_6_quadEquations = lesson(generateQuadraticProblems, [
   "QuadraticFormula",
   "SolveByRoot",
 ]);
-export const a2_5_7_completingSquare = lesson(generateQuadraticProblems, ["CompleteSquare"]);
+export const a2_5_7_completingSquare = lesson(generateQuadraticProblems, [
+  "CompleteSquare",
+  "SolveByCompletingTheSquare",
+]);
 export const a2_5_8_quadFormula = lesson(generateQuadraticProblems, [
   "QuadraticFormula",
   "Discriminant",
@@ -402,7 +405,7 @@ export const WIRED_LESSONS: WiredLesson[] = [
   { id: "a2-5-4", generate: a2_5_4_focusDirectrix, subtypes: ["ParabolaFocusDirectrix", "ParabolaVertex"] },
   { id: "a2-5-5", generate: a2_5_5_quadFactoring, subtypes: ["FactorTrinomial", "FactorGCF", "FactorDiffSquares", "FactorSolve"] },
   { id: "a2-5-6", generate: a2_5_6_quadEquations, subtypes: ["QuadraticFormula", "SolveByRoot"] },
-  { id: "a2-5-7", generate: a2_5_7_completingSquare, subtypes: ["CompleteSquare"] },
+  { id: "a2-5-7", generate: a2_5_7_completingSquare, subtypes: ["CompleteSquare", "SolveByCompletingTheSquare"] },
   { id: "a2-5-8", generate: a2_5_8_quadFormula, subtypes: ["QuadraticFormula", "Discriminant"] },
   { id: "a2-5-9", generate: a2_5_9_complexNumbers, subtypes: ["ComplexRoots"] },
   { id: "a2-5-10", generate: a2_5_10_quadInequalities, subtypes: ["QuadInequality", "QuadIneqNoCross"] },

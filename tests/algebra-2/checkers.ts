@@ -137,6 +137,24 @@ function chkCompleteSquare(p: Algebra2Problem, v: Record<string, number>): Check
   return errs.length ? bad(expected, ...errs) : ok(expected);
 }
 
+function chkSolveByCompletingTheSquare(p: Algebra2Problem, v: Record<string, number>): CheckResult {
+  const { a, b, c, h, s, r } = v;
+  const errs: string[] = [];
+  if (!(a >= 1)) errs.push(`leading coefficient ${a} < 1`);
+  if (!(s >= 1)) errs.push(`root offset s ${s} < 1`);
+  // Vieta, exact integer form: roots h ± s√r have sum 2h = -b/a and
+  // product h^2 - s^2 r = c/a.
+  if (2 * h * a !== -b) errs.push(`root sum 2h != -b/a for [${a},${b},${c}]`);
+  if ((h * h - s * s * r) * a !== c) errs.push(`root product h^2 - s^2 r != c/a for [${a},${b},${c}]`);
+  for (let q = 2; q * q <= r; q++) if (r % (q * q) === 0) errs.push(`radicand ${r} not squarefree`);
+  const expected =
+    r === 1
+      ? `x = ${h - s} or x = ${h + s}`
+      : `x = ${h} \\pm ${s === 1 ? "" : s}\\sqrt{${r}}`;
+  if (p.answer !== expected) errs.push(`answer "${p.answer}" != expected "${expected}"`);
+  return errs.length ? bad(expected, ...errs) : ok(expected);
+}
+
 function chkVertexFormula(p: Algebra2Problem, v: Record<string, number>): CheckResult {
   const { b, c, h, k } = v;
   const errs: string[] = [];
@@ -2984,6 +3002,7 @@ export function verifyProblem(p: Algebra2Problem): CheckResult {
   const asNum = v as unknown as Record<string, number>;
   switch (p.subtype) {
     case "CompleteSquare": return chkCompleteSquare(p, asNum);
+    case "SolveByCompletingTheSquare": return chkSolveByCompletingTheSquare(p, asNum);
     case "VertexFormula": return chkVertexFormula(p, asNum);
     case "SolveByRoot": return chkSolveByRoot(p, asNum);
     case "Discriminant": return chkDiscriminant(p, asNum);

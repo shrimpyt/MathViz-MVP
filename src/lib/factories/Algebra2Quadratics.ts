@@ -13,6 +13,7 @@ import { randSigned, polyToLatex, complexToLatex, fracToLatex, reduceFrac, selec
 
 export type QuadraticSubtype =
   | "CompleteSquare"
+  | "SolveByCompletingTheSquare"
   | "VertexFormula"
   | "SolveByRoot"
   | "Discriminant"
@@ -84,6 +85,102 @@ function makeCompleteSquare(rng: RNG): Algebra2Problem {
     answer: `y = ${vertexForm}`,
     steps,
     verify: { a: 1, b, c, h: -half, k },
+  };
+}
+
+// ── D1/D2/D3: solve an equation by completing the square ─────────────────────
+// Built backwards from the completed-square form (x + m)^2 = k, so the
+// arithmetic stays clean for a timed test: the monic b is always even, and
+// k = s^2 * r with r squarefree gives integer roots when r = 1 and
+// simplified-radical roots (x = h ± s√r) otherwise. The a > 1 tier multiplies
+// a monic problem through by a, so dividing by a returns the monic form with
+// no fractions. Roots are never complex here (that is 5-9 territory).
+
+const CTS_SQUAREFREE = [2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21, 22, 23, 26, 29, 30];
+
+/** (s, r, k) triples with k = s^2 * r <= 72 and r squarefree > 1. */
+const CTS_RADICALS: { s: number; r: number; k: number }[] = (() => {
+  const out: { s: number; r: number; k: number }[] = [];
+  for (const s of [1, 2, 3])
+    for (const r of CTS_SQUAREFREE) {
+      const k = s * s * r;
+      if (k <= 72) out.push({ s, r, k });
+    }
+  return out;
+})();
+
+function makeSolveByCompletingTheSquare(rng: RNG, form: "int" | "rad" | "scaled"): Algebra2Problem {
+  const m = randSigned(rng, 5); // b/2 of the monic form; never 0
+  let s = 0;
+  let r = 1;
+  let k = 0;
+  const wantRad = form === "rad" || (form === "scaled" && rng() < 0.4);
+  if (wantRad) {
+    const t = pick(rng, CTS_RADICALS);
+    s = t.s;
+    r = t.r;
+    k = t.k;
+  } else {
+    // Integer roots; s != |m| keeps c != 0 so the isolate step is real work.
+    const choices = [1, 2, 3, 4, 5].filter((v) => v !== Math.abs(m));
+    s = pick(rng, choices);
+    k = s * s;
+  }
+  const a = form === "scaled" ? pick(rng, [2, 3]) : 1;
+  const bM = 2 * m; // monic b
+  const cM = m * m - k; // monic c
+  const A = a;
+  const B = a * bM;
+  const C = a * cM;
+  const h = -m;
+  const rootTerm = r === 1 ? `${s}` : s === 1 ? `\\sqrt{${r}}` : `${s}\\sqrt{${r}}`;
+  const answer = r === 1 ? `x = ${h - s} or x = ${h + s}` : `x = ${h} \\pm ${rootTerm}`;
+  const innerBody = m > 0 ? `x + ${m}` : `x - ${-m}`;
+  const inner = `(${innerBody})`;
+  const xTerms = polyToLatex([1, bM, 0]);
+  const steps: ProblemStep[] = [];
+  if (a > 1) {
+    steps.push({
+      instruction: `Divide both sides by ${a} so the x^2 coefficient is 1:`,
+      reason: "Divide by the leading coefficient",
+      blanks: [{ label: "monic form", answer: `${polyToLatex([1, bM, cM])} = 0` }],
+    });
+  }
+  steps.push(
+    {
+      instruction: `Move the constant term to the right side:`,
+      reason: "Isolate the variable terms",
+      blanks: [{ label: "isolated", answer: `${xTerms} = ${-cM}` }],
+    },
+    {
+      instruction: `Add (b/2)^2 = ${m * m} to both sides:`,
+      reason: "Completing the square",
+      blanks: [{ label: "completed", answer: `${xTerms} + ${m * m} = ${k}` }],
+    },
+    {
+      instruction: `Factor the perfect-square trinomial:`,
+      reason: "Perfect-square trinomial",
+      blanks: [{ label: "factored", answer: `${inner}^2 = ${k}` }],
+    },
+    {
+      instruction: `Take the square root of both sides (remember ±):`,
+      reason: "Square root property",
+      blanks: [{ label: "square root step", answer: `${innerBody} = \\pm ${rootTerm}` }],
+    },
+    {
+      instruction: `Solve for x:`,
+      reason: "Isolate x",
+      blanks: [{ label: "solutions", answer }],
+    }
+  );
+  return {
+    type: "A2.5",
+    subtype: "SolveByCompletingTheSquare",
+    given: { equation: `${polyToLatex([A, B, C])} = 0` },
+    find: "x by completing the square",
+    answer,
+    steps,
+    verify: { a: A, b: B, c: C, h, s, r },
   };
 }
 
@@ -967,6 +1064,10 @@ const MAKERS: Maker[] = [
   },
   { minDifficulty: 3, make: (rng) => makeDiscriminant(rng, true) },
   { minDifficulty: 3, make: (rng) => makeQuadraticFormula(rng, true) },
+  // 5-7: solve an equation by completing the square
+  { minDifficulty: 1, make: (rng) => makeSolveByCompletingTheSquare(rng, "int") },
+  { minDifficulty: 2, make: (rng) => makeSolveByCompletingTheSquare(rng, "rad") },
+  { minDifficulty: 3, make: (rng) => makeSolveByCompletingTheSquare(rng, "scaled") },
   // 5-1 attributes & transformations
   { minDifficulty: 1, make: (rng) => makeTransformations(rng, "basic") },
   { minDifficulty: 1, make: makeWriteVertexForm },
