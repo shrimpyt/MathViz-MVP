@@ -12,6 +12,7 @@ import type {
   MSSpinnerParams,
   MSGeometryFigureParams,
   MSScatterPlotParams,
+  MSBarModelParams,
 } from "@/lib/factories/MiddleSchoolTypes";
 
 const INK = "#111111";
@@ -588,6 +589,57 @@ function MSScatterPlotSVG(p: MSScatterPlotParams) {
   );
 }
 
+function MSBarModelSVG(p: MSBarModelParams) {
+  const W = 200;
+  const BAR_H = 20;
+  const hasCaption = p.rows.some((r) => r.caption);
+  const barX = hasCaption ? 42 : 6;
+  const barW = W - barX - 6;
+  let y = 2;
+  const model = p.rows.map((row) => {
+    const labelH = row.totalLabel ? 12 : 2;
+    const barY = y + labelH;
+    const totalShare = row.segments.reduce((s, seg) => s + seg.share, 0) || 1;
+    let sx = barX;
+    const segments = row.segments.map((seg) => {
+      const w = (seg.share / totalShare) * barW;
+      const x0 = sx;
+      sx += w;
+      return { label: seg.label, x: x0, w };
+    });
+    const out = { row, barY, segments };
+    y = barY + BAR_H + 12;
+    return out;
+  });
+  const H = y - 6;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="200" height={H} role="img" aria-label="bar diagram">
+      {model.map(({ row, barY, segments }, ri) => (
+        <g key={ri}>
+          {row.totalLabel && (
+            <text x={barX + barW / 2} y={barY - 3} textAnchor="middle" fontSize={9} fontWeight={700} fill={INK} fontFamily="serif">
+              {row.totalLabel}
+            </text>
+          )}
+          {row.caption && (
+            <text x={2} y={barY + BAR_H / 2 + 3} fontSize={9} fontWeight={700} fill={INK} fontFamily="serif">
+              {row.caption}
+            </text>
+          )}
+          {segments.map((seg, si) => (
+            <g key={si}>
+              <rect x={seg.x} y={barY} width={seg.w} height={BAR_H} fill="#fff" stroke={INK} strokeWidth={1.2} />
+              <text x={seg.x + seg.w / 2} y={barY + BAR_H / 2 + 3} textAnchor="middle" fontSize={9} fontWeight={700} fill={INK} fontFamily="serif">
+                {seg.label}
+              </text>
+            </g>
+          ))}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function MiddleSchoolDiagram({ params }: { params: MiddleSchoolSVGParams | null | undefined }) {
   if (!params) return null;
   switch (params.kind) {
@@ -601,6 +653,8 @@ export function MiddleSchoolDiagram({ params }: { params: MiddleSchoolSVGParams 
       return <MSGeometryFigureSVG {...params} />;
     case "MSScatterPlot":
       return <MSScatterPlotSVG {...params} />;
+    case "MSBarModel":
+      return <MSBarModelSVG {...params} />;
     default:
       return null;
   }

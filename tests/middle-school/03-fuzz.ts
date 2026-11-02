@@ -71,6 +71,17 @@ function checkDiagram(params: MiddleSchoolSVGParams | null | undefined, tag: str
       }
       break;
     }
+    case "MSBarModel": {
+      check(params.rows.length >= 1, `${tag}: bar model has no rows`);
+      for (const row of params.rows) {
+        check(row.segments.length >= 1, `${tag}: bar model row has no segments`);
+        for (const seg of row.segments) {
+          check(typeof seg.share === "number" && isFinite(seg.share) && seg.share > 0, `${tag}: bar segment share not positive`);
+          check(typeof seg.label === "string" && seg.label.length > 0, `${tag}: bar segment label empty`);
+        }
+      }
+      break;
+    }
     default:
       check(false, `${tag}: unknown diagram kind ${(params as any).kind}`);
   }

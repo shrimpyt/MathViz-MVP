@@ -288,6 +288,11 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       if (kind === "translate") return istr(g, "direction") === "to-algebra" ? istr(g, "expr") : istr(g, "phrase");
       if (kind === "two-var-cost") return `${inum(g, "a")}x + ${inum(g, "b")}y`;
       if (kind === "division-expression") return `${istr(g, "total")} ÷ ${inum(g, "rate")}`;
+      if (kind === "bar-transfer")
+        return istr(g, "who") === "receiver"
+          ? `${inum(g, "total")} + ${istr(g, "variable")}`
+          : `${inum(g, "total")} − ${istr(g, "variable")}`;
+      if (kind === "bar-groups") return `${istr(g, "total")} ÷ ${inum(g, "rate")}`;
       if (kind === "write-evaluate") return inum(g, "fee") + inum(g, "rate") * inum(g, "amount");
       if (kind === "rate-compare") {
         return inum(g, "r1") * inum(g, "h1") >= inum(g, "r2") * inum(g, "h2") ? "Job A" : "Job B";

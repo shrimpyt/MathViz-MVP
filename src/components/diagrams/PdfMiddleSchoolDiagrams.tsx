@@ -12,6 +12,7 @@ import type {
   MSSpinnerParams,
   MSGeometryFigureParams,
   MSScatterPlotParams,
+  MSBarModelParams,
 } from "@/lib/factories/MiddleSchoolTypes";
 
 const INK = "#111111";
@@ -603,6 +604,60 @@ export function PdfMSScatterPlotSVG(p: MSScatterPlotParams) {
   );
 }
 
+// ── Bar model (tape diagram) ──────────────────────────────────────────────────
+
+export function PdfMSBarModelSVG(p: MSBarModelParams) {
+  const W = 200;
+  const BAR_H = 20;
+  const hasCaption = p.rows.some((r) => r.caption);
+  const barX = hasCaption ? 42 : 6;
+  const barW = W - barX - 6;
+  const centered = (cx: number, text: string, size = 9) => cx - (text.length * size * 0.52) / 2;
+  let y = 2;
+  const model = p.rows.map((row) => {
+    const labelH = row.totalLabel ? 12 : 2;
+    const barY = y + labelH;
+    const totalShare = row.segments.reduce((s, seg) => s + seg.share, 0) || 1;
+    let sx = barX;
+    const segments = row.segments.map((seg) => {
+      const w = (seg.share / totalShare) * barW;
+      const x0 = sx;
+      sx += w;
+      return { label: seg.label, x: x0, w };
+    });
+    const out = { row, barY, labelY: y + 9, segments };
+    y = barY + BAR_H + 12;
+    return out;
+  });
+  const H = y - 6;
+  return (
+    <Svg viewBox={`0 0 ${W} ${H}`} width="200" height={H}>
+      {model.map(({ row, barY, labelY, segments }, ri) => (
+        <React.Fragment key={ri}>
+          {row.totalLabel && (
+            <Text x={centered(barX + barW / 2, row.totalLabel)} y={labelY} style={{ fontSize: 9, fontFamily: SERIF_BOLD, color: INK }}>
+              {row.totalLabel}
+            </Text>
+          )}
+          {row.caption && (
+            <Text x={2} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: SERIF_BOLD, color: INK }}>
+              {row.caption}
+            </Text>
+          )}
+          {segments.map((seg, si) => (
+            <React.Fragment key={si}>
+              <Rect x={seg.x} y={barY} width={seg.w} height={BAR_H} fill="#ffffff" stroke={INK} strokeWidth={1.2} />
+              <Text x={centered(seg.x + seg.w / 2, seg.label)} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: SERIF_BOLD, color: INK }}>
+                {seg.label}
+              </Text>
+            </React.Fragment>
+          ))}
+        </React.Fragment>
+      ))}
+    </Svg>
+  );
+}
+
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 
 /** PDF SVG renderer for middle-school diagram params. Returns null when absent. */
@@ -619,6 +674,8 @@ export function PdfMiddleSchoolDiagram({ params }: { params: MiddleSchoolSVGPara
       return <PdfMSGeometryFigureSVG {...params} />;
     case "MSScatterPlot":
       return <PdfMSScatterPlotSVG {...params} />;
+    case "MSBarModel":
+      return <PdfMSBarModelSVG {...params} />;
     default:
       return null;
   }

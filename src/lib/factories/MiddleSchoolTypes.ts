@@ -236,9 +236,29 @@ export interface MSScatterPlotParams {
   trendline?: { x1: number; y1: number; x2: number; y2: number } | null;
 }
 
+export interface MSBarSegment {
+  label: string;
+  /** Relative width weight; the bar is divided in proportion to share. */
+  share: number;
+}
+
+export interface MSBarRow {
+  /** Short label drawn to the left of the bar, e.g. a name. */
+  caption?: string;
+  /** Label for the whole bar, drawn above it (usually the total). */
+  totalLabel?: string;
+  segments: MSBarSegment[];
+}
+
+export interface MSBarModelParams {
+  kind: "MSBarModel";
+  rows: MSBarRow[];
+}
+
 export type MiddleSchoolSVGParams =
   | MSNumberLineParams
   | MSCoordinateGridParams
   | MSSpinnerParams
   | MSGeometryFigureParams
-  | MSScatterPlotParams;
+  | MSScatterPlotParams
+  | MSBarModelParams;

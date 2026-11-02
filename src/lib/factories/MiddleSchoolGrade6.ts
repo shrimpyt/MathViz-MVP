@@ -1616,6 +1616,115 @@ function makeExpressionDivision(rng: RNG): Grade6Problem {
   );
 }
 
+const BAR_TRANSFER_CONTEXTS: { a: string; b: string; item: string }[] = [
+  { a: "Juan", b: "Isabella", item: "books" },
+  { a: "Liam", b: "Noah", item: "marbles" },
+  { a: "Emma", b: "Ava", item: "stickers" },
+  { a: "Lucas", b: "Mia", item: "trading cards" },
+  { a: "Ethan", b: "Zoe", item: "seashells" },
+];
+
+function makeBarModelTransfer(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, BAR_TRANSFER_CONTEXTS);
+  const total = randInt(rng, 12, 30);
+  const v = pick(rng, ["x", "n", "m", "t"]);
+  const receiver = rng() < 0.5;
+  const answer = receiver ? `${total} + ${v}` : `${total} − ${v}`;
+  const who = receiver ? ctx.b : ctx.a;
+  return build(
+    "WritingExpressions",
+    `${ctx.a} and ${ctx.b} each have ${total} ${ctx.item}. ${ctx.a} gives ${v} of the ${ctx.item} to ${ctx.b}. The bar diagram models the trade. Write an expression for the number of ${ctx.item} ${who} has now.`,
+    "the expression",
+    answer,
+    [
+      {
+        instruction: receiver
+          ? `${ctx.b} starts with ${total} and receives ${v} more, so add:`
+          : `${ctx.a} starts with ${total} and gives away ${v}, so subtract:`,
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "bar-transfer", total, variable: v, who: receiver ? "receiver" : "giver" },
+    {
+      kind: "MSBarModel",
+      rows: [
+        {
+          caption: ctx.a, totalLabel: `${total}`,
+          segments: [
+            { label: `${total} − ${v}`, share: 3 },
+            { label: v, share: 1 },
+          ],
+        },
+        {
+          caption: ctx.b, totalLabel: `${total} + ${v}`,
+          segments: [
+            { label: `${total}`, share: 3 },
+            { label: v, share: 1 },
+          ],
+        },
+      ],
+    }
+  );
+}
+
+const BAR_GROUP_CONTEXTS: { thing: string; text: (rate: number, total: string) => string }[] = [
+  {
+    thing: "tickets",
+    text: (r, t) => `A group spent ${t} dollars in all on tickets that cost $${r} each. The bar diagram models the total cost. Write an algebraic expression for the number of tickets the group bought.`,
+  },
+  {
+    thing: "driveways",
+    text: (r, t) => `Adam shovels driveways and charges $${r} per driveway. He earned ${t} dollars in all. The bar diagram models his earnings. Write an algebraic expression for the number of driveways he shoveled.`,
+  },
+  {
+    thing: "pieces",
+    text: (r, t) => `A ribbon ${t} inches long is cut into pieces that are each ${r} inches long. The bar diagram models the ribbon. Write an algebraic expression for the number of pieces.`,
+  },
+  {
+    thing: "buses",
+    text: (r, t) => `There are ${t} students going on a field trip. Each bus holds ${r} students. The bar diagram models the students. Write an algebraic expression for the number of buses needed.`,
+  },
+  {
+    thing: "weeks",
+    text: (r, t) => `Lena saves $${r} each week toward a goal of ${t} dollars. The bar diagram models her savings. Write an algebraic expression for the number of weeks she must save.`,
+  },
+];
+
+function makeBarModelGroups(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, BAR_GROUP_CONTEXTS);
+  const rate = randInt(rng, 4, 30);
+  const total = pick(rng, ["d", "c", "m", "t", "s"]);
+  const answer = `${total} ÷ ${rate}`;
+  return build(
+    "WritingExpressions",
+    ctx.text(rate, total),
+    "the expression",
+    answer,
+    [
+      {
+        instruction: `Each part of the bar is one group of ${rate}. The number of groups is the total divided by the group size:`,
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "bar-groups", total, rate },
+    {
+      kind: "MSBarModel",
+      rows: [
+        {
+          caption: ctx.thing, totalLabel: total,
+          segments: [
+            { label: `${rate}`, share: 1 },
+            { label: `${rate}`, share: 1 },
+            { label: `${rate}`, share: 1 },
+            { label: `${rate}`, share: 1 },
+            { label: "…", share: 1 },
+          ],
+        },
+      ],
+    }
+  );
+}
+
 const WRITE_EVALUATE_CONTEXTS: {
   text: (fee: number, rate: number, v: string) => string;
   ask: (amount: number, v: string) => string;
@@ -3782,6 +3891,8 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "WritingExpressions", make: makeExpressionWord },
   { tier: 2, subtype: "WritingExpressions", make: makeExpressionTwoVar },
   { tier: 2, subtype: "WritingExpressions", make: makeExpressionDivision },
+  { tier: 2, subtype: "WritingExpressions", make: makeBarModelTransfer },
+  { tier: 2, subtype: "WritingExpressions", make: makeBarModelGroups },
   { tier: 3, subtype: "WritingExpressions", make: makeWriteThenEvaluate },
   { tier: 3, subtype: "WritingExpressions", make: makeTwoRateCompare },
   { tier: 1, subtype: "VariablesAndExpressions", make: makeEvaluate },
