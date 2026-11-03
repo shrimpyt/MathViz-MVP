@@ -4,7 +4,7 @@
 // matching exporter here; keep them in sync.
 
 import React from "react";
-import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse } from "@react-pdf/renderer";
+import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse, Font } from "@react-pdf/renderer";
 import type {
   MiddleSchoolSVGParams,
   MSNumberLineParams,
@@ -20,6 +20,27 @@ const ACCENT = "#2563eb";
 const RED = "#e11d48";
 const SERIF = "Times-Roman";
 const SERIF_BOLD = "Times-Bold";
+
+// Bar-model labels embed U+2212 (minus) inside expressions like "23 − m",
+// which Times-Bold (base-14, WinAnsi) does not have: the glyph silently
+// drops and the segment reads as "23 m". Register the document's embedded
+// bold serif in THIS module (same pattern as PdfProofSVG) so bar labels
+// render completely even in standalone renders that never import
+// PdfDocument, where the family is registered with identical files.
+function msFontSrc(file: string): string {
+  if (typeof window === "undefined") {
+    return `${process.cwd()}/public/fonts/${file}`;
+  }
+  return `/fonts/${file}`;
+}
+Font.register({
+  family: "WorksheetSerifBold",
+  fonts: [
+    { src: msFontSrc("DejaVuSerif-Bold.ttf"), fontWeight: 700 },
+    { src: msFontSrc("DejaVuSerif-BoldItalic.ttf"), fontWeight: 700, fontStyle: "italic" },
+  ],
+});
+const BAR_FONT = "WorksheetSerifBold";
 
 function PdfLabel({ x, y, text, anchor = "middle", size = 9 }: {
   x: number; y: number; text: string; anchor?: "middle" | "start"; size?: number;
@@ -610,9 +631,12 @@ export function PdfMSBarModelSVG(p: MSBarModelParams) {
   const W = 200;
   const BAR_H = 20;
   const hasCaption = p.rows.some((r) => r.caption);
-  const barX = hasCaption ? 42 : 6;
+  // Caption column sized to the longest caption in the embedded bold serif
+  // (about 0.62em per character at the label size).
+  const longestCaption = p.rows.reduce((m, r) => Math.max(m, (r.caption ?? "").length), 0);
+  const barX = hasCaption ? Math.ceil(longestCaption * 9 * 0.62) + 6 : 6;
   const barW = W - barX - 6;
-  const centered = (cx: number, text: string, size = 9) => cx - (text.length * size * 0.52) / 2;
+  const centered = (cx: number, text: string, size = 9) => cx - (text.length * size * 0.6) / 2;
   let y = 2;
   const model = p.rows.map((row) => {
     const labelH = row.totalLabel ? 12 : 2;
@@ -635,19 +659,19 @@ export function PdfMSBarModelSVG(p: MSBarModelParams) {
       {model.map(({ row, barY, labelY, segments }, ri) => (
         <React.Fragment key={ri}>
           {row.totalLabel && (
-            <Text x={centered(barX + barW / 2, row.totalLabel)} y={labelY} style={{ fontSize: 9, fontFamily: SERIF_BOLD, color: INK }}>
+            <Text x={centered(barX + barW / 2, row.totalLabel)} y={labelY} style={{ fontSize: 9, fontFamily: BAR_FONT, color: INK }}>
               {row.totalLabel}
             </Text>
           )}
           {row.caption && (
-            <Text x={2} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: SERIF_BOLD, color: INK }}>
+            <Text x={2} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: BAR_FONT, color: INK }}>
               {row.caption}
             </Text>
           )}
           {segments.map((seg, si) => (
             <React.Fragment key={si}>
               <Rect x={seg.x} y={barY} width={seg.w} height={BAR_H} fill="#ffffff" stroke={INK} strokeWidth={1.2} />
-              <Text x={centered(seg.x + seg.w / 2, seg.label)} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: SERIF_BOLD, color: INK }}>
+              <Text x={centered(seg.x + seg.w / 2, seg.label)} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: BAR_FONT, color: INK }}>
                 {seg.label}
               </Text>
             </React.Fragment>
