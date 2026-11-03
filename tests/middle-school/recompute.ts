@@ -302,6 +302,8 @@ function recompute6(p: MiddleSchoolProblem): string | number {
           ? `${inum(g, "total")} + ${istr(g, "variable")}`
           : `${inum(g, "total")} − ${istr(g, "variable")}`;
       if (kind === "bar-groups") return `${istr(g, "total")} ÷ ${inum(g, "rate")}`;
+      if (kind === "complement") return `${inum(g, "total")} − ${istr(g, "variable")}`;
+      if (kind === "bar-join") return `${istr(g, "variable")} + ${inum(g, "added")}`;
       if (kind === "write-evaluate") return inum(g, "fee") + inum(g, "rate") * inum(g, "amount");
       if (kind === "rate-compare") {
         return inum(g, "r1") * inum(g, "h1") >= inum(g, "r2") * inum(g, "h2") ? "Job A" : "Job B";

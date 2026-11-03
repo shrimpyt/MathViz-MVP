@@ -1812,6 +1812,104 @@ function makeBarModelGroups(rng: RNG): Grade6Problem {
   );
 }
 
+const COMPLEMENT_CONTEXTS: { text: (total: number, v: string) => string; known: string }[] = [
+  {
+    text: (t, v) => `A coin collection has ${t} coins. ${v} of the coins are quarters. The rest of the coins are dimes. Write an algebraic expression for the number of dimes.`,
+    known: "quarters",
+  },
+  {
+    text: (t, v) => `A bag holds ${t} marbles. ${v} of the marbles are red. The rest of the marbles are blue. Write an algebraic expression for the number of blue marbles.`,
+    known: "red marbles",
+  },
+  {
+    text: (t, v) => `There are ${t} students in a class. ${v} of the students are girls. The rest of the students are boys. Write an algebraic expression for the number of boys.`,
+    known: "girls",
+  },
+  {
+    text: (t, v) => `A fruit basket holds ${t} pieces of fruit. ${v} of the pieces are apples. The rest are oranges. Write an algebraic expression for the number of oranges.`,
+    known: "apples",
+  },
+  {
+    text: (t, v) => `A bookshelf holds ${t} books. ${v} of the books are novels. The rest are biographies. Write an algebraic expression for the number of biographies.`,
+    known: "novels",
+  },
+];
+
+function makeComplementExpression(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, COMPLEMENT_CONTEXTS);
+  const total = randInt(rng, 20, 60);
+  const v = pick(rng, ["y", "n", "m", "x"]);
+  const answer = `${total} − ${v}`;
+  return build(
+    "WritingExpressions",
+    ctx.text(total, v),
+    "the expression",
+    answer,
+    [
+      {
+        instruction: `The ${ctx.known} are only part of the total. The rest is the total minus that part:`,
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "complement", total, variable: v }
+  );
+}
+
+const BAR_JOIN_CONTEXTS: { unit: string; variable: string; text: (v: string, k: number) => string }[] = [
+  {
+    unit: "students", variable: "n",
+    text: (v, k) => `There are ${v} students on a bus. Then ${k} more students get on the bus. The bar diagram models the number of students on the bus now. Write an expression for the number of students on the bus now.`,
+  },
+  {
+    unit: "cars", variable: "c",
+    text: (v, k) => `There are ${v} cars in a parking lot. Then ${k} more cars pull in. The bar diagram models the number of cars in the lot now. Write an expression for the number of cars in the lot now.`,
+  },
+  {
+    unit: "books", variable: "b",
+    text: (v, k) => `There are ${v} books on a shelf. Then ${k} more books are placed on the shelf. The bar diagram models the number of books on the shelf now. Write an expression for the number of books on the shelf now.`,
+  },
+  {
+    unit: "fish", variable: "f",
+    text: (v, k) => `A fish tank holds ${v} fish. Then ${k} more fish are added to the tank. The bar diagram models the number of fish in the tank now. Write an expression for the number of fish in the tank now.`,
+  },
+  {
+    unit: "plants", variable: "p",
+    text: (v, k) => `A garden has ${v} plants. Then ${k} more plants are added to the garden. The bar diagram models the number of plants in the garden now. Write an expression for the number of plants in the garden now.`,
+  },
+];
+
+function makeBarModelJoin(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, BAR_JOIN_CONTEXTS);
+  const added = randInt(rng, 3, 9);
+  const v = ctx.variable;
+  const answer = `${v} + ${added}`;
+  return build(
+    "WritingExpressions",
+    ctx.text(v, added),
+    "the expression",
+    answer,
+    [
+      {
+        instruction: "The bar joins the starting amount and the amount added into one whole. Add the two parts:",
+        blanks: [{ label: "answer", answer }],
+      },
+    ],
+    { kind: "bar-join", variable: v, added },
+    {
+      kind: "MSBarModel",
+      rows: [
+        {
+          caption: ctx.unit, totalLabel: "?",
+          segments: [
+            { label: v, share: 3 },
+            { label: `${added}`, share: 1 },
+          ],
+        },
+      ],
+    }
+  );
+}
+
 const WRITE_EVALUATE_CONTEXTS: {
   text: (fee: number, rate: number, v: string) => string;
   ask: (amount: number, v: string) => string;
@@ -3982,6 +4080,8 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "WritingExpressions", make: makeExpressionDivision },
   { tier: 2, subtype: "WritingExpressions", make: makeBarModelTransfer },
   { tier: 2, subtype: "WritingExpressions", make: makeBarModelGroups },
+  { tier: 2, subtype: "WritingExpressions", make: makeComplementExpression },
+  { tier: 2, subtype: "WritingExpressions", make: makeBarModelJoin },
   { tier: 3, subtype: "WritingExpressions", make: makeWriteThenEvaluate },
   { tier: 3, subtype: "WritingExpressions", make: makeTwoRateCompare },
   { tier: 1, subtype: "VariablesAndExpressions", make: makeEvaluate },
