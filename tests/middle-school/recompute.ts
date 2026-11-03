@@ -154,6 +154,7 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       if (wk === "temperature") return `${ans}°F`;
       if (wk === "elevation") return `${ans} feet`;
       if (wk === "money") return `$${ans}`;
+      if (wk === "score") return `${ans} points`;
       throw new Error(`unhandled integer wordKind=${wk}`);
     }
     case "IntegerWordMultiplyDivide": {

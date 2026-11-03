@@ -676,8 +676,47 @@ function makeWordMoney(rng: RNG, word = false): Grade6Problem {
   );
 }
 
+function makeWordScore(rng: RNG, word = false): Grade6Problem {
+  const start = randInt(rng, 20, 200);
+  const change = randNonZero(rng, -60, 60);
+  const ans = start + change;
+  const expr = signedAddExpr(start, change);
+  const given = { wordKind: "score", start, change, word: word ? 1 : 0 };
+  if (!word) {
+    return build(
+      "IntegerWordAddSubtract",
+      `Find: ${expr}.`,
+      "the result",
+      ans,
+      [
+        {
+          instruction: "Add the integers, keeping track of the signs:",
+          blanks: [{ label: "result", answer: String(ans) }],
+        },
+      ],
+      given
+    );
+  }
+  return build(
+    "IntegerWordAddSubtract",
+    change > 0
+      ? `A game player has ${start} points. On the next level, the player earns ${change} more points. What is the player's score now?`
+      : `A game player has ${start} points. On the next level, the player takes a penalty of ${-change} points. What is the player's score now?`,
+    "the player's score",
+    `${ans} points`,
+    [
+      {
+        instruction: `Write the change as adding a signed number: ${expr}.`,
+        blanks: [{ label: "expression", answer: expr }],
+      },
+      { instruction: "Compute:", blanks: [{ label: "answer", answer: `${ans} points` }] },
+    ],
+    given
+  );
+}
+
 function makeWordRepeatedChange(rng: RNG, word = false): Grade6Problem {
-  const flavor = pick(rng, ["temperature", "descent", "loss"] as const);
+  const flavor = pick(rng, ["temperature", "descent", "loss", "climb"] as const);
   const times = randInt(rng, 3, 9);
   let per = 0;
   let unit = "";
@@ -692,6 +731,11 @@ function makeWordRepeatedChange(rng: RNG, word = false): Grade6Problem {
     per = -d;
     unit = "feet";
     story = `A diver descends ${d} feet each minute. What is the diver's change in elevation after ${times} minutes?`;
+  } else if (flavor === "climb") {
+    const u = randInt(rng, 6, 20);
+    per = u;
+    unit = "feet";
+    story = `A hiker climbs ${u} feet every hour. What is the hiker's total change in elevation after ${times} hours?`;
   } else {
     const l = randInt(rng, 5, 30);
     per = -l;
@@ -735,12 +779,14 @@ function makeWordEqualShares(rng: RNG, word = false): Grade6Problem {
   const n = pick(rng, [2, 3, 4, 5, 6]);
   const share = -randInt(rng, 4, 25);
   const total = share * n;
-  const flavor = pick(rng, ["debt", "dives"] as const);
-  const unit = flavor === "debt" ? "$" : "feet";
+  const flavor = pick(rng, ["debt", "dives", "temperature"] as const);
+  const unit = flavor === "debt" ? "$" : flavor === "temperature" ? "°F" : "feet";
   const story =
     flavor === "debt"
       ? `${n} friends share a debt of $${-total} equally. How much of the debt does each friend owe?`
-      : `Over ${n} dives, a submarine's elevation changed by ${total} feet in all, the same amount on each dive. What was the change in elevation per dive?`;
+      : flavor === "temperature"
+        ? `Over ${n} hours, the temperature changed by ${total} degrees in all, the same amount each hour. What was the change in temperature per hour?`
+        : `Over ${n} dives, a submarine's elevation changed by ${total} feet in all, the same amount on each dive. What was the change in elevation per dive?`;
   const given = { wordKind: "shares", total, n, unit, word: word ? 1 : 0 };
   if (!word) {
     return build(
@@ -760,7 +806,7 @@ function makeWordEqualShares(rng: RNG, word = false): Grade6Problem {
   return build(
     "IntegerWordMultiplyDivide",
     story,
-    flavor === "debt" ? "each friend's share of the debt" : "the change per dive",
+    flavor === "debt" ? "each friend's share of the debt" : flavor === "temperature" ? "the change per hour" : "the change per dive",
     unitAnswer(unit, share),
     [
       {
@@ -935,6 +981,21 @@ const EXPRESSION_STORIES: ExpressionStory[] = [
     id: "savings", variable: "w", form: "difference", priceRange: [3, 9], feeRange: [40, 120],
     text: (p, f) => `Mia has saved $${f}. She spends $${p} per week on snacks. Write an algebraic expression for the amount Mia has left after w weeks.`,
     variablePart: "weekly spending", flatPart: "amount Mia started with",
+  },
+  {
+    id: "food-truck", variable: "s", form: "sum", priceRange: [6, 12], feeRange: [2, 6],
+    text: (p, f) => `A food truck charges $${p} per sandwich plus a $${f} delivery fee. Write an algebraic expression for the total cost of an order of s sandwiches with delivery.`,
+    variablePart: "sandwich charges", flatPart: "delivery fee",
+  },
+  {
+    id: "moving", variable: "h", form: "sum", priceRange: [15, 40], feeRange: [10, 30],
+    text: (p, f) => `A moving service charges $${p} per hour plus a $${f} truck fee. Write an algebraic expression for the total cost of a move lasting h hours.`,
+    variablePart: "hourly charges", flatPart: "truck fee",
+  },
+  {
+    id: "water-tank", variable: "d", form: "difference", priceRange: [5, 15], feeRange: [80, 200],
+    text: (p, f) => `A water tank holds ${f} gallons. A family uses ${p} gallons of water each day. Write an algebraic expression for the number of gallons left in the tank after d days.`,
+    variablePart: "gallons used each day", flatPart: "number of gallons the tank holds",
   },
 ];
 
@@ -1631,6 +1692,18 @@ const TWO_VAR_COST_CONTEXTS: { text: (a: number, b: number) => string; first: st
     text: (a, b) => `A school store sells notebooks for $${a} each and pens for $${b} each. Write an algebraic expression to represent the total cost if x notebooks and y pens are bought.`,
     first: "notebooks", second: "pens",
   },
+  {
+    text: (a, b) => `A florist sells roses for $${a} per dozen and tulips for $${b} per dozen. Write an algebraic expression to represent the total cost if x dozen roses and y dozen tulips are bought.`,
+    first: "roses", second: "tulips",
+  },
+  {
+    text: (a, b) => `A bakery sells loaves of bread for $${a} each and muffins for $${b} each. Write an algebraic expression to represent the total cost if x loaves and y muffins are bought.`,
+    first: "loaves", second: "muffins",
+  },
+  {
+    text: (a, b) => `A sporting goods store sells basketballs for $${a} each and soccer balls for $${b} each. Write an algebraic expression to represent the total cost if x basketballs and y soccer balls are bought.`,
+    first: "basketballs", second: "soccer balls",
+  },
 ];
 
 function makeExpressionTwoVar(rng: RNG): Grade6Problem {
@@ -1709,6 +1782,9 @@ const BAR_TRANSFER_CONTEXTS: { a: string; b: string; item: string }[] = [
   { a: "Emma", b: "Ava", item: "stickers" },
   { a: "Lucas", b: "Mia", item: "trading cards" },
   { a: "Ethan", b: "Zoe", item: "seashells" },
+  { a: "Sophia", b: "Ben", item: "colored pencils" },
+  { a: "Henry", b: "Ella", item: "action figures" },
+  { a: "Grace", b: "Sam", item: "keychains" },
 ];
 
 function makeBarModelTransfer(rng: RNG): Grade6Problem {
@@ -1833,6 +1909,14 @@ const COMPLEMENT_CONTEXTS: { text: (total: number, v: string) => string; known: 
     text: (t, v) => `A bookshelf holds ${t} books. ${v} of the books are novels. The rest are biographies. Write an algebraic expression for the number of biographies.`,
     known: "novels",
   },
+  {
+    text: (t, v) => `A playlist has ${t} songs. ${v} of the songs are rock songs. The rest are pop songs. Write an algebraic expression for the number of pop songs.`,
+    known: "rock songs",
+  },
+  {
+    text: (t, v) => `A drawer holds ${t} shirts. ${v} of the shirts are white. The rest are black. Write an algebraic expression for the number of black shirts.`,
+    known: "white shirts",
+  },
 ];
 
 function makeComplementExpression(rng: RNG): Grade6Problem {
@@ -1929,6 +2013,26 @@ const WRITE_EVALUATE_CONTEXTS: {
     text: (f, r, v) => `A car rental costs $${f} per day plus $${r} per mile driven. Write an algebraic expression for the cost of a one-day rental driven ${v} miles. Then evaluate the expression for a trip of ${"${amount}"} miles.`,
     ask: (n) => `${n}`,
     unitName: "miles",
+  },
+  {
+    text: (f, r, v) => `A gym charges a $${f} sign-up fee plus $${r} per month. Write an algebraic expression for the total cost of a gym membership lasting ${v} months. Then evaluate the expression to find the cost of a membership lasting ${"${amount}"} months.`,
+    ask: (n) => `${n}`,
+    unitName: "months",
+  },
+  {
+    text: (f, r, v) => `A phone plan costs $${f} per month plus $${r} for each gigabyte of data used. Write an algebraic expression for the monthly bill for a plan that uses ${v} gigabytes of data. Then evaluate the expression to find the bill for a month with ${"${amount}"} gigabytes of data.`,
+    ask: (n) => `${n}`,
+    unitName: "gigabytes",
+  },
+  {
+    text: (f, r, v) => `A lawn service charges a $${f} visit fee plus $${r} per hour of work. Write an algebraic expression for the cost of a visit lasting ${v} hours. Then evaluate the expression to find the cost of a visit lasting ${"${amount}"} hours.`,
+    ask: (n) => `${n}`,
+    unitName: "hours",
+  },
+  {
+    text: (f, r, v) => `A caterer charges a $${f} setup fee plus $${r} per guest. Write an algebraic expression for the cost of catering a party with ${v} guests. Then evaluate the expression to find the cost for a party with ${"${amount}"} guests.`,
+    ask: (n) => `${n}`,
+    unitName: "guests",
   },
 ];
 
@@ -4055,6 +4159,7 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "IntegerWordAddSubtract", make: makeWordTemperature },
   { tier: 1, subtype: "IntegerWordAddSubtract", make: makeWordElevation },
   { tier: 2, subtype: "IntegerWordAddSubtract", make: makeWordMoney },
+  { tier: 2, subtype: "IntegerWordAddSubtract", make: makeWordScore },
   { tier: 1, subtype: "IntegerWordMultiplyDivide", make: makeWordRepeatedChange },
   { tier: 1, subtype: "IntegerWordMultiplyDivide", make: makeWordEqualShares },
   // T3 · Expressions, Equations & Relationships
