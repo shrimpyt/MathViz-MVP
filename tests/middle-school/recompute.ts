@@ -254,6 +254,15 @@ function recompute6(p: MiddleSchoolProblem): string | number {
         return inum(g, "a") * inner * inner - inum(g, "d") * inum(g, "e");
       }
       if (kind === "neg-squares") return inum(g, "a") * inum(g, "p") ** 2 - inum(g, "b") * inum(g, "q") ** 2;
+      if (kind === "neg-paren-chain") {
+        const inner = inum(g, "a") - inum(g, "b");
+        return (inner * inner / inum(g, "c")) * inum(g, "d");
+      }
+      if (kind === "mul-div-chain") {
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c");
+        if (istr(g, "form") === "div-mul") return (a / b) * c;
+        return (a * b / c) * inum(g, "d");
+      }
       if (kind === "compare") {
         const k = inum(g, "k"), a = inum(g, "a"), b = inum(g, "b");
         const mode = istr(g, "mode");

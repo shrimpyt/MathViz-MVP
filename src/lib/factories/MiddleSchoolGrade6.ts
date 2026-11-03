@@ -1302,6 +1302,93 @@ function makeOOOCompare(rng: RNG): Grade6Problem {
   );
 }
 
+function makeOOONegativeParenChain(rng: RNG): Grade6Problem {
+  const inner = pick(rng, [2, 3, 4, 5]);
+  const square = inner * inner;
+  const divisors: number[] = [];
+  for (let d = 2; d <= square; d++) if (square % d === 0) divisors.push(d);
+  const c = pick(rng, divisors);
+  const last = randInt(rng, 2, 9);
+  const a = randInt(rng, 2, 9);
+  const b = a + inner;
+  const ans = (square / c) * last;
+  return build(
+    "OrderOfOperations",
+    `Evaluate (${a} − ${b})² ÷ ${c} × ${last}.`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Work inside the parentheses first: ${a} − ${b} = `,
+        blanks: [{ label: "parentheses", answer: String(-inner) }],
+      },
+      {
+        instruction: `Square it. A negative number squared is positive: (−${inner})² = `,
+        blanks: [{ label: "square", answer: String(square) }],
+      },
+      {
+        instruction: `Now divide and multiply from left to right: ${square} ÷ ${c} × ${last} = `,
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "neg-paren-chain", a, b, c, d: last }
+  );
+}
+
+function makeOOOChain(rng: RNG): Grade6Problem {
+  const form = pick(rng, ["div-mul", "mul-div-mul"] as const);
+  if (form === "div-mul") {
+    const b = randInt(rng, 2, 9);
+    const k = randInt(rng, 2, 9);
+    const c = randInt(rng, 2, 9);
+    const a = b * k;
+    const ans = k * c;
+    return build(
+      "OrderOfOperations",
+      `Evaluate ${a} ÷ ${b} × ${c}.`,
+      "the value",
+      ans,
+      [
+        {
+          instruction: `Multiplication and division run from left to right, so divide first: ${a} ÷ ${b} = `,
+          blanks: [{ label: "first step", answer: String(k) }],
+        },
+        {
+          instruction: `Now multiply: ${k} × ${c} = `,
+          blanks: [{ label: "answer", answer: String(ans) }],
+        },
+      ],
+      { kind: "mul-div-chain", form, a, b, c }
+    );
+  }
+  const a = randInt(rng, 2, 9);
+  const b = randInt(rng, 2, 9);
+  const product = a * b;
+  const divisors: number[] = [];
+  for (let d = 2; d <= product; d++) if (product % d === 0) divisors.push(d);
+  const c = pick(rng, divisors);
+  const last = randInt(rng, 2, 9);
+  const mid = product / c;
+  const ans = mid * last;
+  return build(
+    "OrderOfOperations",
+    `Evaluate ${a} × ${b} ÷ ${c} × ${last}.`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Work from left to right: ${a} × ${b} = ${product}, then ${product} ÷ ${c} = `,
+        blanks: [{ label: "first steps", answer: String(mid) }],
+      },
+      {
+        instruction: `Finish with the last multiplication: ${mid} × ${last} = `,
+        blanks: [{ label: "answer", answer: String(ans) }],
+      },
+    ],
+    { kind: "mul-div-chain", form, a, b, c, d: last }
+  );
+}
+
 // ── Lesson: Parts of an Expression ─────────────────────────────────────────
 
 function makeIdentifyAlgebraic(rng: RNG): Grade6Problem {
@@ -3883,6 +3970,8 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "OrderOfOperations", make: makeOOOParens },
   { tier: 3, subtype: "OrderOfOperations", make: makeOOONegativeSquares },
   { tier: 3, subtype: "OrderOfOperations", make: makeOOOCompare },
+  { tier: 2, subtype: "OrderOfOperations", make: makeOOOChain },
+  { tier: 3, subtype: "OrderOfOperations", make: makeOOONegativeParenChain },
   { tier: 1, subtype: "PartsOfExpression", make: makeIdentifyAlgebraic },
   { tier: 1, subtype: "PartsOfExpression", make: makeIdentifyFactors },
   { tier: 2, subtype: "PartsOfExpression", make: makeProductOfTwoTerms },
