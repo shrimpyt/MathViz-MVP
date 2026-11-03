@@ -228,6 +228,10 @@ interface DraftFile {
   topicIds: string[];
   seed: number;
   count: number;
+  /** Advanced mode: per-topic problem counts, keyed by topic id. Topics
+      without an entry use the global `count`. Optional so older drafts load. */
+  topicCounts?: Record<string, number>;
+  advancedCounts?: boolean;
   difficulty: DifficultyLevel;
   includeAnswerKey: boolean;
   wordProblems?: boolean;
@@ -243,6 +247,21 @@ export default function WorksheetGenerator() {
   const [customTitle, setCustomTitle] = useState('');
   const [seed, setSeed] = useState(42);
   const [count, setCount] = useState(3);
+  // Advanced mode: a separate problem count per selected topic. The map only
+  // holds topics the user has given a custom count; anything else falls back
+  // to the global `count` above.
+  const [advancedCounts, setAdvancedCounts] = useState(false);
+  const [topicCounts, setTopicCounts] = useState<Record<string, number>>({});
+  const clampCount = (n: number) => Math.min(25, Math.max(1, Math.floor(n)));
+  const countForTopic = (id: string) =>
+    advancedCounts ? clampCount(topicCounts[id] ?? count) : count;
+  const setTopicCount = (id: string, v: number | null) =>
+    setTopicCounts((prev) => {
+      const next = { ...prev };
+      if (v == null || !Number.isFinite(v)) delete next[id];
+      else next[id] = clampCount(v);
+      return next;
+    });
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(2);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [wordProblems, setWordProblems] = useState(false);
@@ -491,9 +510,9 @@ export default function WorksheetGenerator() {
   // chunk them back into per-entry groups for its section renderer.
   const moduleProblemSets = useMemo<MathProblem[][]>(() => {
     return selectedModules.map((mod, i) =>
-      mod.generate(toOutputMode(docType), seed + i * 7919, { count, difficulty, wordProblems })
+      mod.generate(toOutputMode(docType), seed + i * 7919, { count: countForTopic(mod.id), difficulty, wordProblems })
     );
-  }, [selectedModules, docType, seed, count, difficulty, wordProblems]);
+  }, [selectedModules, docType, seed, count, difficulty, wordProblems, advancedCounts, topicCounts]);
 
   // Words-only mode (render-side transform, generation untouched): every
   // diagram rides on the problem's svgParams or on the built question's
@@ -662,6 +681,8 @@ export default function WorksheetGenerator() {
       topicIds: selectedTopicIds,
       seed,
       count,
+      topicCounts,
+      advancedCounts,
       difficulty,
       includeAnswerKey,
       wordProblems,
@@ -710,6 +731,16 @@ export default function WorksheetGenerator() {
         if (typeof d.count === 'number' && Number.isFinite(d.count)) {
           setCount(Math.min(25, Math.max(1, Math.floor(d.count))));
         }
+        if (d.topicCounts && typeof d.topicCounts === 'object') {
+          const clean: Record<string, number> = {};
+          for (const [id, v] of Object.entries(d.topicCounts)) {
+            if (typeof v === 'number' && Number.isFinite(v)) {
+              clean[id] = Math.min(25, Math.max(1, Math.floor(v)));
+            }
+          }
+          setTopicCounts(clean);
+        }
+        if (typeof d.advancedCounts === 'boolean') setAdvancedCounts(d.advancedCounts);
         if (d.difficulty === 1 || d.difficulty === 2 || d.difficulty === 3) {
           setDifficulty(d.difficulty);
         }
@@ -726,7 +757,7 @@ export default function WorksheetGenerator() {
 
   const randomizeSeed = () => setSeed(Math.floor(Math.random() * 100000));
 
-  const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${includeDiagrams}-${selectedTopicIds.join(',')}`;
+  const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${includeDiagrams}-${selectedTopicIds.join(',')}-${advancedCounts ? JSON.stringify(topicCounts) : ''}`;
 
   // Titles of the selected lessons that offer story (word problem) variants.
   const wordCapableSelected = useMemo(
@@ -836,6 +867,11 @@ export default function WorksheetGenerator() {
             isPro={isPro}
             count={count}
             setCount={setCount}
+            advancedCounts={advancedCounts}
+            setAdvancedCounts={setAdvancedCounts}
+            topicCounts={topicCounts}
+            setTopicCount={setTopicCount}
+            selectedEntries={selectedModules.map((m) => ({ id: m.id, title: m.title }))}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
             wordProblems={wordProblems}
@@ -1474,6 +1510,11 @@ function StepTopics({
   isPro,
   count,
   setCount,
+  advancedCounts,
+  setAdvancedCounts,
+  topicCounts,
+  setTopicCount,
+  selectedEntries,
   difficulty,
   setDifficulty,
   wordProblems,
@@ -1503,6 +1544,11 @@ function StepTopics({
   isPro: boolean;
   count: number;
   setCount: (n: number) => void;
+  advancedCounts: boolean;
+  setAdvancedCounts: (b: boolean) => void;
+  topicCounts: Record<string, number>;
+  setTopicCount: (id: string, v: number | null) => void;
+  selectedEntries: { id: string; title: string }[];
   difficulty: DifficultyLevel;
   setDifficulty: (d: DifficultyLevel) => void;
   wordProblems: boolean;
@@ -1560,6 +1606,81 @@ function StepTopics({
               }}
               sx={{ width: 120 }}
             />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Advanced mode 🎛️</Typography>
+              <Switch
+                checked={advancedCounts}
+                onChange={(e) => setAdvancedCounts(e.target.checked)}
+                inputProps={{ 'aria-label': 'Set a different number of problems for each topic' }}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
+                }}
+              />
+            </Box>
+            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+              {advancedCounts
+                ? 'Give each selected topic its own count below. A topic left blank uses the count above.'
+                : 'Set a different number of questions for each topic, instead of one count for all.'}
+            </Typography>
+            {advancedCounts && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1.5 }}>
+                {selectedEntries.length === 0 ? (
+                  <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5 }}>
+                    No topics selected yet. Pick topics and they will show up here.
+                  </Typography>
+                ) : (
+                  selectedEntries.map((e) => {
+                    const custom = topicCounts[e.id];
+                    return (
+                      <Box key={e.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography
+                          sx={{
+                            flex: 1,
+                            minWidth: 0,
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            color: '#f2f3fa',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                          title={e.title}
+                        >
+                          {e.title.replace(/^\d+-\d+:\s*/, '')}
+                        </Typography>
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={custom ?? ''}
+                          placeholder={String(count)}
+                          inputProps={{ min: 1, max: 25, 'aria-label': `Problems for ${e.title}` }}
+                          onChange={(ev) => {
+                            const raw = ev.target.value.trim();
+                            if (raw === '') setTopicCount(e.id, null);
+                            else {
+                              const v = Math.floor(Number(raw));
+                              if (Number.isFinite(v)) setTopicCount(e.id, v);
+                            }
+                          }}
+                          sx={{ width: 68 }}
+                        />
+                        {custom != null && (
+                          <IconButton
+                            size="small"
+                            aria-label={`Reset ${e.title} to the shared count`}
+                            onClick={() => setTopicCount(e.id, null)}
+                            sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' }, p: 0.25 }}
+                          >
+                            <ClearIcon sx={{ fontSize: 14 }} />
+                          </IconButton>
+                        )}
+                      </Box>
+                    );
+                  })
+                )}
+              </Box>
+            )}
           </Box>
           <Box sx={railCardSx}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Difficulty 💪</Typography>
@@ -1847,6 +1968,11 @@ function StepTopics({
                           <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
                             {entry.title}
                           </Typography>
+                          {advancedCounts && checked && (
+                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8' }}>
+                              ×{topicCounts[entry.id] ?? count} problems
+                            </Typography>
+                          )}
                           {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
                             <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, letterSpacing: 0.8, color: '#fb923c' }}>
                               PRO
