@@ -481,7 +481,7 @@ export function ClassicalNotesPdfSection({
         const stepPrompts = promptsFor(steps.length);
         const diagram = classicalDiagram(p);
         return (
-          <View key={pi} style={styles.problemBlock}>
+          <View key={pi} style={styles.problemBlock} wrap={false}>
             <View style={styles.problemHead} wrap={false}>
               <Text style={styles.problemNumber}>{startIndex + pi + 1}.</Text>
               <Text style={styles.questionText}>{pdfSafeText(q.text)}</Text>
