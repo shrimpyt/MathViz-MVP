@@ -828,7 +828,7 @@ function makeOrthocenterLocation(rng: RNG): GeometryProblem {
     steps: [
       step("The orthocenter is the point of concurrency of the altitudes of a triangle.", "Definition of orthocenter."),
       step(why, "Location of the orthocenter (acute, right, and obtuse cases)."),
-      step(`The orthocenter is located: ${answer.toLowerCase()}.`, "Apply the location rule.", [
+      step(`The orthocenter is located: ${answer.charAt(0).toLowerCase()}${answer.slice(1)}.`, "Apply the location rule.", [
         { label: "location", answer },
       ]),
     ],
