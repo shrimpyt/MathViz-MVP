@@ -252,6 +252,40 @@ const GEO_TRIANGLE_INEQUALITY: string[] = [
   "Side Lengths of a Triangle: Every side of a triangle is shorter than the sum of the other two sides and longer than the difference of the other two sides.",
 ];
 
+const GEO_BISECTORS: string[] = [
+  "Perpendicular Bisector: A line, ray, or segment that is perpendicular to a segment at its midpoint.",
+  "Perpendicular Bisector Theorem: Any point on the perpendicular bisector of a segment is equidistant from the endpoints of the segment.",
+  "Converse of the Perpendicular Bisector Theorem: Any point equidistant from the endpoints of a segment lies on the perpendicular bisector of the segment.",
+  "Angle Bisector: A ray that divides an angle into two congruent angles.",
+  "Angle Bisector Theorem: Any point on the bisector of an angle is equidistant from the sides of the angle.",
+];
+
+const GEO_CIRCUMCENTER_INCENTER: string[] = [
+  "Point of Concurrency: The point where three or more lines, rays, or segments intersect; the special segments of a triangle each meet in a single point of concurrency.",
+  "Circumcenter: The point of concurrency of the perpendicular bisectors of a triangle.",
+  "Circumcenter Theorem: The circumcenter of a triangle is equidistant from all three vertices of the triangle; it is the center of the circle that passes through the three vertices.",
+  "Incenter: The point of concurrency of the angle bisectors of a triangle.",
+  "Incenter Theorem: The incenter of a triangle is equidistant from all three sides of the triangle; it is the center of the circle that fits inside the triangle and touches its sides.",
+  "Circumcenter of a Right Triangle: The circumcenter of a right triangle is the midpoint of the hypotenuse, so its distance to every vertex is half the length of the hypotenuse.",
+];
+
+const GEO_MEDIANS_ALTITUDES: string[] = [
+  "Median of a Triangle: A segment from a vertex of a triangle to the midpoint of the opposite side.",
+  "Centroid: The point of concurrency of the medians of a triangle; it is the center of mass, the point on which the triangle balances.",
+  "Centroid Theorem: The centroid of a triangle is two thirds of the distance from each vertex to the midpoint of the opposite side, so the vertex to centroid part of a median is twice the centroid to midpoint part.",
+  "Altitude of a Triangle: A segment from a vertex of a triangle perpendicular to the line that contains the opposite side.",
+  "Orthocenter: The point of concurrency of the altitudes of a triangle.",
+  "Location of the Orthocenter: The orthocenter lies inside an acute triangle, at the vertex of the right angle in a right triangle, and outside an obtuse triangle.",
+];
+
+const GEO_INEQUALITIES_ONE_TRIANGLE: string[] = [
+  "Side Opposite an Angle: The side of a triangle that does not touch the given angle; each angle has exactly one side opposite it, and each side is opposite exactly one angle.",
+  "Longest Side and Largest Angle: In a triangle, the longest side lies opposite the largest angle and the shortest side lies opposite the smallest angle, so ordering the sides in size orders the angles in the same way.",
+  "Included Angle: The angle formed by two sides of a triangle, between the sides that form it.",
+  "Hinge Theorem: If two sides of one triangle are congruent to two sides of another triangle, then the triangle with the larger included angle has the longer third side.",
+  "Converse of the Hinge Theorem: If two sides of one triangle are congruent to two sides of another triangle, then the triangle with the longer third side has the larger included angle.",
+];
+
 const GEO_PROBABILITY_BASICS: string[] = [
   "Probability: A number between 0 and 1, often written as a percent, that measures the likelihood of an event; 0 means the event cannot happen, and 1 means the event is certain to happen.",
   "Outcome and Sample Space: An outcome is one possible result of an experiment; the sample space is the set of all possible outcomes.",
@@ -2222,6 +2256,10 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ch14-4-cross-sections": GEO_CROSS_SECTIONS,
   "ch8-2-symmetry": GEO_SYMMETRY,
   "ch5-2-triangle-inequality": GEO_TRIANGLE_INEQUALITY,
+  "ch5-3-bisectors": GEO_BISECTORS,
+  "ch5-4-circumcenter-incenter": GEO_CIRCUMCENTER_INCENTER,
+  "ch5-5-medians-altitudes": GEO_MEDIANS_ALTITUDES,
+  "ch5-6-inequalities-one-triangle": GEO_INEQUALITIES_ONE_TRIANGLE,
   "ch15-1-experimental-theoretical": GEO_PROBABILITY_BASICS,
   "ch15-2-permutations-combinations": GEO_PERMUTATIONS_COMBINATIONS,
   "ch15-3-conditional-probability": GEO_CONDITIONAL_PROBABILITY,

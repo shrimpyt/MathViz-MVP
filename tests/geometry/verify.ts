@@ -230,8 +230,35 @@ function verifyAnswer(p: GeometryProblem): boolean {
     }
     case "perpBis": return A === String(n("d"));
     case "perpBisAlg": return A === `x = ${n("x")}, PA = ${3 * n("x") + 2}`;
-    case "angBisDist": return A === `${n("d")} units`;
+    case "angBisDist": case "incenterDist": return A === `${n("d")} units`;
     case "centroid": return v.askWhole ? A === String(n("median")) : A === String((2 * n("median")) / 3);
+    case "angBisSplit": return A === `${v.askWhole ? 2 * n("half") : n("half")}°`;
+    case "angBisAlg": return A === `x = ${n("x")}, m∠BAC = ${n("whole")}°`;
+    case "perpBisCoord":
+      return close(Math.hypot(n("h"), n("v")), n("d")) && A === `PA = ${n("d")}, PB = ${n("d")}`;
+    case "circumDist": return A === String(n("d"));
+    case "circumRight": {
+      const hyp = Math.hypot(n("l1"), n("l2"));
+      return Number.isInteger(hyp) && A === fmtNum(hyp / 2);
+    }
+    case "incenterAngle": return A === `${90 + n("a") / 2}°`;
+    case "midpointPt":
+      return A === ptStr((n("bx") + n("cx")) / 2, (n("by") + n("cy")) / 2);
+    case "centroidCoord":
+      return A === ptStr((n("ax") + n("bx") + n("cx")) / 3, (n("ay") + n("by") + n("cy")) / 3);
+    case "centroidAlg": return A === `x = ${n("x")}, AD = ${n("ad")}`;
+    case "altitudeArea": return A === String((2 * n("area")) / n("base"));
+    case "altitudeCoord": return A === String(n("h"));
+    case "orderBySides": {
+      const pairs: [number, string][] = [[n("bc"), "A"], [n("ca"), "B"], [n("ab"), "C"]];
+      const exp = pairs.sort((p, q) => p[0] - q[0]).map(([, w]) => `∠${w}`).join(", ");
+      return A === exp;
+    }
+    case "orderByAngles": {
+      const pairs: [number, string][] = [[n("A"), "BC"], [n("B"), "CA"], [n("C"), "AB"]];
+      const exp = pairs.sort((p, q) => p[0] - q[0]).map(([, w]) => w).join(", ");
+      return A === exp;
+    }
     case "triRange": return A === `${n("b") - n("a")} < x < ${n("a") + n("b")}`;
     case "triPossible": {
       const ok = n("a") + n("b") > n("c") && n("a") + n("c") > n("b") && n("b") + n("c") > n("a");

@@ -35,6 +35,14 @@ import {
   generateMidsegmentProblems,
   MIDSEGMENT_LESSON_POOL,
   TRIANGLE_RELATIONS_TEST_POOL,
+  generateBisectorProblems,
+  BISECTORS_LESSON_POOL,
+  generateConcurrencyProblems,
+  CENTERS_LESSON_POOL,
+  generateMediansAltitudesProblems,
+  MEDIANS_ALTITUDES_LESSON_POOL,
+  generateInequalitiesOneTriangleProblems,
+  INEQUALITIES_ONE_TRIANGLE_POOL,
 } from "@/lib/factories/TriangleRelationsFactory";
 import {
   generatePolygonProblems,
@@ -157,6 +165,10 @@ function lesson(gen: LessonGen, only?: readonly string[]) {
 export const geo_1_1_foundations = lesson(generateFoundationsProblems);
 export const geo_2_1_inductive = lesson(generateReasoningProblems);
 export const geo_5_1_midsegments = lesson(generateMidsegmentProblems);
+export const geo_5_3_bisectors = lesson(generateBisectorProblems);
+export const geo_5_4_centers = lesson(generateConcurrencyProblems);
+export const geo_5_5_mediansAltitudes = lesson(generateMediansAltitudesProblems);
+export const geo_5_6_inequalitiesOneTriangle = lesson(generateInequalitiesOneTriangleProblems);
 export const geo_6_1_polygons = lesson(generatePolygonProblems);
 export const geo_8_1_translations = lesson(generateTranslationProblems);
 export const geo_12_1_tangentLines = lesson(generateTangentProblems);
@@ -332,6 +344,10 @@ export const WIRED_GEOMETRY: WiredGeometryEntry[] = [
   { id: "ch1-1-points-lines", generate: geo_1_1_foundations, subtypes: FOUNDATIONS_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch2-1-inductive-reasoning", generate: geo_2_1_inductive, subtypes: REASONING_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch5-1-midsegments", generate: geo_5_1_midsegments, subtypes: MIDSEGMENT_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch5-3-bisectors", generate: geo_5_3_bisectors, subtypes: BISECTORS_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch5-4-circumcenter-incenter", generate: geo_5_4_centers, subtypes: CENTERS_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch5-5-medians-altitudes", generate: geo_5_5_mediansAltitudes, subtypes: MEDIANS_ALTITUDES_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch5-6-inequalities-one-triangle", generate: geo_5_6_inequalitiesOneTriangle, subtypes: INEQUALITIES_ONE_TRIANGLE_POOL.map((e) => e.subtype) },
   { id: "ch6-1-polygons", generate: geo_6_1_polygons, subtypes: POLYGON_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch8-1-translations", generate: geo_8_1_translations, subtypes: TRANSLATION_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch12-1-tangent-lines", generate: geo_12_1_tangentLines, subtypes: ["TangentLength", "TwoTangentSegments", "TangentCentralAngle", "IsTangent", "CircumscribedPerimeter"] },
