@@ -1570,6 +1570,15 @@ const MS6_EQUIVALENT_EXPRESSIONS: string[] = [
   "Constant: A term with no variable, such as the 5 in 2x + 5; a constant never changes value.",
 ];
 
+const MS6_PROPERTIES_OF_OPERATIONS: string[] = [
+  "Commutative Property: The order of addends or factors can change without changing the result: 4 + 7 = 7 + 4 and 3 × 5 = 5 × 3; it does not work for subtraction or division.",
+  "Associative Property: The grouping of addends or factors can change without changing the result: (2 + 3) + 4 = 2 + (3 + 4).",
+  "Distributive Property: Multiplying a number by a sum gives the same result as multiplying by each part and adding: 4(20 + 3) = 4 × 20 + 4 × 3; it also runs in reverse to factor out a common factor.",
+  "Identity Property: Adding 0 or multiplying by 1 leaves a number unchanged: 9 + 0 = 9 and 9 × 1 = 9.",
+  "Zero Property of Multiplication: The product of any number and 0 is 0: 14 × 0 = 0.",
+  "Properties of Operations: Rules that hold for every number; using them rewrites an expression without changing its value, which is how we know expressions are equivalent.",
+];
+
 const MS6_EQUATIONS_INEQUALITIES: string[] = [
   ...EQUATION_CORE,
   "One-Step Equation: An equation that takes just one operation to solve, such as x + 7 = 15.",
@@ -2447,6 +2456,7 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ms6-3-9-writing-expressions": MS6_WRITING_EXPRESSIONS,
   "ms6-3-10-evaluating-expressions": MS6_VARIABLES_EXPRESSIONS,
   "ms6-3-2-equivalent-expressions": MS6_EQUIVALENT_EXPRESSIONS,
+  "ms6-3-11-properties-of-operations": MS6_PROPERTIES_OF_OPERATIONS,
   "ms6-3-3-equations-inequalities": MS6_EQUATIONS_INEQUALITIES,
   "ms6-3-4-two-variable-relationships": MS6_TWO_VARIABLE,
   "ms6-4-1-ratios-rates": MS6_RATIOS_RATES,

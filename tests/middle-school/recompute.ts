@@ -321,6 +321,33 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       // distributive expand: {a,b,c}
       return `${inum(g, "a") * inum(g, "b")}x + ${inum(g, "a") * inum(g, "c")}`;
     }
+    case "PropertiesOfOperations": {
+      const kind = istr(g, "kind");
+      if (kind === "identify") return istr(g, "property");
+      if (kind === "rewrite") {
+        const form = istr(g, "form");
+        const a = inum(g, "a"), b = inum(g, "b"), c = inum(g, "c");
+        if (form === "assoc-add") return `${a} + (${b} + ${c})`;
+        if (form === "assoc-mul") return `${a} × (${b} × ${c})`;
+        if (form === "comm-add") return `${b} + ${a}`;
+        if (form === "comm-mul") return `${b} × ${a}`;
+        throw new Error(`unhandled PropertiesOfOperations rewrite form=${form}`);
+      }
+      if (kind === "dist-expand") {
+        const a = inum(g, "a"), b = inum(g, "b"), sign = inum(g, "sign");
+        return `${a}${istr(g, "variable")} ${sign > 0 ? "+" : "−"} ${a * b}`;
+      }
+      if (kind === "dist-eval") return inum(g, "a") * (inum(g, "b") + inum(g, "c"));
+      if (kind === "equiv-check") return inum(g, "valid") === 1 ? "Yes" : "No";
+      if (kind === "dist-factor") {
+        const variable = istr(g, "variable");
+        return variable
+          ? `${inum(g, "g")}(${inum(g, "p")}${variable} + ${inum(g, "q")})`
+          : `${inum(g, "g")}(${inum(g, "p")} + ${inum(g, "q")})`;
+      }
+      if (kind === "mental-math") return inum(g, "a") * inum(g, "b") * inum(g, "c");
+      throw new Error(`unhandled PropertiesOfOperations kind=${kind}`);
+    }
     case "EquationsAndInequalities": {
       const kind = istr(g, "kind");
       if (kind === "add" || kind === "neg") return inum(g, "b") - inum(g, "a");

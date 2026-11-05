@@ -43,6 +43,7 @@ export type Grade6Subtype =
   | "WritingExpressions"
   | "VariablesAndExpressions"
   | "EquivalentExpressions"
+  | "PropertiesOfOperations"
   | "EquationsAndInequalities"
   | "TwoVariableRelationships"
   | "RatiosAndRates"

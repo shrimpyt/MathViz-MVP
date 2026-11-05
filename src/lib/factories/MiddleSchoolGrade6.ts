@@ -2213,6 +2213,218 @@ function makeDistributiveExpand(rng: RNG): Grade6Problem {
   );
 }
 
+// ── Lesson: Properties of Operations ─────────────────────────────────────────
+
+function makeIdentifyProperty(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 3, 40);
+  let b = randInt(rng, 3, 40);
+  if (b === a) b += 1;
+  const c = randInt(rng, 2, 12);
+  const v = pick(rng, ["x", "y", "n", "m"] as const);
+  const forms: { eq: string; property: string; why: string }[] = [
+    { eq: `${a} + ${b} = ${b} + ${a}`, property: "Commutative Property of Addition", why: "Only the order of the addends changed; the sum stays the same." },
+    { eq: `${v} + ${b} = ${b} + ${v}`, property: "Commutative Property of Addition", why: "Only the order of the addends changed; the sum stays the same." },
+    { eq: `${a} × ${b} = ${b} × ${a}`, property: "Commutative Property of Multiplication", why: "Only the order of the factors changed; the product stays the same." },
+    { eq: `(${a} + ${b}) + ${c} = ${a} + (${b} + ${c})`, property: "Associative Property of Addition", why: "The order stayed the same, but the grouping of the addends changed." },
+    { eq: `(${a} × ${b}) × ${c} = ${a} × (${b} × ${c})`, property: "Associative Property of Multiplication", why: "The order stayed the same, but the grouping of the factors changed." },
+    { eq: `${a} + 0 = ${a}`, property: "Identity Property of Addition", why: "Adding 0 leaves the number unchanged." },
+    { eq: `${a} × 1 = ${a}`, property: "Identity Property of Multiplication", why: "Multiplying by 1 leaves the number unchanged." },
+    { eq: `${a} × 0 = 0`, property: "Zero Property of Multiplication", why: "Any number times 0 has a product of 0." },
+    { eq: `${c} × (${a} + ${b}) = ${c} × ${a} + ${c} × ${b}`, property: "Distributive Property", why: "The outside factor was multiplied by each part of the sum." },
+  ];
+  const chosen = pick(rng, forms);
+  return build(
+    "PropertiesOfOperations",
+    `Which property is shown? ${chosen.eq}`,
+    "the property",
+    chosen.property,
+    [
+      {
+        instruction: chosen.why,
+        blanks: [{ label: "property", answer: chosen.property }],
+      },
+    ],
+    { kind: "identify", property: chosen.property }
+  );
+}
+
+function makeRewriteWithProperty(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 30);
+  let b = randInt(rng, 2, 30);
+  if (b === a) b += 1;
+  const c = randInt(rng, 2, 15);
+  const form = pick(rng, ["assoc-add", "assoc-mul", "comm-add", "comm-mul"] as const);
+  const table = {
+    "assoc-add": {
+      expr: `(${a} + ${b}) + ${c}`,
+      property: "Associative Property of Addition",
+      answer: `${a} + (${b} + ${c})`,
+      why: "Use the Associative Property: change only the grouping, keep the order.",
+    },
+    "assoc-mul": {
+      expr: `(${a} × ${b}) × ${c}`,
+      property: "Associative Property of Multiplication",
+      answer: `${a} × (${b} × ${c})`,
+      why: "Use the Associative Property: change only the grouping, keep the order.",
+    },
+    "comm-add": {
+      expr: `${a} + ${b}`,
+      property: "Commutative Property of Addition",
+      answer: `${b} + ${a}`,
+      why: "Use the Commutative Property: change only the order.",
+    },
+    "comm-mul": {
+      expr: `${a} × ${b}`,
+      property: "Commutative Property of Multiplication",
+      answer: `${b} × ${a}`,
+      why: "Use the Commutative Property: change only the order.",
+    },
+  } as const;
+  const t = table[form];
+  return build(
+    "PropertiesOfOperations",
+    `Use the ${t.property} to rewrite ${t.expr}.`,
+    "the rewritten expression",
+    t.answer,
+    [
+      {
+        instruction: t.why,
+        blanks: [{ label: "rewritten", answer: t.answer }],
+      },
+    ],
+    { kind: "rewrite", form, a, b, c }
+  );
+}
+
+function makePropertyDistributiveExpand(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 9);
+  const variable = pick(rng, ["x", "y", "n"] as const);
+  const b = randInt(rng, 2, 12);
+  const sign = pick(rng, [1, -1] as const);
+  const op = sign > 0 ? "+" : "−";
+  const ans = `${a}${variable} ${op} ${a * b}`;
+  return build(
+    "PropertiesOfOperations",
+    `Use the Distributive Property to expand ${a}(${variable} ${op} ${b}).`,
+    "the expanded expression",
+    ans,
+    [
+      {
+        instruction: `Multiply ${a} by each term inside the parentheses: ${a} × ${variable} = ${a}${variable}; ${a} × ${b} = ${a * b}.`,
+        blanks: [{ label: "expanded", answer: ans }],
+      },
+    ],
+    { kind: "dist-expand", a, variable, b, sign }
+  );
+}
+
+function makePropertyDistributiveEval(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 3, 9);
+  const b = pick(rng, [20, 30, 40, 50, 60, 100, 200] as const);
+  const c = randInt(rng, 2, 9);
+  const ans = a * (b + c);
+  return build(
+    "PropertiesOfOperations",
+    `Use the Distributive Property to find ${a} × (${b} + ${c}).`,
+    "the product",
+    ans,
+    [
+      {
+        instruction: `Multiply ${a} by each part: ${a} × ${b} = ${a * b}; ${a} × ${c} = ${a * c}.`,
+        blanks: [
+          { label: "first part", answer: String(a * b) },
+          { label: "second part", answer: String(a * c) },
+        ],
+      },
+      {
+        instruction: `Add the parts: ${a * b} + ${a * c} =`,
+        blanks: [{ label: "product", answer: String(ans) }],
+      },
+    ],
+    { kind: "dist-eval", a, b, c }
+  );
+}
+
+function makePropertyCheck(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 3, 25);
+  let b = randInt(rng, 3, 25);
+  if (b === a) b += 1;
+  const c = randInt(rng, 2, 9);
+  const cases: { eq: string; property: string; valid: 0 | 1; why: string }[] = [
+    { eq: `${a} + ${b} = ${b} + ${a}`, property: "Commutative Property of Addition", valid: 1, why: "Yes. Only the order of the addends changed." },
+    { eq: `(${a} × ${b}) × ${c} = ${a} × (${b} × ${c})`, property: "Associative Property of Multiplication", valid: 1, why: "Yes. Only the grouping of the factors changed." },
+    { eq: `${c} × (${a} + ${b}) = ${c} × ${a} + ${c} × ${b}`, property: "Distributive Property", valid: 1, why: "Yes. The outside factor multiplied each part of the sum." },
+    { eq: `(${a} + ${b}) + ${c} = ${a} + (${b} + ${c})`, property: "Commutative Property of Addition", valid: 0, why: "No. The order did not change; the grouping changed, so this is the Associative Property." },
+    { eq: `${a} × ${b} = ${b} × ${a}`, property: "Associative Property of Multiplication", valid: 0, why: "No. The grouping did not change; the order changed, so this is the Commutative Property." },
+    { eq: `${a} − ${b} = ${b} − ${a}`, property: "Commutative Property of Addition", valid: 0, why: "No. Subtraction is not commutative; changing the order changes the value." },
+    { eq: `${c} × (${a} + ${b}) = ${c} × ${a} + ${b}`, property: "Distributive Property", valid: 0, why: `No. The factor ${c} must multiply both parts; the second part should be ${c} × ${b}.` },
+  ];
+  const chosen = pick(rng, cases);
+  const ans = chosen.valid === 1 ? "Yes" : "No";
+  return build(
+    "PropertiesOfOperations",
+    `Does this equation show the ${chosen.property}? ${chosen.eq}`,
+    "yes or no",
+    ans,
+    [
+      {
+        instruction: chosen.why,
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { kind: "equiv-check", valid: chosen.valid }
+  );
+}
+
+function makePropertyDistributiveFactor(rng: RNG): Grade6Problem {
+  const g = randInt(rng, 2, 9);
+  const p = randInt(rng, 2, 9);
+  let q = randInt(rng, 2, 9);
+  if (q === p) q += 1;
+  const symbolic = pick(rng, [true, false] as const);
+  const variable = symbolic ? pick(rng, ["x", "y", "n"] as const) : "";
+  const expr = symbolic ? `${g * p}${variable} + ${g * q}` : `${g * p} + ${g * q}`;
+  const ans = symbolic ? `${g}(${p}${variable} + ${q})` : `${g}(${p} + ${q})`;
+  return build(
+    "PropertiesOfOperations",
+    `Factor out the greatest common factor: ${expr}.`,
+    "the factored expression",
+    ans,
+    [
+      {
+        instruction: `The GCF of the two terms is ${g}. Divide each term by ${g} and write ${g} outside the parentheses:`,
+        blanks: [{ label: "factored", answer: ans }],
+      },
+    ],
+    { kind: "dist-factor", g, p, q, variable }
+  );
+}
+
+function makePropertyMentalMath(rng: RNG): Grade6Problem {
+  const pair = pick(rng, [[4, 25], [25, 4], [5, 20], [20, 5], [2, 50], [50, 2], [8, 125], [125, 8]] as const);
+  const pairProduct = pair[0] * pair[1];
+  const k = pairProduct === 1000 ? randInt(rng, 2, 6) : randInt(rng, 3, 12);
+  const factors = shuffled(rng, [pair[0], pair[1], k]);
+  const ans = pairProduct * k;
+  return build(
+    "PropertiesOfOperations",
+    `Use the Commutative and Associative Properties to compute ${factors[0]} × ${factors[1]} × ${factors[2]} mentally.`,
+    "the product",
+    ans,
+    [
+      {
+        instruction: `Regroup so two factors make ${pairProduct}: ${pair[0]} × ${pair[1]} = ${pairProduct}.`,
+        blanks: [{ label: "pair product", answer: String(pairProduct) }],
+      },
+      {
+        instruction: `Then multiply by the remaining factor: ${pairProduct} × ${k} =`,
+        blanks: [{ label: "product", answer: String(ans) }],
+      },
+    ],
+    { kind: "mental-math", a: factors[0], b: factors[1], c: factors[2] }
+  );
+}
+
 // ── Lesson: Equations & Inequalities ─────────────────────────────────────────
 
 function makeAddEquation(rng: RNG): Grade6Problem {
@@ -4194,6 +4406,13 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "VariablesAndExpressions", make: makeEvaluateDivision },
   { tier: 1, subtype: "EquivalentExpressions", make: makeCombineLikeTerms },
   { tier: 2, subtype: "EquivalentExpressions", make: makeDistributiveExpand },
+  { tier: 1, subtype: "PropertiesOfOperations", make: makeIdentifyProperty },
+  { tier: 1, subtype: "PropertiesOfOperations", make: makeRewriteWithProperty },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makePropertyDistributiveExpand },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makePropertyDistributiveEval },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makePropertyCheck },
+  { tier: 3, subtype: "PropertiesOfOperations", make: makePropertyDistributiveFactor },
+  { tier: 3, subtype: "PropertiesOfOperations", make: makePropertyMentalMath },
   { tier: 1, subtype: "EquationsAndInequalities", make: makeAddEquation },
   { tier: 1, subtype: "EquationsAndInequalities", make: makeMulEquation },
   { tier: 2, subtype: "EquationsAndInequalities", make: makeSubDivEquation },
@@ -4284,6 +4503,7 @@ export const GRADE6_SUBTYPES: Grade6Subtype[] = [
   "WritingExpressions",
   "VariablesAndExpressions",
   "EquivalentExpressions",
+  "PropertiesOfOperations",
   "EquationsAndInequalities",
   "TwoVariableRelationships",
   "RatiosAndRates",

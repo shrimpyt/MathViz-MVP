@@ -32,6 +32,7 @@ const SUBTYPE_LABEL: Record<Grade6Problem["subtype"], string> = {
   WritingExpressions: "Writing Expressions",
   VariablesAndExpressions: "Variables & Expressions",
   EquivalentExpressions: "Equivalent Expressions",
+  PropertiesOfOperations: "Properties of Operations",
   EquationsAndInequalities: "Equations & Inequalities",
   TwoVariableRelationships: "Two-Variable Relationships",
   RatiosAndRates: "Ratios & Rates",
