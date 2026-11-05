@@ -2380,7 +2380,11 @@ function makePropertyDistributiveFactor(rng: RNG): Grade6Problem {
   const g = randInt(rng, 2, 9);
   const p = randInt(rng, 2, 9);
   let q = randInt(rng, 2, 9);
-  if (q === p) q += 1;
+  // p and q must be coprime, otherwise g is only a common factor, not the GCF.
+  for (let tries = 0; tries < 24 && (q === p || gcd(p, q) !== 1); tries++) {
+    q = randInt(rng, 2, 9);
+  }
+  if (q === p || gcd(p, q) !== 1) q = p === 2 ? 3 : 2;
   const symbolic = pick(rng, [true, false] as const);
   const variable = symbolic ? pick(rng, ["x", "y", "n"] as const) : "";
   const expr = symbolic ? `${g * p}${variable} + ${g * q}` : `${g * p} + ${g * q}`;
