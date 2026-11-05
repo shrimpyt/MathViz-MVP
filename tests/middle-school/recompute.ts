@@ -707,6 +707,22 @@ function recompute7(p: MiddleSchoolProblem): string | number {
       return `${ifmt(iround(full * fracNum, 2))} cm²`;
     }
     case "CompositeFigures": {
+      if (istr(g, "kind") === "stack") {
+        const w = inum(g, "w");
+        return `${ifmt((w * inum(g, "triH")) / 2 + w * inum(g, "rectH") + ((w + inum(g, "trapB")) * inum(g, "trapH")) / 2)} cm²`;
+      }
+      if (istr(g, "kind") === "flag") {
+        return `${ifmt(inum(g, "w") * inum(g, "h") - (inum(g, "h") * inum(g, "bite")) / 2)} ft²`;
+      }
+      if (istr(g, "kind") === "medallion") {
+        const w = inum(g, "w"), h = inum(g, "h");
+        return `${w * h + w * inum(g, "tv") + h * inum(g, "th")} in²`;
+      }
+      if (istr(g, "kind") === "corner-circle") {
+        const full = iround(PI * inum(g, "r") * inum(g, "r"), 2);
+        const quarter = iround(full * 0.25, 2);
+        return `${ifmt(iround(inum(g, "w") * inum(g, "h") - quarter, 2))} cm²`;
+      }
       if (istr(g, "wordKind") === "garden") {
         return `${inum(g, "w1") * inum(g, "h1") - inum(g, "cutW") * inum(g, "cutH")} ft²`;
       }

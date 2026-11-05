@@ -996,6 +996,135 @@ function makeCompositeWord(rng: RNG): Grade7Problem {
   );
 }
 
+function makeCompositeStack(rng: RNG): Grade7Problem {
+  // Rocket silhouette: triangle nose + rectangle body + trapezoid base (three parts).
+  const w = randInt(rng, 6, 10);
+  const triH = randInt(rng, 3, 7);
+  const rectH = randInt(rng, 4, 8);
+  const trapH = randInt(rng, 3, 6);
+  const trapB = w + 2 * randInt(rng, 1, 3);
+  const tri = (w * triH) / 2;
+  const rect = w * rectH;
+  const trap = ((w + trapB) * trapH) / 2;
+  const ans = tri + rect + trap;
+  return build(
+    "CompositeFigures",
+    `A rocket silhouette is a composite figure made of a triangle, a rectangle, and a trapezoid. The triangle has base ${w} cm and height ${triH} cm. The rectangle is ${w} cm by ${rectH} cm. The trapezoid has bases ${w} cm and ${trapB} cm and height ${trapH} cm. Find the total area of the silhouette.`,
+    "the total area",
+    `${fmt(ans)} cm²`,
+    [
+      {
+        instruction: `Triangle: ½ × ${w} × ${triH} = ${fmt(tri)}. Rectangle: ${w} × ${rectH} = ${rect}.`,
+        blanks: [
+          { label: "triangle", answer: fmt(tri) },
+          { label: "rectangle", answer: String(rect) },
+        ],
+      },
+      {
+        instruction: `Trapezoid: ½ × (${w} + ${trapB}) × ${trapH} = ${fmt(trap)}. Add all three parts:`,
+        blanks: [{ label: "answer", answer: `${fmt(ans)} cm²` }],
+      },
+    ],
+    { kind: "stack", w, triH, rectH, trapH, trapB },
+    { kind: "MSGeometryFigure", figure: "composite-stack", dims: { w, triH, rectH, trapH, trapB } },
+    "cm²"
+  );
+}
+
+function makeCompositeFlag(rng: RNG): Grade7Problem {
+  // Swallowtail banner: rectangle with a triangular notch cut out of one short side.
+  const w = randInt(rng, 8, 14);
+  const h = 2 * randInt(rng, 2, 4);
+  const bite = randInt(rng, 2, 5);
+  const notch = (h * bite) / 2;
+  const ans = w * h - notch;
+  return build(
+    "CompositeFigures",
+    `A banner is a rectangle ${w} ft by ${h} ft with a triangular notch cut out of one short side. The notch has a base of ${h} ft and a depth of ${bite} ft. Find the area of the banner.`,
+    "the area of the banner",
+    `${fmt(ans)} ft²`,
+    [
+      {
+        instruction: `Whole rectangle: ${w} × ${h} = ${w * h}. Notch: ½ × ${h} × ${bite} = ${fmt(notch)}.`,
+        blanks: [
+          { label: "rectangle", answer: String(w * h) },
+          { label: "notch", answer: fmt(notch) },
+        ],
+      },
+      {
+        instruction: "Subtract the notch from the whole rectangle:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} ft²` }],
+      },
+    ],
+    { kind: "flag", w, h, bite },
+    { kind: "MSGeometryFigure", figure: "composite-flag", dims: { w, h, bite } },
+    "ft²"
+  );
+}
+
+function makeCompositeMedallion(rng: RNG): Grade7Problem {
+  // Medallion: a rectangle with a triangle attached to each of its four sides.
+  const w = randInt(rng, 4, 8);
+  const h = randInt(rng, 3, 6);
+  const tv = randInt(rng, 2, 4);
+  const th = randInt(rng, 2, 4);
+  const ans = w * h + w * tv + h * th;
+  return build(
+    "CompositeFigures",
+    `A medallion is made from a rectangle ${w} in. by ${h} in. with a triangle attached to each of its four sides. The triangles on the top and bottom have height ${tv} in., and the triangles on the left and right have height ${th} in. Find the total area of the medallion.`,
+    "the total area",
+    `${ans} in²`,
+    [
+      {
+        instruction: `Rectangle: ${w} × ${h} = ${w * h}. Top and bottom triangles: 2 × ½ × ${w} × ${tv} = ${w * tv}.`,
+        blanks: [
+          { label: "rectangle", answer: String(w * h) },
+          { label: "top + bottom", answer: String(w * tv) },
+        ],
+      },
+      {
+        instruction: `Left and right triangles: 2 × ½ × ${h} × ${th} = ${h * th}. Add all the parts:`,
+        blanks: [{ label: "answer", answer: `${ans} in²` }],
+      },
+    ],
+    { kind: "medallion", w, h, tv, th },
+    { kind: "MSGeometryFigure", figure: "composite-medallion", dims: { w, h, tv, th } },
+    "in²"
+  );
+}
+
+function makeCompositeCornerCircle(rng: RNG): Grade7Problem {
+  // Rectangular tile with a quarter circle cut out of one corner.
+  const w = randInt(rng, 10, 16);
+  const h = randInt(rng, 8, 12);
+  const r = randInt(rng, 3, 6);
+  const full = roundTo(3.14 * r * r, 2);
+  const quarter = roundTo(full * 0.25, 2);
+  const ans = roundTo(w * h - quarter, 2);
+  return build(
+    "CompositeFigures",
+    `A rectangular tile measures ${w} cm by ${h} cm. A quarter circle with radius ${r} cm is cut out of one corner. Find the area of the tile that remains. Use 3.14 for π.`,
+    "the remaining area",
+    `${fmt(ans)} cm²`,
+    [
+      {
+        instruction: `Whole tile: ${w} × ${h} = ${w * h}. Quarter circle: ¼ × 3.14 × ${r}² = ${fmt(quarter)}.`,
+        blanks: [
+          { label: "tile", answer: String(w * h) },
+          { label: "quarter circle", answer: fmt(quarter) },
+        ],
+      },
+      {
+        instruction: "Subtract the cut-out from the whole tile:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} cm²` }],
+      },
+    ],
+    { kind: "corner-circle", w, h, r, pi: "3.14" },
+    { kind: "MSGeometryFigure", figure: "composite-corner-circle", dims: { w, h, r } },
+    "cm²"
+  );
+}
+
 // ── Lesson: Nets ─────────────────────────────────────────────────────────────
 
 function makeCubeNetSA(rng: RNG): Grade7Problem {
@@ -3369,7 +3498,11 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "SemicirclesAndQuarterCircles", make: makeFractionalCircle },
   { tier: 1, subtype: "CompositeFigures", make: makeCompositeSimple },
   { tier: 2, subtype: "CompositeFigures", make: makeCompositeArea },
+  { tier: 2, subtype: "CompositeFigures", make: makeCompositeStack },
+  { tier: 2, subtype: "CompositeFigures", make: makeCompositeFlag },
   { tier: 3, subtype: "CompositeFigures", make: makeCompositeWord },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeMedallion },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeCornerCircle },
   { tier: 1, subtype: "Nets", make: makeNetCount },
   { tier: 2, subtype: "Nets", make: makeCubeNetSA },
   { tier: 1, subtype: "PrismsSurfaceAreaVolume", make: makePrismVolumeBH },

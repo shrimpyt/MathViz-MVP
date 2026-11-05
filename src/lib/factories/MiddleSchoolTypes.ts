@@ -222,6 +222,10 @@ export interface MSGeometryFigureParams {
     | "angle-supplementary"
     | "angle-vertical"
     | "composite"
+    | "composite-stack"
+    | "composite-medallion"
+    | "composite-flag"
+    | "composite-corner-circle"
     | "net-cube";
   /** Named dimensions, e.g. { base: 8, height: 5 }. */
   dims: Record<string, number>;

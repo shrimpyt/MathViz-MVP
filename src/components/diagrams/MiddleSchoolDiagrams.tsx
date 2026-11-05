@@ -526,6 +526,80 @@ function MSGeometryFigureSVG(p: MSGeometryFigureParams) {
         </svg>
       );
     }
+    case "composite-stack": {
+      const w = d.w ?? 8, triH = d.triH ?? 5, rectH = d.rectH ?? 6, trapH = d.trapH ?? 4, trapB = d.trapB ?? 12;
+      const s = Math.min(118 / trapB, 108 / (triH + rectH + trapH));
+      const cx = 100, yb = 152;
+      const tw = w * s, bw = trapB * s, thp = trapH * s, rhp = rectH * s, trhp = triH * s;
+      const yTrapTop = yb - thp, yRectTop = yTrapTop - rhp, yApex = yRectTop - trhp;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} width="200" height="170" role="img" aria-label={p.figure}>
+          <polygon points={`${cx - bw / 2},${yb} ${cx + bw / 2},${yb} ${cx + tw / 2},${yTrapTop} ${cx - tw / 2},${yTrapTop}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <rect x={cx - tw / 2} y={yRectTop} width={tw} height={rhp} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <polygon points={`${cx - tw / 2},${yRectTop} ${cx + tw / 2},${yRectTop} ${cx},${yApex}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <line x1={cx - tw / 2} y1={yTrapTop} x2={cx + tw / 2} y2={yTrapTop} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          <line x1={cx - tw / 2} y1={yRectTop} x2={cx + tw / 2} y2={yRectTop} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(cx, yRectTop + 12, `${w}`)}
+          {label(cx - tw / 2 - 8, (yRectTop + yApex) / 2 + 3, `${triH}`)}
+          {label(cx + tw / 2 + 9, (yTrapTop + yRectTop) / 2 + 3, `${rectH}`)}
+          {label(cx + bw / 2 + 9, (yb + yTrapTop) / 2 + 3, `${trapH}`)}
+          {label(cx, yb + 13, `${trapB}`)}
+        </svg>
+      );
+    }
+    case "composite-medallion": {
+      const w = d.w ?? 6, h = d.h ?? 4, tv = d.tv ?? 3, th = d.th ?? 3;
+      const s = Math.min(118 / (w + 2 * th), 106 / (h + 2 * tv));
+      const cx = 100, cy = 86;
+      const rw = w * s, rh = h * s, rx = cx - rw / 2, ry = cy - rh / 2;
+      const tvp = tv * s, thp = th * s;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} width="200" height="170" role="img" aria-label={p.figure}>
+          <rect x={rx} y={ry} width={rw} height={rh} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <polygon points={`${rx},${ry} ${rx + rw},${ry} ${cx},${ry - tvp}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <polygon points={`${rx},${ry + rh} ${rx + rw},${ry + rh} ${cx},${ry + rh + tvp}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <polygon points={`${rx},${ry} ${rx},${ry + rh} ${rx - thp},${cy}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <polygon points={`${rx + rw},${ry} ${rx + rw},${ry + rh} ${rx + rw + thp},${cy}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          {label(cx, ry + 12, `${w}`)}
+          {label(rx + 10, cy + 3, `${h}`)}
+          {label(cx, ry - tvp - 5, `${tv}`)}
+          {label(rx - thp - 3, cy + 3, `${th}`)}
+        </svg>
+      );
+    }
+    case "composite-flag": {
+      const w = d.w ?? 10, h = d.h ?? 6, bite = d.bite ?? 3;
+      const s = Math.min(120 / w, 100 / h);
+      const ws = w * s, hs = h * s;
+      const x0 = (200 - ws) / 2, yt = (170 - hs) / 2 - 6, mid = yt + hs / 2;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} width="200" height="170" role="img" aria-label={p.figure}>
+          <polygon points={`${x0},${yt} ${x0 + ws},${yt} ${x0 + ws - bite * s},${mid} ${x0 + ws},${yt + hs} ${x0},${yt + hs}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <line x1={x0 + ws - bite * s} y1={mid} x2={x0 + ws} y2={mid} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(100, yt + hs + 13, `${w}`)}
+          {label(x0 - 10, mid + 3, `${h}`)}
+          {label(x0 + ws - (bite * s) / 2, mid - 7, `${bite}`)}
+        </svg>
+      );
+    }
+    case "composite-corner-circle": {
+      const w = d.w ?? 12, h = d.h ?? 10, r = d.r ?? 4;
+      const s = Math.min(120 / w, 100 / h);
+      const ws = w * s, hs = h * s;
+      const x0 = (200 - ws) / 2, yt = (170 - hs) / 2 - 6;
+      const rp = r * s, xr = x0 + ws, yb2 = yt + hs;
+      const dAttr = `M ${x0} ${yb2} L ${x0} ${yt} L ${xr - rp} ${yt} A ${rp} ${rp} 0 0 0 ${xr} ${yt + rp} L ${xr} ${yb2} Z`;
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} width="200" height="170" role="img" aria-label={p.figure}>
+          <path d={dAttr} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <line x1={xr} y1={yt} x2={xr - rp} y2={yt} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          <line x1={xr} y1={yt} x2={xr} y2={yt + rp} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(100, yb2 + 13, `${w}`)}
+          {label(x0 - 10, yt + hs / 2 + 3, `${h}`)}
+          {label(xr - rp - 4, yt + rp + 11, `${r}`)}
+        </svg>
+      );
+    }
     case "net-cube": {
       const s = d.side ?? 4;
       const q = 34;
