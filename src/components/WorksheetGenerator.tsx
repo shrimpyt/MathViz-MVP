@@ -53,7 +53,7 @@ import {
   requestSignInLink,
   signOut as apiSignOut,
 } from '../lib/account';
-import { standardsFor, type StandardsFramework } from '../lib/standards';
+import { standardsFor, FRAMEWORKS, frameworkMeta, type StandardsFramework } from '../lib/standards';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -455,7 +455,9 @@ export default function WorksheetGenerator() {
           return (
             e.title.toLowerCase().includes(q) ||
             e.teks.toLowerCase().includes(q) ||
-            standardsFor(e.id, e.teks, 'ccss').toLowerCase().includes(q)
+            FRAMEWORKS.some(
+              (f) => f.id !== 'teks' && standardsFor(e.id, e.teks, f.id).toLowerCase().includes(q)
+            )
           );
         });
         return [groupTitle, kept];
@@ -638,11 +640,7 @@ export default function WorksheetGenerator() {
 
   const standards = useMemo(() => {
     const labels = [...new Set(selectedModules.map((m) => stdFor(m)))];
-    return labels.length > 0
-      ? labels.join(' · ')
-      : framework === 'ccss'
-        ? 'Common Core State Standards'
-        : 'Texas TEKS Geometry';
+    return labels.length > 0 ? labels.join(' · ') : frameworkMeta(framework).fallback;
   }, [selectedModules, framework]);
 
   // Combined multi-version PDF document for the accommodated export.
@@ -755,7 +753,7 @@ export default function WorksheetGenerator() {
           setTopicCounts(clean);
         }
         if (typeof d.advancedCounts === 'boolean') setAdvancedCounts(d.advancedCounts);
-        if (d.framework === 'ccss' || d.framework === 'teks') setFramework(d.framework);
+        if (d.framework && FRAMEWORKS.some((f) => f.id === d.framework)) setFramework(d.framework);
         if (d.difficulty === 1 || d.difficulty === 2 || d.difficulty === 3) {
           setDifficulty(d.difficulty);
         }
@@ -803,7 +801,7 @@ export default function WorksheetGenerator() {
       return `Format: ${m ? m.label : docType} ${m ? m.emoji : ''}`;
     }
     if (step === 1) {
-      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${framework === 'ccss' ? 'CCSS' : 'TEKS'} ${teksSelected}/${teksTotal}`;
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${frameworkMeta(framework).short} ${teksSelected}/${teksTotal}`;
     }
     if (hasAccommodations) {
       return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready 🎉`;
@@ -1590,7 +1588,7 @@ function StepTopics({
       <StepHeading
         emoji="📚"
         title="Which topics should it cover?"
-        sub={`Tap to add, mix and match across subjects. We'll keep your ${framework === 'ccss' ? 'Common Core' : 'TEKS'} covered.`}
+        sub={`Tap to add, mix and match across subjects. We'll keep your ${frameworkMeta(framework).coverName} covered.`}
       />
       <Box
         sx={{
@@ -1617,20 +1615,15 @@ function StepTopics({
         >
           <Box sx={railCardSx}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Standards 🏷️</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {(
-                [
-                  { id: 'teks', label: 'Texas TEKS' },
-                  { id: 'ccss', label: 'Common Core' },
-                ] as { id: StandardsFramework; label: string }[]
-              ).map((f) => {
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {FRAMEWORKS.map((f) => {
                 const active = framework === f.id;
                 return (
                   <Box
                     key={f.id}
                     onClick={() => setFramework(f.id)}
                     sx={{
-                      flex: 1,
+                      flex: '1 1 45%',
                       textAlign: 'center',
                       cursor: 'pointer',
                       fontSize: '0.78rem',
@@ -1649,9 +1642,7 @@ function StepTopics({
               })}
             </Box>
             <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 1 }}>
-              {framework === 'ccss'
-                ? 'Labels show Common Core (CCSS) codes for the same lessons. A few Texas-only lessons, like financial literacy, have no Common Core equivalent.'
-                : 'Labels show Texas TEKS. Switch to Common Core to see the matching CCSS codes for the same lessons.'}
+              {frameworkMeta(framework).note}
             </Typography>
           </Box>
           <Box sx={railCardSx}>
