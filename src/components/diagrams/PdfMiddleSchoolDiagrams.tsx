@@ -634,6 +634,190 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
         </Svg>
       );
     }
+    case "composite-house": {
+      const w = d.w ?? 8, wallH = d.wallH ?? 4, roofH = d.roofH ?? 3;
+      const s = Math.min(120 / w, 105 / (wallH + roofH));
+      const cx = 100, yb = 150;
+      const ws = w * s, whp = wallH * s, rhp = roofH * s;
+      const yWallTop = yb - whp, yApex = yWallTop - rhp;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Rect x={cx - ws / 2} y={yWallTop} width={ws} height={whp} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Polygon points={`${cx - ws / 2},${yWallTop} ${cx + ws / 2},${yWallTop} ${cx},${yApex}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Line x1={cx - ws / 2} y1={yWallTop} x2={cx + ws / 2} y2={yWallTop} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(cx, yb + 13, `${w}`)}
+          {label(cx + ws / 2 + 9, (yWallTop + yb) / 2 + 3, `${wallH}`)}
+          {label(cx - ws / 2 - 8, (yWallTop + yApex) / 2 + 3, `${roofH}`)}
+        </Svg>
+      );
+    }
+    case "composite-kite": {
+      const b = d.b ?? 8, h1 = d.h1 ?? 4, h2 = d.h2 ?? 3;
+      const s = Math.min(118 / b, 106 / (h1 + h2));
+      const cx = 100, totalH = (h1 + h2) * s;
+      const yTop = (170 - totalH) / 2, yBase = yTop + h1 * s;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${cx - (b * s) / 2},${yBase} ${cx},${yTop} ${cx + (b * s) / 2},${yBase} ${cx},${yTop + totalH}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Line x1={cx - (b * s) / 2} y1={yBase} x2={cx + (b * s) / 2} y2={yBase} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(cx, yBase + 13, `${b}`)}
+          {label(cx - (b * s) / 4 - 6, (yTop + yBase) / 2 + 3, `${h1}`)}
+          {label(cx - (b * s) / 4 - 6, (yBase + yTop + totalH) / 2 + 3, `${h2}`)}
+        </Svg>
+      );
+    }
+    case "composite-arrow": {
+      const shaftL = d.shaftL ?? 8, shaftH = d.shaftH ?? 3, headBase = d.headBase ?? 7, headLen = d.headLen ?? 4;
+      const L = shaftL + headLen;
+      const s = Math.min(128 / L, 100 / headBase);
+      const cy = 84, x0 = (200 - L * s) / 2;
+      const shP = shaftH * s, hbP = headBase * s, slP = shaftL * s, hlP = headLen * s;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${x0},${cy - shP / 2} ${x0 + slP},${cy - shP / 2} ${x0 + slP},${cy - hbP / 2} ${x0 + L * s},${cy} ${x0 + slP},${cy + hbP / 2} ${x0 + slP},${cy + shP / 2} ${x0},${cy + shP / 2}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Line x1={x0 + slP} y1={cy - hbP / 2} x2={x0 + slP} y2={cy + hbP / 2} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(x0 + slP / 2, cy + shP / 2 + 13, `${shaftL}`)}
+          {label(x0 - 8, cy + 3, `${shaftH}`)}
+          {label(x0 + slP, cy - hbP / 2 - 6, `${headBase}`)}
+          {label(x0 + slP + hlP / 2, cy + hbP / 2 + 13, `${headLen}`)}
+        </Svg>
+      );
+    }
+    case "composite-stairs": {
+      const a = d.a ?? 3, h = d.h ?? 2;
+      const s = Math.min(120 / (3 * a), 105 / (3 * h));
+      const x0 = (200 - 3 * a * s) / 2, yb = 148;
+      const ap = a * s, hp = h * s;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${x0},${yb} ${x0 + 3 * ap},${yb} ${x0 + 3 * ap},${yb - hp} ${x0 + 2 * ap},${yb - hp} ${x0 + 2 * ap},${yb - 2 * hp} ${x0 + ap},${yb - 2 * hp} ${x0 + ap},${yb - 3 * hp} ${x0},${yb - 3 * hp}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Line x1={x0 + ap} y1={yb - 2 * hp} x2={x0 + ap} y2={yb} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          <Line x1={x0 + 2 * ap} y1={yb - hp} x2={x0 + 2 * ap} y2={yb} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(x0 + 2.5 * ap, yb + 13, `${a}`)}
+          {label(x0 + 3 * ap + 8, yb - hp / 2 + 3, `${h}`)}
+        </Svg>
+      );
+    }
+    case "composite-ring": {
+      const R = d.R ?? 7, r = d.r ?? 4;
+      const s = 53 / R;
+      const cx = 100, cy = 85;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Circle cx={cx} cy={cy} r={R * s} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Circle cx={cx} cy={cy} r={r * s} fill="#ffffff" stroke={INK} strokeWidth={1.6} />
+          <Line x1={cx} y1={cy} x2={cx + R * s} y2={cy} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          <Line x1={cx} y1={cy} x2={cx - r * s} y2={cy} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(cx + ((R + r) * s) / 2, cy - 5, `${R}`)}
+          {label(cx - (r * s) / 2, cy + 12, `${r}`)}
+        </Svg>
+      );
+    }
+    case "composite-sailboat": {
+      const hullTop = d.hullTop ?? 10, hullBot = d.hullBot ?? 7, hullH = d.hullH ?? 3, sailBase = d.sailBase ?? 5, sailH = d.sailH ?? 7;
+      const s = Math.min(120 / hullTop, 104 / (hullH + sailH));
+      const cx = 100, yb = (170 + (hullH + sailH) * s) / 2;
+      const hullTopY = yb - hullH * s, apexY = hullTopY - sailH * s;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${cx - (hullTop * s) / 2},${hullTopY} ${cx + (hullTop * s) / 2},${hullTopY} ${cx + (hullBot * s) / 2},${yb} ${cx - (hullBot * s) / 2},${yb}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Polygon points={`${cx - (sailBase * s) / 2},${hullTopY} ${cx + (sailBase * s) / 2},${hullTopY} ${cx},${apexY}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          {label(cx - (sailBase * s) / 2 - 8, (hullTopY + apexY) / 2 + 3, `${sailH}`)}
+          {label(cx, hullTopY + 12, `${sailBase}`)}
+          {label(cx + (hullTop * s) / 2 + 9, (hullTopY + yb) / 2 + 3, `${hullH}`)}
+          {label(cx, yb + 13, `${hullBot}`)}
+        </Svg>
+      );
+    }
+    case "composite-plus": {
+      const arm = d.arm ?? 3, vH = d.vH ?? 9, hW = d.hW ?? 9;
+      const s = Math.min(110 / hW, 110 / vH);
+      const cx = 100, cy = 85;
+      const a = arm * s, v = vH * s, hw = hW * s;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${cx - a / 2},${cy - v / 2} ${cx + a / 2},${cy - v / 2} ${cx + a / 2},${cy - a / 2} ${cx + hw / 2},${cy - a / 2} ${cx + hw / 2},${cy + a / 2} ${cx + a / 2},${cy + a / 2} ${cx + a / 2},${cy + v / 2} ${cx - a / 2},${cy + v / 2} ${cx - a / 2},${cy + a / 2} ${cx - hw / 2},${cy + a / 2} ${cx - hw / 2},${cy - a / 2} ${cx - a / 2},${cy - a / 2}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          {label(cx, cy + 3, `${arm}`)}
+          {label(cx - a / 2 - 8, cy - v / 4 + 3, `${vH}`)}
+          {label(cx + (a + hw) / 4, cy + a / 2 + 13, `${hW}`)}
+        </Svg>
+      );
+    }
+    case "composite-frame": {
+      const Wd = d.W ?? 12, Hd = d.H ?? 10, b = d.b ?? 2;
+      const s = Math.min(125 / Wd, 108 / Hd);
+      const ws = Wd * s, hs = Hd * s, bp = b * s;
+      const x0 = (200 - ws) / 2, yt = (170 - hs) / 2 - 4;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Rect x={x0} y={yt} width={ws} height={hs} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Rect x={x0 + bp} y={yt + bp} width={ws - 2 * bp} height={hs - 2 * bp} fill="#ffffff" stroke={INK} strokeWidth={1.6} />
+          {label(100, yt + hs + 13, `${Wd}`)}
+          {label(x0 - 10, yt + hs / 2 + 3, `${Hd}`)}
+          {label(100, yt + Math.max(bp / 2, 6) + 3, `${b}`)}
+        </Svg>
+      );
+    }
+    case "composite-arch": {
+      const w = d.w ?? 6, h = d.h ?? 4, r = w / 2;
+      const s = Math.min(115 / w, 108 / (h + r));
+      const ws = w * s, rp = r * s, hp = h * s;
+      const x0 = (200 - ws) / 2, yTop = (170 - (hp + rp)) / 2, yt = yTop + rp, yb = yt + hp;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Path d={`M ${x0} ${yb} L ${x0} ${yt} A ${rp} ${rp} 0 0 1 ${x0 + ws} ${yt} L ${x0 + ws} ${yb} Z`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Line x1={x0} y1={yt} x2={x0 + ws} y2={yt} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(100, yb + 13, `${w}`)}
+          {label(x0 + ws + 9, (yt + yb) / 2 + 3, `${h}`)}
+          {label(x0 + ws / 4, yt - 6, `${r}`)}
+        </Svg>
+      );
+    }
+    case "composite-hole": {
+      const side = d.side ?? 12, r = d.r ?? 3;
+      const s = 110 / side;
+      const cx = 100, cy = 82, half = (side * s) / 2;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Rect x={cx - half} y={cy - half} width={side * s} height={side * s} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Circle cx={cx} cy={cy} r={r * s} fill="#ffffff" stroke={INK} strokeWidth={1.6} />
+          <Line x1={cx} y1={cy} x2={cx + r * s} y2={cy} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(100, cy + half + 13, `${side}`)}
+          {label(cx + (r * s) / 2, cy - 5, `${r}`)}
+        </Svg>
+      );
+    }
+    case "composite-stadium": {
+      const w = d.w ?? 9, h = d.h ?? 6, r = h / 2;
+      const s = Math.min(128 / (w + h), 100 / h);
+      const rp = r * s, wp = w * s, hp = h * s;
+      const x0 = (200 - (wp + 2 * rp)) / 2, yt = (170 - hp) / 2 - 4, yb = yt + hp;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Path d={`M ${x0 + rp} ${yt} L ${x0 + rp + wp} ${yt} A ${rp} ${rp} 0 0 1 ${x0 + rp + wp} ${yb} L ${x0 + rp} ${yb} A ${rp} ${rp} 0 0 1 ${x0 + rp} ${yt} Z`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Line x1={x0 + rp} y1={yt} x2={x0 + rp} y2={yb} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          <Line x1={x0 + rp + wp} y1={yt} x2={x0 + rp + wp} y2={yb} stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(x0 + rp + wp / 2, yt - 6, `${w}`)}
+          {label(x0 + rp / 2, yb + 13, `${h}`)}
+        </Svg>
+      );
+    }
+    case "composite-octagon": {
+      const Wd = d.W ?? 12, Hd = d.H ?? 12, c = d.c ?? 3;
+      const s = Math.min(122 / Wd, 106 / Hd);
+      const ws = Wd * s, hs = Hd * s, cp = c * s;
+      const x0 = (200 - ws) / 2, yt = (170 - hs) / 2 - 4;
+      const corner = `M ${x0 + cp} ${yt} L ${x0} ${yt} L ${x0} ${yt + cp} M ${x0 + ws - cp} ${yt} L ${x0 + ws} ${yt} L ${x0 + ws} ${yt + cp} M ${x0 + cp} ${yt + hs} L ${x0} ${yt + hs} L ${x0} ${yt + hs - cp} M ${x0 + ws - cp} ${yt + hs} L ${x0 + ws} ${yt + hs} L ${x0 + ws} ${yt + hs - cp}`;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${x0 + cp},${yt} ${x0 + ws - cp},${yt} ${x0 + ws},${yt + cp} ${x0 + ws},${yt + hs - cp} ${x0 + ws - cp},${yt + hs} ${x0 + cp},${yt + hs} ${x0},${yt + hs - cp} ${x0},${yt + cp}`} fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Path d={corner} fill="none" stroke={INK} strokeWidth={1} strokeDasharray="4 3" />
+          {label(100, yt + hs + 13, `${Wd}`)}
+          {label(x0 - 10, yt + hs / 2 + 3, `${Hd}`)}
+          {label(x0 + cp / 2 + 2, yt + cp + 11, `${c}`)}
+        </Svg>
+      );
+    }
     case "net-cube": {
       const s = d.side ?? 4;
       const q = 34;

@@ -1125,6 +1125,375 @@ function makeCompositeCornerCircle(rng: RNG): Grade7Problem {
   );
 }
 
+function makeCompositeHouse(rng: RNG): Grade7Problem {
+  // House silhouette: rectangle walls with a triangle roof.
+  const w = randInt(rng, 6, 10);
+  const wallH = randInt(rng, 3, 5);
+  const roofH = randInt(rng, 2, 4);
+  const roof = (w * roofH) / 2;
+  const ans = w * wallH + roof;
+  return build(
+    "CompositeFigures",
+    `A house silhouette is a rectangle ${w} m wide and ${wallH} m tall with a triangular roof of height ${roofH} m on top. Find the total area of the silhouette.`,
+    "the total area",
+    `${fmt(ans)} m²`,
+    [
+      {
+        instruction: `Walls: ${w} × ${wallH} = ${w * wallH}. Roof: ½ × ${w} × ${roofH} = ${fmt(roof)}.`,
+        blanks: [
+          { label: "walls", answer: String(w * wallH) },
+          { label: "roof", answer: fmt(roof) },
+        ],
+      },
+      {
+        instruction: "Add the walls and the roof:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} m²` }],
+      },
+    ],
+    { kind: "house", w, wallH, roofH },
+    { kind: "MSGeometryFigure", figure: "composite-house", dims: { w, wallH, roofH } },
+    "m²"
+  );
+}
+
+function makeCompositeKite(rng: RNG): Grade7Problem {
+  // Kite: two triangles sharing one base.
+  const b = 2 * randInt(rng, 3, 6);
+  const h1 = randInt(rng, 3, 6);
+  const h2 = randInt(rng, 2, 5);
+  const ans = (b * (h1 + h2)) / 2;
+  return build(
+    "CompositeFigures",
+    `A kite is made of two triangles that share a base of ${b} in. The top triangle has height ${h1} in. and the bottom triangle has height ${h2} in. Find the total area of the kite.`,
+    "the total area",
+    `${ans} in²`,
+    [
+      {
+        instruction: `Top triangle: ½ × ${b} × ${h1} = ${(b * h1) / 2}. Bottom triangle: ½ × ${b} × ${h2} = ${(b * h2) / 2}.`,
+        blanks: [
+          { label: "top", answer: String((b * h1) / 2) },
+          { label: "bottom", answer: String((b * h2) / 2) },
+        ],
+      },
+      {
+        instruction: "Add the two triangles:",
+        blanks: [{ label: "answer", answer: `${ans} in²` }],
+      },
+    ],
+    { kind: "kite", b, h1, h2 },
+    { kind: "MSGeometryFigure", figure: "composite-kite", dims: { b, h1, h2 } },
+    "in²"
+  );
+}
+
+function makeCompositeArrow(rng: RNG): Grade7Problem {
+  // Arrow sign: rectangle shaft with a triangle head.
+  const shaftL = randInt(rng, 6, 10);
+  const shaftH = randInt(rng, 2, 4);
+  const headBase = randInt(rng, 6, 9);
+  const headLen = randInt(rng, 3, 5);
+  const head = (headBase * headLen) / 2;
+  const ans = shaftL * shaftH + head;
+  return build(
+    "CompositeFigures",
+    `An arrow sign is a rectangle ${shaftL} in. long and ${shaftH} in. tall with a triangular point on one end. The triangle has a base of ${headBase} in. and a length of ${headLen} in. Find the total area of the sign.`,
+    "the total area",
+    `${fmt(ans)} in²`,
+    [
+      {
+        instruction: `Shaft: ${shaftL} × ${shaftH} = ${shaftL * shaftH}. Point: ½ × ${headBase} × ${headLen} = ${fmt(head)}.`,
+        blanks: [
+          { label: "shaft", answer: String(shaftL * shaftH) },
+          { label: "point", answer: fmt(head) },
+        ],
+      },
+      {
+        instruction: "Add the shaft and the point:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} in²` }],
+      },
+    ],
+    { kind: "arrow", shaftL, shaftH, headBase, headLen },
+    { kind: "MSGeometryFigure", figure: "composite-arrow", dims: { shaftL, shaftH, headBase, headLen } },
+    "in²"
+  );
+}
+
+function makeCompositeStairs(rng: RNG): Grade7Problem {
+  // Three-step staircase, seen from the side: three columns of heights h, 2h, 3h.
+  const a = randInt(rng, 2, 4);
+  const h = randInt(rng, 1, 3);
+  const ans = 6 * a * h;
+  return build(
+    "CompositeFigures",
+    `The side of a staircase has 3 steps. Each step is ${a} ft deep and ${h} ft tall, so the three columns are ${h} ft, ${2 * h} ft, and ${3 * h} ft tall and each is ${a} ft wide. Find the area of the side of the staircase.`,
+    "the area",
+    `${ans} ft²`,
+    [
+      {
+        instruction: `Columns: ${a} × ${h} = ${a * h}, ${a} × ${2 * h} = ${2 * a * h}, and ${a} × ${3 * h} = ${3 * a * h}.`,
+        blanks: [
+          { label: "short column", answer: String(a * h) },
+          { label: "tall column", answer: String(3 * a * h) },
+        ],
+      },
+      {
+        instruction: "Add the three columns:",
+        blanks: [{ label: "answer", answer: `${ans} ft²` }],
+      },
+    ],
+    { kind: "stairs", a, h },
+    { kind: "MSGeometryFigure", figure: "composite-stairs", dims: { a, h } },
+    "ft²"
+  );
+}
+
+function makeCompositeRing(rng: RNG): Grade7Problem {
+  // Ring (annulus): a circle with a smaller circle cut out of the middle.
+  const R = randInt(rng, 5, 9);
+  const r = R - randInt(rng, 2, 3);
+  const ans = roundTo(3.14 * (R * R - r * r), 2);
+  return build(
+    "CompositeFigures",
+    `A flat ring has an outer radius of ${R} cm and an inner radius of ${r} cm. Find the area of the ring. Use 3.14 for π.`,
+    "the area of the ring",
+    `${fmt(ans)} cm²`,
+    [
+      {
+        instruction: `Outer circle: 3.14 × ${R}² = ${fmt(roundTo(3.14 * R * R, 2))}. Inner circle: 3.14 × ${r}² = ${fmt(roundTo(3.14 * r * r, 2))}.`,
+        blanks: [
+          { label: "outer", answer: fmt(roundTo(3.14 * R * R, 2)) },
+          { label: "inner", answer: fmt(roundTo(3.14 * r * r, 2)) },
+        ],
+      },
+      {
+        instruction: "Subtract the inner circle from the outer circle:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} cm²` }],
+      },
+    ],
+    { kind: "ring", R, r, pi: "3.14" },
+    { kind: "MSGeometryFigure", figure: "composite-ring", dims: { R, r } },
+    "cm²"
+  );
+}
+
+function makeCompositeSailboat(rng: RNG): Grade7Problem {
+  // Sailboat: trapezoid hull with a triangle sail.
+  const hullTop = randInt(rng, 8, 12);
+  const hullBot = hullTop - randInt(rng, 2, 4);
+  const hullH = randInt(rng, 2, 4);
+  const sailBase = randInt(rng, 4, 7);
+  const sailH = randInt(rng, 5, 9);
+  const hull = ((hullTop + hullBot) * hullH) / 2;
+  const sail = (sailBase * sailH) / 2;
+  const ans = hull + sail;
+  return build(
+    "CompositeFigures",
+    `A sailboat picture is made of a trapezoid hull and a triangle sail. The hull has bases ${hullTop} in. and ${hullBot} in. and height ${hullH} in. The sail has base ${sailBase} in. and height ${sailH} in. Find the total area of the picture.`,
+    "the total area",
+    `${fmt(ans)} in²`,
+    [
+      {
+        instruction: `Hull: ½ × (${hullTop} + ${hullBot}) × ${hullH} = ${fmt(hull)}. Sail: ½ × ${sailBase} × ${sailH} = ${fmt(sail)}.`,
+        blanks: [
+          { label: "hull", answer: fmt(hull) },
+          { label: "sail", answer: fmt(sail) },
+        ],
+      },
+      {
+        instruction: "Add the hull and the sail:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} in²` }],
+      },
+    ],
+    { kind: "sailboat", hullTop, hullBot, hullH, sailBase, sailH },
+    { kind: "MSGeometryFigure", figure: "composite-sailboat", dims: { hullTop, hullBot, hullH, sailBase, sailH } },
+    "in²"
+  );
+}
+
+function makeCompositePlus(rng: RNG): Grade7Problem {
+  // Plus sign: a vertical bar and a horizontal bar that overlap in the middle.
+  const arm = randInt(rng, 2, 4);
+  const vH = arm + 2 * randInt(rng, 2, 4);
+  const hW = arm + 2 * randInt(rng, 2, 4);
+  const ans = arm * vH + arm * hW - arm * arm;
+  return build(
+    "CompositeFigures",
+    `A plus-sign rug is made from a vertical bar ${arm} cm wide and ${vH} cm tall and a horizontal bar ${hW} cm wide and ${arm} cm tall. The bars overlap in the middle. Find the total area of the rug.`,
+    "the total area",
+    `${ans} cm²`,
+    [
+      {
+        instruction: `Vertical bar: ${arm} × ${vH} = ${arm * vH}. Horizontal bar: ${hW} × ${arm} = ${arm * hW}. The overlap is ${arm} × ${arm} = ${arm * arm}, counted twice.`,
+        blanks: [
+          { label: "vertical", answer: String(arm * vH) },
+          { label: "overlap", answer: String(arm * arm) },
+        ],
+      },
+      {
+        instruction: "Add the bars and subtract the overlap once:",
+        blanks: [{ label: "answer", answer: `${ans} cm²` }],
+      },
+    ],
+    { kind: "plus", arm, vH, hW },
+    { kind: "MSGeometryFigure", figure: "composite-plus", dims: { arm, vH, hW } },
+    "cm²"
+  );
+}
+
+function makeCompositeFrame(rng: RNG): Grade7Problem {
+  // Picture frame: an outer rectangle with a smaller rectangle cut out of the middle.
+  const W = randInt(rng, 10, 16);
+  const H = randInt(rng, 8, 12);
+  const b = randInt(rng, 1, 3);
+  const inner = (W - 2 * b) * (H - 2 * b);
+  const ans = W * H - inner;
+  return build(
+    "CompositeFigures",
+    `A picture frame measures ${W} in. by ${H} in. on the outside. The frame is ${b} in. wide all the way around, so the opening in the middle is ${W - 2 * b} in. by ${H - 2 * b} in. Find the area of the frame itself.`,
+    "the area of the frame",
+    `${ans} in²`,
+    [
+      {
+        instruction: `Outside: ${W} × ${H} = ${W * H}. Opening: ${W - 2 * b} × ${H - 2 * b} = ${inner}.`,
+        blanks: [
+          { label: "outside", answer: String(W * H) },
+          { label: "opening", answer: String(inner) },
+        ],
+      },
+      {
+        instruction: "Subtract the opening from the outside:",
+        blanks: [{ label: "answer", answer: `${ans} in²` }],
+      },
+    ],
+    { kind: "frame", W, H, b },
+    { kind: "MSGeometryFigure", figure: "composite-frame", dims: { W, H, b } },
+    "in²"
+  );
+}
+
+function makeCompositeArch(rng: RNG): Grade7Problem {
+  // Arched window: a rectangle with a semicircle on top.
+  const w = 2 * randInt(rng, 2, 3);
+  const h = randInt(rng, 3, 6);
+  const r = w / 2;
+  const full = roundTo(3.14 * r * r, 2);
+  const semi = roundTo(full * 0.5, 2);
+  const ans = roundTo(w * h + semi, 2);
+  return build(
+    "CompositeFigures",
+    `An arched window is a rectangle ${w} ft wide and ${h} ft tall with a semicircle on top. Find the total area of the window. Use 3.14 for π.`,
+    "the total area",
+    `${fmt(ans)} ft²`,
+    [
+      {
+        instruction: `Rectangle: ${w} × ${h} = ${w * h}. The semicircle has radius ${r} ft: ½ × 3.14 × ${r}² = ${fmt(semi)}.`,
+        blanks: [
+          { label: "rectangle", answer: String(w * h) },
+          { label: "semicircle", answer: fmt(semi) },
+        ],
+      },
+      {
+        instruction: "Add the rectangle and the semicircle:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} ft²` }],
+      },
+    ],
+    { kind: "arch", w, h, r, pi: "3.14" },
+    { kind: "MSGeometryFigure", figure: "composite-arch", dims: { w, h } },
+    "ft²"
+  );
+}
+
+function makeCompositeHole(rng: RNG): Grade7Problem {
+  // Square plate with a round hole in the middle.
+  const side = randInt(rng, 10, 14);
+  const r = randInt(rng, 2, 4);
+  const full = roundTo(3.14 * r * r, 2);
+  const ans = roundTo(side * side - full, 2);
+  return build(
+    "CompositeFigures",
+    `A square metal plate is ${side} cm on each side. A round hole with radius ${r} cm is drilled through the middle. Find the area of the plate that remains. Use 3.14 for π.`,
+    "the remaining area",
+    `${fmt(ans)} cm²`,
+    [
+      {
+        instruction: `Square: ${side} × ${side} = ${side * side}. Hole: 3.14 × ${r}² = ${fmt(full)}.`,
+        blanks: [
+          { label: "square", answer: String(side * side) },
+          { label: "hole", answer: fmt(full) },
+        ],
+      },
+      {
+        instruction: "Subtract the hole from the square:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} cm²` }],
+      },
+    ],
+    { kind: "hole", side, r, pi: "3.14" },
+    { kind: "MSGeometryFigure", figure: "composite-hole", dims: { side, r } },
+    "cm²"
+  );
+}
+
+function makeCompositeStadium(rng: RNG): Grade7Problem {
+  // Capsule (stadium): a rectangle with a semicircle on each end.
+  const h = 2 * randInt(rng, 2, 4);
+  const w = randInt(rng, 6, 12);
+  const r = h / 2;
+  const circle = roundTo(3.14 * r * r, 2);
+  const ans = roundTo(w * h + circle, 2);
+  return build(
+    "CompositeFigures",
+    `A capsule-shaped rug is a rectangle ${w} m long and ${h} m wide with a semicircle on each end. Find the total area of the rug. Use 3.14 for π.`,
+    "the total area",
+    `${fmt(ans)} m²`,
+    [
+      {
+        instruction: `Rectangle: ${w} × ${h} = ${w * h}. The two semicircles make one full circle of radius ${r} m: 3.14 × ${r}² = ${fmt(circle)}.`,
+        blanks: [
+          { label: "rectangle", answer: String(w * h) },
+          { label: "circle", answer: fmt(circle) },
+        ],
+      },
+      {
+        instruction: "Add the rectangle and the circle:",
+        blanks: [{ label: "answer", answer: `${fmt(ans)} m²` }],
+      },
+    ],
+    { kind: "stadium", w, h, r, pi: "3.14" },
+    { kind: "MSGeometryFigure", figure: "composite-stadium", dims: { w, h } },
+    "m²"
+  );
+}
+
+function makeCompositeOctagon(rng: RNG): Grade7Problem {
+  // Stop-sign shape: a rectangle with its four corners cut off.
+  const W = randInt(rng, 10, 14);
+  const H = randInt(rng, 10, 14);
+  const c = randInt(rng, 2, 4);
+  const ans = W * H - 2 * c * c;
+  return build(
+    "CompositeFigures",
+    `A stop sign is made by cutting the corners off a rectangle ${W} in. by ${H} in. Each cut removes a right triangle with legs ${c} in. and ${c} in. Find the area of the sign.`,
+    "the area of the sign",
+    `${ans} in²`,
+    [
+      {
+        instruction: `Whole rectangle: ${W} × ${H} = ${W * H}. Each corner triangle: ½ × ${c} × ${c} = ${(c * c) / 2}, and there are 4 of them.`,
+        blanks: [
+          { label: "rectangle", answer: String(W * H) },
+          { label: "4 corners", answer: String(2 * c * c) },
+        ],
+      },
+      {
+        instruction: "Subtract the four corners from the rectangle:",
+        blanks: [{ label: "answer", answer: `${ans} in²` }],
+      },
+    ],
+    { kind: "octagon", W, H, c },
+    { kind: "MSGeometryFigure", figure: "composite-octagon", dims: { W, H, c } },
+    "in²"
+  );
+}
+
 // ── Lesson: Nets ─────────────────────────────────────────────────────────────
 
 function makeCubeNetSA(rng: RNG): Grade7Problem {
@@ -3503,6 +3872,18 @@ const MAKERS: MakerEntry[] = [
   { tier: 3, subtype: "CompositeFigures", make: makeCompositeWord },
   { tier: 3, subtype: "CompositeFigures", make: makeCompositeMedallion },
   { tier: 3, subtype: "CompositeFigures", make: makeCompositeCornerCircle },
+  { tier: 1, subtype: "CompositeFigures", make: makeCompositeHouse },
+  { tier: 1, subtype: "CompositeFigures", make: makeCompositeKite },
+  { tier: 2, subtype: "CompositeFigures", make: makeCompositeArrow },
+  { tier: 2, subtype: "CompositeFigures", make: makeCompositeStairs },
+  { tier: 2, subtype: "CompositeFigures", make: makeCompositeRing },
+  { tier: 2, subtype: "CompositeFigures", make: makeCompositeSailboat },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositePlus },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeFrame },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeArch },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeHole },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeStadium },
+  { tier: 3, subtype: "CompositeFigures", make: makeCompositeOctagon },
   { tier: 1, subtype: "Nets", make: makeNetCount },
   { tier: 2, subtype: "Nets", make: makeCubeNetSA },
   { tier: 1, subtype: "PrismsSurfaceAreaVolume", make: makePrismVolumeBH },

@@ -723,6 +723,50 @@ function recompute7(p: MiddleSchoolProblem): string | number {
         const quarter = iround(full * 0.25, 2);
         return `${ifmt(iround(inum(g, "w") * inum(g, "h") - quarter, 2))} cm²`;
       }
+      if (istr(g, "kind") === "house") {
+        const w = inum(g, "w");
+        return `${ifmt(w * inum(g, "wallH") + (w * inum(g, "roofH")) / 2)} m²`;
+      }
+      if (istr(g, "kind") === "kite") {
+        return `${(inum(g, "b") * (inum(g, "h1") + inum(g, "h2"))) / 2} in²`;
+      }
+      if (istr(g, "kind") === "arrow") {
+        return `${ifmt(inum(g, "shaftL") * inum(g, "shaftH") + (inum(g, "headBase") * inum(g, "headLen")) / 2)} in²`;
+      }
+      if (istr(g, "kind") === "stairs") {
+        return `${6 * inum(g, "a") * inum(g, "h")} ft²`;
+      }
+      if (istr(g, "kind") === "ring") {
+        const R = inum(g, "R"), r = inum(g, "r");
+        return `${ifmt(iround(PI * (R * R - r * r), 2))} cm²`;
+      }
+      if (istr(g, "kind") === "sailboat") {
+        return `${ifmt(((inum(g, "hullTop") + inum(g, "hullBot")) * inum(g, "hullH")) / 2 + (inum(g, "sailBase") * inum(g, "sailH")) / 2)} in²`;
+      }
+      if (istr(g, "kind") === "plus") {
+        const arm = inum(g, "arm");
+        return `${arm * inum(g, "vH") + arm * inum(g, "hW") - arm * arm} cm²`;
+      }
+      if (istr(g, "kind") === "frame") {
+        const W = inum(g, "W"), H = inum(g, "H"), b = inum(g, "b");
+        return `${W * H - (W - 2 * b) * (H - 2 * b)} in²`;
+      }
+      if (istr(g, "kind") === "arch") {
+        const full = iround(PI * inum(g, "r") * inum(g, "r"), 2);
+        const semi = iround(full * 0.5, 2);
+        return `${ifmt(iround(inum(g, "w") * inum(g, "h") + semi, 2))} ft²`;
+      }
+      if (istr(g, "kind") === "hole") {
+        const full = iround(PI * inum(g, "r") * inum(g, "r"), 2);
+        return `${ifmt(iround(inum(g, "side") * inum(g, "side") - full, 2))} cm²`;
+      }
+      if (istr(g, "kind") === "stadium") {
+        const circle = iround(PI * inum(g, "r") * inum(g, "r"), 2);
+        return `${ifmt(iround(inum(g, "w") * inum(g, "h") + circle, 2))} m²`;
+      }
+      if (istr(g, "kind") === "octagon") {
+        return `${inum(g, "W") * inum(g, "H") - 2 * inum(g, "c") * inum(g, "c")} in²`;
+      }
       if (istr(g, "wordKind") === "garden") {
         return `${inum(g, "w1") * inum(g, "h1") - inum(g, "cutW") * inum(g, "cutH")} ft²`;
       }

@@ -226,6 +226,18 @@ export interface MSGeometryFigureParams {
     | "composite-medallion"
     | "composite-flag"
     | "composite-corner-circle"
+    | "composite-house"
+    | "composite-arrow"
+    | "composite-plus"
+    | "composite-stairs"
+    | "composite-frame"
+    | "composite-arch"
+    | "composite-hole"
+    | "composite-ring"
+    | "composite-kite"
+    | "composite-stadium"
+    | "composite-sailboat"
+    | "composite-octagon"
     | "net-cube";
   /** Named dimensions, e.g. { base: 8, height: 5 }. */
   dims: Record<string, number>;
