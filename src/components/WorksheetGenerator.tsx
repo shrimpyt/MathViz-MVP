@@ -53,6 +53,7 @@ import {
   requestSignInLink,
   signOut as apiSignOut,
 } from '../lib/account';
+import { standardsFor, type StandardsFramework } from '../lib/standards';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -232,6 +233,8 @@ interface DraftFile {
       without an entry use the global `count`. Optional so older drafts load. */
   topicCounts?: Record<string, number>;
   advancedCounts?: boolean;
+  /** Standards framework the labels were shown in. Optional so older drafts load. */
+  framework?: StandardsFramework;
   difficulty: DifficultyLevel;
   includeAnswerKey: boolean;
   wordProblems?: boolean;
@@ -252,6 +255,11 @@ export default function WorksheetGenerator() {
   // to the global `count` above.
   const [advancedCounts, setAdvancedCounts] = useState(false);
   const [topicCounts, setTopicCounts] = useState<Record<string, number>>({});
+  // Standards framework: TEKS is native to the catalog; Common Core labels
+  // come from the crosswalk in lib/standards. Display-only: generation,
+  // problems and keys are identical under either framework.
+  const [framework, setFramework] = useState<StandardsFramework>('teks');
+  const stdFor = (e: { id: string; teks: string }) => standardsFor(e.id, e.teks, framework);
   const clampCount = (n: number) => Math.min(25, Math.max(1, Math.floor(n)));
   const countForTopic = (id: string) =>
     advancedCounts ? clampCount(topicCounts[id] ?? count) : count;
@@ -446,7 +454,8 @@ export default function WorksheetGenerator() {
           if (groupHit) return true;
           return (
             e.title.toLowerCase().includes(q) ||
-            e.teks.toLowerCase().includes(q)
+            e.teks.toLowerCase().includes(q) ||
+            standardsFor(e.id, e.teks, 'ccss').toLowerCase().includes(q)
           );
         });
         return [groupTitle, kept];
@@ -537,14 +546,14 @@ export default function WorksheetGenerator() {
       const group: ClassicalGroup = {
         entryId: mod.id,
         title: mod.title,
-        teks: mod.teks.split(' · ')[0],
+        teks: stdFor(mod).split(' · ')[0],
         problems,
         startIndex: start,
       };
       start += problems.length;
       return group;
     });
-  }, [docType, selectedModules, displayProblemSets]);
+  }, [docType, selectedModules, displayProblemSets, framework]);
 
   // Proof document flavor, threaded to EuclidEngine → ProofProblemCard.
   const proofDocMode = useMemo(
@@ -628,9 +637,13 @@ export default function WorksheetGenerator() {
   const title = customTitle || defaultTitle;
 
   const standards = useMemo(() => {
-    const teks = [...new Set(selectedModules.map((m) => m.teks))];
-    return teks.length > 0 ? teks.join(' · ') : 'Texas TEKS Geometry';
-  }, [selectedModules]);
+    const labels = [...new Set(selectedModules.map((m) => stdFor(m)))];
+    return labels.length > 0
+      ? labels.join(' · ')
+      : framework === 'ccss'
+        ? 'Common Core State Standards'
+        : 'Texas TEKS Geometry';
+  }, [selectedModules, framework]);
 
   // Combined multi-version PDF document for the accommodated export.
   // Base version + its key, then each group version + its key, with labeled
@@ -683,6 +696,7 @@ export default function WorksheetGenerator() {
       count,
       topicCounts,
       advancedCounts,
+      framework,
       difficulty,
       includeAnswerKey,
       wordProblems,
@@ -741,6 +755,7 @@ export default function WorksheetGenerator() {
           setTopicCounts(clean);
         }
         if (typeof d.advancedCounts === 'boolean') setAdvancedCounts(d.advancedCounts);
+        if (d.framework === 'ccss' || d.framework === 'teks') setFramework(d.framework);
         if (d.difficulty === 1 || d.difficulty === 2 || d.difficulty === 3) {
           setDifficulty(d.difficulty);
         }
@@ -769,18 +784,18 @@ export default function WorksheetGenerator() {
   const teksSelected = useMemo(
     () =>
       new Set(
-        selectedModules.flatMap((m) => m.teks.split(' · ').map((t) => t.trim()))
+        selectedModules.flatMap((m) => stdFor(m).split(' · ').map((t) => t.trim()))
       ).size,
-    [selectedModules]
+    [selectedModules, framework]
   );
   const teksTotal = useMemo(
     () =>
       new Set(
         CURRICULUM_REGISTRY.filter((e) => !e.underConstruction).flatMap((e) =>
-          e.teks.split(' · ').map((t) => t.trim())
+          stdFor(e).split(' · ').map((t) => t.trim())
         )
       ).size,
-    []
+    [framework]
   );
   const footerSummary = useMemo(() => {
     if (step === 0) {
@@ -788,7 +803,7 @@ export default function WorksheetGenerator() {
       return `Format: ${m ? m.label : docType} ${m ? m.emoji : ''}`;
     }
     if (step === 1) {
-      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · TEKS ${teksSelected}/${teksTotal}`;
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${framework === 'ccss' ? 'CCSS' : 'TEKS'} ${teksSelected}/${teksTotal}`;
     }
     if (hasAccommodations) {
       return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready 🎉`;
@@ -879,6 +894,8 @@ export default function WorksheetGenerator() {
             wordCapableSelected={wordCapableSelected}
             includeDiagrams={includeDiagrams}
             setIncludeDiagrams={setIncludeDiagrams}
+            framework={framework}
+            setFramework={setFramework}
           />
         )}
         {step === 2 && (
@@ -1522,6 +1539,8 @@ function StepTopics({
   wordCapableSelected,
   includeDiagrams,
   setIncludeDiagrams,
+  framework,
+  setFramework,
 }: {
   topicSearch: string;
   handleSearchChange: (v: string) => void;
@@ -1556,6 +1575,8 @@ function StepTopics({
   wordCapableSelected: string[];
   includeDiagrams: boolean;
   setIncludeDiagrams: (b: boolean) => void;
+  framework: StandardsFramework;
+  setFramework: (f: StandardsFramework) => void;
 }) {
   const railCardSx = {
     bgcolor: '#1e2233',
@@ -1569,7 +1590,7 @@ function StepTopics({
       <StepHeading
         emoji="📚"
         title="Which topics should it cover?"
-        sub="Tap to add, mix and match across subjects. We'll keep your TEKS covered."
+        sub={`Tap to add, mix and match across subjects. We'll keep your ${framework === 'ccss' ? 'Common Core' : 'TEKS'} covered.`}
       />
       <Box
         sx={{
@@ -1594,6 +1615,45 @@ function StepTopics({
             gap: 2,
           }}
         >
+          <Box sx={railCardSx}>
+            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Standards 🏷️</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {(
+                [
+                  { id: 'teks', label: 'Texas TEKS' },
+                  { id: 'ccss', label: 'Common Core' },
+                ] as { id: StandardsFramework; label: string }[]
+              ).map((f) => {
+                const active = framework === f.id;
+                return (
+                  <Box
+                    key={f.id}
+                    onClick={() => setFramework(f.id)}
+                    sx={{
+                      flex: 1,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      py: 0.9,
+                      borderRadius: '10px',
+                      color: active ? '#14161f' : '#9aa0be',
+                      backgroundColor: active ? '#818cf8' : 'rgba(129,140,248,0.08)',
+                      border: '1.5px solid',
+                      borderColor: active ? '#818cf8' : '#2c3247',
+                    }}
+                  >
+                    {f.label}
+                  </Box>
+                );
+              })}
+            </Box>
+            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 1 }}>
+              {framework === 'ccss'
+                ? 'Labels show Common Core (CCSS) codes for the same lessons. A few Texas-only lessons, like financial literacy, have no Common Core equivalent.'
+                : 'Labels show Texas TEKS. Switch to Common Core to see the matching CCSS codes for the same lessons.'}
+            </Typography>
+          </Box>
           <Box sx={railCardSx}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Problems per topic 🔢</Typography>
             <TextField
@@ -1963,7 +2023,7 @@ function StepTopics({
                               pr: 4,
                             }}
                           >
-                            {entry.underConstruction ? 'COMING SOON' : entry.teks}
+                            {entry.underConstruction ? 'COMING SOON' : standardsFor(entry.id, entry.teks, framework)}
                           </Typography>
                           <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
                             {entry.title}
