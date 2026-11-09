@@ -42,6 +42,8 @@ export interface GeoPt {
   label: string;
   x: number;
   y: number;
+  /** Part of the answer: never drawn on the student worksheet. */
+  answer?: boolean;
 }
 
 /** Triangle (or triangle-with-interior-points) figure: midsegments, bisectors,
@@ -91,10 +93,22 @@ export interface PolygonFigureParams {
 export interface GridFigureParams {
   kind: "GridFigure";
   variant?: number;
-  polygons?: { points: GeoPt[]; dashed?: boolean }[];
+  /** `answer: true` marks an item that is the answer (an image, a midpoint…):
+   *  renderers drop it so the worksheet never shows the key. */
+  polygons?: { points: GeoPt[]; dashed?: boolean; answer?: boolean }[];
   points?: GeoPt[];
   /** Lines in math coords (reflection lines, etc.). */
-  lines?: { x1: number; y1: number; x2: number; y2: number; dashed?: boolean }[];
+  lines?: { x1: number; y1: number; x2: number; y2: number; dashed?: boolean; answer?: boolean }[];
+}
+
+/** The grid as students should see it: every answer-tagged item removed. */
+export function worksheetGrid(p: GridFigureParams): GridFigureParams {
+  return {
+    ...p,
+    polygons: p.polygons?.filter((poly) => !poly.answer),
+    points: p.points?.filter((pt) => !pt.answer),
+    lines: p.lines?.filter((l) => !l.answer),
+  };
 }
 
 /** Two (possibly parallel) lines cut by a transversal; 8 angle slots.

@@ -17,6 +17,7 @@ import {
   polyAdd,
   polySub,
   polyMul,
+  gcd,
 } from "./Algebra1Format";
 
 export const POLY_BY_DIFFICULTY: Record<DifficultyLevel, readonly Algebra1Subtype[]> = {
@@ -167,6 +168,30 @@ function makePolyMultiply(rng: RNG): Algebra1Problem {
   };
 }
 
+// ── Shared: complete factorization helpers ─────────────────────────────────
+
+/** gcd of a polynomial's coefficients (always ≥ 1). */
+function contentOf(f: number[]): number {
+  return f.reduce((g, c) => gcd(g, Math.abs(c)), 0) || 1;
+}
+
+/** Divide each linear factor by its content; the product of the contents
+ *  becomes one constant factor out front. */
+function factorOutContent(fs: number[][]): { constant: number; factors: number[][] } {
+  let constant = 1;
+  const factors = fs.map((f) => {
+    const c = contentOf(f);
+    constant *= c;
+    return f.map((v) => v / c);
+  });
+  return { constant, factors };
+}
+
+function fmtWithConstant(constant: number, factors: number[][]): string {
+  const body = fmtFactored(factors.map((f) => fmtLinear(f[1], f[0])));
+  return constant === 1 ? body : `${constant}${body}`;
+}
+
 // ── Factor out the GCF ───────────────────────────────────────────────────────
 
 function makeFactorGCF(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
@@ -174,10 +199,15 @@ function makeFactorGCF(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
   const power: number = difficulty >= 2 && rng() < 0.5 ? 2 : 1; // GCF = kx or kx²
   const inner: number[] = [nz(rng, -6, 6), nz(rng, -6, 6)];
   if (difficulty >= 2 && rng() < 0.5) inner.push(nz(rng, -4, 4));
+  // Fold any common factor of the inner terms into the GCF, so the answer
+  // really is the greatest common factor (12x² + 12x → 12x(x + 1)).
+  const innerContent = contentOf(inner);
+  for (let i = 0; i < inner.length; i++) inner[i] /= innerContent;
+  const gcfK = k * innerContent;
   const gcfCoeffs = new Array(power + 1).fill(0);
-  gcfCoeffs[power] = k;
+  gcfCoeffs[power] = gcfK;
   const poly = polyMul(gcfCoeffs, inner);
-  const gcfText = power === 0 ? `${k}` : power === 1 ? `${k}x` : `${k}x^{${power}}`;
+  const gcfText = power === 0 ? `${gcfK}` : power === 1 ? `${gcfK}x` : `${gcfK}x^{${power}}`;
   const prompt = `Factor out the greatest common factor: \\(${fmtPoly(poly)}\\)`;
   const answer = `${gcfText}(${fmtPoly(inner)})`;
   return {
@@ -229,7 +259,10 @@ function makeFactorTrinomial(rng: RNG, difficulty: DifficultyLevel, ac: boolean)
   }
   const poly = polyMul(f1, f2);
   const prompt = `Factor completely: \\(${fmtPoly(poly)}\\)`;
-  const answer = fmtFactored([fmtLinear(f1[1], f1[0]), fmtLinear(f2[1], f2[0])]);
+  // "Completely": pull each binomial's common factor out front,
+  // e.g. (x + 6)(2x + 6) → 2(x + 3)(x + 6).
+  const { constant, factors } = factorOutContent([f1, f2]);
+  const answer = fmtWithConstant(constant, factors);
   return {
     type: "A.10E",
     subtype: ac ? "FactorTrinomialAC" : "FactorTrinomialBasic",
@@ -242,7 +275,7 @@ function makeFactorTrinomial(rng: RNG, difficulty: DifficultyLevel, ac: boolean)
         blanks: [{ label: "answer", answer }],
       },
     ],
-    meta: { kind: "factored", poly, factors: [f1, f2] },
+    meta: { kind: "factored", poly, factors: constant === 1 ? factors : [[constant], ...factors] },
   };
 }
 
@@ -255,7 +288,9 @@ function makeFactorDifferenceSquares(rng: RNG): Algebra1Problem {
   const f2 = [q, p];
   const poly = polyMul(f1, f2); // p²x² − q²
   const prompt = `Factor completely: \\(${fmtPoly(poly)}\\)`;
-  const answer = fmtFactored([fmtLinear(p, -q), fmtLinear(p, q)]);
+  // 4x² − 16 → 4(x − 2)(x + 2), not (2x − 4)(2x + 4).
+  const { constant, factors } = factorOutContent([f1, f2]);
+  const answer = fmtWithConstant(constant, factors);
   return {
     type: "A.10F",
     subtype: "FactorDifferenceSquares",
@@ -274,7 +309,7 @@ function makeFactorDifferenceSquares(rng: RNG): Algebra1Problem {
         blanks: [{ label: "answer", answer }],
       },
     ],
-    meta: { kind: "factored", poly, factors: [f1, f2] },
+    meta: { kind: "factored", poly, factors: constant === 1 ? factors : [[constant], ...factors] },
   };
 }
 

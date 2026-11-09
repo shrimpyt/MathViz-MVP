@@ -34,7 +34,9 @@ function makePercentChange(rng: RNG, difficulty: SATDifficulty): SATProblem {
   const old = randInt(rng, 2, 9) * step;
   const nw = increase ? old + (old * pct) / 100 : old - (old * pct) / 100;
 
-  const pctFrac = q(increase ? pct : -pct);
+  // SAT convention: "percent increase/decrease" is the size of the change,
+  // a positive number either way.
+  const pctFrac = q(pct);
   const key = { label: qLabel(pctFrac), value: qVal(pctFrac) };
   const item = pick(rng, [
     ["price of a backpack", "$"],
@@ -49,18 +51,16 @@ function makePercentChange(rng: RNG, difficulty: SATDifficulty): SATProblem {
       ? `It is now ${item[1]}${nw}. What is the percent increase?`
       : `It is now ${item[1]}${nw}. What is the percent decrease?`);
 
-  // The key is signed (decrease → negative), so the explanation must show the
-  // signed change, not the absolute percent.
   const explanation =
     increase
       ? `Change = ${item[1]}${nw - old}. Percent increase = ${nw - old}/${old} × 100% = ${pct}%.`
-      : `Change = ${item[1]}${old - nw}. Percent change = ${nw - old}/${old} × 100% = ${-pct}%.`;
+      : `Change = ${item[1]}${old - nw}. Percent decrease = ${old - nw}/${old} × 100% = ${pct}%.`;
 
-  const baseErr = Math.round(((nw - old) / nw) * 100); // wrong base
+  const baseErr = Math.round((Math.abs(nw - old) / nw) * 100); // wrong base
   const pool: DistractorSpec[] = [
     {
-      label: qLabel(q(increase ? baseErr : -baseErr)),
-      value: increase ? baseErr : -baseErr,
+      label: qLabel(q(baseErr)),
+      value: baseErr,
       misconception: "percent-base-error",
       note: "Divided by the new value instead of the original value.",
     },
@@ -71,18 +71,24 @@ function makePercentChange(rng: RNG, difficulty: SATDifficulty): SATProblem {
       note: "Reported the new amount as a percent of the old instead of the change.",
     },
     {
-      label: qLabel(q(increase ? -pct : pct)),
-      value: increase ? -pct : pct,
+      label: qLabel(q(-pct)),
+      value: -pct,
       misconception: "sign-flip",
       note: increase
         ? "Reported a decrease instead of an increase."
-        : "Reported an increase instead of a decrease.",
+        : "Reported the signed change instead of the size of the decrease.",
     },
     {
-      label: qLabel(q(increase ? 2 * pct : -2 * pct)),
-      value: increase ? 2 * pct : -2 * pct,
+      label: qLabel(q(2 * pct)),
+      value: 2 * pct,
       misconception: "order-of-operations",
       note: "Doubled the percent change, arithmetic slip.",
+    },
+    {
+      label: qLabel(q(Math.abs(nw - old))),
+      value: Math.abs(nw - old),
+      misconception: "wrong-variable",
+      note: "Gave the amount of change instead of the percent.",
     },
   ];
 
@@ -94,7 +100,7 @@ function makePercentChange(rng: RNG, difficulty: SATDifficulty): SATProblem {
       key: key.label, keyValue: key.value, explanation,
       verify: {
         params: { old, nw, pct: increase ? pct : -pct },
-        note: "pct = (new-old)/old*100; check old*(1+pct/100) = new.",
+        note: "signed pct = (new-old)/old*100; key = |pct|.",
       },
     };
   }
@@ -126,11 +132,13 @@ function makeRatioProportion(rng: RNG, difficulty: SATDifficulty): SATProblem {
     stem = `If ${a}/${b} = ${c}/x, what is the value of x?`;
     explanation = `Cross-multiply: ${a}x = ${b} × ${c} = ${b * c}, so x = ${b * c}/${a} = ${x}.`;
   } else if (t === 2) {
-    const unit = pick(rng, ["cups of flour", "miles", "dollars", "minutes"]);
+    // Same proportion as tier 1 (a/b = c/x): the unknown is the number of
+    // servings, so the key x = b·c/a is always a whole number.
+    const unit = pick(rng, ["cups of flour", "eggs", "cups of milk", "tablespoons of butter"]);
     stem =
       `A recipe uses ${a} ${unit} for every ${b} servings. ` +
-      `How many ${unit} are needed for ${c} servings?`;
-    explanation = `Set up the proportion ${a}/${b} = x/${c}; cross-multiplying gives ${b}x = ${a * c}, so x = ${x}.`;
+      `How many servings can be made with ${c} ${unit}?`;
+    explanation = `Set up the proportion ${a}/${b} = ${c}/x; cross-multiplying gives ${a}x = ${b * c}, so x = ${x}.`;
   } else {
     // Avoid from = b², which would make the "inverted ratio" distractor
     // numerically equal to the key (buildMCQ would throw, see fuzz).

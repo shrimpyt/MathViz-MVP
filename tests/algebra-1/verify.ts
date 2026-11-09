@@ -453,10 +453,19 @@ function verifyFactored(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, {
     const cc = f[pw];
     const mono = pw === 0 ? `${cc}` : pw === 1 ? (cc === 1 ? "x" : `${cc}x`) : cc === 1 ? `x^{${pw}}` : `${cc}x^{${pw}}`;
     expected = `${mono}(${vPoly(m.factors[1])})`;
+  } else if (m.factors.length > 0 && m.factors[0].length === 1) {
+    // Leading constant factor: 2(x + 3)(x + 6).
+    expected = `${m.factors[0][0]}` + vFactored(m.factors.slice(1).map((f) => vLinear(f[1] ?? 0, f[0] ?? 0)));
   } else {
     expected = vFactored(m.factors.map((f) => vLinear(f[1] ?? 0, f[0] ?? 0)));
   }
   checkAnswer(ctx, p, expected, "factored form");
+  // "Factor completely": no non-constant factor may keep a common factor.
+  for (const f of m.factors) {
+    if (f.filter((c) => c !== 0).length < 2) continue;
+    const content = f.reduce((g, c) => vgcd(g, Math.abs(c)), 0);
+    check(ctx, content === 1, `factor [${f}] still has common factor ${content} in ${p.answer}`);
+  }
   check(ctx, (m.poly[m.poly.length - 1] ?? 0) !== 0, "zero leading coefficient in factored polynomial");
 }
 
@@ -496,8 +505,19 @@ function verifyQuadratic(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, 
     if (vIsPerfectSquare(D)) {
       checkAnswer(ctx, p, `x = ${vNum(roots[0])} \\text{ or } x = ${vNum(roots[1])}`, "quadratic formula");
     } else {
-      const g = vgcd(vgcd(Math.abs(b), D), Math.abs(2 * a));
-      checkAnswer(ctx, p, `x = \\frac{${-b / g} \\pm \\sqrt{${D / g}}}{${(2 * a) / g}}`, "quadratic formula (radical)");
+      // Parse x = [\frac{]N \pm M\sqrt{R}[}{Q}] and check it independently:
+      // the two values must be the roots, R squarefree, gcd(N, M, Q) = 1.
+      const ans = String(p.answer);
+      const mt = ans.match(/^x = (?:\\frac\{)?(-?\d+)? ?\\pm (\d*)\\sqrt\{(\d+)\}(?:\}\{(\d+)\})?$/);
+      if (!mt) { check(ctx, false, `radical answer not in simplest-form shape: ${ans}`); return; }
+      const N = mt[1] ? Number(mt[1]) : 0, M = mt[2] ? Number(mt[2]) : 1, R = Number(mt[3]), Q = mt[4] ? Number(mt[4]) : 1;
+      const vals = [(N - M * Math.sqrt(R)) / Q, (N + M * Math.sqrt(R)) / Q].sort((x, y) => x - y);
+      const want = [...roots].sort((x, y) => x - y);
+      check(ctx, Math.abs(vals[0] - want[0]) < 1e-9 && Math.abs(vals[1] - want[1]) < 1e-9, `radical answer ${ans} gives ${vals}, roots are ${want}`);
+      let sqf = true;
+      for (let k = 2; k * k <= R; k++) if (R % (k * k) === 0) sqf = false;
+      check(ctx, sqf, `radicand ${R} not simplified in ${ans}`);
+      check(ctx, vgcd(vgcd(Math.abs(N), M), Q) === 1, `radical answer ${ans} not reduced`);
     }
   }
 }
@@ -543,8 +563,10 @@ function verifyVertex(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { k
 function verifyQuadTransform(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta, { kind: "quadTransform" }>): void {
   const { a, h, k } = m;
   const parts: string[] = [];
-  if (a === -1) parts.push("reflect over the x-axis");
-  else if (a !== 1) parts.push(a > 1 ? `vertical stretch by ${a}` : `vertical shrink by ${vFrac(1, Math.abs(a))}`);
+  // g(x) = a(x − h)² + k: a < 0 reflects; |a| > 1 stretches by |a|.
+  if (a < 0) parts.push("reflect over the x-axis");
+  if (Math.abs(a) > 1) parts.push(`vertical stretch by ${Math.abs(a)}`);
+  else if (Math.abs(a) < 1) parts.push(`vertical shrink by ${vFrac(1, Math.round(1 / Math.abs(a)))}`);
   parts.push(h > 0 ? `shift right ${h}` : `shift left ${-h}`);
   parts.push(k > 0 ? `shift up ${k}` : `shift down ${-k}`);
   checkAnswer(ctx, p, parts.join("; "), "quadratic transformation");
@@ -580,7 +602,8 @@ function verifyExponential(ctx: Ctx, p: Algebra1Problem, m: Extract<Algebra1Meta
     checkAnswer(ctx, p, `growth; ${pct}% per unit; f(${x}) = ${value}`, "exponential growth");
   } else if (p.subtype === "ExponentialDecay") {
     check(ctx, b < 1, "decay with b ≥ 1");
-    checkAnswer(ctx, p, `decay; f(${x}) = ${vNum(value)}`, "exponential decay");
+    // Exact fraction a / (1/b)^x.
+    checkAnswer(ctx, p, `decay; f(${x}) = ${vFrac(a, Math.round(Math.pow(1 / b, x)))}`, "exponential decay");
   } else if (p.subtype === "ExponentialWordProblem") {
     const rounded = Math.round(value * 100) / 100;
     const got = latexToText(p.answer);

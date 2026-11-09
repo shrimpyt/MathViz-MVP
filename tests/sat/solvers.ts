@@ -141,7 +141,10 @@ function solvePercentChange(p: Params): Solved {
   if (!Number.isInteger(pct)) throw new Error("non-integer pct");
   // Exact integer check: (new − old) * 100 = old * pct.
   if ((nw - old) * 100 !== old * pct) throw new Error("invertibility failed");
-  return { display: String(pct), value: pct };
+  // The stem asks for "the percent increase" or "the percent decrease": the
+  // size of the change, positive either way.
+  const size = Math.abs(pct);
+  return { display: String(size), value: size };
 }
 
 function solveRatioProportion(p: Params): Solved {

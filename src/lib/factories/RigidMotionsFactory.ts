@@ -117,7 +117,7 @@ function makeImage(rng: RNG): GeometryProblem {
     svgParams: {
       kind: "GridFigure",
       polygons: [{ points: verts }],
-      points: [{ label: `${target.label}′`, x: ix, y: iy }],
+      points: [{ label: `${target.label}′`, x: ix, y: iy, answer: true }],
     },
     verify,
   };
@@ -200,7 +200,7 @@ function makeSequence(rng: RNG): GeometryProblem {
     svgParams: {
       kind: "GridFigure",
       polygons: [{ points: verts }],
-      points: [{ label: `${target.label}″`, x: fx, y: fy }],
+      points: [{ label: `${target.label}″`, x: fx, y: fy, answer: true }],
     },
     verify: { kind: "motionSeq", x: target.x, y: target.y, m1, a1, b1, m2, a2, b2 },
   };

@@ -58,11 +58,13 @@ function indefinitePoly(rng: RNG): CalcMCQProblem {
   const g = polyDeriv(G); // integrand coefficients
   const integrand: CalcFunction = { kind: "poly", coeffs: g };
   const anti: CalcFunction = { kind: "poly", coeffs: G };
-  const antiText = polyToText(G.slice(0, -1)); // drop G's constant term, add +C
+  // Zero G's constant term (keep the list length, which sets the degree), add +C.
+  const antiCoeffs = [...G.slice(0, -1), 0];
+  const antiText = polyToText(antiCoeffs);
   const correct = `${antiText} + C`;
   // sign-slip distractor: flip one nonzero coefficient (degree differs from the
   // derivative distractors, so it can never collide with them)
-  const ac = G.slice(0, -1);
+  const ac = antiCoeffs;
   const flipIdx = ac.length > 1 && ac[1] !== 0 ? 1 : 0;
   const d4 = `${polyToText(ac.map((c, i) => (i === flipIdx ? -c : c)))} + C`;
   const distractors = [

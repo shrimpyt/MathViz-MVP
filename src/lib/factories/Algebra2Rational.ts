@@ -199,14 +199,18 @@ function makeSimplifyRational(rng: RNG): Algebra2Problem {
 function makeMultiplyDivideRational(rng: RNG): Algebra2Problem {
   const a = randNonZero(rng, -5, 5);
   let b = randNonZero(rng, -5, 5);
-  if (b === a || b === -a) b += 2;
+  // b must differ from ±a so the cancelled factors stay distinct (and b ≠ 0).
+  let guardB = 0;
+  while ((b === a || b === -a) && guardB++ < 50) b = randNonZero(rng, -5, 5);
+  if (b === a || b === -a) b = a === 5 || a === -5 ? 1 : 5;
   const multiply = rng() < 0.5;
   const f1 = `(x^2 - ${a * a})/(x ${b < 0 ? "+" : "-"} ${Math.abs(b)})`;
   const f2 = multiply
     ? `(x ${b < 0 ? "+" : "-"} ${Math.abs(b)})/(x ${a < 0 ? "+" : "-"} ${Math.abs(a)})`
     : `(x ${a < 0 ? "+" : "-"} ${Math.abs(a)})/(x ${b < 0 ? "+" : "-"} ${Math.abs(b)})`;
   const op = multiply ? "·" : "÷";
-  const answer = `x ${a < 0 ? "+" : "-"} ${Math.abs(a)}`;
+  // (x² − a²)/(x − a) = x + a in both the product and the quotient.
+  const answer = `x ${a < 0 ? "-" : "+"} ${Math.abs(a)}`;
   return {
     type: "A2.11",
     subtype: "MultiplyDivideRational",

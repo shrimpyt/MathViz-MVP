@@ -127,12 +127,7 @@ function makeQuadraticFormula(rng: RNG, difficulty: DifficultyLevel): Algebra1Pr
     const [lo, hi] = x1 <= x2 ? [x1, x2] : [x2, x1];
     answer = `x = ${fmtNum(lo)} \\text{ or } x = ${fmtNum(hi)}`;
   } else {
-    // Exact form (-b ± √D) / 2a, reduced by gcd where possible.
-    const g = gcd(gcd(Math.abs(b), D), Math.abs(2 * a));
-    const nb = -b / g;
-    const dd = D / g;
-    const da = (2 * a) / g;
-    answer = `x = \\frac{${nb} \\pm \\sqrt{${dd}}}{${da}}`;
+    answer = `x = ${quadraticRadicalForm(a, b, D)}`;
   }
   return {
     type: "A.8A",
@@ -317,6 +312,25 @@ function makeQuadraticAttributes(rng: RNG): Algebra1Problem {
   };
 }
 
+/** Simplest radical form of (−b ± √D)/(2a) for non-square D > 0:
+ *  pull square factors out of √D, then divide −b, the radical's
+ *  coefficient and 2a by their common factor. */
+export function quadraticRadicalForm(a: number, b: number, D: number): string {
+  let m = 1;
+  let r = D;
+  for (let k = 2; k * k <= r; k++) {
+    while (r % (k * k) === 0) { r /= k * k; m *= k; }
+  }
+  let nb = -b;
+  let den = 2 * a;
+  const g = gcd(gcd(Math.abs(nb), m), Math.abs(den));
+  nb /= g; m /= g; den /= g;
+  if (den < 0) { nb = -nb; den = -den; } // ± absorbs the radical's sign
+  const rad = `${m === 1 ? "" : m}\\sqrt{${r}}`;
+  const num = nb === 0 ? `\\pm ${rad}` : `${nb} \\pm ${rad}`;
+  return den === 1 ? num : `\\frac{${num}}{${den}}`;
+}
+
 // ── Transformations of f(x) = x² (A.7C) ─────────────────────────────────────
 
 function makeQuadraticTransformations(rng: RNG): Algebra1Problem {
@@ -324,8 +338,10 @@ function makeQuadraticTransformations(rng: RNG): Algebra1Problem {
   const h = pick(rng, [-3, -2, -1, 1, 2, 3] as const);
   const k = pick(rng, [-4, -3, -2, 2, 3, 4] as const);
   const parts: string[] = [];
-  if (a === -1) parts.push("reflect over the x-axis");
-  else if (a !== 1) parts.push(a > 1 ? `vertical stretch by ${a}` : `vertical shrink by ${fmtFrac(1, Math.abs(a))}`);
+  // a < 0 always reflects; |a| alone decides stretch (|a| > 1) or shrink (|a| < 1).
+  if (a < 0) parts.push("reflect over the x-axis");
+  if (Math.abs(a) > 1) parts.push(`vertical stretch by ${Math.abs(a)}`);
+  else if (Math.abs(a) < 1) parts.push(`vertical shrink by ${fmtFrac(1, Math.round(1 / Math.abs(a)))}`);
   parts.push(h > 0 ? `shift right ${h}` : `shift left ${-h}`);
   parts.push(k > 0 ? `shift up ${k}` : `shift down ${-k}`);
   const description = parts.join("; ");

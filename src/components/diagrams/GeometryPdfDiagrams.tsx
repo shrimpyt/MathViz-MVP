@@ -21,6 +21,7 @@ import type {
   PatternFigureParams,
   GeoPt,
 } from "@/lib/factories/GeometryTypes";
+import { worksheetGrid } from "@/lib/factories/GeometryTypes";
 
 const INK = "#111111";
 const FAINT = "#94a3b8";
@@ -240,7 +241,9 @@ const GS = 10;
 const gx = (x: number) => GC + x * GS;
 const gy = (y: number) => GC - y * GS;
 
-export function PdfGridFigureSVG({ params }: { params: GridFigureParams }) {
+export function PdfGridFigureSVG({ params: rawParams }: { params: GridFigureParams }) {
+  // Answer-tagged items (images, midpoints…) are never drawn for students.
+  const params = worksheetGrid(rawParams);
   // Adaptive window: fit the view to the figure's own points instead of a
   // fixed +-8 window. A triangle spanning 5 units used to render as a
   // thumbnail in the middle of an empty grid; now the data fills the frame
