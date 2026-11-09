@@ -292,8 +292,16 @@ function makeCentroidMedian(rng: RNG): GeometryProblem {
     ],
     svgParams: {
       kind: "TriangleFigure",
-      points: [...TRI_POINTS, { label: "P", x: 100, y: 120 }, { label: "F", x: 103, y: 152 }],
-      segments: [...TRI_EDGES, ["A", "F"] as [string, string]],
+      // The median from A lands on the midpoint of BC, (103, 152) for the
+      // shared triangle coordinates; that point is D, as the prompt names it.
+      // P sits at the drawn triangle's centroid ((100+38+168)/3,
+      // (28+152+152)/3) = (102, 111), exactly on segment AD.
+      points: [
+        { label: "A", x: 100, y: 28 }, { label: "B", x: 38, y: 152 },
+        { label: "C", x: 168, y: 152 }, { label: "D", x: 103, y: 152 },
+        { label: "P", x: 102, y: 111 },
+      ],
+      segments: [...TRI_EDGES, ["A", "D"] as [string, string]],
       sideLabels: askWhole ? {} : {},
       extraLabels: askWhole ? [] : [],
     },
@@ -574,10 +582,10 @@ function makeCircumcenterRightTriangle(rng: RNG): GeometryProblem {
       kind: "TriangleFigure",
       points: [
         { label: "A", x: 50, y: 36 }, { label: "B", x: 50, y: 150 },
-        { label: "C", x: 172, y: 150 }, { label: "M", x: 111, y: 93 },
+        { label: "C", x: 172, y: 150 }, { label: "P", x: 111, y: 93 },
       ],
       segments: [["A", "B"] as [string, string], ["B", "C"] as [string, string], ["C", "A"] as [string, string]],
-      dashed: [["B", "M"] as [string, string]],
+      dashed: [["B", "P"] as [string, string]],
       sideLabels: { AB: String(l1), BC: String(l2) },
       rightAngles: ["B"],
     },

@@ -86,6 +86,21 @@ function rightAngleAt(v: PtLike, p1: PtLike, p2: PtLike) {
 
 export function PdfTriangleFigureSVG({ params }: { params: TriangleFigureParams }) {
   const P = byLabel(params.points);
+  // Label placement: push every label AWAY from the figure's center so
+  // letters never sit on segments, ticks, or each other. (Fixed up-right
+  // offsets put B inside the triangle, stacked side values on the D/E/F
+  // midpoint letters, and ran vertex labels into the right-angle marks.)
+  const cx = params.points.reduce((s, p) => s + p.x, 0) / (params.points.length || 1);
+  const cy = params.points.reduce((s, p) => s + p.y, 0) / (params.points.length || 1);
+  const out = (p: PtLike, dist: number) => {
+    const dx = p.x - cx;
+    const dy = p.y - cy;
+    const n = Math.hypot(dx, dy);
+    if (n < 4) return { x: p.x + dist * 0.7, y: p.y - dist * 0.7 };
+    return { x: p.x + (dx / n) * dist, y: p.y + (dy / n) * dist };
+  };
+  const neighborsOf = (label: string) =>
+    params.segments.filter((s) => s.includes(label)).map((s) => P.get(s[0] === label ? s[1] : s[0])!);
   return (
     <Svg viewBox="0 0 200 200" width={150} height={150}>
       {params.segments.map((s, i) => {
@@ -111,26 +126,51 @@ export function PdfTriangleFigureSVG({ params }: { params: TriangleFigureParams 
       {(params.rightAngles ?? []).map((v) => {
         const vp = P.get(v);
         if (!vp) return null;
-        const nbrs = params.segments.filter((s) => s.includes(v)).map((s) => P.get(s[0] === v ? s[1] : s[0])!);
+        const nbrs = neighborsOf(v);
         return nbrs.length >= 2 ? <React.Fragment key={v}>{rightAngleAt(vp, nbrs[0], nbrs[1])}</React.Fragment> : null;
       })}
       {Object.entries(params.sideLabels ?? {}).map(([k, text]) => {
         const a = P.get(k[0]);
         const b = P.get(k[1]);
         if (!a || !b || !text) return null;
-        const m = mid(a, b);
-        return <Lab key={k} x={m.x} y={m.y - 5} text={text} />;
+        // Segments carrying ticks/parallel marks or a point at their
+        // midpoint get their value label slid to 30% along the segment;
+        // every side label is pushed perpendicular, away from the center.
+        const hasMarks = (params.ticks && k in params.ticks) || (params.parallelMarks ?? []).includes(k);
+        const midTaken = params.points.some((p) => Math.hypot(p.x - (a.x + b.x) / 2, p.y - (a.y + b.y) / 2) < 4 && p.label !== k[0] && p.label !== k[1]);
+        const t = hasMarks || midTaken ? 0.3 : 0.5;
+        const base = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len = Math.hypot(dx, dy) || 1;
+        let px = -dy / len;
+        let py = dx / len;
+        if (px * (base.x - cx) + py * (base.y - cy) < 0) { px = -px; py = -py; }
+        const pos = { x: base.x + px * 10, y: base.y + py * 10 };
+        return <Lab key={k} x={pos.x - (String(text).length > 2 ? 4 : 0)} y={pos.y} text={text} />;
       })}
       {Object.entries(params.angleLabels ?? {}).map(([k, text]) => {
         const v = P.get(k);
-        return v && text ? <Lab key={k} x={v.x + 10} y={v.y + 12} text={text} /> : null;
+        if (!v || !text) return null;
+        const nbrs = neighborsOf(k);
+        if (nbrs.length < 2) return <Lab key={k} x={v.x + 10} y={v.y + 12} text={text} />;
+        const u = (q: PtLike) => { const n = Math.hypot(q.x - v.x, q.y - v.y) || 1; return { x: (q.x - v.x) / n, y: (q.y - v.y) / n }; };
+        const u1 = u(nbrs[0]);
+        const u2 = u(nbrs[1]);
+        const bx = u1.x + u2.x;
+        const by = u1.y + u2.y;
+        const bn = Math.hypot(bx, by) || 1;
+        return <Lab key={k} x={v.x + (bx / bn) * 15} y={v.y + (by / bn) * 15} text={text} />;
       })}
-      {params.points.map((p) => (
-        <React.Fragment key={p.label}>
-          <Circle cx={p.x} cy={p.y} r={2.2} fill={INK} />
-          <Lab x={p.x + 7} y={p.y - 5} text={p.label} size={9} />
-        </React.Fragment>
-      ))}
+      {params.points.map((p) => {
+        const pos = out(p, 11);
+        return (
+          <React.Fragment key={p.label}>
+            <Circle cx={p.x} cy={p.y} r={2.2} fill={INK} />
+            <Lab x={pos.x - (pos.x < p.x ? 5 : 0)} y={pos.y} text={p.label} size={9} />
+          </React.Fragment>
+        );
+      })}
       {(params.extraLabels ?? []).map((l, i) => (
         <Lab key={i} x={l.x} y={l.y} text={l.text} />
       ))}
@@ -201,17 +241,42 @@ const gx = (x: number) => GC + x * GS;
 const gy = (y: number) => GC - y * GS;
 
 export function PdfGridFigureSVG({ params }: { params: GridFigureParams }) {
+  // Adaptive window: fit the view to the figure's own points instead of a
+  // fixed +-8 window. A triangle spanning 5 units used to render as a
+  // thumbnail in the middle of an empty grid; now the data fills the frame
+  // at any scale, with grid lines on integer coordinates.
+  const pts: { x: number; y: number }[] = [];
+  (params.polygons ?? []).forEach((poly) => poly.points.forEach((p) => pts.push(p)));
+  (params.points ?? []).forEach((p) => pts.push(p));
+  (params.lines ?? []).forEach((l) => { pts.push({ x: l.x1, y: l.y1 }); pts.push({ x: l.x2, y: l.y2 }); });
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  const cx = pts.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : 0;
+  const cy = pts.length ? (Math.min(...ys) + Math.max(...ys)) / 2 : 0;
+  const span = pts.length ? Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 4) : 16;
+  const GS = Math.min(110 / span, 20);
+  const gx = (x: number) => 100 + (x - cx) * GS;
+  const gy = (y: number) => 100 - (y - cy) * GS;
   const gridLines = [];
-  for (let i = 0; i <= 16; i++) {
-    const p = 20 + i * 10;
-    gridLines.push(<Line key={`v${i}`} x1={p} y1={20} x2={p} y2={180} stroke={GRID} strokeWidth={0.5} />);
-    gridLines.push(<Line key={`h${i}`} x1={20} y1={p} x2={180} y2={p} stroke={GRID} strokeWidth={0.5} />);
+  const kMinX = Math.ceil(cx - 82 / GS);
+  const kMaxX = Math.floor(cx + 82 / GS);
+  const kMinY = Math.ceil(cy - 82 / GS);
+  const kMaxY = Math.floor(cy + 82 / GS);
+  for (let k = kMinX; k <= kMaxX; k++) {
+    gridLines.push(<Line key={`v${k}`} x1={gx(k)} y1={18} x2={gx(k)} y2={182} stroke={GRID} strokeWidth={0.5} />);
   }
+  for (let k = kMinY; k <= kMaxY; k++) {
+    gridLines.push(<Line key={`h${k}`} x1={18} y1={gy(k)} x2={182} y2={gy(k)} stroke={GRID} strokeWidth={0.5} />);
+  }
+  const labOff = (p: { x: number; y: number }, ox: number, oy: number) => ({
+    x: gx(p.x) + (p.x >= ox ? 6 : -11),
+    y: gy(p.y) + (p.y >= oy ? -5 : 10),
+  });
   return (
     <Svg viewBox="0 0 200 200" width={150} height={150}>
       {gridLines}
-      <Line x1={20} y1={GC} x2={180} y2={GC} stroke={FAINT} strokeWidth={1} />
-      <Line x1={GC} y1={20} x2={GC} y2={180} stroke={FAINT} strokeWidth={1} />
+      {0 >= kMinX && 0 <= kMaxX ? <Line x1={gx(0)} y1={18} x2={gx(0)} y2={182} stroke={FAINT} strokeWidth={1} /> : null}
+      {0 >= kMinY && 0 <= kMaxY ? <Line x1={18} y1={gy(0)} x2={182} y2={gy(0)} stroke={FAINT} strokeWidth={1} /> : null}
       {(params.lines ?? []).map((l, i) => (
         <Line key={i} x1={gx(l.x1)} y1={gy(l.y1)} x2={gx(l.x2)} y2={gy(l.y2)} stroke={INK} strokeWidth={1} strokeDasharray={l.dashed ? "4,3" : undefined} />
       ))}
@@ -225,20 +290,28 @@ export function PdfGridFigureSVG({ params }: { params: GridFigureParams }) {
           strokeDasharray={poly.dashed ? "5,3" : undefined}
         />
       ))}
-      {(params.polygons ?? []).flatMap((poly, i) =>
-        poly.points.map((p, j) => (
-          <React.Fragment key={`${i}-${j}`}>
-            <Circle cx={gx(p.x)} cy={gy(p.y)} r={2.2} fill={INK} />
-            <Lab x={gx(p.x) + 5} y={gy(p.y) - 4} text={p.label} />
+      {(params.polygons ?? []).flatMap((poly, i) => {
+        const pcx = poly.points.reduce((s, p) => s + p.x, 0) / (poly.points.length || 1);
+        const pcy = poly.points.reduce((s, p) => s + p.y, 0) / (poly.points.length || 1);
+        return poly.points.map((p, j) => {
+          const lo = labOff(p, pcx, pcy);
+          return (
+            <React.Fragment key={`${i}-${j}`}>
+              <Circle cx={gx(p.x)} cy={gy(p.y)} r={2.2} fill={INK} />
+              <Lab x={lo.x} y={lo.y} text={p.label} />
+            </React.Fragment>
+          );
+        });
+      })}
+      {(params.points ?? []).map((p, i) => {
+        const lo = labOff(p, cx, cy);
+        return (
+          <React.Fragment key={i}>
+            <Circle cx={gx(p.x)} cy={gy(p.y)} r={2.4} fill={INK} />
+            <Lab x={lo.x} y={lo.y} text={p.label} />
           </React.Fragment>
-        ))
-      )}
-      {(params.points ?? []).map((p, i) => (
-        <React.Fragment key={i}>
-          <Circle cx={gx(p.x)} cy={gy(p.y)} r={2.4} fill={INK} />
-          <Lab x={gx(p.x) + 5} y={gy(p.y) - 4} text={p.label} />
-        </React.Fragment>
-      ))}
+        );
+      })}
     </Svg>
   );
 }
