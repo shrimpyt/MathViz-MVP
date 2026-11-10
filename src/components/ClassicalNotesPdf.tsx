@@ -33,7 +33,7 @@ import {
   assignMarginPrompts,
   GENERIC_MARGIN_PROMPT,
 } from '@/lib/classicalPrompts';
-import { formatAnswer, latexToText, pdfSafeText } from '@/lib/answerKey';
+import { formatAnswer, latexToText, pdfSafeText, revealedBlankText } from '@/lib/answerKey';
 import {
   DEFAULT_PRESENTATION,
   type Presentation,
@@ -332,7 +332,7 @@ function PdfClassicalStep({
           {step.blanks?.map((b, i) => (
             // Classical mode is Review-like: answers shown, reasoning blanked.
             <Text key={i} style={styles.blankChip}>
-              {' '}{pdfSafeText(b.answer)}{' '}
+              {' '}{pdfSafeText(revealedBlankText(step.instruction, b.label, b.answer))}{' '}
             </Text>
           ))}
         </Text>
