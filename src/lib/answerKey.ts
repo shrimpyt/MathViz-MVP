@@ -350,3 +350,27 @@ export function formatAnswer(p: MathProblem): string {
       return "";
   }
 }
+
+/**
+ * Text for a step blank whose answer is shown (Review, Classical, a revealed
+ * Guided Note). Shown bare after its step, an answer can read as part of the
+ * step: "Take the square root: b = √64. 8". So a label that ends in a
+ * relation ("b =", "x ≈") is kept with the answer ("b = 8"), and an answer
+ * that follows a finished sentence gets its label ("Answer: 58°"). An answer
+ * after a colon, or one whose label is a fill-in pattern ("½ × ?"), stays bare.
+ */
+export function revealedBlankText(instruction: string, label: string, answer: string): string {
+  const lbl = (label ?? "").trim();
+  const ans = String(answer ?? "").trim();
+  if (!lbl || lbl.includes("?")) return ans;
+  if (/[=≈<>≤≥]$/.test(lbl)) {
+    const name = lbl.replace(/\s*[=≈<>≤≥]$/, "").trim();
+    // Avoid "x = x = 7" when the answer already names its variable.
+    if (name && ans.replace(/\s+/g, "").startsWith(name.replace(/\s+/g, "") + lbl.slice(-1))) return ans;
+    return `${lbl} ${ans}`;
+  }
+  if (/[.!?]\s*$/.test(instruction ?? "")) {
+    return `${lbl.charAt(0).toUpperCase()}${lbl.slice(1)}: ${ans}`;
+  }
+  return ans;
+}

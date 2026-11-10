@@ -454,7 +454,8 @@ function makeFindHypotenuse(rng: RNG): Grade8Problem {
         blanks: [{ label: "c =", answer: String(c) }],
       },
     ],
-    { a, b, c, kind: "hypotenuse" }
+    { a, b, c, kind: "hypotenuse" },
+    { kind: "MSGeometryFigure", figure: "right-triangle", dims: { leg1: a, leg2: b, hyp: c, unknown: 2 } }
   );
 }
 
@@ -481,7 +482,8 @@ function makeFindLeg(rng: RNG): Grade8Problem {
         blanks: [{ label: "b =", answer: String(leg) }],
       },
     ],
-    { leg, other, c, kind: "leg" }
+    { leg, other, c, kind: "leg" },
+    { kind: "MSGeometryFigure", figure: "right-triangle", dims: { leg1: other, leg2: leg, hyp: c, unknown: 1 } }
   );
 }
 

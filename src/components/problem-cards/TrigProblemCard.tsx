@@ -2,108 +2,33 @@ import React from "react";
 import type { TrigProblem, TrigSVGParams, SpecialTriangleProblem, OutputMode } from "@/lib/types";
 import { StepBlock, DiagramBox } from "./SharedAtoms";
 import { latexToText } from "@/lib/answerKey";
+import { layoutRightTriangle, baselineY } from "@/lib/labelPlacement";
 
 function RightTriangleSVG({ params }: { params: TrigSVGParams }) {
   const width = 100;
   const height = 100;
-  const pad = 15;
-  const effW = width - 2 * pad;
-  const effH = height - 2 * pad;
-
-  const maxSide = Math.max(params.opposite, params.adjacent);
-  let baseLength = 0;
-  let vertLength = 0;
-
-  if (params.referenceAnglePos === "base") {
-    baseLength = (params.adjacent / maxSide) * effW;
-    vertLength = (params.opposite / maxSide) * effH;
-  } else {
-    baseLength = (params.opposite / maxSide) * effW;
-    vertLength = (params.adjacent / maxSide) * effH;
-  }
-
-  const xLeft = pad + (effW - baseLength) / 2;
-  const xRight = xLeft + baseLength;
-  const yBottom = height - pad - (effH - vertLength) / 2;
-  const yTop = yBottom - vertLength;
-
-  let pts = "";
-  let baseLblPos = { x: 0, y: 0 };
-  let vertLblPos = { x: 0, y: 0 };
-  let hypLblPos = { x: 0, y: 0 };
-  let arcD = "";
-  let refLblPos = { x: 0, y: 0 };
-
-  if (params.orientation === "right") {
-    pts = `${xLeft},${yBottom} ${xRight},${yBottom} ${xRight},${yTop}`;
-    baseLblPos = { x: (xLeft + xRight) / 2, y: yBottom + 12 };
-    vertLblPos = { x: xRight + 12, y: (yTop + yBottom) / 2 };
-    hypLblPos = { x: (xLeft + xRight) / 2 - 10, y: (yTop + yBottom) / 2 - 10 };
-    
-    if (params.referenceAnglePos === "base") {
-      const angle = Math.atan2(vertLength, baseLength);
-      const arcLx = xLeft + 15 * Math.cos(angle);
-      const arcLy = yBottom - 15 * Math.sin(angle);
-      arcD = `M ${xLeft + 15} ${yBottom} A 15 15 0 0 0 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xLeft + 25, y: yBottom - 5 };
-    } else {
-      const angle = Math.atan2(baseLength, vertLength);
-      const arcLx = xRight - 15 * Math.sin(angle);
-      const arcLy = yTop + 15 * Math.cos(angle);
-      arcD = `M ${xRight} ${yTop + 15} A 15 15 0 0 1 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xRight - 12, y: yTop + 25 };
-    }
-  } else {
-    pts = `${xRight},${yBottom} ${xLeft},${yBottom} ${xLeft},${yTop}`;
-    baseLblPos = { x: (xLeft + xRight) / 2, y: yBottom + 12 };
-    vertLblPos = { x: xLeft - 12, y: (yTop + yBottom) / 2 };
-    hypLblPos = { x: (xLeft + xRight) / 2 + 10, y: (yTop + yBottom) / 2 - 10 };
-
-    if (params.referenceAnglePos === "base") {
-      const angle = Math.atan2(vertLength, baseLength);
-      const arcLx = xRight - 15 * Math.cos(angle);
-      const arcLy = yBottom - 15 * Math.sin(angle);
-      arcD = `M ${xRight - 15} ${yBottom} A 15 15 0 0 1 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xRight - 25, y: yBottom - 5 };
-    } else {
-      const angle = Math.atan2(baseLength, vertLength); 
-      const arcLx = xLeft + 15 * Math.sin(angle);
-      const arcLy = yTop + 15 * Math.cos(angle);
-      arcD = `M ${xLeft} ${yTop + 15} A 15 15 0 0 0 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xLeft + 12, y: yTop + 25 };
-    }
-  }
+  const FONT = 10;
+  // Same layout as the PDF; serif bold on screen runs a little wider.
+  const lay = layoutRightTriangle(
+    params,
+    { width, height, pad: 15 },
+    { fontSize: FONT, widthScale: 1.15, arcR: 15, markSize: 8 },
+  );
+  const [R, B, T] = lay.points;
 
   return (
     <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
-      <polygon points={pts} fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round" />
-      
-      {/* Right angle square */}
-      {params.orientation === "right" ? (
-        <path d={`M ${xRight - 8} ${yBottom} L ${xRight - 8} ${yBottom - 8} L ${xRight} ${yBottom - 8}`} fill="none" stroke="#111" strokeWidth="1.2" />
-      ) : (
-        <path d={`M ${xLeft + 8} ${yBottom} L ${xLeft + 8} ${yBottom - 8} L ${xLeft} ${yBottom - 8}`} fill="none" stroke="#111" strokeWidth="1.2" />
-      )}
-
-      {/* Reference Angle Arc */}
-      <path d={arcD} fill="none" stroke="#111" strokeWidth="2" />
-      <text x={refLblPos.x} y={refLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">
-        {params.referenceAngleLabel}
-      </text>
-
-      {/* Side Labels */}
-      {params.referenceAnglePos === "base" ? (
-        <>
-          <text x={baseLblPos.x} y={baseLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.adjacent}</text>
-          <text x={vertLblPos.x} y={vertLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.opposite}</text>
-        </>
-      ) : (
-        <>
-          <text x={baseLblPos.x} y={baseLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.opposite}</text>
-          <text x={vertLblPos.x} y={vertLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.adjacent}</text>
-        </>
-      )}
-      <text x={hypLblPos.x} y={hypLblPos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#111" fontWeight="bold">{params.labels.hypotenuse}</text>
+      <polygon points={`${R.x},${R.y} ${B.x},${B.y} ${T.x},${T.y}`} fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round" />
+      <path d={lay.rightMark} fill="none" stroke="#111" strokeWidth="1.2" />
+      {lay.arcs.map((d, i) => <path key={`arc${i}`} d={d} fill="none" stroke="#111" strokeWidth="2" />)}
+      {lay.leaders.map(([a, b], i) => (
+        <line key={`ld${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#111" strokeWidth="0.6" />
+      ))}
+      {lay.labels.map((l, i) => (
+        <text key={i} x={l.center.x} y={baselineY(l.center.y, FONT)} textAnchor="middle" fontSize={FONT} fill="#111" fontWeight="bold">
+          {l.text}
+        </text>
+      ))}
     </svg>
   );
 }

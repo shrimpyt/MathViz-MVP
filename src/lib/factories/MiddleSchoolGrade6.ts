@@ -36,6 +36,7 @@ import {
   fracMul,
   fracDiv,
   fracToString,
+  fracToMixed,
   fmt,
   roundTo,
   randNonZero,
@@ -3479,7 +3480,7 @@ function makeRightTriangleAngle(rng: RNG): Grade6Problem {
       },
     ],
     { known, missing, kind: "right" },
-    { kind: "MSGeometryFigure", figure: "triangle", dims: { base: 10, height: 6 } }
+    { kind: "MSGeometryFigure", figure: "right-triangle", dims: { angle: known } }
   );
 }
 
@@ -4354,6 +4355,494 @@ function makeWriteEquationOneStep6(rng: RNG): Grade6Problem {
 // Maker table with difficulty tiers (cumulative)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+// T9 · NUMBER SENSE GAPS (added Nov 10, 2026): GCF & LCM, adding and
+// subtracting fractions and mixed numbers, percent problem solving
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Factor list of n in increasing order, as display text: "1, 2, 3, 6". */
+function factorList(n: number): string {
+  const fs: number[] = [];
+  for (let k = 1; k <= n; k++) if (n % k === 0) fs.push(k);
+  return fs.join(", ");
+}
+
+/** First `count` multiples of n, as display text: "4, 8, 12". */
+function multipleList(n: number, count: number): string {
+  return Array.from({ length: count }, (_, i) => n * (i + 1)).join(", ");
+}
+
+// ── Lesson: GCF & LCM ────────────────────────────────────────────────────────
+
+/** A pair of whole numbers whose GCF is more than 1 and less than both. */
+function gcfPair(rng: RNG, maxValue: number): [number, number] {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const g = pick(rng, [2, 3, 4, 5, 6, 7, 8, 9, 12]);
+    const m1 = randInt(rng, 2, Math.max(2, Math.floor(maxValue / g)));
+    const m2 = randInt(rng, 2, Math.max(2, Math.floor(maxValue / g)));
+    if (m1 === m2 || gcd(m1, m2) !== 1) continue;
+    const a = g * m1;
+    const b = g * m2;
+    if (a > maxValue || b > maxValue) continue;
+    return a < b ? [a, b] : [b, a];
+  }
+  return [12, 18];
+}
+
+function makeGCF6(rng: RNG): Grade6Problem {
+  const [a, b] = gcfPair(rng, 48);
+  const g = gcd(a, b);
+  return build(
+    "GCFAndLCM",
+    `Find the greatest common factor (GCF) of ${a} and ${b}.`,
+    "the GCF",
+    g,
+    [
+      {
+        instruction: `List the factors of each number. Factors of ${a}: ${factorList(a)}. Factors of ${b}: ${factorList(b)}.`,
+        blanks: [{ label: "common factors", answer: factorList(g) }],
+      },
+      {
+        instruction: "The greatest factor on both lists is the GCF.",
+        blanks: [{ label: "GCF =", answer: String(g) }],
+      },
+    ],
+    { a, b, kind: "gcf" }
+  );
+}
+
+function makeLCM6(rng: RNG): Grade6Problem {
+  let a = 4, b = 6;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    a = randInt(rng, 2, 12);
+    b = randInt(rng, 3, 15);
+    const l = (a * b) / gcd(a, b);
+    if (a !== b && l !== a && l !== b && l <= 60 && l / a <= 10) break;
+  }
+  if (a > b) [a, b] = [b, a];
+  const l = (a * b) / gcd(a, b);
+  return build(
+    "GCFAndLCM",
+    `Find the least common multiple (LCM) of ${a} and ${b}.`,
+    "the LCM",
+    l,
+    [
+      {
+        instruction: `List multiples of each number. Multiples of ${a}: ${multipleList(a, l / a)}, ... Multiples of ${b}: ${multipleList(b, l / b)}, ...`,
+        blanks: [{ label: "first common multiple", answer: String(l) }],
+      },
+      {
+        instruction: "The smallest multiple on both lists is the LCM.",
+        blanks: [{ label: "LCM =", answer: String(l) }],
+      },
+    ],
+    { a, b, kind: "lcm" }
+  );
+}
+
+/** Prime factorization as text with exponents: 72 -> "2³ × 3²". */
+function primeFactorText(n: number): string {
+  const sup = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"];
+  const parts: string[] = [];
+  let m = n;
+  for (let p = 2; p <= m; p++) {
+    let e = 0;
+    while (m % p === 0) {
+      m /= p;
+      e++;
+    }
+    if (e > 0) parts.push(e === 1 ? String(p) : `${p}${sup[e]}`);
+  }
+  return parts.join(" × ");
+}
+
+function makeGCFLCMPrime6(rng: RNG): Grade6Problem {
+  let [a, b] = gcfPair(rng, 96);
+  for (let attempt = 0; attempt < 20 && (a * b) / gcd(a, b) > 360; attempt++) [a, b] = gcfPair(rng, 96);
+  const g = gcd(a, b);
+  const l = (a * b) / g;
+  const ans = `GCF = ${g}, LCM = ${l}`;
+  return build(
+    "GCFAndLCM",
+    `Use prime factorization to find the GCF and the LCM of ${a} and ${b}.`,
+    "the GCF and the LCM",
+    ans,
+    [
+      {
+        instruction: `Write each number as a product of primes: ${a} = ${primeFactorText(a)} and ${b} = ${primeFactorText(b)}.`,
+        blanks: [{ label: "shared primes", answer: primeFactorText(g) }],
+      },
+      {
+        instruction: "Multiply the shared prime factors to get the GCF.",
+        blanks: [{ label: "GCF =", answer: String(g) }],
+      },
+      {
+        instruction: `LCM = (${a} × ${b}) ÷ GCF = ${a * b} ÷ ${g}.`,
+        blanks: [{ label: "LCM =", answer: String(l) }],
+      },
+    ],
+    { a, b, kind: "both" }
+  );
+}
+
+function makeGCFWord6(rng: RNG): Grade6Problem {
+  const [a, b] = gcfPair(rng, 60);
+  const g = gcd(a, b);
+  const ctx = pick(rng, [
+    { x: "pencils", y: "erasers", kit: "supply kits" },
+    { x: "apples", y: "oranges", kit: "fruit baskets" },
+    { x: "red beads", y: "blue beads", kit: "bracelet kits" },
+    { x: "boys", y: "girls", kit: "teams" },
+  ]);
+  const prompt =
+    ctx.kit === "teams"
+      ? `A coach has ${a} ${ctx.x} and ${b} ${ctx.y}. Every team must have the same number of ${ctx.x} and the same number of ${ctx.y}, with no one left out. What is the greatest number of teams the coach can make?`
+      : `Maria has ${a} ${ctx.x} and ${b} ${ctx.y}. She wants to make identical ${ctx.kit} with nothing left over. What is the greatest number of ${ctx.kit} she can make?`;
+  return build(
+    "GCFAndLCM",
+    prompt,
+    `the greatest number of ${ctx.kit}`,
+    g,
+    [
+      {
+        instruction: `Equal groups with nothing left over means the number of groups must divide both ${a} and ${b}. The greatest such number is the GCF.`,
+        blanks: [{ label: "GCF of " + a + " and " + b, answer: String(g) }],
+      },
+      {
+        instruction: `Check: each group gets ${a / g} ${ctx.x} and ${b / g} ${ctx.y}.`,
+        blanks: [{ label: "answer", answer: String(g) }],
+      },
+    ],
+    { a, b, kind: "gcf-word" }
+  );
+}
+
+function makeLCMWord6(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, [
+    { kind: "packs" as const },
+    { kind: "buses" as const },
+    { kind: "lights" as const },
+  ]);
+  let a = 6, b = 8;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    a = randInt(rng, 4, 12);
+    b = randInt(rng, 5, 15);
+    const l = (a * b) / gcd(a, b);
+    if (a !== b && gcd(a, b) > 1 && l !== a && l !== b && l <= 72) break;
+  }
+  if (a > b) [a, b] = [b, a];
+  const l = (a * b) / gcd(a, b);
+  const prompt =
+    ctx.kind === "packs"
+      ? `Hot dogs come in packs of ${a} and buns come in packs of ${b}. What is the smallest number of hot dogs you can buy to have the same number of hot dogs and buns?`
+      : ctx.kind === "buses"
+        ? `One bus leaves the station every ${a} minutes and another leaves every ${b} minutes. They both leave at 8:00. In how many minutes will they next leave at the same time?`
+        : `One light blinks every ${a} seconds and another blinks every ${b} seconds. They blink together now. In how many seconds will they next blink together?`;
+  return build(
+    "GCFAndLCM",
+    prompt,
+    "the smallest common amount",
+    l,
+    [
+      {
+        instruction: `The answer must be a multiple of both ${a} and ${b}, and the smallest one. That is the LCM.`,
+        blanks: [{ label: "LCM of " + a + " and " + b, answer: String(l) }],
+      },
+      {
+        instruction: `Check: ${l} ÷ ${a} = ${l / a} and ${l} ÷ ${b} = ${l / b}.`,
+        blanks: [{ label: "answer", answer: String(l) }],
+      },
+    ],
+    { a, b, kind: "lcm-word", context: ctx.kind }
+  );
+}
+
+// ── Lesson: Adding & Subtracting Fractions and Mixed Numbers ─────────────────
+
+const FRAC_DENS = [2, 3, 4, 5, 6, 8, 10, 12];
+
+/** Two different denominators whose LCD is at most 24. */
+function unlikeDens(rng: RNG): [number, number] {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const d1 = pick(rng, FRAC_DENS);
+    const d2 = pick(rng, FRAC_DENS);
+    if (d1 !== d2 && (d1 * d2) / gcd(d1, d2) <= 24) return [d1, d2];
+  }
+  return [4, 6];
+}
+
+/** A fraction in lowest terms with denominator d (numerator 1..d-1, coprime). */
+function properWithDen(rng: RNG, d: number): number {
+  const ns: number[] = [];
+  for (let n = 1; n < d; n++) if (gcd(n, d) === 1) ns.push(n);
+  return pick(rng, ns);
+}
+
+/** Display text for whole + n/d (whole may be 0). */
+function mixedText(whole: number, n: number, d: number): string {
+  return whole === 0 ? `${n}/${d}` : `${whole} ${n}/${d}`;
+}
+
+function makeAddSubUnlike6(rng: RNG): Grade6Problem {
+  const [d1, d2] = unlikeDens(rng);
+  const n1 = properWithDen(rng, d1);
+  const n2 = properWithDen(rng, d2);
+  let f1 = makeFrac(n1, d1);
+  let f2 = makeFrac(n2, d2);
+  const isAdd = rng() < 0.5;
+  if (!isAdd && f1.n * f2.d < f2.n * f1.d) [f1, f2] = [f2, f1];
+  if (!isAdd && f1.n * f2.d === f2.n * f1.d) return makeAddSubUnlike6(rng);
+  const lcd = (f1.d * f2.d) / gcd(f1.d, f2.d);
+  const e1 = (f1.n * lcd) / f1.d;
+  const e2 = (f2.n * lcd) / f2.d;
+  const result = isAdd ? fracAdd(f1, f2) : fracSub(f1, f2);
+  const ans = fracToMixed(result);
+  return build(
+    "AddSubtractFractionsMixed",
+    `${isAdd ? "Add" : "Subtract"}: ${fracToString(f1)} ${isAdd ? "+" : "−"} ${fracToString(f2)}. Write the answer in simplest form.`,
+    isAdd ? "the sum" : "the difference",
+    ans,
+    [
+      {
+        instruction: `Find the least common denominator of ${f1.d} and ${f2.d}.`,
+        blanks: [{ label: "LCD =", answer: String(lcd) }],
+      },
+      {
+        instruction: `Rewrite both fractions: ${fracToString(f1)} = ${e1}/${lcd} and ${fracToString(f2)} = ${e2}/${lcd}. ${isAdd ? "Add" : "Subtract"} the numerators.`,
+        blanks: [{ label: isAdd ? "sum" : "difference", answer: `${isAdd ? e1 + e2 : e1 - e2}/${lcd}` }],
+      },
+      {
+        instruction: "Simplify, and write a fraction greater than 1 as a mixed number.",
+        blanks: [{ label: "answer", answer: ans }],
+      },
+    ],
+    { w1: 0, n1: f1.n, d1: f1.d, w2: 0, n2: f2.n, d2: f2.d, op: isAdd ? "add" : "sub", kind: "frac" }
+  );
+}
+
+interface MixedPair {
+  w1: number; n1: number; d1: number;
+  w2: number; n2: number; d2: number;
+}
+
+function mixedPair(rng: RNG, subtract: boolean): MixedPair {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const [d1, d2] = rng() < 0.3 ? (() => { const d = pick(rng, FRAC_DENS); return [d, d] as [number, number]; })() : unlikeDens(rng);
+    const n1 = properWithDen(rng, d1);
+    const n2 = properWithDen(rng, d2);
+    const w1 = randInt(rng, subtract ? 3 : 1, subtract ? 9 : 6);
+    const w2 = randInt(rng, 1, subtract ? w1 - 1 : 6);
+    if (subtract && w1 <= w2) continue;
+    if (d1 === d2 && n1 === n2) continue;
+    return { w1, n1, d1, w2, n2, d2 };
+  }
+  return { w1: 5, n1: 1, d1: 4, w2: 2, n2: 2, d2: 3 };
+}
+
+function makeMixedAddSub6(rng: RNG, op: "add" | "sub"): Grade6Problem {
+  const m = mixedPair(rng, op === "sub");
+  const a = makeFrac(m.w1 * m.d1 + m.n1, m.d1);
+  const b = makeFrac(m.w2 * m.d2 + m.n2, m.d2);
+  const result = op === "add" ? fracAdd(a, b) : fracSub(a, b);
+  const ans = fracToMixed(result);
+  const lcd = (m.d1 * m.d2) / gcd(m.d1, m.d2);
+  const e1 = (m.n1 * lcd) / m.d1;
+  const e2 = (m.n2 * lcd) / m.d2;
+  const t1 = mixedText(m.w1, m.n1, m.d1);
+  const t2 = mixedText(m.w2, m.n2, m.d2);
+  const regroup = op === "sub" && e1 < e2;
+  const steps: Grade6Problem["steps"] = [
+    {
+      instruction: `Rewrite the fraction parts with the common denominator ${lcd}: ${mixedText(m.w1, e1, lcd)} ${op === "add" ? "+" : "−"} ${mixedText(m.w2, e2, lcd)}.`,
+      blanks: [{ label: "LCD =", answer: String(lcd) }],
+    },
+  ];
+  if (regroup) {
+    steps.push({
+      instruction: `${e1}/${lcd} is less than ${e2}/${lcd}, so regroup: ${mixedText(m.w1, e1, lcd)} = ${m.w1 - 1} ${e1 + lcd}/${lcd}.`,
+      blanks: [{ label: "regrouped", answer: `${m.w1 - 1} ${e1 + lcd}/${lcd}` }],
+    });
+  }
+  steps.push({
+    instruction:
+      op === "add"
+        ? "Add the whole numbers, add the fractions, then simplify (rename an improper fraction part)."
+        : "Subtract the whole numbers, subtract the fractions, then simplify.",
+    blanks: [{ label: "answer", answer: ans }],
+  });
+  return build(
+    "AddSubtractFractionsMixed",
+    `${op === "add" ? "Add" : "Subtract"}: ${t1} ${op === "add" ? "+" : "−"} ${t2}. Write the answer as a mixed number in simplest form.`,
+    op === "add" ? "the sum" : "the difference",
+    ans,
+    steps,
+    { ...m, op, kind: "mixed" }
+  );
+}
+
+function makeMixedWord6(rng: RNG): Grade6Problem {
+  const ctx = pick(rng, ["rope", "hike", "recipe", "board"] as const);
+  const op: "add" | "sub" = ctx === "rope" || ctx === "board" ? "sub" : "add";
+  const m = mixedPair(rng, op === "sub");
+  const a = makeFrac(m.w1 * m.d1 + m.n1, m.d1);
+  const b = makeFrac(m.w2 * m.d2 + m.n2, m.d2);
+  const ans = fracToMixed(op === "add" ? fracAdd(a, b) : fracSub(a, b));
+  const t1 = mixedText(m.w1, m.n1, m.d1);
+  const t2 = mixedText(m.w2, m.n2, m.d2);
+  const prompt =
+    ctx === "rope"
+      ? `A rope is ${t1} feet long. Jamal cuts off ${t2} feet. How many feet of rope are left?`
+      : ctx === "board"
+        ? `A board is ${t1} feet long. A carpenter saws off a piece that is ${t2} feet long. How long is the rest of the board?`
+        : ctx === "hike"
+          ? `Lena hiked ${t1} miles in the morning and ${t2} miles in the afternoon. How many miles did she hike in all?`
+          : `A recipe uses ${t1} cups of flour for the bread and ${t2} cups of flour for the rolls. How many cups of flour does it use in all?`;
+  const unit = ctx === "hike" ? "miles" : ctx === "recipe" ? "cups" : "feet";
+  return build(
+    "AddSubtractFractionsMixed",
+    prompt,
+    op === "add" ? "the total" : "the amount left",
+    `${ans} ${unit}`,
+    [
+      {
+        instruction: `Write the operation: ${t1} ${op === "add" ? "+" : "−"} ${t2}.`,
+        blanks: [{ label: "operation", answer: op === "add" ? "addition" : "subtraction" }],
+      },
+      {
+        instruction: "Use a common denominator, then simplify the result.",
+        blanks: [{ label: "answer", answer: `${ans} ${unit}` }],
+      },
+    ],
+    { ...m, op, kind: "mixed-word", unit },
+    null,
+    unit
+  );
+}
+
+// ── Lesson: Percent Problems ─────────────────────────────────────────────────
+
+/** Percent/whole pairs where the part is a whole number. */
+function percentTriple(rng: RNG): { pct: number; whole: number; part: number } {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const pct = pick(rng, [5, 10, 15, 20, 25, 30, 40, 45, 60, 75, 80, 90]);
+    const whole = pick(rng, [20, 40, 60, 80, 120, 140, 160, 200, 240, 300, 400]);
+    const part = (pct * whole) / 100;
+    if (Number.isInteger(part)) return { pct, whole, part };
+  }
+  return { pct: 25, whole: 80, part: 20 };
+}
+
+function makePercentPart6(rng: RNG): Grade6Problem {
+  const { pct, whole, part } = percentTriple(rng);
+  return build(
+    "PercentProblems6",
+    `What is ${pct}% of ${whole}?`,
+    "the part",
+    part,
+    [
+      {
+        instruction: `Write the percent as a decimal: ${pct}% = ${fmt(pct / 100)}.`,
+        blanks: [{ label: "decimal", answer: fmt(pct / 100) }],
+      },
+      {
+        instruction: `Part = percent × whole = ${fmt(pct / 100)} × ${whole}.`,
+        blanks: [{ label: "part =", answer: String(part) }],
+      },
+    ],
+    { pct, whole, part, kind: "part" }
+  );
+}
+
+function makePercentWhole6(rng: RNG): Grade6Problem {
+  const { pct, whole, part } = percentTriple(rng);
+  return build(
+    "PercentProblems6",
+    `${part} is ${pct}% of what number?`,
+    "the whole",
+    whole,
+    [
+      {
+        instruction: `Write a proportion: ${part}/w = ${pct}/100.`,
+        blanks: [{ label: "cross products", answer: `${pct}w = ${part * 100}` }],
+      },
+      {
+        instruction: `Divide both sides by ${pct}.`,
+        blanks: [{ label: "w =", answer: String(whole) }],
+      },
+    ],
+    { pct, whole, part, kind: "whole" }
+  );
+}
+
+function makePercentFind6(rng: RNG): Grade6Problem {
+  const { pct, whole, part } = percentTriple(rng);
+  return build(
+    "PercentProblems6",
+    `${part} is what percent of ${whole}?`,
+    "the percent",
+    `${pct}%`,
+    [
+      {
+        instruction: `Write the part over the whole: ${part}/${whole}.`,
+        blanks: [{ label: "simplified", answer: fracToString(makeFrac(part, whole)) }],
+      },
+      {
+        instruction: "Rewrite as an equivalent fraction out of 100, or divide and multiply by 100.",
+        blanks: [{ label: "percent", answer: `${pct}%` }],
+      },
+    ],
+    { pct, whole, part, kind: "percent" }
+  );
+}
+
+function makePercentWord6(rng: RNG): Grade6Problem {
+  const { pct, whole, part } = percentTriple(rng);
+  const kind = pick(rng, ["part", "whole", "percent"] as const);
+  let prompt: string;
+  let answer: number | string;
+  let find: string;
+  if (kind === "part") {
+    prompt = pick(rng, [
+      `A school has ${whole} students. ${pct}% of them walk to school. How many students walk to school?`,
+      `A store has ${whole} T-shirts. ${pct}% of them are on sale. How many T-shirts are on sale?`,
+    ]);
+    answer = part;
+    find = "the part";
+  } else if (kind === "whole") {
+    prompt = pick(rng, [
+      `Devon has saved $${part}. That is ${pct}% of the cost of a new bike. How much does the bike cost?`,
+      `${part} students chose soccer in a survey. That was ${pct}% of the students surveyed. How many students were surveyed?`,
+    ]);
+    answer = prompt.startsWith("Devon") ? `$${whole}` : whole;
+    find = "the whole";
+  } else {
+    prompt = pick(rng, [
+      `A basketball player made ${part} of ${whole} free throws this season. What percent of the free throws did she make?`,
+      `A garden has ${whole} plants. ${part} of them are tomato plants. What percent of the plants are tomato plants?`,
+    ]);
+    answer = `${pct}%`;
+    find = "the percent";
+  }
+  return build(
+    "PercentProblems6",
+    prompt,
+    find,
+    answer,
+    [
+      {
+        instruction:
+          kind === "part"
+            ? `You know the whole (${whole}) and the percent (${pct}%). Find the part: ${fmt(pct / 100)} × ${whole}.`
+            : kind === "whole"
+              ? `You know the part (${part}) and the percent (${pct}%). Solve ${part}/w = ${pct}/100.`
+              : `You know the part (${part}) and the whole (${whole}). Write ${part}/${whole} as a percent.`,
+        blanks: [{ label: "answer", answer: String(answer) }],
+      },
+    ],
+    { pct, whole, part, kind: `${kind}-word`, money: typeof answer === "string" && answer.startsWith("$") ? 1 : 0 }
+  );
+}
+
 const MAKERS: MakerEntry[] = [
   // T1 · Numbers & Operations
   { tier: 1, subtype: "MultiplyingDividingFractions", make: makeFractionTimesWhole },
@@ -4484,6 +4973,20 @@ const MAKERS: MakerEntry[] = [
   { tier: 1, subtype: "WriteProblem6", make: makeMatchAddSub6 },
   { tier: 2, subtype: "WriteProblem6", make: makeMatchAllOps6 },
   { tier: 3, subtype: "WriteProblem6", make: makeWriteEquationOneStep6 },
+  // T9 · Number sense gaps
+  { tier: 1, subtype: "GCFAndLCM", make: makeGCF6 },
+  { tier: 1, subtype: "GCFAndLCM", make: makeLCM6 },
+  { tier: 2, subtype: "GCFAndLCM", make: makeGCFLCMPrime6 },
+  { tier: 3, subtype: "GCFAndLCM", make: makeGCFWord6 },
+  { tier: 3, subtype: "GCFAndLCM", make: makeLCMWord6 },
+  { tier: 1, subtype: "AddSubtractFractionsMixed", make: makeAddSubUnlike6 },
+  { tier: 2, subtype: "AddSubtractFractionsMixed", make: (rng) => makeMixedAddSub6(rng, "add") },
+  { tier: 2, subtype: "AddSubtractFractionsMixed", make: (rng) => makeMixedAddSub6(rng, "sub") },
+  { tier: 3, subtype: "AddSubtractFractionsMixed", make: makeMixedWord6 },
+  { tier: 1, subtype: "PercentProblems6", make: makePercentPart6 },
+  { tier: 2, subtype: "PercentProblems6", make: makePercentWhole6 },
+  { tier: 2, subtype: "PercentProblems6", make: makePercentFind6 },
+  { tier: 3, subtype: "PercentProblems6", make: makePercentWord6 },
 ];
 
 /** Makers unlocked at the given difficulty tier (cumulative). */
@@ -4526,6 +5029,9 @@ export const GRADE6_SUBTYPES: Grade6Subtype[] = [
   "BenchmarkPercents",
   "CategoricalData6",
   "WriteProblem6",
+  "GCFAndLCM",
+  "AddSubtractFractionsMixed",
+  "PercentProblems6",
 ];
 
 /**

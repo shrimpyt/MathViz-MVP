@@ -11,6 +11,8 @@ import type {
   SectorSVGParams,
   CongruenceSVGParams,
 } from "@/lib/ProblemFactory";
+import { baselineY, angleArcPath, placePointLabel, textBox } from "@/lib/labelPlacement";
+import { inscribedLabels, tangentLayout, VERTEX_ARC_R } from "@/lib/geometryDiagramLayout";
 
 const CX = 100; // viewBox center x
 const CY = 100; // viewBox center y
@@ -68,6 +70,16 @@ function Label({
   );
 }
 
+// Label drawn centered on (x, y), placed by labelPlacement.
+const WEB_WIDTH = 1.15; // Georgia runs a little wider than Times
+function CLabel({ c, text }: { c: { x: number; y: number }; text: string }) {
+  return (
+    <text x={c.x} y={baselineY(c.y, 8)} fontSize={8} fontFamily="Georgia, serif" textAnchor="middle" fill="#1e293b">
+      {text}
+    </text>
+  );
+}
+
 // ── Circle base ───────────────────────────────────────────────────────────────
 
 function CircleBase() {
@@ -80,7 +92,6 @@ function CircleBase() {
 
 export function InscribedAngleSVG({
   interceptedArc,
-  inscribedAngle,
   variant,
 }: InscribedAngleSVGParams & {
   kind: "InscribedAngle" | "CentralAngle" | "TwoChords" | "TwoSecants";
@@ -94,6 +105,7 @@ export function InscribedAngleSVG({
   const B = polarToCart(CX, CY, R, arcEnd);
   const V = polarToCart(CX, CY, R, vertexAngle);
   const largeArc = interceptedArc > 180;
+  const L = inscribedLabels(A, B, V, interceptedArc, arcStart, WEB_WIDTH);
 
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Inscribed angle diagram">
@@ -107,17 +119,14 @@ export function InscribedAngleSVG({
       />
       <line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
       <line x1={V.x} y1={V.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.2} />
+      <path d={angleArcPath(V, A, B, VERTEX_ARC_R)} fill="none" stroke="#111111" strokeWidth={1} />
       {[A, B, V].map((pt, i) => (
         <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
-      <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: 0 }} />
-      <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
-      <Label x={V.x} y={V.y} text="V" offset={{ x: 0, y: 9 }} />
-      {(() => {
-        const mid = polarToCart(CX, CY, R + 12, arcStart + interceptedArc / 2);
-        return <Label x={mid.x} y={mid.y} text={`${interceptedArc}°`} offset={{ x: 0, y: 3 }} />;
-      })()}
-      <Label x={V.x} y={V.y} text={`${inscribedAngle}°?`} offset={{ x: 0, y: 20 }} />
+      {L.map((l) => <CLabel key={l.text} c={l.center} text={l.text} />)}
+      {L.filter((l) => l.leader).map((l) => (
+        <line key={`ld-${l.text}`} x1={l.leader![0].x} y1={l.leader![0].y} x2={l.leader![1].x} y2={l.leader![1].y} stroke="#111111" strokeWidth={0.6} />
+      ))}
     </svg>
   );
 }
@@ -165,14 +174,13 @@ export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind:
   const chordEnd = chordStart + tangentAngle * 2; // arc = 2 × angle
   const A = polarToCart(CX, CY, R, chordStart);
   const B = polarToCart(CX, CY, R, chordEnd);
-  const tx1 = A.x - 40;
-  const tx2 = A.x + 40;
+  const T = tangentLayout(A, B, tangentAngle, chordStart, WEB_WIDTH);
 
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Tangent-chord diagram">
       <CircleBase />
       <line
-        x1={tx1} y1={A.y} x2={tx2} y2={A.y}
+        x1={T.t1.x} y1={T.t1.y} x2={T.t2.x} y2={T.t2.y}
         stroke="#6b7280"
         strokeWidth={1.5}
         strokeDasharray="4 2"
@@ -185,17 +193,14 @@ export function TangentSVG({ tangentAngle, variant }: TangentSVGParams & { kind:
         strokeWidth={3}
         strokeLinecap="round"
       />
+      <path d={angleArcPath(A, T.t2, B, VERTEX_ARC_R)} fill="none" stroke="#111111" strokeWidth={1} />
       {[A, B].map((pt, i) => (
         <circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
-      <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: -5 }} />
-      <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
-      <Label x={tx2 - 5} y={A.y} text="t" offset={{ x: 0, y: -5 }} />
-      {(() => {
-        const mid = polarToCart(CX, CY, R + 13, chordStart + tangentAngle);
-        return <Label x={mid.x} y={mid.y} text={`${tangentAngle * 2}°`} offset={{ x: 0, y: 3 }} />;
-      })()}
-      <Label x={A.x + 15} y={A.y} text={`${tangentAngle}°?`} offset={{ x: 0, y: -8 }} />
+      {T.labels.map((l) => <CLabel key={l.text} c={l.center} text={l.text} />)}
+      {T.labels.filter((l) => l.leader).map((l) => (
+        <line key={`ld-${l.text}`} x1={l.leader![0].x} y1={l.leader![0].y} x2={l.leader![1].x} y2={l.leader![1].y} stroke="#111111" strokeWidth={0.6} />
+      ))}
     </svg>
   );
 }
@@ -249,7 +254,7 @@ export function TwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams & { kind: "
           </>
         );
       })()}
-      <Label x={P.x} y={P.y} text="?" offset={{ x: 8, y: -5 }} />
+      <CLabel c={placePointLabel(P, textBox("?", 8, WEB_WIDTH), { obstacles: [[A, C], [B, D]], gap: 4 })} text="?" />
     </svg>
   );
 }

@@ -4,7 +4,7 @@
 
 import React from "react";
 import type { BlankField, ProblemStep, OutputMode } from "@/lib/ProblemFactory";
-import { latexToText } from "@/lib/answerKey";
+import { latexToText, revealedBlankText } from "@/lib/answerKey";
 
 // ── Blank rendering ───────────────────────────────────────────────────────────
 
@@ -12,11 +12,15 @@ export function Blank({
   field,
   mode,
   revealed,
+  instruction = "",
 }: {
   field: BlankField;
   mode: OutputMode;
   revealed: boolean;
+  /** The step's text, so a shown answer can be set apart from it. */
+  instruction?: string;
 }) {
+  const shown = latexToText(revealedBlankText(instruction, field.label, field.answer));
   if (mode === "Test") {
     return (
       <span className="inline-block border-b-2 border-slate-700 min-w-[64px] mx-1 text-center font-serif text-sm">
@@ -27,7 +31,7 @@ export function Blank({
   if (mode === "Review") {
     return (
       <span className="inline-block mx-1 font-serif text-sm font-bold text-[#111]">
-        {latexToText(field.answer)}
+        {shown}
       </span>
     );
   }
@@ -36,7 +40,7 @@ export function Blank({
     <span className="inline-flex items-center mx-1 gap-1">
       {revealed ? (
         <span className="inline-block font-serif text-sm font-bold text-[#111]">
-          {latexToText(field.answer)}
+          {shown}
         </span>
       ) : (
         <span className="inline-block border-b-2 border-slate-900 min-w-[80px] px-1 font-serif text-sm text-slate-800 italic">
@@ -70,7 +74,7 @@ export function StepBlock({
         {step.blanks?.map((b, i) => (
           <React.Fragment key={i}>
             {" "}
-            <Blank field={b} mode={mode} revealed={revealed} />
+            <Blank field={b} mode={mode} revealed={revealed} instruction={latexToText(step.instruction)} />
           </React.Fragment>
         ))}
       </p>

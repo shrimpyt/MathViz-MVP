@@ -86,13 +86,18 @@ export async function run(): Promise<void> {
     check(bytes.subarray(0, 5).toString("latin1") === "%PDF-", `${name}: missing %PDF header`);
     check(bytes.includes(Buffer.from("%%EOF")), `${name}: missing %%EOF trailer`);
     // @react-pdf/PDFKit embeds a creation timestamp + random document ID, so raw
-    // bytes differ run to run; normalize those before comparing. A rare
-    // environmental flake has been observed, so this is best-of-3.
-    const normalize = (b: Buffer) =>
-      b
+    // bytes differ run to run; normalize those before comparing. PDFKit also
+    // flushes objects asynchronously, so on long documents the same objects
+    // can be written in a different order (which shifts the xref offsets).
+    // Compare the sorted set of objects, which is what the reader sees.
+    const normalize = (b: Buffer) => {
+      const text = b
         .toString("latin1")
         .replace(/\(D:[0-9]{14}[^)]*\)/g, "(D:)")
         .replace(/\/ID \[<[0-9a-f]*> <[0-9a-f]*>\]/g, "/ID []");
+      const objects = text.match(/\d+ 0 obj[\s\S]*?endobj/g) ?? [text];
+      return [...objects].sort().join("\n");
+    };
     const hashes: string[] = [];
     for (let k = 0; k < 3; k++) {
       hashes.push(createHash("sha256").update(normalize(await renderBytes(sample))).digest("hex"));

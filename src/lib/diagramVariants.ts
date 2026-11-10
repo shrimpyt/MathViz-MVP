@@ -59,6 +59,8 @@ export function effectiveVariant(sp: Record<string, unknown>, variant: number): 
         return variant % 4;
       case "trapezoid":
         return variant % 3;
+      case "right-triangle":
+        return variant % 2; // mirrored or not
       case "rectangular-prism":
         return variant % 24;
       default:

@@ -61,7 +61,10 @@ export type Grade6Subtype =
   | "FractionMultiplyEffect"
   | "BenchmarkPercents"
   | "CategoricalData6"
-  | "WriteProblem6";
+  | "WriteProblem6"
+  | "GCFAndLCM"
+  | "AddSubtractFractionsMixed"
+  | "PercentProblems6";
 
 export interface Grade6Problem extends MiddleSchoolProblemBase {
   type: "MS.6";
@@ -210,6 +213,7 @@ export interface MSGeometryFigureParams {
   figure:
     | "parallelogram"
     | "triangle"
+    | "right-triangle"
     | "trapezoid"
     | "rectangle"
     | "rectangular-prism"
