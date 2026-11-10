@@ -5,7 +5,16 @@
 
 import {
   FREE_GENERATION_LIMIT,
+  RATE_LIMIT_PER_EMAIL,
+  allowedOrigins,
+  checkoutPaymentCleared,
+  devAuthEnabled,
   effectivePlan,
+  escapeHtml,
+  originAllowed,
+  rateWindowStart,
+  signInPageHtml,
+  underRateLimit,
   generationAllowed,
   hmacSha256Hex,
   monthKeyUTC,
@@ -89,6 +98,7 @@ async function main() {
       object: {
         client_reference_id: "user1",
         customer: "cus_1",
+        payment_status: "paid",
         metadata: { user_id: "user1", kind: "founders" },
       },
     },
@@ -98,9 +108,37 @@ async function main() {
 
   const monthlyEvt = planUpdateFromStripeEvent({
     type: "checkout.session.completed",
-    data: { object: { client_reference_id: "user2", customer: "cus_2", metadata: { kind: "monthly" } } },
+    data: { object: { client_reference_id: "user2", customer: "cus_2", payment_status: "paid", metadata: { kind: "monthly" } } },
   });
   ck("checkout monthly → pro/active", monthlyEvt?.update.plan === "pro" && monthlyEvt?.update.subscriptionStatus === "active");
+
+  // payment must have cleared before anything is granted
+  const unpaidEvt = planUpdateFromStripeEvent({
+    type: "checkout.session.completed",
+    data: { object: { client_reference_id: "user3", customer: "cus_3", payment_status: "unpaid", metadata: { kind: "founders" } } },
+  });
+  ck(
+    "unpaid checkout grants nothing (customer id only)",
+    unpaidEvt?.update.plan === undefined && unpaidEvt?.update.founders === undefined && unpaidEvt?.update.stripeCustomerId === "cus_3",
+  );
+  const noStatusEvt = planUpdateFromStripeEvent({
+    type: "checkout.session.completed",
+    data: { object: { client_reference_id: "user4", metadata: { kind: "monthly" } } },
+  });
+  eq("checkout with no payment_status and no customer → null", noStatusEvt, null);
+  const asyncEvt = planUpdateFromStripeEvent({
+    type: "checkout.session.async_payment_succeeded",
+    data: { object: { client_reference_id: "user3", customer: "cus_3", payment_status: "paid", metadata: { kind: "annual" } } },
+  });
+  ck("async_payment_succeeded grants pro", asyncEvt?.update.plan === "pro" && asyncEvt?.key === "user3");
+  const trialEvt = planUpdateFromStripeEvent({
+    type: "checkout.session.completed",
+    data: { object: { client_reference_id: "user5", customer: "cus_5", payment_status: "no_payment_required", metadata: { kind: "monthly" } } },
+  });
+  ck("free-trial checkout (no payment required) grants pro", trialEvt?.update.plan === "pro");
+  eq("cleared: paid", checkoutPaymentCleared({ payment_status: "paid" }), true);
+  eq("cleared: unpaid", checkoutPaymentCleared({ payment_status: "unpaid" }), false);
+  eq("cleared: missing", checkoutPaymentCleared({}), false);
 
   const updEvt = planUpdateFromStripeEvent({
     type: "customer.subscription.updated",
@@ -156,6 +194,33 @@ async function main() {
   const filtered = validateExportEvent({ type: "export", topics: ["ok", 42, "", "x".repeat(200)] });
   eq("export event: bad topic entries dropped", JSON.stringify(filtered?.topics), JSON.stringify(["ok"]));
   eq("export event: docType defaults", filtered?.docType, "worksheet");
+
+  // origins and dev-only switches
+  const prod = "https://euclidengine.tech";
+  eq("prod origin allowed", originAllowed("https://euclidengine.tech", prod), true);
+  eq("pages origin allowed", originAllowed("https://euclid-engine.pages.dev", prod), true);
+  eq("localhost refused in prod", originAllowed("http://localhost:3000", prod), false);
+  eq("foreign origin refused", originAllowed("https://evil.example", prod), false);
+  eq("missing origin refused", originAllowed(null, prod), false);
+  eq("localhost allowed when running locally", originAllowed("http://localhost:3000", "http://localhost:3000"), true);
+  eq("prod allow-list has no localhost", allowedOrigins(prod).has("http://localhost:3000"), false);
+  eq("DEV_AUTH ignored in prod", devAuthEnabled("1", prod), false);
+  eq("DEV_AUTH works locally", devAuthEnabled("1", "http://localhost:8787"), true);
+  eq("DEV_AUTH off when unset", devAuthEnabled(undefined, "http://localhost:8787"), false);
+  eq("DEV_AUTH ignored for bad URL", devAuthEnabled("1", "not a url"), false);
+
+  // rate limits
+  eq("window start floors to 15 min", rateWindowStart(1_800_000_123), 1_800_000_123 - (1_800_000_123 % 900));
+  eq("under limit", underRateLimit(RATE_LIMIT_PER_EMAIL - 1, RATE_LIMIT_PER_EMAIL), true);
+  eq("at limit refused", underRateLimit(RATE_LIMIT_PER_EMAIL, RATE_LIMIT_PER_EMAIL), false);
+
+  // sign-in confirmation page
+  const tok = "a".repeat(64);
+  const page = signInPageHtml(tok, "/api/auth/verify");
+  ck("sign-in page posts the token", page.includes('method="post"') && page.includes(`value="${tok}"`));
+  ck("sign-in page has a button", page.includes("<button"));
+  eq("escapeHtml", escapeHtml(`<a href="x">'&`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;");
+  ck("sign-in page escapes its inputs", !signInPageHtml('"><script>', "/x").includes("<script>"));
 
   console.log(`run-worker-tests: ${checks} checks, ${failures} failures`);
   if (failures > 0) process.exit(1);

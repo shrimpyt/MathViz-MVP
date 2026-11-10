@@ -1,0 +1,14 @@
+# Security headers for the Cloudflare Pages site (static export).
+# The /api/* routes are served by the worker, which sets its own headers.
+#
+# The enforced CSP only covers what can't break the app (framing, plugins,
+# <base>). The full policy runs in Report-Only first: watch the browser
+# console for violations, then move it to Content-Security-Policy.
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'self'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' blob: data:; worker-src 'self' blob:; frame-src 'self' blob:; form-action 'self' https://checkout.stripe.com https://billing.stripe.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'

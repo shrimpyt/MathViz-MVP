@@ -1106,7 +1106,7 @@ function AccountControl({
         >
           {sent ? (
             <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#f2f3fa' }}>
-              Check your email, your sign-in link is on its way. It expires in 15 minutes.
+              Check your email, your sign-in link is on its way. It expires in 15 minutes. Open it and press Sign in.
             </Typography>
           ) : (
             <>
@@ -1134,10 +1134,12 @@ function AccountControl({
                 onClick={async () => {
                   setBusy(true);
                   setError(null);
-                  const ok = await requestSignInLink(email.trim());
+                  const result = await requestSignInLink(email.trim());
                   setBusy(false);
-                  if (ok) setSent(true);
-                  else setError('Sign-in is not available yet, accounts are launching soon.');
+                  if (result === 'sent') setSent(true);
+                  else if (result === 'rate_limited')
+                    setError('Too many sign-in emails were requested. Please wait 15 minutes and try again.');
+                  else setError('Sign-in is not available right now. Please try again later.');
                 }}
                 sx={{ borderRadius: '10px', fontWeight: 800 }}
               >

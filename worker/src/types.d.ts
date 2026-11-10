@@ -5,7 +5,7 @@
 interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = Record<string, unknown>>(): Promise<T | null>;
-  run(): Promise<{ success: boolean }>;
+  run(): Promise<{ success: boolean; meta?: { changes?: number } }>;
   all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
 }
 
@@ -24,6 +24,7 @@ interface Env {
   PRICE_SCHOOL?: string;
   PRICE_FOUNDERS?: string;
   /** "1" in local dev only: request-link responses include the sign-in URL
-   *  so the flow can be tested without an email provider. Never in prod. */
+   *  so the flow can be tested without an email provider. Ignored unless
+   *  APP_URL is localhost, so it can't take effect in production. */
   DEV_AUTH?: string;
 }

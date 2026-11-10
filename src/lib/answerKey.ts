@@ -29,29 +29,49 @@ const SUBSCRIPT: Record<string, string> = {
   n: "ₙ", x: "ₓ", i: "ᵢ", a: "ₐ", o: "ₒ", e: "ₑ",
 };
 
+// Every command is anchored with (?![a-zA-Z]) so a short name never matches
+// inside a longer one: \le must not eat the start of \left, \pm of \pmod,
+// \ne of \neq.
 const SYMBOLS: [RegExp, string][] = [
-  [/\^\\circ/g, "°"], // 37^\circ → 37°
-  [/\\times/g, "×"],
-  [/\\div/g, "÷"],
-  [/\\cdot/g, "·"],
-  [/\\pm/g, "±"],
-  [/\\approx/g, "≈"],
-  [/\\neq/g, "≠"],
-  [/\\leq?/g, "≤"],
-  [/\\geq?/g, "≥"],
-  [/\\theta/g, "θ"],
-  [/\\pi/g, "π"],
-  [/\\alpha/g, "α"],
-  [/\\beta/g, "β"],
-  [/\\gamma/g, "γ"],
-  [/\\delta/g, "δ"],
-  [/\\angle/g, "∠"],
-  [/\\cong/g, "≅"],
-  [/\\sim/g, "~"],
-  [/\\circ/g, "°"],
-  [/\\degree/g, "°"],
-  [/\\infty/g, "∞"],
+  [/\^\\circ(?![a-zA-Z])/g, "°"], // 37^\circ → 37°
+  [/\\times(?![a-zA-Z])/g, "×"],
+  [/\\div(?![a-zA-Z])/g, "÷"],
+  [/\\cdot(?![a-zA-Z])/g, "·"],
+  [/\\pmod\s*\{([^{}]*)\}/g, "(mod $1)"],
+  [/\\pm(?![a-zA-Z])/g, "±"],
+  [/\\mp(?![a-zA-Z])/g, "∓"],
+  [/\\approx(?![a-zA-Z])/g, "≈"],
+  [/\\neq?(?![a-zA-Z])/g, "≠"],
+  [/\\leq?(?![a-zA-Z])/g, "≤"],
+  [/\\geq?(?![a-zA-Z])/g, "≥"],
+  [/\\theta(?![a-zA-Z])/g, "θ"],
+  [/\\pi(?![a-zA-Z])/g, "π"],
+  [/\\alpha(?![a-zA-Z])/g, "α"],
+  [/\\beta(?![a-zA-Z])/g, "β"],
+  [/\\gamma(?![a-zA-Z])/g, "γ"],
+  [/\\delta(?![a-zA-Z])/g, "δ"],
+  [/\\angle(?![a-zA-Z])/g, "∠"],
+  [/\\cong(?![a-zA-Z])/g, "≅"],
+  [/\\sim(?![a-zA-Z])/g, "~"],
+  [/\\circ(?![a-zA-Z])/g, "°"],
+  [/\\degree(?![a-zA-Z])/g, "°"],
+  [/\\infty(?![a-zA-Z])/g, "∞"],
+  [/\\to(?![a-zA-Z])/g, "→"],
+  [/\\in(?![a-zA-Z])/g, "∈"],
+  [/\\cup(?![a-zA-Z])/g, "∪"],
+  [/\\cap(?![a-zA-Z])/g, "∩"],
+  [/\\emptyset(?![a-zA-Z])/g, "∅"],
+  [/\\varnothing(?![a-zA-Z])/g, "∅"],
+  [/\\perp(?![a-zA-Z])/g, "⊥"],
+  [/\\parallel(?![a-zA-Z])/g, "∥"],
+  [/\\triangle(?![a-zA-Z])/g, "△"],
 ];
+
+// Placeholders for literal braces (\{ \}) so the {…} group regexes below
+// never mistake set braces for LaTeX argument braces.
+const LBRACE = "\u0002";
+const RBRACE = "\u0003";
+const CARET = "\u0004";
 
 function mapChars(s: string, table: Record<string, string>): string {
   return s.split("").map((c) => table[c] ?? c).join("");
@@ -95,8 +115,59 @@ function replaceRoots(s: string): string {
   s = s.replace(/\\sqrt\[4\]\s*\{([^{}]*)\}/g, (_m, r: string) => `∜${groupRadicand(r)}`);
   s = s.replace(/\\sqrt\[(\d+)\]\s*\{([^{}]*)\}/g, (_m, n: string, r: string) => `√[${n}]${groupRadicand(r)}`);
   s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, (_m, r: string) => `√${groupRadicand(r)}`);
-  s = s.replace(/\\sqrt(?![a-zA-Z{])/g, "√");
   return s;
+}
+
+/** True when a fraction part reads unambiguously without parentheses:
+ *  a number, a single letter or Greek symbol (with optional super/subscript),
+ *  or something already wrapped in one pair of parentheses. */
+function isAtomic(t: string): boolean {
+  if (wrapsWhole(t)) return true;
+  if (/^-?\d+(\.\d+)?$/.test(t)) return true;
+  return /^[a-zA-Zπθαβγδ][⁰¹²³⁴⁵⁶⁷⁸⁹⁻ⁿˣⁱᵃᵒ₀₁₂₃₄₅₆₇₈₉ₙₓᵢₐₒₑ]*$/.test(t);
+}
+
+/** More than one additive term ("x + 1", "2 - x"); a leading sign alone
+ *  doesn't count. Terms inside parentheses don't count either. */
+function hasAdditiveTerms(t: string): boolean {
+  let depth = 0;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (c === "(") depth++;
+    else if (c === ")") depth--;
+    else if (depth === 0 && i > 0 && (c === "+" || c === "-" || c === "−" || c === "±" || c === "∓")) return true;
+  }
+  return false;
+}
+
+/**
+ * "\frac{a}{b}" as inline text. Once the fraction bar is gone, grouping must
+ * be written out: \frac{x+1}{x-1} → "(x + 1)/(x - 1)", \frac{4}{x^2+4x} →
+ * "4/(x² + 4x)", \frac{3}{2x} → "3/(2x)". Simple parts stay bare: "1/2",
+ * "3x/4", "1/x²". A coefficient written \frac{1}{2}x stays "1/2x", the usual
+ * answer-key convention for (1/2)x.
+ */
+function inlineFraction(num: string, den: string): string {
+  const n = num.trim();
+  const d = den.trim();
+  const nn = (hasAdditiveTerms(n) || n.includes("/")) && !wrapsWhole(n) ? `(${n})` : n;
+  const dd = isAtomic(d) ? d : `(${d})`;
+  return `${nn}/${dd}`;
+}
+
+/** Superscript group as unicode when every character has a superscript
+ *  form; otherwise "^(…)" so it can't fuse with the base: (1.05)^{t} →
+ *  "(1.05)^t", Pe^{rt} → "Pe^(rt)". */
+function superscript(g: string): string {
+  if (g.split("").every((c) => SUPERSCRIPT[c] !== undefined)) return mapChars(g, SUPERSCRIPT);
+  // CARET stands in for "^" until the end, so the bare-caret rule below
+  // doesn't turn this "(" into a superscript one.
+  return g.length === 1 ? `${CARET}${g}` : `${CARET}(${g})`;
+}
+
+function subscript(g: string): string {
+  if (g.split("").every((c) => SUBSCRIPT[c] !== undefined)) return mapChars(g, SUBSCRIPT);
+  return `_${g}`;
 }
 
 /**
@@ -116,28 +187,52 @@ export function latexToText(input: string | number | null | undefined): string {
   s = s.replace(/\$/g, "");
   s = s.replace(/\u0001/g, "$");
 
-  // Fractions first: a \frac inside a radicand must already read "a/b"
-  // when the radical grouping decision is made.
-  s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "$1/$2");
+  // Literal set braces and spacing/sizing commands carry no math.
+  s = s.replace(/\\\{/g, LBRACE).replace(/\\\}/g, RBRACE);
+  s = s.replace(/\\(left|right)(?![a-zA-Z])\s*([()[\]|.]|\u0002|\u0003)?/g, (_m, _w: string, d?: string) =>
+    d === undefined || d === "." ? "" : d,
+  );
+  s = s.replace(/\\[,;:!]/g, " ").replace(/\\q?quad(?![a-zA-Z])/g, " ");
+  s = s.replace(/\\(?:d|t)frac(?![a-zA-Z])/g, "\\frac");
+  // \text{ or }, \mathrm{cm}, \textbf{…}: keep the words, drop the command.
+  s = s.replace(/\\(?:text|textbf|textit|mathrm|mathbf|mathit|operatorname)\s*\{([^{}]*)\}/g, " $1 ");
+  // \overline{AB} → AB (the segment bar can't be drawn in plain text).
+  s = s.replace(/\\(?:overline|overleftrightarrow|overrightarrow|vec|bar)\s*\{([^{}]*)\}/g, "$1");
+  s = s.replace(/\^\\circ(?![a-zA-Z])/g, "°");
 
-  // Radicals, with grouping preserved for multi-term radicands.
-  s = replaceRoots(s);
+  // Sub/superscripts before fractions, so \frac{1}{x^{2}} has no inner braces.
+  s = s.replace(/_\{([^{}]*)\}/g, (_m, g: string) => subscript(g));
+  s = s.replace(/_([0-9+\-nxieao()])/g, (_m, c: string) => SUBSCRIPT[c] ?? c);
+  s = s.replace(/\^\{([^{}]*)\}/g, (_m, g: string) => superscript(g));
+  s = s.replace(/\^([0-9+\-=nxiao()])/g, (_m, c: string) => SUPERSCRIPT[c] ?? c);
+
+  // ± and ∓ first, so a fraction like \frac{3 \pm \sqrt{17}}{4} sees two
+  // terms in its numerator and keeps them grouped.
+  s = s.replace(/\\pm(?![a-zA-Z])/g, "±").replace(/\\mp(?![a-zA-Z])/g, "∓");
+
+  // Fractions and radicals, innermost first, until none are left. A \frac
+  // inside a radicand must already read "a/b" when the radical grouping is
+  // decided, and a \sqrt inside a fraction must be gone before the \frac
+  // around it can match.
+  for (let guard = 0; guard < 12; guard++) {
+    let next = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, (_m, a: string, b: string) =>
+      inlineFraction(a, b),
+    );
+    next = replaceRoots(next);
+    if (next === s) break;
+    s = next;
+  }
+  s = s.replace(/\\sqrt(?![a-zA-Z{[])/g, "√");
 
   // Common commands → unicode
   for (const [re, rep] of SYMBOLS) {
     s = s.replace(re, rep);
   }
 
-  // Subscripts written as _{xx} (e.g. x_{1}), do before superscripts
-  s = s.replace(/_\{([^}]*)\}/g, (_m, g: string) => mapChars(g, SUBSCRIPT));
-  s = s.replace(/_([0-9+\-nxieao()])/g, (_m, c: string) => SUBSCRIPT[c] ?? c);
-
-  // Superscripts ^{xx} and ^x
-  s = s.replace(/\^\{([^}]*)\}/g, (_m, g: string) => mapChars(g, SUPERSCRIPT));
-  s = s.replace(/\^([0-9+\-=nxiao()])/g, (_m, c: string) => SUPERSCRIPT[c] ?? c);
-
   // Any leftover backslash commands: drop the backslash, keep the name
   s = s.replace(/\\([a-zA-Z]+)/g, "$1");
+  s = s.replace(new RegExp(LBRACE, "g"), "{").replace(new RegExp(RBRACE, "g"), "}");
+  s = s.replace(new RegExp(CARET, "g"), "^");
 
   return s.replace(/\s+/g, " ").trim();
 }

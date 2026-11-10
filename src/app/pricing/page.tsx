@@ -53,9 +53,10 @@ export default function PricingPage() {
             </Box>
           </Typography>
           <Typography sx={{ color: "#9aa0be", fontWeight: 600, maxWidth: 640, mb: 4 }}>
-            Euclid generates fresh TEKS-aligned math worksheets, base versions and
-            per-group IEP-accommodated versions that actually match, for Algebra I,
-            Algebra II, Geometry, and middle-school math.
+            Euclid generates fresh TEKS-aligned math worksheets and guided notes,
+            base versions and per-group IEP-accommodated versions that actually
+            match, for middle-school math, Algebra I and II, Geometry and proofs,
+            Precalculus, Calculus, and SAT practice.
           </Typography>
 
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2.5, mb: 3 }}>
@@ -88,7 +89,6 @@ export default function PricingPage() {
               </Typography>
               <Typography sx={liSx}>· Answer keys for everything</Typography>
               <Typography sx={liSx}>· No watermark</Typography>
-              <Typography sx={liSx}>· Saved library of your worksheets</Typography>
               <Typography sx={{ ...liSx, mt: 1.5, color: "#9aa0be" }}>
                 $79/year is about two months free versus monthly.
               </Typography>
