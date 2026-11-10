@@ -4,6 +4,7 @@
 // inverse trig evaluation, trig equations, calculator-active evaluation.
 // Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 
+import { coefPrefixSpace, coefVar } from "@/lib/coefficients";
 import type { RNG } from "./PrecalcTypes";
 import {
   randInt,
@@ -102,8 +103,8 @@ function makeAmplitudePeriod(rng: RNG): PrecalcMCQ {
     topicTag: "trig",
     subtype: "AmplitudePeriod",
     stem: askAmp
-      ? `What is the amplitude of y = ${A} ${fnType}(${B}x)?`
-      : `What is the period of y = ${A} ${fnType}(${B}x)? (Use "pi" for the symbol.)`,
+      ? `What is the amplitude of y = ${coefPrefixSpace(A)}${fnType}(${coefVar(B, "x")})?`
+      : `What is the period of y = ${coefPrefixSpace(A)}${fnType}(${coefVar(B, "x")})? (Use "pi" for the symbol.)`,
     givens: { A, B, fn: fnType === "sin" ? 0 : 1, askAmp: askAmp ? 1 : 0 },
     correct,
     wrongPool,

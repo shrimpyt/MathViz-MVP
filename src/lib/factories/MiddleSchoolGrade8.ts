@@ -10,6 +10,7 @@
 // (transformations), 8.2 (scientific notation), 8.7 (volume of 3D solids),
 // 8.11 (scatter plots).
 
+import { coefVar } from "@/lib/coefficients";
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
 import type {
@@ -278,7 +279,7 @@ function makeCompareFunctions(rng: RNG): Grade8Problem {
   const faster = m1 > m2 ? "the table" : "the equation";
   return build(
     "Functions",
-    `Function f is shown in the table: ${table}. Function g is given by y = ${m2}x + ${b2}. Which function has the greater rate of change?`,
+    `Function f is shown in the table: ${table}. Function g is given by y = ${coefVar(m2, "x")} + ${b2}. Which function has the greater rate of change?`,
     "the function with the greater rate",
     faster,
     [

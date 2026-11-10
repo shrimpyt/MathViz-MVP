@@ -3,6 +3,7 @@
 // powers of i, rectangular ↔ polar form, De Moivre.
 // Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 
+import { signedTerm } from "@/lib/coefficients";
 import type { RNG } from "./PrecalcTypes";
 import {
   randInt,
@@ -101,7 +102,7 @@ function makeMultiply(rng: RNG): PrecalcMCQ {
     steps: [
       {
         instruction: "FOIL, remembering that i² = −1:",
-        blanks: [{ label: "expand", answer: `${a * c} + ${a * d}i + ${b * c}i + ${b * d}i²` }],
+        blanks: [{ label: "expand", answer: `${a * c}${signedTerm(a * d, "i")}${signedTerm(b * c, "i")}${signedTerm(b * d, "i²")}` }],
       },
       { instruction: "Simplify:", blanks: [{ label: "answer", answer: correct }] },
     ],

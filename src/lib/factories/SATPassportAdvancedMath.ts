@@ -3,6 +3,7 @@
 // expressions, nonlinear functions, radical-form nonlinear equations.
 // Difficulty tiers are cumulative: tier d may draw any variant from tiers 1..d.
 
+import { signedTerm, polyText } from "@/lib/coefficients";
 import type { RNG } from "../math-utils";
 import { randInt } from "../math-utils";
 import type { SATDifficulty, SATProblem } from "../satTypes";
@@ -179,7 +180,7 @@ function makeEquivalentExpressions(rng: RNG, difficulty: SATDifficulty): SATProb
     const stem =
       `If (2x ${aStr})(x ${bStr}) is written in the form 2x² + kx + m, what is the value of k?`;
     const explanation =
-      `(2x ${aStr})(x ${bStr}) = 2x² + ${2 * b}x ${aStr}x ${a < 0 || b < 0 ? "" : "+"} ${a * b} = 2x² + ${mid}x + ${a * b}. So k = ${mid}.`;
+      `(2x ${aStr})(x ${bStr}) = 2x²${signedTerm(2 * b, "x")}${signedTerm(a, "x")}${signedTerm(a * b)} = ${polyText([2, mid, a * b])}. So k = ${mid}.`;
     const pool: DistractorSpec[] = [
       {
         label: qLabel(q(a + b)),
@@ -250,8 +251,8 @@ function makeEquivalentExpressions(rng: RNG, difficulty: SATDifficulty): SATProb
     ? `If (x ${aStr})(x ${bStr}) is written as x² + kx + m, what is the value of k?`
     : `If (x ${aStr})(x ${bStr}) is written as x² + kx + m, what is the value of m?`;
   const explanation = askMiddle
-    ? `(x ${aStr})(x ${bStr}) = x² + ${a + b}x + ${a * b}. The coefficient of x is ${a} + ${b} = ${ansVal}.`
-    : `(x ${aStr})(x ${bStr}) = x² + ${a + b}x + ${a * b}. The constant term is ${a} × ${b} = ${ansVal}.`;
+    ? `(x ${aStr})(x ${bStr}) = ${polyText([1, a + b, a * b])}. The coefficient of x is ${a} + ${b} = ${ansVal}.`
+    : `(x ${aStr})(x ${bStr}) = ${polyText([1, a + b, a * b])}. The constant term is ${a} × ${b} = ${ansVal}.`;
 
   const pool: DistractorSpec[] = askMiddle
     ? [
@@ -366,7 +367,7 @@ function makeNonlinearFunction(rng: RNG, difficulty: SATDifficulty): SATProblem 
   const key = { label: qLabel(valFrac), value: qVal(valFrac) };
 
   const aStr = a === 1 ? "" : a === -1 ? "−" : `${a}`;
-  const pStr = p === 0 ? "" : p < 0 ? ` − ${-p}x` : ` + ${p}x`;
+  const pStr = signedTerm(p, "x");
   const qStr = q0 < 0 ? ` − ${-q0}` : ` + ${q0}`;
   const stem = `The function f is defined by f(x) = ${aStr}x²${pStr}${qStr}. What is the value of f(${x})?`;
   const explanation = `f(${x}) = ${a}(${x})² + ${p}(${x}) + ${q0} = ${a * x * x} + ${p * x} + ${q0} = ${val}.`;
