@@ -213,6 +213,7 @@ export interface MSGeometryFigureParams {
   figure:
     | "parallelogram"
     | "triangle"
+    | "right-triangle"
     | "trapezoid"
     | "rectangle"
     | "rectangular-prism"

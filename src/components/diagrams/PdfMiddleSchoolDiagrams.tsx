@@ -4,6 +4,7 @@
 // matching exporter here; keep them in sync.
 
 import React from "react";
+import { layoutGridPointLabels, polygonEdges, baselineY, layoutRightTriangle, rightTriangleFromDims, type Seg } from "@/lib/labelPlacement";
 import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse, Font } from "@react-pdf/renderer";
 import type {
   MiddleSchoolSVGParams,
@@ -138,6 +139,22 @@ export function PdfMSCoordinateGridSVG(p: MSCoordinateGridParams) {
         stroke={gy === 0 ? "#94a3b8" : "#e2e8f0"} strokeWidth={gy === 0 ? 1.2 : 0.6} />
     );
   }
+  // Point labels go where they touch no segment, edge, axis or other label.
+  const ptLabels = layoutGridPointLabels({
+    points: (p.points ?? []).map((pt) => ({ at: { x: X(pt.x), y: Y(pt.y) }, text: pt.label ?? "" })),
+    lines: [
+      ...(p.segments ?? []).map((sg) => [{ x: X(sg.x1), y: Y(sg.y1) }, { x: X(sg.x2), y: Y(sg.y2) }] as Seg),
+      ...(p.polygons ?? []).flatMap((poly) =>
+        polygonEdges(poly.points.map((q) => ({ x: X(q.x), y: Y(q.y) })))),
+    ],
+    axes: [
+      ...(p.minX <= 0 && p.maxX >= 0 ? [[{ x: X(0), y: pad }, { x: X(0), y: H - pad }] as Seg] : []),
+      ...(p.minY <= 0 && p.maxY >= 0 ? [[{ x: pad, y: Y(0) }, { x: W - pad, y: Y(0) }] as Seg] : []),
+    ],
+    bounds: { x0: 0, y0: 0, x1: W, y1: H },
+    fontSize: 10,
+    widthScale: 1,
+  });
   return (
     <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="200">
       {lines}
@@ -175,8 +192,8 @@ export function PdfMSCoordinateGridSVG(p: MSCoordinateGridParams) {
               fill={markerStyle === 1 || pt.filled === false ? "#ffffff" : INK}
               stroke={INK} strokeWidth={markerStyle === 1 ? 2.2 : 1.5} />
           )}
-          {pt.label && (
-            <Text x={X(pt.x) + 6} y={Y(pt.y) - 2}
+          {pt.label && ptLabels[i] && (
+            <Text x={ptLabels[i]!.x} y={baselineY(ptLabels[i]!.y, 10)} textAnchor="middle"
               style={{ fontSize: 10, fontFamily: SERIF_BOLD, color: INK }}>
               {pt.label}
             </Text>
@@ -291,6 +308,26 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
           <Line x1={apexX} y1={yt} x2={apexX} y2={yb} stroke={RED} strokeWidth={1.2} strokeDasharray="4,2" />
           {label((x0 + x1) / 2, yb + 14, `${base}`)}
           {label(apexX + 8, (yt + yb) / 2, `${height}`)}
+        </Svg>
+      );
+    }
+    case "right-triangle": {
+      const FONT = 11;
+      const lay = layoutRightTriangle(rightTriangleFromDims(d, v), { width: W, height: H, pad: 34 }, { fontSize: FONT, arcR: 20, markSize: 11 });
+      const [R, B, T] = lay.points;
+      return (
+        <Svg viewBox={`0 0 ${W} ${H}`} width="200" height="170">
+          <Polygon points={`${R.x},${R.y} ${B.x},${B.y} ${T.x},${T.y}`}
+            fill={ACCENT} fillOpacity={0.1} stroke={INK} strokeWidth={1.6} />
+          <Path d={lay.rightMark} fill="none" stroke={INK} strokeWidth={1.2} />
+          {lay.arcs.map((a, i) => <Path key={`arc${i}`} d={a} fill="none" stroke={INK} strokeWidth={1.2} />)}
+          {lay.leaders.map(([a, b], i) => <Line key={`ld${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={INK} strokeWidth={0.6} />)}
+          {lay.labels.map((l, i) => (
+            <Text key={i} x={l.center.x} y={baselineY(l.center.y, FONT)} textAnchor="middle"
+              style={{ fontSize: FONT, fontFamily: SERIF_BOLD, color: INK }}>
+              {l.text}
+            </Text>
+          ))}
         </Svg>
       );
     }

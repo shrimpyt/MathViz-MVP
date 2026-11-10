@@ -13,6 +13,14 @@ import type {
 } from "@/lib/ProblemFactory";
 import type { GeometryDiagramParams } from "@/lib/ProblemFactory";
 import { PdfGeometryFigureSVG } from "./diagrams/GeometryPdfDiagrams";
+import {
+  layoutRightTriangle,
+  baselineY,
+  angleArcPath,
+  placePointLabel,
+  textBox,
+} from "@/lib/labelPlacement";
+import { inscribedLabels, tangentLayout, VERTEX_ARC_R, coordinatePairLabels } from "@/lib/geometryDiagramLayout";
 
 const CX = 100;
 const CY = 100;
@@ -64,6 +72,20 @@ function Label({
   );
 }
 
+// Label drawn centered on (x, y), placed by labelPlacement.
+function CLabel({ c, text, size = 8 }: { c: { x: number; y: number }; text: string; size?: number }) {
+  return (
+    <Text
+      x={c.x}
+      y={baselineY(c.y, size)}
+      textAnchor="middle"
+      style={{ fontSize: size, fontFamily: "Times-Roman", color: "#111111" }}
+    >
+      {text}
+    </Text>
+  );
+}
+
 function CircleBase() {
   return (
     <Circle cx={CX} cy={CY} r={R} fill="none" stroke="#111111" strokeWidth={1.5} />
@@ -72,7 +94,6 @@ function CircleBase() {
 
 export function PdfInscribedAngleSVG({
   interceptedArc,
-  inscribedAngle,
   variant,
 }: InscribedAngleSVGParams) {
   // Variant: rigid rotation of the whole configuration (8 positions).
@@ -85,6 +106,7 @@ export function PdfInscribedAngleSVG({
   const B = polarToCart(CX, CY, R, arcEnd);
   const V = polarToCart(CX, CY, R, vertexAngle);
   const largeArc = interceptedArc > 180;
+  const L = inscribedLabels(A, B, V, interceptedArc, arcStart);
 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
@@ -97,17 +119,14 @@ export function PdfInscribedAngleSVG({
       />
       <Line x1={V.x} y1={V.y} x2={A.x} y2={A.y} stroke="#111111" strokeWidth={1.2} />
       <Line x1={V.x} y1={V.y} x2={B.x} y2={B.y} stroke="#111111" strokeWidth={1.2} />
+      <Path d={angleArcPath(V, A, B, VERTEX_ARC_R)} fill="none" stroke="#111111" strokeWidth={1} />
       {[A, B, V].map((pt, i) => (
         <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
-      <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: 0 }} />
-      <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
-      <Label x={V.x} y={V.y} text="V" offset={{ x: 0, y: 9 }} />
-      {(() => {
-        const mid = polarToCart(CX, CY, R + 12, arcStart + interceptedArc / 2);
-        return <Label x={mid.x} y={mid.y} text={`${interceptedArc}°`} offset={{ x: 0, y: 3 }} />;
-      })()}
-      <Label x={V.x} y={V.y} text={`${inscribedAngle}°?`} offset={{ x: 0, y: 20 }} />
+      {L.map((l) => <CLabel key={l.text} c={l.center} text={l.text} />)}
+      {L.filter((l) => l.leader).map((l) => (
+        <Line key={`ld-${l.text}`} x1={l.leader![0].x} y1={l.leader![0].y} x2={l.leader![1].x} y2={l.leader![1].y} stroke="#111111" strokeWidth={0.6} />
+      ))}
     </Svg>
   );
 }
@@ -153,14 +172,13 @@ export function PdfTangentSVG({ tangentAngle, variant }: TangentSVGParams) {
   const chordEnd = chordStart + tangentAngle * 2;
   const A = polarToCart(CX, CY, R, chordStart);
   const B = polarToCart(CX, CY, R, chordEnd);
-  const tx1 = A.x - 40;
-  const tx2 = A.x + 40;
+  const T = tangentLayout(A, B, tangentAngle, chordStart);
 
   return (
     <Svg viewBox="0 0 200 200" width="130" height="130">
       <CircleBase />
       <Line
-        x1={tx1} y1={A.y} x2={tx2} y2={A.y}
+        x1={T.t1.x} y1={T.t1.y} x2={T.t2.x} y2={T.t2.y}
         stroke="#6b7280"
         strokeWidth={1.5}
         strokeDasharray="4,2"
@@ -172,17 +190,14 @@ export function PdfTangentSVG({ tangentAngle, variant }: TangentSVGParams) {
         stroke="#111111"
         strokeWidth={3}
       />
+      <Path d={angleArcPath(A, T.t2, B, VERTEX_ARC_R)} fill="none" stroke="#111111" strokeWidth={1} />
       {[A, B].map((pt, i) => (
         <Circle key={i} cx={pt.x} cy={pt.y} r={2.5} fill="#111111" />
       ))}
-      <Label x={A.x} y={A.y} text="A" offset={{ x: -7, y: -5 }} />
-      <Label x={B.x} y={B.y} text="B" offset={{ x: 7, y: 0 }} />
-      <Label x={tx2 - 5} y={A.y} text="t" offset={{ x: 0, y: -5 }} />
-      {(() => {
-        const mid = polarToCart(CX, CY, R + 13, chordStart + tangentAngle);
-        return <Label x={mid.x} y={mid.y} text={`${tangentAngle * 2}°`} offset={{ x: 0, y: 3 }} />;
-      })()}
-      <Label x={A.x + 15} y={A.y} text={`${tangentAngle}°?`} offset={{ x: 0, y: -8 }} />
+      {T.labels.map((l) => <CLabel key={l.text} c={l.center} text={l.text} />)}
+      {T.labels.filter((l) => l.leader).map((l) => (
+        <Line key={`ld-${l.text}`} x1={l.leader![0].x} y1={l.leader![0].y} x2={l.leader![1].x} y2={l.leader![1].y} stroke="#111111" strokeWidth={0.6} />
+      ))}
     </Svg>
   );
 }
@@ -234,7 +249,13 @@ export function PdfTwoChordsSVG({ arc1, arc2, variant }: ChordSVGParams) {
           </>
         );
       })()}
-      <Label x={P.x} y={P.y} text="?" offset={{ x: 8, y: -5 }} />
+      <CLabel
+        c={placePointLabel(P, textBox("?", 8), {
+          obstacles: [[A, C], [B, D]],
+          gap: 4,
+        })}
+        text="?"
+      />
     </Svg>
   );
 }
@@ -314,107 +335,41 @@ export function PdfRightTriangleSVG({
 }: TrigSVGParams) {
   const width = 130;
   const height = 130;
-  const pad = 20;
   // Variant: draw scale and center offset, pure presentation; side ratios,
   // labels, and the reference angle are untouched.
   const v = variant ?? 0;
-  const drawScale = [1, 0.9, 1.06, 0.94, 0.84, 1.12][v % 6];
-  const offX = [0, 5, -5, 3, -4, 6][v % 6];
-  const offY = [0, -4, 4, 5, 3, -6][v % 6];
-  const effW = (width - 2 * pad) * drawScale;
-  const effH = (height - 2 * pad) * drawScale;
-
-  const maxSide = Math.max(opposite, adjacent);
-  let baseLength = 0;
-  let vertLength = 0;
-
-  if (referenceAnglePos === "base") {
-    baseLength = (adjacent / maxSide) * effW;
-    vertLength = (opposite / maxSide) * effH;
-  } else {
-    baseLength = (opposite / maxSide) * effW;
-    vertLength = (adjacent / maxSide) * effH;
-  }
-
-  const xLeft = pad + (width - 2 * pad - baseLength) / 2 + offX;
-  const xRight = xLeft + baseLength;
-  const yBottom = height - pad - (height - 2 * pad - vertLength) / 2 + offY;
-  const yTop = yBottom - vertLength;
-
-  let pts = "";
-  let baseLblPos = { x: 0, y: 0 };
-  let vertLblPos = { x: 0, y: 0 };
-  let hypLblPos = { x: 0, y: 0 };
-  let arcD = "";
-  let refLblPos = { x: 0, y: 0 };
-
-  if (orientation === "right") {
-    pts = `${xLeft},${yBottom} ${xRight},${yBottom} ${xRight},${yTop}`;
-    baseLblPos = { x: (xLeft + xRight) / 2, y: yBottom + 8 };
-    vertLblPos = { x: xRight + 8, y: (yTop + yBottom) / 2 };
-    hypLblPos = { x: (xLeft + xRight) / 2 - 15, y: (yTop + yBottom) / 2 - 10 };
-    
-    if (referenceAnglePos === "base") {
-      const angle = Math.atan2(vertLength, baseLength);
-      const arcLx = xLeft + 18 * Math.cos(angle);
-      const arcLy = yBottom - 18 * Math.sin(angle);
-      arcD = `M ${xLeft + 18} ${yBottom} A 18 18 0 0 0 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xLeft + 25, y: yBottom - 2 };
-    } else {
-      const angle = Math.atan2(baseLength, vertLength);
-      const arcLx = xRight - 18 * Math.sin(angle);
-      const arcLy = yTop + 18 * Math.cos(angle);
-      arcD = `M ${xRight} ${yTop + 18} A 18 18 0 0 1 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xRight - 20, y: yTop + 18 };
-    }
-  } else {
-    pts = `${xRight},${yBottom} ${xLeft},${yBottom} ${xLeft},${yTop}`;
-    baseLblPos = { x: (xLeft + xRight) / 2, y: yBottom + 8 };
-    vertLblPos = { x: xLeft - 22, y: (yTop + yBottom) / 2 };
-    hypLblPos = { x: (xLeft + xRight) / 2 + 10, y: (yTop + yBottom) / 2 - 10 };
-
-    if (referenceAnglePos === "base") {
-      const angle = Math.atan2(vertLength, baseLength);
-      const arcLx = xRight - 18 * Math.cos(angle);
-      const arcLy = yBottom - 18 * Math.sin(angle);
-      arcD = `M ${xRight - 18} ${yBottom} A 18 18 0 0 1 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xRight - 25, y: yBottom - 2 };
-    } else {
-      const angle = Math.atan2(baseLength, vertLength); 
-      const arcLx = xLeft + 18 * Math.sin(angle);
-      const arcLy = yTop + 18 * Math.cos(angle);
-      arcD = `M ${xLeft} ${yTop + 18} A 18 18 0 0 0 ${arcLx} ${arcLy}`;
-      refLblPos = { x: xLeft + 2, y: yTop + 18 };
-    }
-  }
+  const FONT = 10;
+  const lay = layoutRightTriangle(
+    { opposite, adjacent, orientation, referenceAnglePos, labels, referenceAngleLabel },
+    {
+      width, height, pad: 20,
+      scale: [1, 0.9, 1.06, 0.94, 0.84, 1.12][v % 6],
+      offX: [0, 5, -5, 3, -4, 6][v % 6],
+      offY: [0, -4, 4, 5, 3, -6][v % 6],
+    },
+    { fontSize: FONT, arcR: 18, markSize: 10 },
+  );
+  const [R, B, T] = lay.points;
 
   return (
     <Svg viewBox={`0 0 ${width} ${height}`} width="130" height="130">
-      <Polygon points={pts} fill="none" stroke="#111111" strokeWidth={1.5} />
-      
-      {orientation === "right" ? (
-        <Path d={`M ${xRight - 10} ${yBottom} L ${xRight - 10} ${yBottom - 10} L ${xRight} ${yBottom - 10}`} fill="none" stroke="#111111" strokeWidth={1.2} />
-      ) : (
-        <Path d={`M ${xLeft + 10} ${yBottom} L ${xLeft + 10} ${yBottom - 10} L ${xLeft} ${yBottom - 10}`} fill="none" stroke="#111111" strokeWidth={1.2} />
-      )}
-
-      <Path d={arcD} fill="none" stroke="#111111" strokeWidth={1.5} />
-      <Text x={refLblPos.x} y={refLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#555555" }}>
-        {referenceAngleLabel}
-      </Text>
-
-      {referenceAnglePos === "base" ? (
-        <>
-          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#111111" }}>{String(labels.adjacent)}</Text>
-          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#111111" }}>{String(labels.opposite)}</Text>
-        </>
-      ) : (
-        <>
-          <Text x={baseLblPos.x - 5} y={baseLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#111111" }}>{String(labels.opposite)}</Text>
-          <Text x={vertLblPos.x} y={vertLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#111111" }}>{String(labels.adjacent)}</Text>
-        </>
-      )}
-      <Text x={hypLblPos.x} y={hypLblPos.y} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#111111" }}>{String(labels.hypotenuse)}</Text>
+      <Polygon points={`${R.x},${R.y} ${B.x},${B.y} ${T.x},${T.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
+      <Path d={lay.rightMark} fill="none" stroke="#111111" strokeWidth={1.2} />
+      {lay.arcs.map((d, i) => <Path key={`arc${i}`} d={d} fill="none" stroke="#111111" strokeWidth={1.5} />)}
+      {lay.leaders.map(([a, b], i) => (
+        <Line key={`ld${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#111111" strokeWidth={0.6} />
+      ))}
+      {lay.labels.map((l, i) => (
+        <Text
+          key={i}
+          x={l.center.x}
+          y={baselineY(l.center.y, FONT)}
+          textAnchor="middle"
+          style={{ fontSize: FONT, fontFamily: "Times-Bold", color: "#111111" }}
+        >
+          {l.text}
+        </Text>
+      ))}
     </Svg>
   );
 }
@@ -684,12 +639,12 @@ export function PdfCoordinateGridSVG({
             fill={marker === 1 ? "#ffffff" : "#111111"} stroke="#111111" strokeWidth={marker === 1 ? 1.8 : 0} />
         )
       )}
-      <Text x={toX(p1.x) + 5} y={toY(p1.y) - 4} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
-        {p1.label}
-      </Text>
-      <Text x={toX(p2.x) + 5} y={toY(p2.y) - 4} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
-        {p2.label}
-      </Text>
+      {coordinatePairLabels(p1, p2, 1).map((l, i) => (
+        <Text key={`l${i}`} x={l.center.x} y={baselineY(l.center.y, 9)} textAnchor="middle"
+          style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
+          {l.text}
+        </Text>
+      ))}
     </Svg>
   );
 }

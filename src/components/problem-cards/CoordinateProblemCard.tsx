@@ -3,6 +3,8 @@ import React from "react";
 import type { CoordinateProblem, OutputMode } from "@/lib/types";
 import { StepBlock, TEKSBadge, DiagramBox } from "./SharedAtoms";
 import { latexToText } from "@/lib/answerKey";
+import { baselineY } from "@/lib/labelPlacement";
+import { coordinatePairLabels } from "@/lib/geometryDiagramLayout";
 
 interface Props {
   problem: CoordinateProblem;
@@ -40,30 +42,29 @@ export function CoordinateProblemCard({ problem, index, mode, revealed }: Props)
         </div>
         
         <DiagramBox>
-          <svg width="140" height="140" viewBox="-10 -10 120 120">
-            {/* Simple Grid Placeholder */}
-            <defs>
-              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#grid)" />
-            <line x1="0" y1="50" x2="100" y2="50" stroke="#94a3b8" strokeWidth="1" />
-            <line x1="50" y1="0" x2="50" y2="100" stroke="#94a3b8" strokeWidth="1" />
-            
-            {/* Scale points to grid (0,0 is 50,50) */}
-            <circle cx={50 + problem.p1.x * 10} cy={50 - problem.p1.y * 10} r="2" fill="#111111" />
-            <text x={53 + problem.p1.x * 10} y={47 - problem.p1.y * 10} fontSize="8" fontWeight="bold">{problem.p1.label}</text>
-            
-            <circle cx={50 + problem.p2.x * 10} cy={50 - problem.p2.y * 10} r="2" fill="#111111" />
-            <text x={53 + problem.p2.x * 10} y={47 - problem.p2.y * 10} fontSize="8" fontWeight="bold">{problem.p2.label}</text>
-            
-            {/* Line segment */}
-            <line 
-              x1={50 + problem.p1.x * 10} y1={50 - problem.p1.y * 10} 
-              x2={50 + problem.p2.x * 10} y2={50 - problem.p2.y * 10} 
-              stroke="#111" strokeWidth="1.5" strokeDasharray="2"
+          {/* Same frame as the PDF: 16 grid steps, origin at the center, so
+              points out to ±8 stay on the grid. */}
+          <svg width="140" height="140" viewBox="10 10 180 180">
+            {Array.from({ length: 17 }, (_, i) => 20 + i * 10).map((q) => (
+              <g key={q}>
+                <line x1={q} y1={20} x2={q} y2={180} stroke="#e2e8f0" strokeWidth="0.5" />
+                <line x1={20} y1={q} x2={180} y2={q} stroke="#e2e8f0" strokeWidth="0.5" />
+              </g>
+            ))}
+            <line x1="20" y1="100" x2="180" y2="100" stroke="#94a3b8" strokeWidth="1" />
+            <line x1="100" y1="20" x2="100" y2="180" stroke="#94a3b8" strokeWidth="1" />
+            <line
+              x1={100 + problem.p1.x * 10} y1={100 - problem.p1.y * 10}
+              x2={100 + problem.p2.x * 10} y2={100 - problem.p2.y * 10}
+              stroke="#111" strokeWidth="1.5" strokeDasharray="4 2"
             />
+            <circle cx={100 + problem.p1.x * 10} cy={100 - problem.p1.y * 10} r="3" fill="#111111" />
+            <circle cx={100 + problem.p2.x * 10} cy={100 - problem.p2.y * 10} r="3" fill="#111111" />
+            {coordinatePairLabels(problem.p1, problem.p2, 1.15).map((l) => (
+              <text key={l.text} x={l.center.x} y={baselineY(l.center.y, 9)} textAnchor="middle" fontSize="9" fontWeight="bold">
+                {l.text}
+              </text>
+            ))}
           </svg>
         </DiagramBox>
       </div>

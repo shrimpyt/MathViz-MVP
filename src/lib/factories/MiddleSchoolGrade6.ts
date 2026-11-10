@@ -3480,7 +3480,7 @@ function makeRightTriangleAngle(rng: RNG): Grade6Problem {
       },
     ],
     { known, missing, kind: "right" },
-    { kind: "MSGeometryFigure", figure: "triangle", dims: { base: 10, height: 6 } }
+    { kind: "MSGeometryFigure", figure: "right-triangle", dims: { angle: known } }
   );
 }
 
