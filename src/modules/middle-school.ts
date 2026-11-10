@@ -179,7 +179,7 @@ const LESSONS: LessonDef[] = [
     id: "ms6-3-11-properties-of-operations", topic: 30, topicTitle: `${G6} · T3 Expressions, Equations & Relationships`,
     title: "3-7: Properties of Operations",
     story: "Name the property, rewrite with it, and use it to compute.",
-    teks: "TEKS 6.7D", description: "Identify and apply the commutative, associative, distributive, identity, and zero properties; factor with the GCF.",
+    teks: "TEKS 6.7D", description: "Identify and apply the commutative, associative, distributive, identity, and zero properties; factor with the GCF; evaluate expressions and model word problems with the properties.",
     grade: 6, subtypes: ["PropertiesOfOperations"],
   },
   {

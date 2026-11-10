@@ -2359,6 +2359,9 @@ function makePropertyCheck(rng: RNG): Grade6Problem {
     { eq: `${a} × ${b} = ${b} × ${a}`, property: "Associative Property of Multiplication", valid: 0, why: "No. The grouping did not change; the order changed, so this is the Commutative Property." },
     { eq: `${a} − ${b} = ${b} − ${a}`, property: "Commutative Property of Addition", valid: 0, why: "No. Subtraction is not commutative; changing the order changes the value." },
     { eq: `${c} × (${a} + ${b}) = ${c} × ${a} + ${b}`, property: "Distributive Property", valid: 0, why: `No. The factor ${c} must multiply both parts; the second part should be ${c} × ${b}.` },
+    { eq: `${a} + 0 = ${a}`, property: "Identity Property of Addition", valid: 1, why: "Yes. Adding 0 leaves the number unchanged." },
+    { eq: `${a} × 0 = 0`, property: "Identity Property of Multiplication", valid: 0, why: "No. A product of 0 comes from multiplying by 0, which is the Zero Property; the Identity Property of Multiplication uses 1." },
+    { eq: `${a} × 1 = ${a}`, property: "Identity Property of Addition", valid: 0, why: "No. The equation multiplies by 1, so it shows the Identity Property of Multiplication, not Addition." },
   ];
   const chosen = pick(rng, cases);
   const ans = chosen.valid === 1 ? "Yes" : "No";
@@ -2427,6 +2430,538 @@ function makePropertyMentalMath(rng: RNG): Grade6Problem {
       },
     ],
     { kind: "mental-math", a: factors[0], b: factors[1], c: factors[2] }
+  );
+}
+
+// ── Properties: Identity family (added Nov 10, 2026) ────────────────────────
+// Pearson's digits Grade 6 Topic 6 test devotes 3 of 21 items to the identity
+// properties (identify-why, apply, and an associative+identity pair); the
+// original makers only met them inside makeIdentifyProperty's rotation.
+
+function makeIdentityWhy(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 60);
+  const form = pick(rng, ["mul", "add"] as const);
+  const property = form === "mul" ? "Identity Property of Multiplication" : "Identity Property of Addition";
+  const expr = form === "mul" ? `${a} × 1` : `${a} + 0`;
+  const why = form === "mul"
+    ? "Multiplying by 1 leaves the number unchanged."
+    : "Adding 0 leaves the number unchanged.";
+  return build(
+    "PropertiesOfOperations",
+    `Why are the expressions ${a} and ${expr} equivalent?`,
+    "the property",
+    property,
+    [
+      {
+        instruction: why,
+        blanks: [{ label: "property", answer: property }],
+      },
+    ],
+    { kind: "identity-why", form, a }
+  );
+}
+
+function makeIdentityApply(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 11, 99);
+  const v = pick(rng, ["x", "y", "n", "m", "k", "t"] as const);
+  const form = pick(rng, ["add-num", "add-var", "mul-num", "mul-var"] as const);
+  const side = pick(rng, ["left", "right"] as const);
+  const table = {
+    "add-num": {
+      expr: `${a} + 0`,
+      property: "Identity Property of Addition",
+      answer: `${a}`,
+      why: "Adding 0 leaves the number unchanged, so the equivalent expression is the number itself.",
+    },
+    "add-var": {
+      expr: `${v} + 0`,
+      property: "Identity Property of Addition",
+      answer: v,
+      why: "Adding 0 leaves the value unchanged, so the equivalent expression is the variable itself.",
+    },
+    "mul-num": {
+      expr: `${a} × 1`,
+      property: "Identity Property of Multiplication",
+      answer: `${a}`,
+      why: "Multiplying by 1 leaves the number unchanged, so the equivalent expression is the number itself.",
+    },
+    "mul-var": {
+      expr: side === "left" ? `1 × ${v}` : `${v} × 1`,
+      property: "Identity Property of Multiplication",
+      answer: v,
+      why: "Multiplying by 1 leaves the value unchanged, so the equivalent expression is the variable itself.",
+    },
+  } as const;
+  const t = table[form];
+  return build(
+    "PropertiesOfOperations",
+    `Use the ${t.property} to write an expression equivalent to ${t.expr}.`,
+    "the equivalent expression",
+    t.answer,
+    [
+      {
+        instruction: t.why,
+        blanks: [{ label: "equivalent expression", answer: t.answer }],
+      },
+    ],
+    { kind: "identity-apply", form, a, variable: v, side }
+  );
+}
+
+function makeIdentityBlank(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 11, 99);
+  const form = pick(rng, ["mul-one", "add-zero"] as const);
+  const side = pick(rng, ["left", "right"] as const);
+  const eq = form === "mul-one"
+    ? (side === "left" ? `? × ${a} = ${a}` : `${a} × ? = ${a}`)
+    : (side === "left" ? `? + ${a} = ${a}` : `${a} + ? = ${a}`);
+  const ans = form === "mul-one" ? 1 : 0;
+  const why = form === "mul-one"
+    ? "The identity element for multiplication is 1: multiplying by 1 leaves a number unchanged."
+    : "The identity element for addition is 0: adding 0 leaves a number unchanged.";
+  return build(
+    "PropertiesOfOperations",
+    `What number should replace the ? so the equation shows an identity property? ${eq}`,
+    "the missing number",
+    ans,
+    [
+      {
+        instruction: why,
+        blanks: [{ label: "missing number", answer: String(ans) }],
+      },
+    ],
+    { kind: "identity-blank", form, a, side }
+  );
+}
+
+function makeIdentityAssocPair(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 11, 60);
+  const v = pick(rng, ["k", "t", "x", "y", "n", "m"] as const);
+  const assocForm = `${a} + (${v} + 0)`;
+  const identityForm = `${a} + ${v}`;
+  const ans = `${assocForm}; ${identityForm}`;
+  return build(
+    "PropertiesOfOperations",
+    `Use the Associative Property of Addition and the Identity Property of Addition to write expressions equivalent to (${a} + ${v}) + 0. Give the associative form first, then the identity form.`,
+    "the two equivalent expressions",
+    ans,
+    [
+      {
+        instruction: "Change only the grouping (Associative Property of Addition):",
+        blanks: [{ label: "associative form", answer: assocForm }],
+      },
+      {
+        instruction: "Now drop the + 0 (Identity Property of Addition):",
+        blanks: [{ label: "identity form", answer: identityForm }],
+      },
+    ],
+    { kind: "identity-assoc-pair", a, variable: v }
+  );
+}
+
+// ── Properties: evaluation family (added Nov 10, 2026) ──────────────────────
+// Pearson items 3-4 evaluate expressions, including one built entirely from
+// zero/identity terms. Plain substitution already lives in lesson 3-6
+// (VariablesAndExpressions); these are the properties-flavored forms.
+
+function makeEvaluateWithProperties(rng: RNG): Grade6Problem {
+  const a = randInt(rng, 2, 9);
+  const b = randInt(rng, 2, 12);
+  const c = randInt(rng, 2, 9);
+  const terms = shuffled(rng, [`0 × ${a}`, `0 + ${b}`, `${c} × 1`]);
+  const values: Record<string, number> = { [`0 × ${a}`]: 0, [`0 + ${b}`]: b, [`${c} × 1`]: c };
+  const ans = b + c;
+  const simplify = terms.map((t) => `${t} = ${values[t]}`).join("; ");
+  return build(
+    "PropertiesOfOperations",
+    `Evaluate the expression. (${terms[0]}) + (${terms[1]}) + (${terms[2]})`,
+    "the value",
+    ans,
+    [
+      {
+        instruction: `Use the Zero and Identity Properties to simplify each part: ${simplify}.`,
+        blanks: [{ label: "simplified sum", answer: terms.map((t) => values[t]).join(" + ") }],
+      },
+      {
+        instruction: "Add:",
+        blanks: [{ label: "value", answer: String(ans) }],
+      },
+    ],
+    { kind: "eval-props", a, b, c }
+  );
+}
+
+interface EvalContextStory {
+  id: string;
+  variable1: string;
+  variable2: string;
+  text: (p1: number, p2: number) => string;
+  ask: (n1: number, n2: number) => string;
+}
+
+const EVAL_CONTEXT_STORIES: EvalContextStory[] = [
+  {
+    id: "craft",
+    variable1: "h",
+    variable2: "s",
+    text: (p1, p2) =>
+      `Craft Sales. Your neighbor knits hats and scarves and sells them at craft fairs. The hats sell for $${p1} each and the scarves sell for $${p2} each. The expression ${p1}h + ${p2}s gives the number of dollars he makes selling h hats and s scarves.`,
+    ask: (n1, n2) => `How many dollars does he make if he sells ${n1} hats and ${n2} scarves?`,
+  },
+  {
+    id: "snacks",
+    variable1: "p",
+    variable2: "d",
+    text: (p1, p2) =>
+      `Movie Snacks. At a movie theater, a bag of popcorn costs $${p1} and a drink costs $${p2}. The expression ${p1}p + ${p2}d gives the total cost in dollars for p bags of popcorn and d drinks.`,
+    ask: (n1, n2) => `What is the total cost of ${n1} bags of popcorn and ${n2} drinks?`,
+  },
+  {
+    id: "florist",
+    variable1: "r",
+    variable2: "t",
+    text: (p1, p2) =>
+      `Flower Stand. A florist sells bunches of roses for $${p1} each and bunches of tulips for $${p2} each. The expression ${p1}r + ${p2}t gives the total cost in dollars for r bunches of roses and t bunches of tulips.`,
+    ask: (n1, n2) => `What is the total cost of ${n1} bunches of roses and ${n2} bunches of tulips?`,
+  },
+];
+
+function makeEvaluateContext(rng: RNG): Grade6Problem {
+  const story = pick(rng, EVAL_CONTEXT_STORIES);
+  const p1 = randInt(rng, 4, 9);
+  let p2 = randInt(rng, 4, 12);
+  if (p2 === p1) p2 += 1;
+  const n1 = randInt(rng, 2, 6);
+  const n2 = randInt(rng, 2, 6);
+  const total = p1 * n1 + p2 * n2;
+  const ans = `$${total}`;
+  return build(
+    "PropertiesOfOperations",
+    `${story.text(p1, p2)} ${story.ask(n1, n2)}`,
+    "the total amount",
+    ans,
+    [
+      {
+        instruction: `Substitute the amounts: ${p1}(${n1}) + ${p2}(${n2}) = ${p1 * n1} + ${p2 * n2}.`,
+        blanks: [{ label: "products", answer: `${p1 * n1} + ${p2 * n2}` }],
+      },
+      {
+        instruction: "Add the two costs:",
+        blanks: [{ label: "total", answer: ans }],
+      },
+    ],
+    { kind: "eval-context", story: story.id, p1, p2, n1, n2 }
+  );
+}
+
+// ── Properties: word-context family (added Nov 10, 2026) ────────────────────
+// About half of Pearson's Topic 6 items are contextual; the original
+// properties makers were all naked symbols. Each maker below mirrors a named
+// Pearson item shape (model, model-and-evaluate, grouping strategy).
+
+interface ModelAddStory {
+  id: string;
+  variable: string;
+  text: (a: number, v: string) => string;
+}
+
+const MODEL_ADD_STORIES: ModelAddStory[] = [
+  {
+    id: "bakery",
+    variable: "c",
+    text: (a, v) => `In the first 3 hours it is open, a bakery sells ${a} cakes. The baker expects to sell ${v} more cakes before the end of the day.`,
+  },
+  {
+    id: "gym",
+    variable: "m",
+    text: (a, v) => `A gym has ${a} members signed up for a Saturday class and expects ${v} more members to sign up today.`,
+  },
+  {
+    id: "library",
+    variable: "b",
+    text: (a, v) => `A library has checked out ${a} books this week and expects to check out ${v} more books by Friday.`,
+  },
+  {
+    id: "garden",
+    variable: "f",
+    text: (a, v) => `A gardener has planted ${a} flowers and plans to plant ${v} more flowers this weekend.`,
+  },
+];
+
+function makeContextModelAdd(rng: RNG): Grade6Problem {
+  const story = pick(rng, MODEL_ADD_STORIES);
+  const a = randInt(rng, 11, 40);
+  const v = story.variable;
+  const first = `${a} + ${v}`;
+  const second = `${v} + ${a}`;
+  const ans = `${first}, ${second}`;
+  return build(
+    "PropertiesOfOperations",
+    `${story.text(a, v)} Write two expressions that model the total.`,
+    "the two expressions",
+    ans,
+    [
+      {
+        instruction: "The total is the starting amount plus the additional amount. Addition is commutative, so the order of the two parts can swap:",
+        blanks: [
+          { label: "first expression", answer: first },
+          { label: "second expression", answer: second },
+        ],
+      },
+    ],
+    { kind: "ctx-model-add", story: story.id, a, variable: v }
+  );
+}
+
+interface CommEvalStory {
+  id: string;
+  text: (n: number, m: number) => string;
+}
+
+const COMM_EVAL_STORIES: CommEvalStory[] = [
+  {
+    id: "camping",
+    text: (n, m) => `Camping Trip. ${n} friends planned their camping trip. They spent $${m} per person to buy food for the trip.`,
+  },
+  {
+    id: "movies",
+    text: (n, m) => `Movie Night. ${n} friends go to a movie together. Each ticket costs $${m}.`,
+  },
+  {
+    id: "field-trip",
+    text: (n, m) => `Field Trip. ${n} students are going on a field trip. Each student pays $${m} for the trip.`,
+  },
+  {
+    id: "bake-sale",
+    text: (n, m) => `Bake Sale. ${n} classes held bake sales. Each class raised $${m}.`,
+  },
+];
+
+function makeContextCommEval(rng: RNG): Grade6Problem {
+  const story = pick(rng, COMM_EVAL_STORIES);
+  const n = randInt(rng, 3, 12);
+  const m = randInt(rng, 6, 35);
+  const first = `${n} × ${m}`;
+  const second = `${m} × ${n}`;
+  const ans = `$${n * m}`;
+  return build(
+    "PropertiesOfOperations",
+    `${story.text(n, m)} Write two equivalent expressions that show the total amount of money, then evaluate one of them.`,
+    "the total amount",
+    ans,
+    [
+      {
+        instruction: "The total is the number of people (or groups) times the amount for each one. Multiplication is commutative, so the order of the factors can swap:",
+        blanks: [
+          { label: "first expression", answer: first },
+          { label: "second expression", answer: second },
+        ],
+      },
+      {
+        instruction: "Evaluate:",
+        blanks: [{ label: "total", answer: ans }],
+      },
+    ],
+    { kind: "ctx-comm-eval", story: story.id, n, m }
+  );
+}
+
+interface AssocStory {
+  id: string;
+  text: (name: string, items: [string, string, string], x: number, y: number, z: number) => string;
+}
+
+const ASSOC_STORIES: AssocStory[] = [
+  {
+    id: "paint",
+    text: (name, items, x, y, z) => `${name} is planning to paint a room. She spends $${x} on ${items[0]}, $${y} on ${items[1]}, and $${z} on ${items[2]}.`,
+  },
+  {
+    id: "pets",
+    text: (name, items, x, y, z) => `Each month, ${name} buys pet supplies. She spends $${x} on ${items[0]}, $${y} on ${items[1]}, and $${z} on ${items[2]}.`,
+  },
+  {
+    id: "art",
+    text: (name, items, x, y, z) => `${name} is buying art supplies. She spends $${x} on ${items[0]}, $${y} on ${items[1]}, and $${z} on ${items[2]}.`,
+  },
+];
+
+const ASSOC_ITEMS: Record<string, [string, string, string]> = {
+  paint: ["brushes", "paint", "a drop cloth"],
+  pets: ["dog food", "cat food", "bird seed"],
+  art: ["markers", "paper", "brushes"],
+};
+
+function makeContextAssoc(rng: RNG): Grade6Problem {
+  const story = pick(rng, ASSOC_STORIES);
+  const name = pick(rng, ["Shannon", "Maya", "Nia", "Rosa"] as const);
+  const sum = pick(rng, [60, 80, 100, 120] as const);
+  let p = randInt(rng, 12, sum - 12);
+  for (let tries = 0; tries < 24 && p % 10 === 0; tries++) p = randInt(rng, 12, sum - 12);
+  if (p % 10 === 0) p += 1;
+  const q = sum - p;
+  let r = randInt(rng, 11, 69);
+  for (let tries = 0; tries < 24 && r % 10 === 0; tries++) r = randInt(rng, 11, 69);
+  if (r % 10 === 0) r += 1;
+  // Place the friendly pair either split around the third amount or together
+  // at the end; the two grouping forms are the same either way.
+  const amounts = pick(rng, [[p, r, q], [r, p, q]] as const);
+  const [x, y, z] = amounts;
+  const total = x + y + z;
+  const grouping1 = `(${x} + ${y}) + ${z}`;
+  const grouping2 = `${x} + (${y} + ${z})`;
+  const ans = `$${total}`;
+  return build(
+    "PropertiesOfOperations",
+    `${story.text(name, ASSOC_ITEMS[story.id], x, y, z)} Use the Associative Property of Addition to write two equivalent expressions that show the total cost. Then use the grouping that makes the total easiest to find, and find the total cost.`,
+    "the total cost",
+    ans,
+    [
+      {
+        instruction: "Change only the grouping; keep the order of the amounts the same:",
+        blanks: [
+          { label: "first grouping", answer: grouping1 },
+          { label: "second grouping", answer: grouping2 },
+        ],
+      },
+      {
+        instruction: `Grouping ${p} and ${q} makes the total easier to find because ${p} + ${q} = ${sum}. Add the remaining amount:`,
+        blanks: [{ label: "total cost", answer: ans }],
+      },
+    ],
+    { kind: "ctx-assoc", story: story.id, x, y, z }
+  );
+}
+
+interface DistModelStory {
+  id: string;
+  variable: string;
+  item: string;
+  items: string;
+}
+
+const DIST_MODEL_STORIES: DistModelStory[] = [
+  { id: "shirts", variable: "w", item: "shirt", items: "shirts" },
+  { id: "hats", variable: "c", item: "hat", items: "hats" },
+  { id: "posters", variable: "d", item: "poster", items: "posters" },
+];
+
+function makeContextDistributiveModel(rng: RNG): Grade6Problem {
+  const story = pick(rng, DIST_MODEL_STORIES);
+  const a = randInt(rng, 2, 9);
+  let b = randInt(rng, 2, 9);
+  if (b === a) b += 1;
+  const v = story.variable;
+  const factored = `${v}(${a} + ${b})`;
+  const expanded = `${a}${v} + ${b}${v}`;
+  const ans = `${factored}, ${expanded}`;
+  return build(
+    "PropertiesOfOperations",
+    `You and a friend go shopping at a store where each ${story.item} costs ${v} dollars. You buy ${a} ${story.items}. Your friend buys ${b} ${story.items}. Write two expressions for the cost of your combined purchases that are equivalent by the Distributive Property: one factored, one expanded.`,
+    "the two expressions",
+    ans,
+    [
+      {
+        instruction: "Factored form: the shared price goes outside, and the two counts are added inside:",
+        blanks: [{ label: "factored", answer: factored }],
+      },
+      {
+        instruction: "Expanded form: write each buyer's cost separately and add:",
+        blanks: [{ label: "expanded", answer: expanded }],
+      },
+    ],
+    { kind: "ctx-dist-model", story: story.id, a, b, variable: v }
+  );
+}
+
+interface DistWriteStory {
+  id: string;
+  variable: string;
+  text: (p: number, n: number, v: string) => string;
+}
+
+const DIST_WRITE_STORIES: DistWriteStory[] = [
+  {
+    id: "sale",
+    variable: "d",
+    text: (p, n, v) => `Shopping. The spring sale at a local store advertises one price for all items in a particular department. You buy ${n} T-shirts and ${v} pairs of shorts for ${p} dollars each. An expression for the total cost of your purchases is ${p}(${n} + ${v}).`,
+  },
+  {
+    id: "school-supplies",
+    variable: "b",
+    text: (p, n, v) => `School Supplies. A store charges ${p} dollars for every item in the school-supply aisle. You buy ${n} notebooks and ${v} binders. An expression for the total cost of your purchases is ${p}(${n} + ${v}).`,
+  },
+  {
+    id: "snack-bar",
+    variable: "e",
+    text: (p, n, v) => `Snack Bar. Every item at a snack bar costs ${p} dollars. You buy ${n} pretzels and ${v} smoothies. An expression for the total cost of your purchases is ${p}(${n} + ${v}).`,
+  },
+];
+
+function makeContextDistributiveWrite(rng: RNG): Grade6Problem {
+  const story = pick(rng, DIST_WRITE_STORIES);
+  const p = randInt(rng, 6, 15);
+  const n = randInt(rng, 2, 9);
+  const v = story.variable;
+  const ans = `${p * n} + ${p}${v}`;
+  return build(
+    "PropertiesOfOperations",
+    `${story.text(p, n, v)} Use the Distributive Property to write an expression equivalent to ${p}(${n} + ${v}).`,
+    "the equivalent expression",
+    ans,
+    [
+      {
+        instruction: `Multiply ${p} by each term inside the parentheses: ${p} × ${n} = ${p * n}; ${p} × ${v} = ${p}${v}.`,
+        blanks: [{ label: "equivalent expression", answer: ans }],
+      },
+    ],
+    { kind: "ctx-dist-write", story: story.id, p, n, variable: v }
+  );
+}
+
+interface DistTotalStory {
+  id: string;
+  text: (p: number, a: number, b: number) => string;
+}
+
+const DIST_TOTAL_STORIES: DistTotalStory[] = [
+  {
+    id: "paint",
+    text: (p, a, b) => `At a paint store, a customer buys ${a} cans of green paint and ${b} cans of blue paint. Both colors cost $${p} per can. An expression for the total cost is (${p} × ${a}) + (${p} × ${b}).`,
+  },
+  {
+    id: "candles",
+    text: (p, a, b) => `A gift shop sells red candles and white candles for $${p} each. A customer buys ${a} red candles and ${b} white candles. An expression for the total cost is (${p} × ${a}) + (${p} × ${b}).`,
+  },
+  {
+    id: "ribbon",
+    text: (p, a, b) => `A craft store sells spools of ribbon for $${p} each. A customer buys ${a} spools of red ribbon and ${b} spools of gold ribbon. An expression for the total cost is (${p} × ${a}) + (${p} × ${b}).`,
+  },
+];
+
+function makeContextDistributiveTotal(rng: RNG): Grade6Problem {
+  const story = pick(rng, DIST_TOTAL_STORIES);
+  const p = pick(rng, [4, 5, 6, 8] as const);
+  const a = randInt(rng, 2, 9);
+  let b = randInt(rng, 2, 9);
+  if (b === a) b += 1;
+  const ans = `$${p * (a + b)}`;
+  return build(
+    "PropertiesOfOperations",
+    `${story.text(p, a, b)} What is the total cost? (Hint: Use a property of operations to write an equivalent expression that is easier to evaluate.)`,
+    "the total cost",
+    ans,
+    [
+      {
+        instruction: `Use the Distributive Property in reverse: factor out the shared price ${p}. ${p} × (${a} + ${b}) = ${p} × ${a + b}.`,
+        blanks: [{ label: "factored product", answer: `${p} × ${a + b}` }],
+      },
+      {
+        instruction: "Multiply to find the total cost:",
+        blanks: [{ label: "total cost", answer: ans }],
+      },
+    ],
+    { kind: "ctx-dist-total", story: story.id, p, a, b }
   );
 }
 
@@ -4901,11 +5436,23 @@ const MAKERS: MakerEntry[] = [
   { tier: 2, subtype: "EquivalentExpressions", make: makeDistributiveExpand },
   { tier: 1, subtype: "PropertiesOfOperations", make: makeIdentifyProperty },
   { tier: 1, subtype: "PropertiesOfOperations", make: makeRewriteWithProperty },
+  { tier: 1, subtype: "PropertiesOfOperations", make: makeIdentityWhy },
+  { tier: 1, subtype: "PropertiesOfOperations", make: makeIdentityApply },
+  { tier: 1, subtype: "PropertiesOfOperations", make: makeIdentityBlank },
   { tier: 2, subtype: "PropertiesOfOperations", make: makePropertyDistributiveExpand },
   { tier: 2, subtype: "PropertiesOfOperations", make: makePropertyDistributiveEval },
   { tier: 2, subtype: "PropertiesOfOperations", make: makePropertyCheck },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makeIdentityAssocPair },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makeEvaluateWithProperties },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makeEvaluateContext },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makeContextModelAdd },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makeContextCommEval },
+  { tier: 2, subtype: "PropertiesOfOperations", make: makeContextDistributiveWrite },
   { tier: 3, subtype: "PropertiesOfOperations", make: makePropertyDistributiveFactor },
   { tier: 3, subtype: "PropertiesOfOperations", make: makePropertyMentalMath },
+  { tier: 3, subtype: "PropertiesOfOperations", make: makeContextAssoc },
+  { tier: 3, subtype: "PropertiesOfOperations", make: makeContextDistributiveModel },
+  { tier: 3, subtype: "PropertiesOfOperations", make: makeContextDistributiveTotal },
   { tier: 1, subtype: "EquationsAndInequalities", make: makeAddEquation },
   { tier: 1, subtype: "EquationsAndInequalities", make: makeMulEquation },
   { tier: 2, subtype: "EquationsAndInequalities", make: makeSubDivEquation },
