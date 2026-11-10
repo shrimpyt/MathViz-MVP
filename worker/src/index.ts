@@ -10,13 +10,22 @@
 import {
   FREE_GENERATION_LIMIT,
   MAGIC_LINK_TTL_SEC,
+  RATE_LIMIT_PER_EMAIL,
+  RATE_LIMIT_PER_IP,
+  RATE_WINDOW_SEC,
   SESSION_TTL_SEC,
   effectivePlan,
   generationAllowed,
   monthKeyUTC,
   planUpdateFromStripeEvent,
+  allowedOrigins,
+  devAuthEnabled,
+  originAllowed,
   randomTokenHex,
+  rateWindowStart,
   sha256Hex,
+  signInPageHtml,
+  underRateLimit,
   validateExportEvent,
   verifyStripeSignature,
   type Plan,
@@ -24,19 +33,27 @@ import {
 } from "./core";
 
 const SESSION_COOKIE = "euclid_session";
-const ALLOWED_ORIGINS = new Set([
-  "https://euclidengine.tech",
-  "https://euclid-engine.pages.dev",
-  "http://localhost:3000",
-]);
+
+// APP_URL is a per-deployment constant, so caching it for the module (set at
+// the top of every fetch) is safe and keeps json() free of an env argument.
+let currentAppUrl = "https://euclidengine.tech";
 
 function appUrl(env: Env): string {
   return env.APP_URL ?? "https://euclidengine.tech";
 }
 
+/** Headers on every API response: no sniffing, no framing, no caching of
+ *  account data, and no Referer leak of a sign-in token in the URL. */
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer",
+  "Cache-Control": "no-store",
+};
+
 function corsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin") ?? "";
-  if (!ALLOWED_ORIGINS.has(origin)) return {};
+  if (!allowedOrigins(currentAppUrl).has(origin)) return {};
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Credentials": "true",
@@ -56,9 +73,17 @@ function json(
     status,
     headers: {
       "Content-Type": "application/json",
+      ...SECURITY_HEADERS,
       ...corsHeaders(req),
       ...extra,
     },
+  });
+}
+
+function redirect(location: string, extra: Record<string, string> = {}): Response {
+  return new Response(null, {
+    status: 303,
+    headers: { Location: location, ...SECURITY_HEADERS, ...extra },
   });
 }
 
@@ -177,76 +202,136 @@ async function stripePost(
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
 
+/** Count one hit against a rate-limit bucket in the current window.
+ *  Returns false (and records nothing) when the bucket is already full. */
+async function takeRateToken(
+  env: Env,
+  bucket: string,
+  limit: number,
+  now: number,
+): Promise<boolean> {
+  const windowStart = rateWindowStart(now);
+  const row = await env.DB.prepare(
+    "SELECT count FROM rate_limits WHERE bucket = ? AND window_start = ?",
+  )
+    .bind(bucket, windowStart)
+    .first<{ count: number }>();
+  if (!underRateLimit(row?.count ?? 0, limit)) return false;
+  await env.DB.prepare(
+    `INSERT INTO rate_limits (bucket, window_start, count) VALUES (?, ?, 1)
+     ON CONFLICT(bucket, window_start) DO UPDATE SET count = count + 1`,
+  )
+    .bind(bucket, windowStart)
+    .run();
+  return true;
+}
+
 async function handleRequestLink(env: Env, req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string } | null;
   const email = body?.email?.trim().toLowerCase();
-  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+  if (!email || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return json(req, { ok: false, error: "valid email required" }, 400);
   }
-  let user = await getUserByEmail(env, email);
-  if (!user) {
-    const id = randomTokenHex(16);
-    await env.DB.prepare(
-      "INSERT INTO users (id, email, plan, founders, created_at) VALUES (?, ?, 'free', 0, ?)",
-    )
-      .bind(id, email, Math.floor(Date.now() / 1000))
-      .run();
-    user = await getUserById(env, id);
-  }
-  if (!user) return json(req, { ok: false, error: "user create failed" }, 500);
 
-  const token = randomTokenHex(32);
-  const tokenHash = await sha256Hex(token);
   const now = Math.floor(Date.now() / 1000);
+  const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
+  const ipOk = await takeRateToken(env, `ip:${ip}`, RATE_LIMIT_PER_IP, now);
+  const emailOk =
+    ipOk && (await takeRateToken(env, `email:${await sha256Hex(email)}`, RATE_LIMIT_PER_EMAIL, now));
+  if (!ipOk || !emailOk) {
+    return json(
+      req,
+      { ok: false, error: "rate_limited" },
+      429,
+      { "Retry-After": String(RATE_WINDOW_SEC) },
+    );
+  }
+  // Old windows are never read again; sweep them while we're here.
+  await env.DB.prepare("DELETE FROM rate_limits WHERE window_start < ?")
+    .bind(now - 2 * RATE_WINDOW_SEC)
+    .run();
+
+  // No user row yet: the account is created when the link is actually
+  // used, so typing someone else's address never creates an account.
+  const token = randomTokenHex(32);
   await env.DB.prepare(
-    "INSERT INTO magic_tokens (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)",
+    "INSERT INTO signin_tokens (id, email, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
   )
-    .bind(randomTokenHex(16), user.id, tokenHash, now + MAGIC_LINK_TTL_SEC)
+    .bind(randomTokenHex(16), email, await sha256Hex(token), now + MAGIC_LINK_TTL_SEC, now)
     .run();
 
   const link = `${appUrl(env)}/api/auth/verify?token=${token}`;
+  const dev = devAuthEnabled(env.DEV_AUTH, appUrl(env));
   const sent = await sendMagicLink(env, email, link);
-  if (!sent && env.DEV_AUTH !== "1") {
+  if (!sent && !dev) {
     // Email provider not configured yet, say so instead of pretending.
     return json(req, { ok: false, error: "email provider not configured" }, 503);
   }
-  return json(req, env.DEV_AUTH === "1" ? { ok: true, devLink: link } : { ok: true });
+  return json(req, dev ? { ok: true, devLink: link } : { ok: true });
 }
 
-async function handleVerify(env: Env, req: Request): Promise<Response> {
+/** GET of the emailed link: show a confirm page, spend nothing. Mail
+ *  scanners that open the link therefore can't use it up. */
+function handleVerifyPage(req: Request): Response {
   const url = new URL(req.url);
   const token = url.searchParams.get("token") ?? "";
-  const fail = () =>
-    new Response(null, {
-      status: 302,
-      headers: { Location: `${appUrl(env)}/?signin=failed` },
-    });
+  if (!/^[a-f0-9]{64}$/.test(token)) return redirect(`${currentAppUrl}/?signin=failed`);
+  return new Response(signInPageHtml(token, url.pathname), {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      ...SECURITY_HEADERS,
+      "Content-Security-Policy":
+        "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+    },
+  });
+}
+
+/** POST from the confirm page's button: spend the token exactly once and
+ *  start a session. */
+async function handleVerify(env: Env, req: Request): Promise<Response> {
+  const fail = () => redirect(`${appUrl(env)}/?signin=failed`);
+  const form = await req.formData().catch(() => null);
+  const token = String(form?.get("token") ?? "");
   if (!/^[a-f0-9]{64}$/.test(token)) return fail();
   const tokenHash = await sha256Hex(token);
   const now = Math.floor(Date.now() / 1000);
-  const row = await env.DB.prepare(
-    "SELECT user_id FROM magic_tokens WHERE token_hash = ? AND expires_at > ? AND used_at IS NULL",
+
+  // One statement both checks and spends the token, so two quick clicks
+  // can't both get through.
+  const spent = await env.DB.prepare(
+    "UPDATE signin_tokens SET used_at = ? WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?",
   )
-    .bind(tokenHash, now)
-    .first<{ user_id: string }>();
-  if (!row) return fail();
-  await env.DB.prepare("UPDATE magic_tokens SET used_at = ? WHERE token_hash = ?")
-    .bind(now, tokenHash)
+    .bind(now, tokenHash, now)
     .run();
+  if ((spent.meta?.changes ?? 0) !== 1) return fail();
+
+  const row = await env.DB.prepare("SELECT email FROM signin_tokens WHERE token_hash = ?")
+    .bind(tokenHash)
+    .first<{ email: string }>();
+  if (!row) return fail();
+
+  await env.DB.prepare(
+    "INSERT OR IGNORE INTO users (id, email, plan, founders, created_at) VALUES (?, ?, 'free', 0, ?)",
+  )
+    .bind(randomTokenHex(16), row.email, now)
+    .run();
+  const user = await getUserByEmail(env, row.email);
+  if (!user) return fail();
 
   const session = randomTokenHex(32);
   await env.DB.prepare(
     "INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
   )
-    .bind(randomTokenHex(16), row.user_id, await sha256Hex(session), now + SESSION_TTL_SEC, now)
+    .bind(randomTokenHex(16), user.id, await sha256Hex(session), now + SESSION_TTL_SEC, now)
     .run();
 
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: `${appUrl(env)}/?signin=ok`,
-      "Set-Cookie": sessionCookie(session, SESSION_TTL_SEC),
-    },
+  // Housekeeping: expired sessions and spent or expired sign-in tokens.
+  await env.DB.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(now).run();
+  await env.DB.prepare("DELETE FROM signin_tokens WHERE expires_at < ?").bind(now - 86400).run();
+
+  return redirect(`${appUrl(env)}/?signin=ok`, {
+    "Set-Cookie": sessionCookie(session, SESSION_TTL_SEC),
   });
 }
 
@@ -339,6 +424,20 @@ async function handleCheckout(env: Env, req: Request): Promise<Response> {
   const priceId = spec ? (env[spec.priceEnv] as string | undefined) : undefined;
   if (!spec || !priceId) {
     return json(req, { error: "unknown or unconfigured price" }, 400);
+  }
+
+  // Already Pro: a second checkout would start a second subscription, and
+  // cancelling either one would drop the account to Free. Send them to the
+  // billing portal instead (the pricing page follows whatever URL we return).
+  if (planOf(user) === "pro") {
+    if (!user.stripe_customer_id) {
+      return json(req, { error: "already_pro" }, 409);
+    }
+    const portal = await stripePost(env, "/billing_portal/sessions", {
+      customer: user.stripe_customer_id,
+      return_url: `${appUrl(env)}/`,
+    });
+    return json(req, { url: portal["url"], portal: true });
   }
 
   let customerId = user.stripe_customer_id;
@@ -435,19 +534,32 @@ async function handleWebhook(env: Env, req: Request): Promise<Response> {
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
+    currentAppUrl = appUrl(env);
     if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders(req) });
+      return new Response(null, { status: 204, headers: { ...SECURITY_HEADERS, ...corsHeaders(req) } });
     }
     const { pathname } = new URL(req.url);
     try {
+      // Stripe calls the webhook server-to-server; it is checked by signature.
+      if (req.method === "POST" && pathname.endsWith("/stripe/webhook"))
+        return await handleWebhook(env, req);
+
+      if (req.method === "GET" && pathname.endsWith("/auth/verify"))
+        return handleVerifyPage(req);
+      if (req.method === "GET" && pathname.endsWith("/me"))
+        return await handleMe(env, req);
+
+      // Every other route changes state, so it must come from our own pages.
+      if (req.method === "POST" && !originAllowed(req.headers.get("Origin"), currentAppUrl)) {
+        if (pathname.endsWith("/auth/verify")) return redirect(`${currentAppUrl}/?signin=failed`);
+        return json(req, { error: "forbidden origin" }, 403);
+      }
       if (req.method === "POST" && pathname.endsWith("/auth/request-link"))
         return await handleRequestLink(env, req);
-      if (req.method === "GET" && pathname.endsWith("/auth/verify"))
+      if (req.method === "POST" && pathname.endsWith("/auth/verify"))
         return await handleVerify(env, req);
       if (req.method === "POST" && pathname.endsWith("/auth/signout"))
         return await handleSignOut(env, req);
-      if (req.method === "GET" && pathname.endsWith("/me"))
-        return await handleMe(env, req);
       if (req.method === "POST" && pathname.endsWith("/count"))
         return await handleCount(env, req);
       if (req.method === "POST" && pathname.endsWith("/event"))
@@ -456,15 +568,11 @@ export default {
         return await handleCheckout(env, req);
       if (req.method === "POST" && pathname.endsWith("/portal"))
         return await handlePortal(env, req);
-      if (req.method === "POST" && pathname.endsWith("/stripe/webhook"))
-        return await handleWebhook(env, req);
       return json(req, { error: "not found" }, 404);
     } catch (err) {
-      return json(
-        req,
-        { error: err instanceof Error ? err.message : "internal error" },
-        500,
-      );
+      // Details (including Stripe's error text) go to the Worker log only.
+      console.error(err);
+      return json(req, { error: "internal error" }, 500);
     }
   },
 };

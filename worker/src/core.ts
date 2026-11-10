@@ -187,6 +187,13 @@ function subscriptionPeriodEnd(obj: Record<string, unknown>): number | null {
   return first ? numOrNull(first["current_period_end"]) : null;
 }
 
+/** True when a Checkout Session's money has actually been collected (or
+ *  none was due). "unpaid" sessions wait for async_payment_succeeded. */
+export function checkoutPaymentCleared(obj: Record<string, unknown>): boolean {
+  const status = obj["payment_status"];
+  return status === "paid" || status === "no_payment_required";
+}
+
 /** Pure mapping from a Stripe event to the user-row update it implies.
  *  Returns null for events we don't act on. Lookup keys tell index.ts which
  *  user to apply it to (checkout carries our user id; subscription events
@@ -196,7 +203,8 @@ export function planUpdateFromStripeEvent(
 ): { by: "userId" | "customerId"; key: string; update: UserUpdate } | null {
   const obj = evt.data.object;
   switch (evt.type) {
-    case "checkout.session.completed": {
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded": {
       const userId =
         (obj["client_reference_id"] as string) ||
         ((obj["metadata"] as Record<string, unknown> | undefined)?.["user_id"] as string);
@@ -207,6 +215,13 @@ export function planUpdateFromStripeEvent(
       const customer = obj["customer"] as string | undefined;
       const update: UserUpdate = {};
       if (customer) update.stripeCustomerId = customer;
+      // A completed checkout is not a cleared payment: delayed methods (bank
+      // debits, some wallets) finish the session as "unpaid" and settle
+      // later with checkout.session.async_payment_succeeded. Grant only when
+      // the money is in (or nothing was owed, e.g. a free trial).
+      if (!checkoutPaymentCleared(obj)) {
+        return update.stripeCustomerId ? { by: "userId", key: userId, update } : null;
+      }
       if (kind === "founders") {
         update.founders = true;
         update.plan = "pro";
@@ -253,4 +268,106 @@ export function planUpdateFromStripeEvent(
     default:
       return null;
   }
+}
+
+// ── Request guards ──────────────────────────────────────────────────────────
+
+/** Origins allowed to call the API from a browser. localhost is allowed only
+ *  when the Worker itself is running locally (APP_URL on localhost), so a
+ *  production deploy never trusts a developer machine. */
+export function allowedOrigins(appUrl: string): Set<string> {
+  const set = new Set(["https://euclidengine.tech", "https://euclid-engine.pages.dev"]);
+  if (isLocalAppUrl(appUrl)) {
+    set.add("http://localhost:3000");
+    set.add(appUrl.replace(/\/$/, ""));
+  }
+  return set;
+}
+
+export function isLocalAppUrl(appUrl: string): boolean {
+  try {
+    const host = new URL(appUrl).hostname;
+    return host === "localhost" || host === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
+/** DEV_AUTH hands out sign-in links in the API response, which would let
+ *  anyone sign in as anyone. It only ever counts on a local Worker. */
+export function devAuthEnabled(devAuth: string | undefined, appUrl: string): boolean {
+  return devAuth === "1" && isLocalAppUrl(appUrl);
+}
+
+/** State-changing browser calls must come from our own pages. Browsers
+ *  always send Origin on POST, so a missing or foreign Origin is refused.
+ *  (The Stripe webhook is server-to-server and is checked by signature.) */
+export function originAllowed(origin: string | null, appUrl: string): boolean {
+  return origin !== null && allowedOrigins(appUrl).has(origin);
+}
+
+// ── Sign-in email rate limits ───────────────────────────────────────────────
+
+export const RATE_WINDOW_SEC = 15 * 60;
+export const RATE_LIMIT_PER_EMAIL = 3;
+export const RATE_LIMIT_PER_IP = 10;
+
+/** Fixed-window bucket start for a timestamp. */
+export function rateWindowStart(nowSec: number, windowSec = RATE_WINDOW_SEC): number {
+  return nowSec - (nowSec % windowSec);
+}
+
+/** True when one more request fits under the limit. `countSoFar` is the
+ *  number already recorded in the current window. */
+export function underRateLimit(countSoFar: number, limit: number): boolean {
+  return countSoFar < limit;
+}
+
+// ── Sign-in confirmation page ───────────────────────────────────────────────
+// Opening the emailed link only shows this page; the token is spent by the
+// button's POST. School mail filters (e.g. Microsoft Safe Links) open every
+// link in an email to scan it, and a GET that spent the token meant the
+// teacher's own click always failed.
+
+export function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function signInPageHtml(token: string, actionPath: string): string {
+  const t = escapeHtml(token);
+  const a = escapeHtml(actionPath);
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sign in to Euclid Engine</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+         background: #14161f; color: #f2f3fa; font-family: system-ui, -apple-system, sans-serif; }
+  main { max-width: 420px; padding: 32px 24px; text-align: center; }
+  h1 { font-size: 1.4rem; margin: 0 0 12px; }
+  p { color: #c6c9da; line-height: 1.5; margin: 0 0 24px; }
+  button { font: inherit; font-weight: 700; font-size: 1rem; padding: 12px 28px; border: 0;
+           border-radius: 12px; background: #f59e42; color: #14161f; cursor: pointer; }
+  button:focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sign in to Euclid Engine</h1>
+  <p>Press the button to finish signing in on this device. The link works once and expires 15 minutes after it was sent.</p>
+  <form method="post" action="${a}">
+    <input type="hidden" name="token" value="${t}">
+    <button type="submit">Sign in</button>
+  </form>
+</main>
+</body>
+</html>`;
 }

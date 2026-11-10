@@ -20,13 +20,28 @@ export default function PrivacyPage() {
         and a monthly count of worksheet exports (used to enforce Free-plan
         limits). For signed-in accounts we also record which topics and format
         each export used, so we can tell which lessons teachers actually run.
-        We never receive or store the worksheets themselves. Worksheet settings
-        you save in your library are stored with your account.
+        We never receive or store the worksheets themselves.
       </p>
       <p>
         <strong>Payment data.</strong> Payments are processed by Stripe. We never
         see or store your card number; Stripe gives us a customer reference and
         subscription status.
+      </p>
+      <H2>Student data</H2>
+      <p>
+        Euclid does not need, ask for, or store any student data. Worksheets are
+        generated and printed without student names, and accommodation groups are
+        labeled anonymously. If a school uses Euclid under a school license, we act
+        as a “school official” under FERPA: any education-record information we
+        receive is used only to provide the service to that school, stays under
+        the school’s control, and is never sold or used for advertising.
+      </p>
+      <H2>Who can use Euclid</H2>
+      <p>
+        Euclid accounts are for teachers and other educators 18 or older. Students
+        do not use Euclid and cannot create accounts, and we do not knowingly
+        collect personal information from anyone under 18. If you believe a
+        student has created an account, email us and we will delete it.
       </p>
       <H2>What we never collect</H2>
       <p>
@@ -39,7 +54,7 @@ export default function PrivacyPage() {
       <p>
         One functional cookie keeps you signed in. Browser local storage on your
         own device may hold your drafts and anonymous accommodation groups; that
-        data stays on your device unless you sign in and save it.
+        data stays on your device and is never sent to us.
       </p>
       <H2>Sharing</H2>
       <p>
@@ -51,9 +66,10 @@ export default function PrivacyPage() {
       <H2>Retention and your rights</H2>
       <p>
         Account data is kept while your account is active. Email
-        support@euclidengine.tech to export or delete your account data; deletion
-        removes your email, library, and usage records (payment records are kept
-        by Stripe as required for accounting).
+        support@euclidengine.tech to export or delete your account data. We
+        delete your email, sign-in sessions, and usage records within 30 days of
+        your request, and they leave our backups within 30 days after that.
+        Payment records are kept by Stripe as required for accounting.
       </p>
       <H2>Contact</H2>
       <p>support@euclidengine.tech</p>

@@ -24,15 +24,32 @@ Spec: `~/workspace/goals/euclid-engine-deployment/files/auth-workers-spec.md`.
    PRICE_PRO_MONTHLY, PRICE_PRO_ANNUAL, PRICE_SCHOOL, PRICE_FOUNDERS.
 4. In Stripe: create the 4 products/prices; set the webhook endpoint to
    `https://euclidengine.tech/api/stripe/webhook` with events
-   checkout.session.completed, customer.subscription.updated,
-   customer.subscription.deleted, invoice.payment_failed. Enable the
-   Billing customer portal.
+   checkout.session.completed, checkout.session.async_payment_succeeded,
+   customer.subscription.updated, customer.subscription.deleted,
+   invoice.payment_failed. Enable the Billing customer portal.
 5. `npx wrangler deploy`
 
 ## Local dev
-`npx wrangler dev` + set DEV_AUTH=1 in a local .dev.vars (NOT committed):
-request-link responses then include `devLink` so sign-in can be tested
-without an email provider. DEV_AUTH must never be set in production.
+`npx wrangler dev` + set DEV_AUTH=1 and APP_URL=http://localhost:3000 in a
+local .dev.vars (NOT committed): request-link responses then include
+`devLink` so sign-in can be tested without an email provider. DEV_AUTH is
+ignored unless APP_URL is localhost, so it can never take effect in
+production. localhost is likewise only an allowed CORS origin when APP_URL
+is localhost.
+
+## Sign-in flow
+1. POST /api/auth/request-link (from our own pages only; limited to 3 per
+   email and 10 per IP every 15 minutes) stores a hashed token in
+   signin_tokens and emails the link. No user row is created yet.
+2. GET /api/auth/verify?token=… only shows a "Sign in" page. School mail
+   filters open every link to scan it, so the GET must not spend the token.
+3. The page's button POSTs the token back; one UPDATE checks and spends it,
+   then the user row is created if needed and a session cookie is set.
+
+## Schema changes
+schema.sql only uses CREATE … IF NOT EXISTS, so re-running it on the live
+database adds new tables without touching existing ones:
+`npx wrangler d1 execute euclid --remote --file=schema.sql`
 
 ## Notes / honest limits
 - Soft gate: the Free 5/month counter is server-side per account; a user

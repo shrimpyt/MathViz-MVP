@@ -46,15 +46,27 @@ export async function fetchAccount(): Promise<AccountState | null> {
   };
 }
 
-/** Ask the Worker to email a magic sign-in link. Returns false only when
- *  the API is unreachable, the UI says so honestly rather than pretending
- *  an email was sent. */
-export async function requestSignInLink(email: string): Promise<boolean> {
-  const res = await api<{ ok: boolean }>("/auth/request-link", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
-  return res?.ok === true;
+export type SignInLinkResult = "sent" | "rate_limited" | "unavailable";
+
+/** Ask the Worker to email a magic sign-in link. "unavailable" when the API
+ *  is unreachable or email isn't configured, so the UI says so honestly
+ *  rather than pretending an email was sent; "rate_limited" after too many
+ *  requests for one address or network in 15 minutes. */
+export async function requestSignInLink(email: string): Promise<SignInLinkResult> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/request-link`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.status === 429) return "rate_limited";
+    if (!res.ok) return "unavailable";
+    const body = (await res.json()) as { ok?: boolean };
+    return body.ok === true ? "sent" : "unavailable";
+  } catch {
+    return "unavailable";
+  }
 }
 
 export async function signOut(): Promise<void> {

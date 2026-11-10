@@ -27,7 +27,7 @@ export function LegalShell({
         </a>
         <h1 style={{ fontSize: "1.9rem", fontWeight: 900, margin: "18px 0 6px" }}>{title}</h1>
         <p style={{ color: "#9aa0be", fontWeight: 600, margin: "0 0 28px" }}>
-          Last updated: October 13, 2026
+          Last updated: November 10, 2026
         </p>
         <div style={{ lineHeight: 1.65, fontSize: "0.95rem", color: "#d7d9e4" }}>{children}</div>
       </div>
