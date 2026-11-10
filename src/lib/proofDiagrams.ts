@@ -7,7 +7,7 @@
 // discriminant, mirroring the GeometrySVG / PdfGeometrySVG duality.
 //
 // All display strings follow the proofTypes.ts conventions: plain unicode
-// text (≅ in statements, the PDF renderer maps it to ≃ via pdfSafeText).
+// text (≅ in statements; the PDF font prints it as is).
 
 import type { BaseProofProblem, ProofPresentation } from "./proofTypes";
 

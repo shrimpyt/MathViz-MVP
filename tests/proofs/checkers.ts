@@ -38,7 +38,7 @@ export function checkProofGeneric(ctx: Ctx, p: ProofProblem, mode: ProofStudentM
   check(ctx, /^G\.\d+\([A-Z]\)$/.test(p.teks), `${tag}: teks "${p.teks}" malformed`);
   const strs = [...p.given, p.prove, ...p.steps.flatMap((s) => [s.statement, s.reason])];
   check(ctx, strs.every((s) => !s.includes("\\") && !s.includes("$")), `${tag}: non-plain-text string found`);
-  check(ctx, pdfSafeText("AB ≅ DE") === "AB ≃ DE", `${tag}: pdfSafeText ≅→≃ mapping broken`);
+  check(ctx, pdfSafeText("AB ≅ DE") === "AB ≅ DE", `${tag}: pdfSafeText must keep ≅ (the PDF fonts cover it)`);
   check(ctx, p.steps.length >= 1, `${tag}: no steps`);
 
   // Student-mode blanking discipline.

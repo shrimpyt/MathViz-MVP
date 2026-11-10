@@ -4,7 +4,7 @@
 // discriminant of ProofSVGParams (see src/lib/proofDiagrams.ts).
 //
 // The PDF mirror lives in ./PdfProofSVG.tsx, keep the two in sync
-// (same viewBox, same geometry, same labels; PDF maps ≅ → ≃).
+// (same viewBox, same geometry, same labels).
 
 import React from "react";
 import type {

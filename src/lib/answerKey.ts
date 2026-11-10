@@ -145,20 +145,14 @@ export function latexToText(input: string | number | null | undefined): string {
 // ── formatAnswer ──────────────────────────────────────────────────────────────
 
 /**
- * The PDF embeds DejaVu Serif, which covers every glyph this module emits
- * EXCEPT "≅" (U+2245). Map the few missing glyphs to look-alikes so nothing
- * ever prints as a wrong/missing character. Web preview keeps full unicode.
+ * Plain text for the PDF. The worksheet font (Euclid Sans, see
+ * src/components/pdfFonts.ts) covers every glyph this module emits, ≅
+ * included, and every PDF font stack ends in DejaVu Sans for anything a face
+ * lacks, so no look-alike substitution is needed any more. (≅ used to print
+ * as ≃ because DejaVu Serif has no U+2245.)
  */
-const PDF_FONT_SUBSTITUTIONS: Record<string, string> = {
-  "≅": "≃", // visually near-identical; DejaVu Serif lacks U+2245
-};
-
 export function pdfSafeText(input: string | number | null | undefined): string {
-  let s = latexToText(input);
-  for (const [from, to] of Object.entries(PDF_FONT_SUBSTITUTIONS)) {
-    s = s.split(from).join(to);
-  }
-  return s;
+  return latexToText(input);
 }
 
 /**

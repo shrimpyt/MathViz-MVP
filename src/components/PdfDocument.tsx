@@ -1,16 +1,21 @@
 // PdfDocument.tsx
-// PDF export engine, Classical Academy style.
+// PDF export engine, "Open Classic" design.
 // Enforces US Letter (8.5" × 11") via @react-pdf/renderer `size="LETTER"`.
-// Typography: DejaVu Serif embedded from public/fonts/ (covers math glyphs
-// like √ θ π ∠ that the PDF standard 14 fonts would render as wrong glyphs).
-// Layout guarantees:
-//   • Header box with double-rule border, centered title, Name/Date/Period slots.
-//   • Each problem container uses `wrap={false}` so a diagram and its answer
-//     table never split across page breaks.
+// Typography: Euclid Sans (FreeSans with a tightened °) embedded from
+// public/fonts/, registered in pdfFonts.ts. Covers ≅ ∠ △ √ π; DejaVu Sans
+// backs it up for anything it lacks.
+// Layout:
+//   • Centered title and subtitle, Name/Date/Period, a double rule, then
+//     one line of italic directions.
+//   • Problems in two columns with a center rule and a hairline between
+//     rows. Each cell leaves room to work and ends in an "Answer" line.
+//     Proofs and AP free-response run the full page width. Accommodated
+//     versions (large print, fewer per page) keep one problem per row.
+//   • Each row uses `wrap={false}` so a diagram and its answer line never
+//     split across page breaks.
 
 import React from 'react';
 import {
-  Font,
   Image,
   Page,
   Text,
@@ -49,49 +54,13 @@ import { TrigSVGParams } from "@/lib/types";
 import { latexToText, formatAnswer, pdfSafeText } from "@/lib/answerKey";
 import type { Presentation } from "../lib/accommodations";
 import { DEFAULT_PRESENTATION } from "../lib/accommodations";
+import { pdfFamily } from "./pdfFonts";
+import { PdfMathText } from "./PdfMathText";
 
-// ── Embedded serif font ───────────────────────────────────────────────────────
-// The PDF's standard 14 fonts only cover WinAnsi, so math glyphs (√ θ π ∠)
-// would print as wrong characters. We embed DejaVu Serif (bundled in
-// public/fonts/) instead. In the browser the font loads from the public URL;
-// in Node (tests / prerender) it loads from the repo's public directory.
-function fontSrc(file: string): string {
-  if (typeof window === "undefined") {
-    return `${process.cwd()}/public/fonts/${file}`;
-  }
-  return `/fonts/${file}`;
-}
-
-Font.register({
-  family: "WorksheetSerif",
-  fonts: [
-    { src: fontSrc("DejaVuSerif.ttf"), fontWeight: 400 },
-    { src: fontSrc("DejaVuSerif-Italic.ttf"), fontWeight: 400, fontStyle: "italic" },
-  ],
-});
-
-Font.register({
-  family: "WorksheetSerifBold",
-  fonts: [
-    { src: fontSrc("DejaVuSerif-Bold.ttf"), fontWeight: 700 },
-    { src: fontSrc("DejaVuSerif-BoldItalic.ttf"), fontWeight: 700, fontStyle: "italic" },
-  ],
-});
-
-// ── Sans-serif family for the IEP accommodation generator ─────────────────────
-// DejaVu Sans is the sans companion to the DejaVu Serif used for the base
-// worksheet. (The bundled geist-sans variable font cannot be used here:
-// the PDF renderer's font subsetter throws `RangeError: Offset is outside
-// the bounds of the DataView` on both its woff2 and static-TTF instances.)
-Font.register({
-  family: "WorksheetSans",
-  fonts: [
-    { src: fontSrc("DejaVuSans.ttf"), fontWeight: 400 },
-    { src: fontSrc("DejaVuSans-Bold.ttf"), fontWeight: 700 },
-    { src: fontSrc("DejaVuSans-Oblique.ttf"), fontWeight: 400, fontStyle: "italic" },
-    { src: fontSrc("DejaVuSans-BoldOblique.ttf"), fontWeight: 700, fontStyle: "italic" },
-  ],
-});
+// ── Fonts ────────────────────────────────────────────────────────────────────
+// Registered once in pdfFonts.ts (Euclid Sans, DejaVu Serif, DejaVu Sans
+// fallback). pdfFamily() swaps serif tokens to sans for the default
+// presentation and returns font stacks so no glyph prints as a box.
 
 // ── Section grouping (mirrors EuclidEngine's preview order) ──────────────────
 // Matcher-based so two problem kinds sharing one `type` discriminator
@@ -149,81 +118,83 @@ function createStyles(presentation: Presentation) {
   const sp = (n: number) => Math.round(n * presentation.spacingScale * 10) / 10;
   // Family swap for sans mode: returns a spreadable style fragment. Bold serif
   // maps to the sans bold weight so headings stay bold in sans mode.
-  const fam = (
-    f: 'WorksheetSerif' | 'WorksheetSerifBold',
-  ): { fontFamily: string; fontWeight?: number } =>
-    presentation.fontFamily === 'sans'
-      ? f === 'WorksheetSerifBold'
-        ? { fontFamily: 'WorksheetSans', fontWeight: 700 }
-        : { fontFamily: 'WorksheetSans' }
-      : { fontFamily: f };
+  const fam = (f: 'WorksheetSerif' | 'WorksheetSerifBold') =>
+    pdfFamily(presentation.fontFamily, f);
 
   return StyleSheet.create({
-  // Page: strict US Letter, 0.65in margins
+  // Page: strict US Letter, 0.6in margins (0.75in at the bottom for the footer)
   page: {
     size: 'LETTER',
-    paddingTop: '0.65in',
-    paddingBottom: '0.65in',
-    paddingLeft: '0.75in',
-    paddingRight: '0.75in',
+    paddingTop: '0.6in',
+    paddingBottom: '0.75in',
+    paddingLeft: '0.6in',
+    paddingRight: '0.6in',
     backgroundColor: '#ffffff',
     ...fam('WorksheetSerif'),
   },
 
-  // ── Plain handout header (Classical Notes 5.1 style) ──
+  // ── Header: centered title, subtitle, Name/Date/Period, double rule ──
   headerWrapper: {
-    marginBottom: sp(14),
+    marginBottom: sp(10),
   },
   headerTopRule: {
-    paddingTop: sp(2),
-    paddingBottom: sp(2),
-    marginBottom: sp(8),
+    marginBottom: sp(14),
     alignItems: 'center',
   },
   title: {
     ...fam('WorksheetSerifBold'),
-    fontSize: fs(20),
+    fontSize: fs(16),
     textAlign: 'center',
     color: '#111111',
   },
   modeLabel: {
     ...fam('WorksheetSerif'),
-    fontSize: fs(10.5),
+    fontSize: fs(9.5),
+    fontStyle: 'italic',
     textAlign: 'center',
-    color: '#555555',
+    color: '#666666',
     marginTop: sp(3),
   },
 
   // Name / Date / Period row
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-end',
-    borderBottomWidth: 1,
-    borderBottomColor: '#111111',
-    borderBottomStyle: 'solid',
-    paddingBottom: sp(4),
-    marginBottom: sp(6),
+    paddingBottom: sp(9),
   },
   infoLeft: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    flex: 1,
+    marginRight: 18,
   },
   infoRight: {
     flexDirection: 'row',
-    gap: sp(16),
+    gap: 14,
     alignItems: 'flex-end',
   },
   infoLabel: {
     ...fam('WorksheetSerif'),
-    fontSize: fs(11),
+    fontSize: fs(10),
     color: '#111111',
+    marginRight: 6,
   },
   infoBlank: {
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.8,
     borderBottomColor: '#111111',
     borderBottomStyle: 'solid',
-    height: 14,
+    height: 12,
+  },
+  doubleRuleThick: {
+    borderTopWidth: 1.2,
+    borderTopColor: '#111111',
+    borderTopStyle: 'solid',
+    height: 2.5,
+  },
+  doubleRuleThin: {
+    borderTopWidth: 0.5,
+    borderTopColor: '#111111',
+    borderTopStyle: 'solid',
   },
 
   // Word bank, plain bordered box under the header (IEP option)
@@ -247,28 +218,22 @@ function createStyles(presentation: Presentation) {
     lineHeight: 1.5,
   },
 
-  // Directions, plain italic, no box
+  // Directions, one italic gray line under the double rule
   directionsBox: {
-    marginBottom: sp(10),
+    marginTop: sp(9),
   },
   directionsText: {
     ...fam('WorksheetSerif'),
-    fontSize: fs(10),
+    fontSize: fs(9),
     fontStyle: 'italic',
-    color: '#444444',
-  },
-  directionsBold: {
-    ...fam('WorksheetSerifBold'),
-    fontSize: fs(10),
-    fontStyle: 'italic',
-    color: '#444444',
+    color: '#666666',
   },
 
   // ── Section heading (5.1 h2.sec style) ──
   sectionDivider: {
-    marginTop: sp(14),
-    marginBottom: sp(6),
-    borderBottomWidth: 1,
+    marginTop: sp(12),
+    marginBottom: sp(2),
+    borderBottomWidth: 0.6,
     borderBottomColor: '#999999',
     borderBottomStyle: 'solid',
     paddingBottom: sp(3),
@@ -278,7 +243,7 @@ function createStyles(presentation: Presentation) {
   },
   sectionLabel: {
     ...fam('WorksheetSerifBold'),
-    fontSize: fs(12.5),
+    fontSize: fs(10.5),
     color: '#111111',
   },
 
@@ -289,10 +254,9 @@ function createStyles(presentation: Presentation) {
   },
   problemNumber: {
     ...fam('WorksheetSerifBold'),
-    fontSize: fs(12),
-    // 30pt gutter: a two-digit number ("10.") measures ~21pt at this size,
-    // so the old 22pt box left it nearly touching the problem text.
-    width: 30,
+    fontSize: fs(11),
+    // 22pt gutter: a two-digit number ("10.") measures ~16pt at this size.
+    width: 22,
     color: '#111111',
   },
   problemContent: {
@@ -300,10 +264,61 @@ function createStyles(presentation: Presentation) {
   },
   questionText: {
     ...fam('WorksheetSerif'),
-    fontSize: fs(11),
+    fontSize: fs(10.3),
     color: '#111111',
     marginBottom: sp(6),
-    lineHeight: 1.4,
+    lineHeight: 1.32,
+  },
+
+  // ── Two-column grid ──
+  gridRow: {
+    flexDirection: 'row',
+  },
+  gridRowRule: {
+    borderTopWidth: 0.6,
+    borderTopColor: '#c8c8c8',
+    borderTopStyle: 'solid',
+  },
+  gridCellLeft: {
+    width: '50%',
+    paddingRight: 9,
+    paddingTop: 10,
+    paddingBottom: 8,
+    justifyContent: 'space-between',
+  },
+  gridCellRight: {
+    width: '50%',
+    paddingLeft: 9,
+    paddingTop: 10,
+    paddingBottom: 8,
+    justifyContent: 'space-between',
+    borderLeftWidth: 0.6,
+    borderLeftColor: '#c8c8c8',
+    borderLeftStyle: 'solid',
+  },
+  gridCellFull: {
+    width: '100%',
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  cellAnswer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    marginTop: sp(6),
+  },
+  cellAnswerLabel: {
+    ...fam('WorksheetSerif'),
+    fontSize: fs(8.5),
+    color: '#666666',
+    marginRight: 8,
+  },
+  cellAnswerBlank: {
+    borderBottomWidth: 0.8,
+    borderBottomColor: '#111111',
+    borderBottomStyle: 'solid',
+    width: 96,
+    height: 12,
   },
 
   // Diagram placeholder box
@@ -363,19 +378,19 @@ function createStyles(presentation: Presentation) {
   footer: {
     position: 'absolute',
     bottom: '0.4in',
-    left: '0.75in',
-    right: '0.75in',
+    left: '0.6in',
+    right: '0.6in',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#999999',
+    borderTopWidth: 0.6,
+    borderTopColor: '#c8c8c8',
     borderTopStyle: 'solid',
     paddingTop: sp(4),
   },
   footerText: {
     ...fam('WorksheetSerif'),
     fontSize: fs(8),
-    color: '#999999',
+    color: '#666666',
   },
 
   // ── Answer key ──
@@ -433,18 +448,30 @@ function createStyles(presentation: Presentation) {
   },
   proofRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.6,
     borderBottomColor: '#999999',
     borderBottomStyle: 'solid',
   },
   proofHeadRow: {
-    backgroundColor: '#eeeeee',
+    borderBottomColor: '#111111',
   },
   proofCell: {
     ...fam('WorksheetSerif'),
     fontSize: fs(10),
     color: '#111111',
-    padding: sp(4),
+    padding: sp(5),
+    minHeight: sp(22),
+  },
+  proofCellBox: {
+    padding: sp(5),
+    minHeight: sp(24),
+    justifyContent: 'center',
+  },
+  proofCellText: {
+    ...fam('WorksheetSerif'),
+    fontSize: fs(10),
+    color: '#111111',
+    lineHeight: 1.25,
   },
   proofNum: {
     width: 24,
@@ -457,7 +484,7 @@ function createStyles(presentation: Presentation) {
     borderLeftStyle: 'solid',
   },
   proofReason: {
-    width: '34%',
+    width: '42%',
     borderLeftWidth: 1,
     borderLeftColor: '#999999',
     borderLeftStyle: 'solid',
@@ -507,8 +534,8 @@ function createStyles(presentation: Presentation) {
   },
   choiceRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: sp(4),
+    alignItems: 'center',
+    marginBottom: sp(5),
   },
   choiceLetter: {
     ...fam('WorksheetSerifBold'),
@@ -522,9 +549,42 @@ function createStyles(presentation: Presentation) {
     color: '#15803d',
     width: 28,
   },
+  choiceCircle: {
+    width: fs(12.5),
+    height: fs(12.5),
+    borderRadius: fs(6.25),
+    borderWidth: 0.7,
+    borderColor: '#111111',
+    borderStyle: 'solid',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
+  choiceCircleKey: {
+    backgroundColor: '#111111',
+  },
+  choiceCircleText: {
+    ...fam('WorksheetSerifBold'),
+    fontSize: fs(7.5),
+    color: '#111111',
+  },
+  choiceCircleTextKey: {
+    color: '#ffffff',
+  },
+  choiceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: sp(4),
+  },
+  choiceHalf: {
+    width: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: sp(6),
+  },
   choiceText: {
     ...fam('WorksheetSerif'),
-    fontSize: fs(11),
+    fontSize: fs(10.3),
     color: '#111111',
     flex: 1,
   },
@@ -753,6 +813,16 @@ export function PdfVersionPages({
   const showScaffold = docType === 'guided-notes' || docType === 'review';
   const showAnswerLine = docType === 'test' || docType === 'worksheet';
   const isClassicalDoc = docType === 'classical-notes' && !!classicalGroups && classicalGroups.length > 0;
+  // Fewer-per-page accommodation: the cap only binds when an accommodation
+  // actually lowered it below the default.
+  const capActive =
+    presentation.maxProblemsPerPage < DEFAULT_PRESENTATION.maxProblemsPerPage;
+  // Two-column grid for the standard presentation. Large print and the
+  // fewer-per-page accommodation keep one problem per row.
+  const grid = !isClassicalDoc && presentation.fontScale === 1 && !capActive;
+  // Height of each grid row: the space a student works in.
+  const workRoom =
+    docType === 'test' || docType === 'worksheet' ? 150 : docType === 'sat-practice' ? 120 : 112;
 
   // Pair each problem with its question text, grouped by section in the
   // same order EuclidEngine uses for the on-screen preview. Each problem
@@ -946,51 +1016,87 @@ export function PdfVersionPages({
   };
 
   // ── Problem renderers ─────────────────────────────────────────────────────
+  // In the two-column grid (`grid`), a problem renders only its number,
+  // text, choices and diagram; the grid cell adds the work room and the
+  // "Answer" line. In single-column mode (accommodations) each problem
+  // carries its own answer line and bottom margin.
 
-  const renderStandardProblem = (item: PdfItem, n: number) => (
-    // wrap={false}, diagram + answer table never split across pages
-    <View key={n} style={styles.problemRow} wrap={false}>
-      <Text style={styles.problemNumber}>{n}.</Text>
-
-      <View style={styles.problemContent}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View style={{ flex: 1, paddingRight: 8 }}>
-            <Text style={styles.questionText}>{pdfSafeText(item.question.text)}</Text>
-
-            {/* Scaffolding (guided-notes / review mode) */}
-            {showScaffold && item.question.scaffolding && (
-              <View style={styles.scaffoldBox}>
-                {item.question.scaffolding.map((step, idx) => (
-                  <View key={idx} style={styles.scaffoldStep}>
-                    <Text style={styles.scaffoldText}>{pdfSafeText(step.text)}</Text>
-                    {step.blankLength && (
-                      <View
-                        style={[
-                          styles.blank,
-                          { width: step.blankLength * 5 },
-                        ]}
-                      />
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Answer line (worksheet / test mode) */}
-            {showAnswerLine && (
-              <View style={styles.answerLine}>
-                <Text style={styles.answerLabel}>Answer:</Text>
-                <View style={styles.answerBlank} />
-              </View>
-            )}
-          </View>
-
-          {/* Diagram */}
-          {renderScaledDiagram(item)}
-        </View>
-      </View>
+  const answerLine = (
+    <View style={styles.cellAnswer}>
+      <Text style={styles.cellAnswerLabel}>Answer</Text>
+      <View style={styles.cellAnswerBlank} />
     </View>
   );
+
+  /** Circled-letter choices: two per line when every choice is short. */
+  const renderChoices = (
+    choices: { letter: string; text: string; isKey: boolean }[],
+    revealKey: boolean,
+  ) => {
+    const short = choices.every((c) => pdfSafeText(c.text).length <= 16);
+    const one = (c: { letter: string; text: string; isKey: boolean }, i: number) => {
+      const key = revealKey && c.isKey;
+      return (
+        <View key={i} style={short ? styles.choiceHalf : styles.choiceRow}>
+          <View style={key ? [styles.choiceCircle, styles.choiceCircleKey] : styles.choiceCircle}>
+            <Text style={key ? [styles.choiceCircleText, styles.choiceCircleTextKey] : styles.choiceCircleText}>
+              {c.letter}
+            </Text>
+          </View>
+          <PdfMathText text={c.text} style={styles.choiceText} />
+        </View>
+      );
+    };
+    return short ? (
+      <View style={styles.choiceGrid}>{choices.map(one)}</View>
+    ) : (
+      <View style={styles.choiceList}>{choices.map(one)}</View>
+    );
+  };
+
+  const renderStandardProblem = (item: PdfItem, n: number) => {
+    const scaffold = showScaffold && item.question.scaffolding && (
+      <View style={styles.scaffoldBox}>
+        {item.question.scaffolding.map((step, idx) => (
+          <View key={idx} style={styles.scaffoldStep}>
+            <Text style={styles.scaffoldText}>{pdfSafeText(step.text)}</Text>
+            {step.blankLength && (
+              <View style={[styles.blank, { width: step.blankLength * 5 }]} />
+            )}
+          </View>
+        ))}
+      </View>
+    );
+    if (grid) {
+      // Text on top, diagram under it at the right, answer line from the cell.
+      return (
+        <View key={n} style={{ flexDirection: 'row' }}>
+          <Text style={styles.problemNumber}>{n}.</Text>
+          <View style={styles.problemContent}>
+            <PdfMathText text={item.question.text} style={styles.questionText} />
+            {scaffold}
+            {renderScaledDiagram(item)}
+          </View>
+        </View>
+      );
+    }
+    return (
+      // wrap={false}, diagram + answer line never split across pages
+      <View key={n} style={styles.problemRow} wrap={false}>
+        <Text style={styles.problemNumber}>{n}.</Text>
+        <View style={styles.problemContent}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <PdfMathText text={item.question.text} style={styles.questionText} />
+              {scaffold}
+              {showAnswerLine && answerLine}
+            </View>
+            {renderScaledDiagram(item)}
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   /** Geometry + Algebra-2 proofs: two-column table or Elements exposition. */
   const renderProofProblem = (item: PdfItem, n: number) => {
@@ -1007,6 +1113,24 @@ export function PdfVersionPages({
       elementsEnunciation?: string;
       svgParams?: { kind: string };
     };
+    const givenProve = (
+      <View>
+        <View style={{ flexDirection: 'row', marginBottom: 3 }}>
+          <Text style={[styles.questionText, { marginBottom: 0, width: 42 }]}>Given:</Text>
+          <View style={{ flex: 1 }}>
+            {p.given.map((g, i) => (
+              <PdfMathText key={i} text={g} style={[styles.questionText, { marginBottom: 1 }]} />
+            ))}
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={[styles.questionText, { width: 42 }]}>Prove:</Text>
+          <View style={{ flex: 1 }}>
+            <PdfMathText text={p.prove} style={styles.questionText} />
+          </View>
+        </View>
+      </View>
+    );
     // Blank Workspace format: Given/Prove + diagram, then one big open
     // space spanning the full width. No table, no steps shown.
     if (docType === 'proof-blank') {
@@ -1015,16 +1139,7 @@ export function PdfVersionPages({
           <Text style={styles.problemNumber}>{n}.</Text>
           <View style={styles.problemContent}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={styles.questionText}>
-                  <Text style={styles.answerLabel}>Prove: </Text>
-                  {pdfSafeText(p.prove)}
-                </Text>
-                <Text style={styles.givenText}>
-                  <Text style={styles.answerLabel}>Given: </Text>
-                  {p.given.map((g) => pdfSafeText(g)).join('; ')}
-                </Text>
-              </View>
+              <View style={{ flex: 1, paddingRight: 8 }}>{givenProve}</View>
               {renderScaledDiagram(item)}
             </View>
             <View style={styles.proofWorkspace} />
@@ -1047,16 +1162,7 @@ export function PdfVersionPages({
                   Proposition {pdfSafeText(p.elementsProposition)}
                 </Text>
               ) : (
-                <View>
-                  <Text style={styles.questionText}>
-                    <Text style={styles.answerLabel}>Prove: </Text>
-                    {pdfSafeText(p.prove)}
-                  </Text>
-                  <Text style={styles.givenText}>
-                    <Text style={styles.answerLabel}>Given: </Text>
-                    {p.given.map((g) => pdfSafeText(g)).join('; ')}
-                  </Text>
-                </View>
+                givenProve
               )}
 
               {useElements ? (
@@ -1079,30 +1185,37 @@ export function PdfVersionPages({
                     )
                   )}
                 </View>
-              ) : (
-                <View style={styles.proofTable}>
-                  <View style={[styles.proofRow, styles.proofHeadRow]}>
-                    <Text style={[styles.proofCell, styles.proofNum, styles.proofHead]}>#</Text>
-                    <Text style={[styles.proofCell, styles.proofStmt, styles.proofHead]}>Statement</Text>
-                    <Text style={[styles.proofCell, styles.proofReason, styles.proofHead]}>Reason</Text>
-                  </View>
-                  {p.steps.map((s, i) => (
-                    <View key={i} style={styles.proofRow}>
-                      <Text style={[styles.proofCell, styles.proofNum]}>{i + 1}</Text>
-                      <Text style={[styles.proofCell, styles.proofStmt]}>
-                        {showAll || !s.blankStatement ? pdfSafeText(s.statement) : '_______________'}
-                      </Text>
-                      <Text style={[styles.proofCell, styles.proofReason]}>
-                        {showAll || !s.blankReason ? pdfSafeText(s.reason) : '_______________'}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+              ) : null}
             </View>
-
             {renderScaledDiagram(item)}
           </View>
+
+          {/* Two-column table runs the full width under the figure. Blank
+              cells are left open to write in. */}
+          {!useElements ? (
+            <View style={styles.proofTable}>
+              <View style={[styles.proofRow, styles.proofHeadRow]}>
+                <Text style={[styles.proofCell, styles.proofNum, styles.proofHead]}> </Text>
+                <Text style={[styles.proofCell, styles.proofStmt, styles.proofHead, { textAlign: 'center' }]}>Statements</Text>
+                <Text style={[styles.proofCell, styles.proofReason, styles.proofHead, { textAlign: 'center' }]}>Reasons</Text>
+              </View>
+              {p.steps.map((s, i) => (
+                <View key={i} style={styles.proofRow} wrap={false}>
+                  <Text style={[styles.proofCell, styles.proofNum, { color: '#666666' }]}>{i + 1}</Text>
+                  <View style={[styles.proofCellBox, styles.proofStmt]}>
+                    {showAll || !s.blankStatement ? (
+                      <PdfMathText text={s.statement} style={styles.proofCellText} />
+                    ) : null}
+                  </View>
+                  <View style={[styles.proofCellBox, styles.proofReason]}>
+                    {showAll || !s.blankReason ? (
+                      <PdfMathText text={s.reason} style={styles.proofCellText} />
+                    ) : null}
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       </View>
     );
@@ -1119,21 +1232,15 @@ export function PdfVersionPages({
     };
     const showKey = docType === 'review' || docType === 'classical-notes';
     return (
-      <View key={n} style={styles.problemRow} wrap={false}>
+      <View key={n} style={grid ? { flexDirection: 'row' } : styles.problemRow} wrap={false}>
         <Text style={styles.problemNumber}>{n}.</Text>
         <View style={styles.problemContent}>
-          <Text style={styles.questionText}>{pdfSafeText(p.stem)}</Text>
+          <PdfMathText text={p.stem} style={styles.questionText} />
           {p.format === 'MCQ' ? (
-            <View style={styles.choiceList}>
-              {(p.options ?? []).map((o) => (
-                <View key={o.option} style={styles.choiceRow}>
-                  <Text style={showKey && o.isKey ? styles.choiceKey : styles.choiceLetter}>
-                    ({o.option})
-                  </Text>
-                  <Text style={styles.choiceText}>{pdfSafeText(o.label)}</Text>
-                </View>
-              ))}
-            </View>
+            renderChoices(
+              (p.options ?? []).map((o) => ({ letter: o.option, text: o.label, isKey: o.isKey })),
+              showKey,
+            )
           ) : (
             <View style={styles.gridInRow}>
               {Array.from({ length: 7 }).map((_, i) => (
@@ -1168,44 +1275,47 @@ export function PdfVersionPages({
     };
     const showKey = docType === 'review' || docType === 'classical-notes';
     const letters = ['A', 'B', 'C', 'D', 'E'];
+    const body = (
+      <>
+        <PdfMathText
+          text={p.type === 'PRECALC_MCQ' ? p.stem ?? '' : p.prompt ?? ''}
+          style={styles.questionText}
+        />
+        {p.table ? (
+          <CalcTablePdf headers={p.table.headers} rows={p.table.rows} />
+        ) : null}
+        {renderChoices(
+          p.choices.map((c, i) => ({ letter: letters[i], text: c, isKey: i === p.correctIndex })),
+          showKey,
+        )}
+        {showScaffold && p.steps && p.steps.length > 0 && (
+          <View style={styles.scaffoldBox}>
+            {p.steps.map((s, idx) => (
+              <View key={idx} style={styles.scaffoldStep}>
+                <Text style={styles.scaffoldText}>{pdfSafeText(s.instruction)}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </>
+    );
+    if (grid) {
+      return (
+        <View key={n} style={{ flexDirection: 'row' }}>
+          <Text style={styles.problemNumber}>{n}.</Text>
+          <View style={styles.problemContent}>
+            {body}
+            {renderScaledDiagram(item)}
+          </View>
+        </View>
+      );
+    }
     return (
       <View key={n} style={styles.problemRow} wrap={false}>
         <Text style={styles.problemNumber}>{n}.</Text>
         <View style={styles.problemContent}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <View style={{ flex: 1, paddingRight: 8 }}>
-              <Text style={styles.questionText}>
-                {pdfSafeText(p.type === 'PRECALC_MCQ' ? p.stem ?? '' : p.prompt ?? '')}
-              </Text>
-              {p.table ? (
-                <CalcTablePdf headers={p.table.headers} rows={p.table.rows} />
-              ) : null}
-              <View style={styles.choiceList}>
-                {p.choices.map((c, i) => (
-                  <View key={i} style={styles.choiceRow}>
-                    <Text style={showKey && i === p.correctIndex ? styles.choiceKey : styles.choiceLetter}>
-                      ({letters[i]})
-                    </Text>
-                    <Text style={styles.choiceText}>{pdfSafeText(c)}</Text>
-                  </View>
-                ))}
-              </View>
-              {showScaffold && p.steps && p.steps.length > 0 && (
-                <View style={styles.scaffoldBox}>
-                  {p.steps.map((s, idx) => (
-                    <View key={idx} style={styles.scaffoldStep}>
-                      <Text style={styles.scaffoldText}>{pdfSafeText(s.instruction)}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {showAnswerLine && (
-                <View style={styles.answerLine}>
-                  <Text style={styles.answerLabel}>Answer:</Text>
-                  <View style={styles.answerBlank} />
-                </View>
-              )}
-            </View>
+            <View style={{ flex: 1, paddingRight: 8 }}>{body}</View>
             {renderScaledDiagram(item)}
           </View>
         </View>
@@ -1240,9 +1350,12 @@ export function PdfVersionPages({
           {renderFRQStimulus(p)}
           {p.subparts.map((s) => (
             <View key={s.label} style={styles.subpart}>
-              <Text style={styles.questionText}>
-                ({s.label}) {pdfSafeText(s.prompt)}
-              </Text>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={[styles.questionText, { width: 20 }]}>({s.label})</Text>
+                <View style={{ flex: 1 }}>
+                  <PdfMathText text={s.prompt} style={styles.questionText} />
+                </View>
+              </View>
               {showKey ? (
                 <View style={{ marginTop: 4 }}>
                   <Text style={styles.keyAnswerSm}>{pdfSafeText(s.answer)}</Text>
@@ -1264,6 +1377,13 @@ export function PdfVersionPages({
     );
   };
 
+  const isFullWidth = (item: PdfItem) =>
+    item.problem?.type === 'Proof' || item.problem?.type === 'AP_FRQ';
+  const isChoiceProblem = (item: PdfItem) => {
+    const t = item.problem?.type;
+    return t === 'SAT' || t === 'PRECALC_MCQ' || t === 'CALC_MCQ';
+  };
+
   const renderProblem = (item: PdfItem, n: number) => {
     const t = item.problem?.type;
     if (t === 'SAT') return renderSATProblem(item, n);
@@ -1271,6 +1391,65 @@ export function PdfVersionPages({
     if (t === 'AP_FRQ') return renderFRQProblem(item, n);
     if (t === 'PRECALC_MCQ' || t === 'CALC_MCQ') return renderMCQProblem(item, n);
     return renderStandardProblem(item, n);
+  };
+
+  /** Pair half-width problems into two-column rows; proofs and FRQs span the page. */
+  const renderGridRows = (
+    items: { item: PdfItem; n: number }[],
+    label: string | null,
+  ) => {
+    const rows: { item: PdfItem; n: number }[][] = [];
+    let pending: { item: PdfItem; n: number } | null = null;
+    for (const it of items) {
+      if (isFullWidth(it.item)) {
+        if (pending) rows.push([pending]);
+        pending = null;
+        rows.push([it]);
+      } else if (pending) {
+        rows.push([pending, it]);
+        pending = null;
+      } else {
+        pending = it;
+      }
+    }
+    if (pending) rows.push([pending]);
+
+    const cell = (it: { item: PdfItem; n: number } | undefined, side: 'left' | 'right') => (
+      <View style={side === 'left' ? styles.gridCellLeft : styles.gridCellRight}>
+        {it ? renderProblem(it.item, it.n) : null}
+        {it && showAnswerLine && !isChoiceProblem(it.item) ? answerLine : null}
+      </View>
+    );
+
+    // A section heading travels with its first row so it never sits alone
+    // at the foot of a page. The heading's own rule stands in for that
+    // row's top hairline.
+    const heading = label ? (
+      <View style={styles.sectionDivider}>
+        <Text style={styles.sectionLabel}>{label}</Text>
+      </View>
+    ) : null;
+
+    return rows.map((row, ri) => {
+      const ruled = ri > 0;
+      const body =
+        row.length === 1 && isFullWidth(row[0].item) ? (
+          <View style={ruled ? [styles.gridRow, styles.gridRowRule] : styles.gridRow}>
+            <View style={styles.gridCellFull}>{renderProblem(row[0].item, row[0].n)}</View>
+          </View>
+        ) : (
+          <View style={[styles.gridRow, ruled ? styles.gridRowRule : {}, { minHeight: workRoom }]}>
+            {cell(row[0], 'left')}
+            {cell(row[1], 'right')}
+          </View>
+        );
+      return (
+        <View key={row[0].n} wrap={false}>
+          {ri === 0 ? heading : null}
+          {body}
+        </View>
+      );
+    });
   };
 
   /** Answer-key row: classical mode reveals reasons; FRQ/SAT add justifications. */
@@ -1308,76 +1487,69 @@ export function PdfVersionPages({
     );
   };
 
+  const directions =
+    docType === 'guided-notes'
+      ? 'Fill in each blank as we work through the problems together. Use the diagrams to guide your thinking.'
+      : docType === 'test'
+      ? 'Show all work. Write your final answer on each answer line. Partial credit may be awarded for correct steps.'
+      : docType === 'worksheet'
+      ? 'Show your work under each problem. Write your final answer on the line.'
+      : docType === 'review'
+      ? 'Show your work under each problem.'
+      : docType === 'classical-notes'
+      ? 'Study each demonstration step. Write the missing reason on each ruled line, answer the margin questions, then narrate the idea in your own words.'
+      : docType === 'proof-two-column' || docType === 'proof-fill-reasons'
+      ? 'Complete each proof. Give a reason for every statement.'
+      : docType === 'proof-blank'
+      ? 'Write a complete proof in the space under each problem.'
+      : docType === 'sat-practice'
+      ? 'Circle the best answer, or write your answer in the boxes.'
+      : null;
+
   const renderHeader = (heading: string, sub: string) => (
     <View style={styles.headerWrapper}>
       <View style={styles.headerTopRule}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-          
-          <Text style={styles.title}>{pdfSafeText(heading)}</Text>
-        </View>
+        <Text style={styles.title}>{pdfSafeText(heading)}</Text>
         <Text style={styles.modeLabel}>{sub}</Text>
       </View>
 
       {/* Name / Date / Period */}
       <View style={styles.infoRow}>
         <View style={styles.infoLeft}>
-          <Text style={styles.infoLabel}>Name: </Text>
-          <View style={[styles.infoBlank, { width: 160 }]} />
+          <Text style={styles.infoLabel}>Name</Text>
+          <View style={[styles.infoBlank, { flex: 1 }]} />
         </View>
         <View style={styles.infoRight}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <Text style={styles.infoLabel}>Date: </Text>
-            <View style={[styles.infoBlank, { width: 70 }]} />
+            <Text style={styles.infoLabel}>Date</Text>
+            <View style={[styles.infoBlank, { width: 88 }]} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <Text style={styles.infoLabel}>Period: </Text>
-            <View style={[styles.infoBlank, { width: 35 }]} />
+            <Text style={styles.infoLabel}>Period</Text>
+            <View style={[styles.infoBlank, { width: 64 }]} />
           </View>
         </View>
       </View>
+      <View style={styles.doubleRuleThick} />
+      <View style={styles.doubleRuleThin} />
 
-      {/* Directions */}
-      {docType === 'guided-notes' && (
+      {directions ? (
         <View style={styles.directionsBox}>
-          <Text>
-            <Text style={styles.directionsBold}>Directions: </Text>
-            <Text style={styles.directionsText}>
-              Fill in each blank as we work through the problems together. Use the diagrams to guide your thinking.
-            </Text>
-          </Text>
+          <Text style={styles.directionsText}>{directions}</Text>
         </View>
-      )}
-      {docType === 'test' && (
-        <View style={styles.directionsBox}>
-          <Text>
-            <Text style={styles.directionsBold}>Directions: </Text>
-            <Text style={styles.directionsText}>
-              Show all work. Write your final answer on each answer line. Partial credit may be awarded for correct steps.
-            </Text>
-          </Text>
-        </View>
-      )}
-      {docType === 'classical-notes' && (
-        <View style={styles.directionsBox}>
-          <Text>
-            <Text style={styles.directionsBold}>Directions: </Text>
-            <Text style={styles.directionsText}>
-              Study each demonstration step. Write the missing reason on each ruled
-              line, answer the margin questions, then narrate the idea in your own
-              words.
-            </Text>
-          </Text>
-        </View>
-      )}
+      ) : null}
     </View>
   );
 
   const renderFooter = () => (
     <View style={styles.footer} fixed>
       <Text style={styles.footerText}>{standard}</Text>
-      <Text style={styles.footerText}>
-        Euclid Engine, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}{watermark ? ' · Made with Euclid Engine Free' : ''}
-      </Text>
+      <Text
+        style={styles.footerText}
+        render={({ pageNumber }) =>
+          `${watermark ? 'Made with Euclid Engine Free  ·  ' : 'Euclid Engine  ·  '}Page ${pageNumber}`
+        }
+      />
     </View>
   );
 
@@ -1418,29 +1590,25 @@ export function PdfVersionPages({
           <View>
             {numberedSections.map((sec, si) => (
               <View key={si}>
-                {sec.label && (
+                {sec.label && !grid && (
                   <View style={styles.sectionDivider}>
-                    <View style={styles.sectionRule} />
                     <Text style={styles.sectionLabel}>{sec.label}</Text>
-                    <View style={styles.sectionRule} />
                   </View>
                 )}
-                {sec.items.map(({ item, n }) => {
-                  const el = renderProblem(item, n);
-                  // Fewer-per-page accommodation: force a page break every K
-                  // problems. The cap only binds when an accommodation
-                  // actually lowered it below the default; the standard
-                  // worksheet flows naturally and fills each page.
-                  // (Classical-notes entry sections keep natural flow.)
-                  const capActive =
-                    presentation.maxProblemsPerPage <
-                    DEFAULT_PRESENTATION.maxProblemsPerPage;
-                  const needsBreak =
-                    capActive &&
-                    n > 1 &&
-                    (n - 1) % presentation.maxProblemsPerPage === 0;
-                  return needsBreak ? React.cloneElement(el, { break: true }) : el;
-                })}
+                {grid
+                  ? renderGridRows(sec.items, sec.label)
+                  : sec.items.map(({ item, n }) => {
+                      const el = renderProblem(item, n);
+                      // Fewer-per-page accommodation: force a page break every
+                      // K problems. The standard worksheet flows naturally and
+                      // fills each page. (Classical-notes entry sections keep
+                      // natural flow.)
+                      const needsBreak =
+                        capActive &&
+                        n > 1 &&
+                        (n - 1) % presentation.maxProblemsPerPage === 0;
+                      return needsBreak ? React.cloneElement(el, { break: true }) : el;
+                    })}
               </View>
             ))}
           </View>
@@ -1492,14 +1660,8 @@ export default function PdfDocument(props: PdfDocumentProps) {
 
 // Divider pages carry no version of their own, so they follow the default
 // presentation's font (sans), same fam() swap as createStyles above.
-const dividerFam = (
-  f: 'WorksheetSerif' | 'WorksheetSerifBold',
-): { fontFamily: string; fontWeight?: number } =>
-  DEFAULT_PRESENTATION.fontFamily === 'sans'
-    ? f === 'WorksheetSerifBold'
-      ? { fontFamily: 'WorksheetSans', fontWeight: 700 }
-      : { fontFamily: 'WorksheetSans' }
-    : { fontFamily: f };
+const dividerFam = (f: 'WorksheetSerif' | 'WorksheetSerifBold') =>
+  pdfFamily(DEFAULT_PRESENTATION.fontFamily, f);
 
 const dividerStyles = StyleSheet.create({
   page: {
