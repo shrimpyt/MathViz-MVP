@@ -346,6 +346,32 @@ function recompute6(p: MiddleSchoolProblem): string | number {
           : `${inum(g, "g")}(${inum(g, "p")} + ${inum(g, "q")})`;
       }
       if (kind === "mental-math") return inum(g, "a") * inum(g, "b") * inum(g, "c");
+      // Nov 10, 2026 families: identity, evaluation, word contexts.
+      if (kind === "identity-why") return istr(g, "form") === "mul" ? "Identity Property of Multiplication" : "Identity Property of Addition";
+      if (kind === "identity-apply") {
+        const form = istr(g, "form");
+        if (form === "add-var" || form === "mul-var") return istr(g, "variable");
+        return String(inum(g, "a"));
+      }
+      if (kind === "identity-blank") return istr(g, "form") === "mul-one" ? 1 : 0;
+      if (kind === "identity-assoc-pair") {
+        const a = inum(g, "a"), v = istr(g, "variable");
+        return `${a} + (${v} + 0); ${a} + ${v}`;
+      }
+      if (kind === "eval-props") return inum(g, "b") + inum(g, "c");
+      if (kind === "eval-context") return `$${inum(g, "p1") * inum(g, "n1") + inum(g, "p2") * inum(g, "n2")}`;
+      if (kind === "ctx-model-add") {
+        const a = inum(g, "a"), v = istr(g, "variable");
+        return `${a} + ${v}, ${v} + ${a}`;
+      }
+      if (kind === "ctx-comm-eval") return `$${inum(g, "n") * inum(g, "m")}`;
+      if (kind === "ctx-assoc") return `$${inum(g, "x") + inum(g, "y") + inum(g, "z")}`;
+      if (kind === "ctx-dist-model") {
+        const a = inum(g, "a"), b = inum(g, "b"), v = istr(g, "variable");
+        return `${v}(${a} + ${b}), ${a}${v} + ${b}${v}`;
+      }
+      if (kind === "ctx-dist-write") return `${inum(g, "p") * inum(g, "n")} + ${inum(g, "p")}${istr(g, "variable")}`;
+      if (kind === "ctx-dist-total") return `$${inum(g, "p") * (inum(g, "a") + inum(g, "b"))}`;
       throw new Error(`unhandled PropertiesOfOperations kind=${kind}`);
     }
     case "EquationsAndInequalities": {
