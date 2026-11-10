@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "autoCompactWindow": 400000,
+  "permissions": {
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./worker/node_modules/**)",
+      "Read(./.next/**)",
+      "Read(./out/**)",
+      "Read(./build/**)",
+      "Read(./coverage/**)",
+      "Read(./.wrangler/**)",
+      "Read(./worker/.wrangler/**)",
+      "Read(./package-lock.json)",
+      "Read(./*.tsbuildinfo)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./worker/.dev.vars)",
+      "Read(./public/fonts/**)",
+      "Read(./public/vendor/**)",
+      "Read(./tests/redteam/results/**)"
+    ]
+  }
+}
