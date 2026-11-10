@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  ClickAwayListener,
 } from '@mui/material';
 import {
   Save,
@@ -46,10 +47,13 @@ import {
   ANON_ACCOUNT,
   FREE_GENERATION_LIMIT,
   bumpLocalUsage,
+  exportGateCopy,
   isFreeTopic,
+  isTopicAvailable,
   readLocalUsage,
   type AccountState,
 } from '../lib/plan';
+import { readBuilderSession, sessionStore, writeBuilderSession } from '../lib/builderSession';
 import {
   createPortalUrl,
   fetchAccount,
@@ -220,6 +224,22 @@ class PreviewErrorBoundary extends React.Component<
   }
 }
 
+// ── Draft save / load messages ──────────────────────────────────────────────
+
+function draftSavedText(fileName: string, topics: number): string {
+  const base = `Draft saved as ${fileName} in your downloads. Load draft opens it again, on this computer or another.`;
+  return topics === 0 ? `${base} It has no topics selected yet.` : base;
+}
+
+function draftLoadedText(fileName: string, topics: number, skipped: number): string {
+  const t = `${topics} topic${topics === 1 ? '' : 's'}`;
+  const skip =
+    skipped > 0
+      ? ` ${skipped} topic${skipped === 1 ? ' was' : 's were'} left out because ${skipped === 1 ? "it's" : "they're"} no longer offered.`
+      : '';
+  return `Loaded ${fileName}: ${t}, with its settings and problem seed.${skip}`;
+}
+
 // ── Draft file shape ──────────────────────────────────────────────────────────
 
 interface DraftFile {
@@ -275,11 +295,27 @@ export default function WorksheetGenerator() {
   const [wordProblems, setWordProblems] = useState(false);
   const [includeDiagrams, setIncludeDiagrams] = useState(true);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // ── Account / pay gate (soft gate, see lib/plan.ts) ──
   const [account, setAccount] = useState<AccountState>(ANON_ACCOUNT);
   const [gateMsg, setGateMsg] = useState<string | null>(null);
+  // The header sign-in menu. Lifted here so other places (the export
+  // explanation, /login) can open it.
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [exportGateOpen, setExportGateOpen] = useState(false);
+  // /login sends people here with ?signin=open; open the menu and take the
+  // flag off the address so a reload doesn't reopen it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('signin') !== 'open') return;
+    // A one-time read of the address after mount (static page).
+    setSignInOpen(true);
+    params.delete('signin');
+    const rest = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (rest ? `?${rest}` : '') + window.location.hash);
+  }, []);
   useEffect(() => {
     let live = true;
     fetchAccount().then((a) => {
@@ -377,6 +413,9 @@ export default function WorksheetGenerator() {
       );
       return;
     }
+    // The Pro notice describes a pick that didn't go through; once the
+    // selection changes it no longer applies.
+    setGateMsg(null);
     setSelectedTopicIds((prev) =>
       prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
     );
@@ -385,7 +424,10 @@ export default function WorksheetGenerator() {
   // One-tap reset: selections otherwise persist for the whole session, so a
   // packet built earlier (say Algebra 2) silently rides along into the next
   // one (say Geometry) unless every topic is untapped by hand.
-  const clearTopics = () => setSelectedTopicIds([]);
+  const clearTopics = () => {
+    setGateMsg(null);
+    setSelectedTopicIds([]);
+  };
 
   // ── Topic group accordion state ──
   // Collapsed by default; no topic is pre-selected, so no group starts open.
@@ -447,7 +489,7 @@ export default function WorksheetGenerator() {
       .map(([groupTitle, entries]): [string, CurriculumEntry[]] => {
         const groupHit = q !== '' && groupTitle.toLowerCase().includes(q);
         const kept = entries.filter((e) => {
-          if (availableOnly && e.underConstruction) return false;
+          if (availableOnly && !isTopicAvailable(e, isPro)) return false;
           if (subjectFilter !== 'All' && subjectOfTopic(e.topic) !== subjectFilter)
             return false;
           if (q === '') return true;
@@ -463,7 +505,7 @@ export default function WorksheetGenerator() {
         return [groupTitle, kept];
       })
       .filter(([, entries]) => entries.length > 0);
-  }, [topicGroups, isFiltering, topicSearch, availableOnly, subjectFilter]);
+  }, [topicGroups, isFiltering, topicSearch, availableOnly, subjectFilter, isPro]);
 
   const handleSearchChange = (v: string) => {
     const was = topicSearch.trim() !== '';
@@ -693,28 +735,22 @@ export default function WorksheetGenerator() {
       app: 'euclid-engine-worksheet',
       version: 1,
       savedAt: new Date().toISOString(),
-      docType,
-      title: customTitle,
-      topicIds: selectedTopicIds,
-      seed,
-      count,
-      topicCounts,
-      advancedCounts,
-      framework,
-      difficulty,
-      includeAnswerKey,
-      wordProblems,
-      includeDiagrams,
+      ...currentSettings(),
     };
+    const fileName = `euclid-draft-${new Date().toISOString().slice(0, 10)}.json`;
     const blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `euclid-draft-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    // The download used to be the only sign anything happened, and browsers
+    // that save silently showed nothing at all.
+    setDraftError(null);
+    setDraftNotice(draftSavedText(fileName, draft.topicIds.length));
   };
 
   // The settings this worksheet is rebuilt from (draft files and the
@@ -759,6 +795,7 @@ export default function WorksheetGenerator() {
 
   const loadDraftFile = (file: File) => {
     setDraftError(null);
+    setDraftNotice(null);
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -769,6 +806,8 @@ export default function WorksheetGenerator() {
         const settings = sanitizeSettings(d);
         if (!settings) throw new Error('Could not read that draft file.');
         applySettings(settings);
+        const asked = Array.isArray(d.topicIds) ? d.topicIds.length : 0;
+        setDraftNotice(draftLoadedText(file.name, settings.topicIds.length, asked - settings.topicIds.length));
       } catch (e) {
         setDraftError(e instanceof Error ? e.message : 'Could not read that draft file.');
       }
@@ -776,6 +815,25 @@ export default function WorksheetGenerator() {
     reader.onerror = () => setDraftError('Could not read that draft file.');
     reader.readAsText(file);
   };
+
+  // ── Keep the builder across navigation ──
+  // Restore once on load, then write after every change. Writing waits for
+  // the restore pass so the defaults never overwrite what was saved.
+  const [sessionRestored, setSessionRestored] = useState(false);
+  useEffect(() => {
+    const saved = readBuilderSession(sessionStore());
+    if (saved) {
+      // One-time restore from the browser after mount (static page).
+      applySettings(saved.settings);
+      setStep(saved.step);
+    }
+    setSessionRestored(true);
+  }, []);
+  useEffect(() => {
+    if (!sessionRestored) return;
+    writeBuilderSession(sessionStore(), { settings: currentSettings(), step });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionRestored, step, docType, customTitle, selectedTopicIds, seed, count, topicCounts, advancedCounts, framework, difficulty, includeAnswerKey, wordProblems, includeDiagrams]);
 
   // ── Saved library (Pro) ──
   const [libraryMsg, setLibraryMsg] = useState<{ severity: 'success' | 'error'; text: string } | null>(null);
@@ -918,7 +976,9 @@ export default function WorksheetGenerator() {
         step={step}
         goTo={goToStep}
         problemCount={advancedProblems.length}
-        accountControl={<AccountControl account={account} onAccountChange={setAccount} />}
+        accountControl={
+          <AccountControl account={account} onAccountChange={setAccount} open={signInOpen} setOpen={setSignInOpen} />
+        }
       />
 
       {gateMsg && (
@@ -1021,6 +1081,9 @@ export default function WorksheetGenerator() {
             fileRef={fileRef}
             mounted={mounted}
             draftError={draftError}
+            draftNotice={draftNotice}
+            clearDraftNotice={() => setDraftNotice(null)}
+            onGatedExport={() => setExportGateOpen(true)}
             proofDocMode={proofDocMode}
             selectedModules={selectedModules}
             moduleProblemCounts={displayProblemSets.map((set) => set.length)}
@@ -1071,6 +1134,46 @@ export default function WorksheetGenerator() {
             {saving ? 'Saving…' : 'Save'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Why Free can't export this one (was a silent jump to /pricing) */}
+      <Dialog open={exportGateOpen && !!gateReason} onClose={() => setExportGateOpen(false)} maxWidth="xs" fullWidth>
+        {gateReason && (() => {
+          const copy = exportGateCopy(gateReason, {
+            signedIn: account.status === 'signed-in',
+            limit: account.limit ?? FREE_GENERATION_LIMIT,
+          });
+          return (
+            <>
+              <DialogTitle sx={{ fontWeight: 800 }}>{copy.title}</DialogTitle>
+              <DialogContent>
+                {copy.body.map((line) => (
+                  <Typography key={line} sx={{ fontSize: '0.9rem', mb: 1 }}>
+                    {line}
+                  </Typography>
+                ))}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setExportGateOpen(false)} sx={{ color: '#9aa0be' }}>
+                  Not now
+                </Button>
+                {account.status !== 'signed-in' && (
+                  <Button
+                    onClick={() => {
+                      setExportGateOpen(false);
+                      setSignInOpen(true);
+                    }}
+                  >
+                    Sign in
+                  </Button>
+                )}
+                <Button variant="contained" href="/pricing">
+                  See Pro
+                </Button>
+              </DialogActions>
+            </>
+          );
+        })()}
       </Dialog>
 
       {/* Hidden draft file input */}
@@ -1163,11 +1266,14 @@ const CODE_ERRORS: Record<string, string> = {
 function AccountControl({
   account,
   onAccountChange,
+  open,
+  setOpen,
 }: {
   account: AccountState;
   onAccountChange: (a: AccountState) => void;
+  open: boolean;
+  setOpen: (v: boolean | ((o: boolean) => boolean)) => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState('');
@@ -1272,14 +1378,29 @@ function AccountControl({
   }
 
   return (
-    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1 }}>
+    <ClickAwayListener onClickAway={() => open && setOpen(false)}>
+    <Box
+      sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1 }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && open) setOpen(false);
+      }}
+    >
       <Button size="small" href="/pricing" sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}>
         Pricing
       </Button>
+      {/* A real link to /login, so a click before the page has finished
+          loading still gets somewhere (it used to do nothing until reload).
+          Once loaded, the click opens the menu in place instead. */}
       <Button
         size="small"
         variant="outlined"
-        onClick={() => setOpen((o) => !o)}
+        href="/login"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={(e: React.MouseEvent) => {
+          e.preventDefault();
+          setOpen((o) => !o);
+        }}
         sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '10px', fontWeight: 800, whiteSpace: 'nowrap', '&:hover': { borderColor: '#818cf8' } }}
       >
         Sign in
@@ -1422,6 +1543,7 @@ function AccountControl({
         </Box>
       )}
     </Box>
+    </ClickAwayListener>
   );
 }
 
@@ -2442,6 +2564,9 @@ function StepReview({
   fileRef,
   mounted,
   draftError,
+  draftNotice,
+  clearDraftNotice,
+  onGatedExport,
   proofDocMode,
   selectedModules,
   moduleProblemCounts,
@@ -2475,6 +2600,10 @@ function StepReview({
   fileRef: React.RefObject<HTMLInputElement | null>;
   mounted: boolean;
   draftError: string | null;
+  draftNotice: string | null;
+  clearDraftNotice: () => void;
+  /** Free can't export this one: explain why instead of leaving the page. */
+  onGatedExport: () => void;
   proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | 'proof-blank' | undefined;
   selectedModules: CurriculumEntry[];
   /** Per-module generated problem counts, parallel to selectedModules. */
@@ -2595,7 +2724,7 @@ function StepReview({
             variant="contained"
             color="secondary"
             startIcon={<PictureAsPdf />}
-            href="/pricing"
+            onClick={onGatedExport}
             sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
           >
             Export PDF 🎉
@@ -2715,6 +2844,16 @@ function StepReview({
       {draftError && (
         <Alert severity="error" sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>
           {draftError}
+        </Alert>
+      )}
+      {draftNotice && (
+        <Alert
+          severity="success"
+          onClose={clearDraftNotice}
+          role="status"
+          sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
+        >
+          {draftNotice}
         </Alert>
       )}
 
