@@ -56,6 +56,16 @@ import {
   type Plan,
   type StripeEventLike,
 } from "./core";
+import {
+  MAX_SAVED_WORKSHEETS,
+  RATE_LIMIT_LIBRARY_READS,
+  RATE_LIMIT_LIBRARY_WRITES,
+  SAVED_WORKSHEETS_DDL,
+  isWorksheetId,
+  normalizeWorksheetName,
+  serializeWorksheetSettings,
+  validateWorksheetSettings,
+} from "./worksheets";
 
 const SESSION_COOKIE = "euclid_session";
 
@@ -593,6 +603,140 @@ async function handleMe(env: Env, req: Request): Promise<Response> {
   });
 }
 
+// ── Saved worksheets (Pro library) ─────────────────────────────────────────
+// Each row is a worksheet's generator settings and seed (never the PDF), so
+// the app can rebuild the exact same worksheet and answer key. Saving is Pro
+// only; listing, renaming and deleting stay open to the owner on any plan,
+// so a teacher whose Pro lapses can still see and tidy what they saved.
+
+// The table is also in schema.sql and worker/migrations. Creating it here
+// too means a deploy that lands before either is run still works.
+let savedWorksheetsTableReady = false;
+async function ensureSavedWorksheetsTable(env: Env): Promise<void> {
+  if (savedWorksheetsTableReady) return;
+  for (const sql of SAVED_WORKSHEETS_DDL) await env.DB.prepare(sql).run();
+  savedWorksheetsTableReady = true;
+}
+
+interface SavedWorksheetRow {
+  id: string;
+  name: string;
+  settings: string;
+  created_at: number;
+  updated_at: number;
+}
+
+function savedWorksheetJson(row: SavedWorksheetRow) {
+  let settings: unknown = null;
+  try {
+    settings = JSON.parse(row.settings);
+  } catch {
+    settings = null;
+  }
+  return {
+    id: row.id,
+    name: row.name,
+    settings,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function handleListWorksheets(env: Env, req: Request): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `lib-read:${user.id}`, RATE_LIMIT_LIBRARY_READS, now))) {
+    return rateLimited(req);
+  }
+  await ensureSavedWorksheetsTable(env);
+  const { results } = await env.DB.prepare(
+    `SELECT id, name, settings, created_at, updated_at FROM saved_worksheets
+     WHERE user_id = ? ORDER BY updated_at DESC, created_at DESC LIMIT ?`,
+  )
+    .bind(user.id, MAX_SAVED_WORKSHEETS)
+    .all<SavedWorksheetRow>();
+  return json(req, {
+    pro: planOf(user) === "pro",
+    limit: MAX_SAVED_WORKSHEETS,
+    items: results.map(savedWorksheetJson),
+  });
+}
+
+async function handleSaveWorksheet(env: Env, req: Request): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  if (planOf(user) !== "pro") return json(req, { error: "pro_required" }, 403);
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `lib-write:${user.id}`, RATE_LIMIT_LIBRARY_WRITES, now))) {
+    return rateLimited(req);
+  }
+  const body = (await req.json().catch(() => null)) as { name?: unknown; settings?: unknown } | null;
+  const name = normalizeWorksheetName(body?.name);
+  if (!name) return json(req, { error: "invalid_name" }, 400);
+  const settings = validateWorksheetSettings(body?.settings);
+  if (!settings) return json(req, { error: "invalid_settings" }, 400);
+  const stored = serializeWorksheetSettings(settings);
+  if (!stored) return json(req, { error: "too_large" }, 413);
+
+  await ensureSavedWorksheetsTable(env);
+  const id = randomTokenHex(16);
+  // One statement checks the cap and inserts, so two quick saves can't both
+  // squeeze past the limit.
+  const inserted = await env.DB.prepare(
+    `INSERT INTO saved_worksheets (id, user_id, name, settings, created_at, updated_at)
+     SELECT ?, ?, ?, ?, ?, ?
+     WHERE (SELECT COUNT(*) FROM saved_worksheets WHERE user_id = ?) < ?`,
+  )
+    .bind(id, user.id, name, stored, now, now, user.id, MAX_SAVED_WORKSHEETS)
+    .run();
+  if ((inserted.meta?.changes ?? 0) !== 1) {
+    return json(req, { error: "library_full", limit: MAX_SAVED_WORKSHEETS }, 409);
+  }
+  return json(req, {
+    ok: true,
+    item: savedWorksheetJson({ id, name, settings: stored, created_at: now, updated_at: now }),
+  });
+}
+
+async function handleRenameWorksheet(env: Env, req: Request): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `lib-write:${user.id}`, RATE_LIMIT_LIBRARY_WRITES, now))) {
+    return rateLimited(req);
+  }
+  const body = (await req.json().catch(() => null)) as { id?: unknown; name?: unknown } | null;
+  if (!isWorksheetId(body?.id)) return json(req, { error: "not_found" }, 404);
+  const name = normalizeWorksheetName(body?.name);
+  if (!name) return json(req, { error: "invalid_name" }, 400);
+  await ensureSavedWorksheetsTable(env);
+  const res = await env.DB.prepare(
+    "UPDATE saved_worksheets SET name = ?, updated_at = ? WHERE id = ? AND user_id = ?",
+  )
+    .bind(name, now, body!.id, user.id)
+    .run();
+  if ((res.meta?.changes ?? 0) !== 1) return json(req, { error: "not_found" }, 404);
+  return json(req, { ok: true, name });
+}
+
+async function handleDeleteWorksheet(env: Env, req: Request): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `lib-write:${user.id}`, RATE_LIMIT_LIBRARY_WRITES, now))) {
+    return rateLimited(req);
+  }
+  const body = (await req.json().catch(() => null)) as { id?: unknown } | null;
+  if (!isWorksheetId(body?.id)) return json(req, { error: "not_found" }, 404);
+  await ensureSavedWorksheetsTable(env);
+  const res = await env.DB.prepare("DELETE FROM saved_worksheets WHERE id = ? AND user_id = ?")
+    .bind(body!.id, user.id)
+    .run();
+  if ((res.meta?.changes ?? 0) !== 1) return json(req, { error: "not_found" }, 404);
+  return json(req, { ok: true });
+}
+
 async function handleCount(env: Env, req: Request): Promise<Response> {
   const user = await sessionUser(env, req);
   if (!user) return json(req, { error: "not signed in" }, 401);
@@ -836,6 +980,8 @@ export default {
         return handleVerifyPage(req);
       if (req.method === "GET" && pathname.endsWith("/me"))
         return await handleMe(env, req);
+      if (req.method === "GET" && pathname.endsWith("/worksheets"))
+        return await handleListWorksheets(env, req);
       if (req.method === "GET" && pathname.endsWith("/auth/methods"))
         return handleMethods(env, req);
       if (req.method === "GET" && pathname.endsWith("/founders"))
@@ -862,6 +1008,12 @@ export default {
         return await handleVerify(env, req);
       if (req.method === "POST" && pathname.endsWith("/auth/signout"))
         return await handleSignOut(env, req);
+      if (req.method === "POST" && pathname.endsWith("/worksheets/save"))
+        return await handleSaveWorksheet(env, req);
+      if (req.method === "POST" && pathname.endsWith("/worksheets/rename"))
+        return await handleRenameWorksheet(env, req);
+      if (req.method === "POST" && pathname.endsWith("/worksheets/delete"))
+        return await handleDeleteWorksheet(env, req);
       if (req.method === "POST" && pathname.endsWith("/count"))
         return await handleCount(env, req);
       if (req.method === "POST" && pathname.endsWith("/event"))
