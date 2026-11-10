@@ -86,6 +86,8 @@ export interface TrigProblem {
   find: string;
   answer: number | string;
   steps: ProblemStep[];
+  /** Word-problem text for ElevationDepression items. */
+  scenario?: string;
   svgParams: TrigSVGParams;
 }
 

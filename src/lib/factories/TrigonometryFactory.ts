@@ -47,6 +47,7 @@ export function generateTrigProblems(
     let labelAdj = '';
     let labelHyp = '';
     let refAngleLabel = 'θ';
+    let scenario: string | undefined;
 
     if (subtype === 'IdentifyRatio') {
       given = { opposite: opp, adjacent: adj, hypotenuse: hyp };
@@ -80,23 +81,22 @@ export function generateTrigProblems(
       refAngleLabel = `${angleValue}°`;
       
       const isAltScenario = subtype === 'ElevationDepression';
-      const scenario = pick(rng, [
-        { find: 'height', obj: 'a building', observer: 'a surveyor' },
-        { find: 'distance', obj: 'a lighthouse', observer: 'a boat' },
-        { find: 'length', obj: 'a tree', observer: 'a shadow' }
-      ]);
-      
+      // The key must come from the angle the student sees (rounded to a
+      // whole degree), not from the exact triple, or nearest-tenth answers
+      // drift by up to ~0.3.
+      const rad = angleValue * Math.PI / 180;
+      const round1 = (v: number) => Math.round(v * 10) / 10;
+      // Former scenario pick; still drawn so existing seeds keep their numbers.
+      pick(rng, [0, 1, 2]);
       if (ratioType === 'sin') {
         given = { angle: angleValue, hypotenuse: hyp };
         find = `x`;
-        answer = opp;
+        answer = round1(hyp * Math.sin(rad));
         labelHyp = String(hyp);
         labelOpp = 'x';
         labelAdj = ''; 
-
         if (isAltScenario) {
-          find = `the ${scenario.find}`;
-          steps.push({ instruction: `Scenario: ${scenario.observer} measures the angle of elevation to the top of ${scenario.obj} as ${angleValue}°.` });
+          scenario = `A ${hyp}-foot kite string makes a ${angleValue}° angle of elevation with the ground. How high is the kite (x), in feet?`;
         }
 
         steps.push({
@@ -110,10 +110,13 @@ export function generateTrigProblems(
       } else if (ratioType === 'cos') {
         given = { angle: angleValue, hypotenuse: hyp };
         find = `x`;
-        answer = adj;
+        answer = round1(hyp * Math.cos(rad));
         labelHyp = String(hyp);
         labelAdj = 'x';
         labelOpp = '';
+        if (isAltScenario) {
+          scenario = `A ${hyp}-foot ladder leans against a wall and makes a ${angleValue}° angle with the ground. How far is the foot of the ladder from the wall (x), in feet?`;
+        }
 
         steps.push({
           instruction: `Select the correct trig ratio linking adjacent and hypotenuse:`,
@@ -123,10 +126,13 @@ export function generateTrigProblems(
         // tan
         given = { angle: angleValue, adjacent: adj };
         find = `x`;
-        answer = opp;
+        answer = round1(adj * Math.tan(rad));
         labelAdj = String(adj);
         labelOpp = 'x';
         labelHyp = '';
+        if (isAltScenario) {
+          scenario = `From a point ${adj} feet from the base of a building, the angle of elevation to the top is ${angleValue}°. How tall is the building (x), in feet?`;
+        }
 
         steps.push({
           instruction: `Select the correct trig ratio linking opposite and adjacent:`,
@@ -176,6 +182,7 @@ export function generateTrigProblems(
       find,
       answer,
       steps,
+      ...(scenario ? { scenario } : {}),
       svgParams: {
         kind: "RightTriangle",
         opposite: opp,
@@ -186,7 +193,11 @@ export function generateTrigProblems(
           adjacent: labelAdj,
           hypotenuse: labelHyp
         },
-        referenceAnglePos: pick(rng, ['base', 'top']),
+        referenceAnglePos: (() => {
+          const pos = pick(rng, ['base', 'top'] as const);
+          // An angle of elevation sits at ground level.
+          return scenario ? 'base' : pos;
+        })(),
         referenceAngleLabel: refAngleLabel,
         orientation: pick(rng, ['left', 'right'])
       }

@@ -342,7 +342,7 @@ async function main(): Promise<void> {
   lines.push("- Per-family logical checkers walk each proof's steps tracking established facts: measurements, congruence pairs, right angles, midpoints, bisectors, perpendiculars. Every reason is verified to actually justify its statement (e.g. SSS's three cited pairs are exactly the established side pairs; the SAS angle is the included one; HL's hypotenuse is the longest side of a right triangle).");
   lines.push("- Diagram params recomputed from the parsed givens/steps and asserted equal (tick marks, angle arcs, right-angle marks, marked angle pairs).");
   lines.push("- Degeneracy fuzz: positive lengths, angles/arcs in range, triangle inequality, no NaN/undefined leaks.");
-  lines.push("- Student-mode blanking discipline (complete/fill-statements/supply-reasons/guided) and PDF-safe plain-text strings (no LaTeX; ≅ → ≃ mapping).");
+  lines.push("- Student-mode blanking discipline (complete/fill-statements/supply-reasons/guided) and PDF-safe plain-text strings (no LaTeX; ≅ kept, the PDF fonts cover it).");
   lines.push("- Seed reproducibility: identical seed → byte-identical problems.");
   lines.push("- PDF: 16 representative diagrams rendered headless via @react-pdf/renderer; valid %PDF header, sane byte size, zero renderer warnings.");
   lines.push("- Answer key: `formatAnswer` mirror (proposition + Q.E.D. for Elements, else the proved statement) exact across difficulties and seeds.");

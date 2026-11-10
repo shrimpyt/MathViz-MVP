@@ -126,6 +126,8 @@ export function TrigProblemCard({
     // Standard trig ratio (G.9A)
     const pt = p as TrigProblem;
     pretext = `Identify the ratio for ${pt.ratioType}(θ) given the right triangle.`;
+  } else if (p.subtype === "ElevationDepression" && (p as TrigProblem).scenario) {
+    pretext = `${(p as TrigProblem).scenario} Round to the nearest tenth.`;
   } else if (p.subtype === "SolveForSide") {
     pretext = `Using trigonometric ratios and the reference angle, solve for ${latexToText(p.find)}.`;
   } else if (p.subtype === "45-45-90" || p.subtype === "30-60-90") {

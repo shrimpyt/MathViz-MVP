@@ -21,6 +21,7 @@ import type {
   PatternFigureParams,
   GeoPt,
 } from "@/lib/factories/GeometryTypes";
+import { worksheetGrid } from "@/lib/factories/GeometryTypes";
 
 const INK = "#111111";
 const FAINT = "#94a3b8";
@@ -204,7 +205,9 @@ const GS = 10;
 const gx = (x: number) => GC + x * GS;
 const gy = (y: number) => GC - y * GS;
 
-export function GridFigureSVG({ params }: { params: GridFigureParams }) {
+export function GridFigureSVG({ params: rawParams }: { params: GridFigureParams }) {
+  // Answer-tagged items (images, midpoints…) are never drawn for students.
+  const params = worksheetGrid(rawParams);
   const lines = [];
   for (let i = 0; i <= 16; i++) {
     const p = 20 + i * 10;

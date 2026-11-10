@@ -62,6 +62,16 @@ export async function runPdfCheck(ctx: CheckCtx): Promise<void> {
   for (let di = 0; di < DOMAINS.length; di++) {
     problems.push(...generateSATProblems(DOMAINS[di], 4242 + di, 6, 2));
   }
+  // Top up with more seeds until every diagram kind appears, so the check
+  // does not hinge on one seed's random draws.
+  const need = ["SatTable", "SatRightTriangle", "SatTriangle"];
+  const has = () => new Set(problems.filter((p) => p.diagram).map((p) => p.diagram!.kind));
+  for (let extra = 1; extra <= 40 && !need.every((k) => has().has(k)); extra++) {
+    for (let di = 0; di < DOMAINS.length; di++) {
+      const more = generateSATProblems(DOMAINS[di], 4242 + 100 * extra + di, 6, 2);
+      problems.push(...more.filter((p) => p.diagram && !has().has(p.diagram.kind)).slice(0, 1));
+    }
+  }
   // Ensure every diagram kind is represented.
   const kinds = new Set(problems.filter((p) => p.diagram).map((p) => p.diagram!.kind));
   check(ctx, kinds.has("SatTable"), `pdfcheck: SatTable diagram sampled`);

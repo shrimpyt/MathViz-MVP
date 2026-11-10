@@ -11,18 +11,18 @@
 //
 // All text goes through pdfSafeText (DejaVu fonts are embedded; the PDF
 // standard 14 fonts would mangle math glyphs). See answerKey.ts.
-// Typography follows the version's Presentation: sans (DejaVu Sans) is the
+// Typography follows the version's Presentation: sans (Euclid Sans) is the
 // default; 'serif' renders the Classical Notes 5.1 theme (DejaVu Serif).
 
 import React from 'react';
 import {
-  Font,
   Page,
   Text,
   View,
   Document,
   StyleSheet,
 } from '@react-pdf/renderer';
+import { pdfFamily } from './pdfFonts';
 import { PdfGeometrySVG } from './PdfGeometrySVG';
 import { PdfProofSVG } from './diagrams/PdfProofSVG';
 import type { ProofSVGParams } from '@/lib/proofDiagrams';
@@ -77,56 +77,15 @@ function classicalDiagram(p: MathProblem): { kind: string } | undefined {
   return sp as { kind: string };
 }
 
-// ── Font registration (idempotent; also registered by PdfDocument.tsx) ────────
-// In the browser the font loads from the public URL; in Node (tests /
-// prerender) it loads from the repo's public directory.
-function fontSrc(file: string): string {
-  if (typeof window === 'undefined') {
-    return `${process.cwd()}/public/fonts/${file}`;
-  }
-  return `/fonts/${file}`;
-}
-
-Font.register({
-  family: 'WorksheetSerif',
-  fonts: [
-    { src: fontSrc('DejaVuSerif.ttf'), fontWeight: 400 },
-    { src: fontSrc('DejaVuSerif-Italic.ttf'), fontWeight: 400, fontStyle: 'italic' },
-  ],
-});
-
-Font.register({
-  family: 'WorksheetSerifBold',
-  fonts: [
-    { src: fontSrc('DejaVuSerif-Bold.ttf'), fontWeight: 700 },
-    { src: fontSrc('DejaVuSerif-BoldItalic.ttf'), fontWeight: 700, fontStyle: 'italic' },
-  ],
-});
-
-// Sans family (the default presentation font; also registered by PdfDocument).
-Font.register({
-  family: 'WorksheetSans',
-  fonts: [
-    { src: fontSrc('DejaVuSans.ttf'), fontWeight: 400 },
-    { src: fontSrc('DejaVuSans-Bold.ttf'), fontWeight: 700 },
-    { src: fontSrc('DejaVuSans-Oblique.ttf'), fontWeight: 400, fontStyle: 'italic' },
-    { src: fontSrc('DejaVuSans-BoldOblique.ttf'), fontWeight: 700, fontStyle: 'italic' },
-  ],
-});
+// ── Fonts ────────────────────────────────────────────────────────────────────
+// Registered once in pdfFonts.ts (shared with PdfDocument.tsx).
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 // Presentation-aware stylesheet (mirrors PdfDocument's createStyles): the
 // serif tokens swap to WorksheetSans when the presentation font is 'sans'.
 function createStyles(fontFamily: 'serif' | 'sans') {
-  const fam = (
-    f: 'WorksheetSerif' | 'WorksheetSerifBold',
-  ): { fontFamily: string; fontWeight?: number } =>
-    fontFamily === 'sans'
-      ? f === 'WorksheetSerifBold'
-        ? { fontFamily: 'WorksheetSans', fontWeight: 700 }
-        : { fontFamily: 'WorksheetSans' }
-      : { fontFamily: f };
+  const fam = (f: 'WorksheetSerif' | 'WorksheetSerifBold') => pdfFamily(fontFamily, f);
 
   return StyleSheet.create({
   page: {

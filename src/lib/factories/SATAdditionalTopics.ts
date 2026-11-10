@@ -373,7 +373,7 @@ function makeRightTriangleTrig(rng: RNG, difficulty: SATDifficulty): SATProblem 
   const stem =
     t === 3
       ? `A ${hyp}-foot ladder leans against a wall, reaching ${opp} feet up the wall. ` +
-        `What is sin(θ), where θ is the angle between the ladder and the ground?`
+        `What is ${ratio}(θ), where θ is the angle between the ladder and the ground?`
       : `In the right triangle shown, what is ${ratio}(θ)?`;
 
   const ratioDef =

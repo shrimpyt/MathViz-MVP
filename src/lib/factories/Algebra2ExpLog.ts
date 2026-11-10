@@ -322,7 +322,11 @@ function expBody(aNum: number, aDen: number, b: number, h: number, k: number): s
     const prefix = aNum < 0 ? `-(${frac}) \\cdot ` : `(${frac}) \\cdot `;
     return `${prefix}${b}^{${xPlus(-h)}}${plusConst(k)}`;
   }
-  return `${aPrefixFrac(aNum, aDen)}${b}^{${xPlus(-h)}}${plusConst(k)}`;
+  // A whole-number coefficient needs an explicit dot, or 2·2^(x−2) prints as
+  // "22^(x−2)" and reads as base 22.
+  const pre = aPrefixFrac(aNum, aDen);
+  const lead = pre === "" || pre === "-" ? pre : `${pre} \\cdot `;
+  return `${lead}${b}^{${xPlus(-h)}}${plusConst(k)}`;
 }
 
 /** Body of a·log_b(x − h) + k. */

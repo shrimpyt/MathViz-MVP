@@ -9,7 +9,7 @@ import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
 import type { DifficultyLevel } from "@/modules/CurriculumRegistry";
 import type { Algebra1Problem, Algebra1Subtype } from "./Algebra1Types";
-import { fmtNum } from "./Algebra1Format";
+import { fmtNum, fmtFrac } from "./Algebra1Format";
 
 export const EXPONENTIAL_BY_DIFFICULTY: Record<DifficultyLevel, readonly Algebra1Subtype[]> = {
   1: ["ExponentialGrowth", "GraphExponential", "ExponentialFeatures"],
@@ -73,9 +73,10 @@ function makeExponentialDecay(rng: RNG): Algebra1Problem {
   const a = pick(rng, [8, 12, 16, 24, 36] as const);
   const b = pick(rng, [2, 3] as const); // decay factor 1/b
   const x = randInt(rng, 1, 3);
-  const value = a / Math.pow(b, x);
+  // Exact value: 8(1/3)³ is 8/27, not a silently rounded 0.3.
+  const value = fmtFrac(a, Math.pow(b, x));
   const prompt = `For \\(f(x) = ${a}(\\frac{1}{${b}})^{x}\\): (a) Is this growth or decay? (b) Find \\(f(${x})\\).`;
-  const answer = `decay; f(${x}) = ${fmtNum(value)}`;
+  const answer = `decay; f(${x}) = ${value}`;
   return {
     type: "A.9B",
     subtype: "ExponentialDecay",
@@ -88,7 +89,7 @@ function makeExponentialDecay(rng: RNG): Algebra1Problem {
       },
       {
         instruction: `Evaluate at x = ${x}:`,
-        blanks: [{ label: "answer", answer: `f(${x}) = ${fmtNum(value)}` }],
+        blanks: [{ label: "answer", answer: `f(${x}) = ${value}` }],
       },
     ],
     meta: { kind: "exponential", a, b: 1 / b, x },

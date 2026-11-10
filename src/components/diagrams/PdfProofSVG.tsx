@@ -1,7 +1,7 @@
 // PdfProofSVG.tsx
 // PDF renderers for geometry-proof diagrams (@react-pdf/renderer primitives).
 // Mirrors ./ProofDiagrams.tsx, same viewBox (0 0 200 200), same geometry,
-// same labels. Web shows ≅; PDF uses ≃ (DejaVu Serif lacks U+2245).
+// same labels. Web and PDF both show ≅ (the PDF sets it in Euclid Sans).
 
 import React from "react";
 import { Svg, Circle, Line, Path, Text, Polygon, Font } from "@react-pdf/renderer";
@@ -25,6 +25,7 @@ Font.register({
   ],
 });
 import { pdfSafeText } from "@/lib/answerKey";
+import "../pdfFonts"; // registers WorksheetSans for the ≅ between the triangles
 import type {
   ProofSVGParams,
   ProofCongruenceSVGParams,
@@ -358,7 +359,7 @@ function PdfTwoTrianglesSVG({
       {verts2.map((v, i) => (
         <PdfLabel key={i} pt={v} text={labels2[i]} dx={off2[i].x} dy={off2[i].y} />
       ))}
-      <Text x={symbolPt.x} y={symbolPt.y} style={{ fontSize: 13, fontFamily: "WorksheetSerif", color: "#64748b" }}>
+      <Text x={symbolPt.x} y={symbolPt.y} style={{ fontSize: 13, fontFamily: "WorksheetSans", color: "#64748b" }}>
         {pdfSafeText(centerSymbol)}
       </Text>
     </Svg>

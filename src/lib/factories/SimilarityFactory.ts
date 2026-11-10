@@ -193,7 +193,7 @@ function makeDilation(rng: RNG): GeometryProblem {
       step(`Image vertices: ${answer}.`, "Apply the rule to each vertex.", [{ label: "image", answer }]),
       step(form === "int" ? "k > 1, so this is an enlargement." : "0 < k < 1, so this is a reduction.", "Enlargement vs reduction."),
     ],
-    svgParams: { kind: "GridFigure", polygons: [{ points: tri }, { points: img, dashed: true }] },
+    svgParams: { kind: "GridFigure", polygons: [{ points: tri }, { points: img, dashed: true, answer: true }] },
     verify: { kind: "dilationImg", pts: tri.map((p) => [p.x, p.y]).flat(), kNum: form === "int" ? k : 1, kDen: form === "int" ? 1 : 2 },
   };
 }

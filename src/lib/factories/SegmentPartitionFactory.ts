@@ -45,15 +45,22 @@ function buildPartition(rng: RNG): Built {
   return { ax: -4, ay: -2, bx: 2, by: 4, px: -2, py: 0, m: 1, n: 2 };
 }
 
-function gridFigure(b: Built, showP: boolean) {
+/** `unknown` is the point the student must find; it (and any segment that
+ *  would end at it) is tagged as answer so the worksheet never draws it. */
+function gridFigure(b: Built, unknown: "P" | "B") {
   return {
     kind: "GridFigure" as const,
     points: [
       { label: "A", x: b.ax, y: b.ay },
-      { label: "B", x: b.bx, y: b.by },
-      ...(showP ? [{ label: "P", x: b.px, y: b.py }] : []),
+      { label: "B", x: b.bx, y: b.by, answer: unknown === "B" },
+      { label: "P", x: b.px, y: b.py, answer: unknown === "P" },
     ],
-    lines: [{ x1: b.ax, y1: b.ay, x2: b.bx, y2: b.by }],
+    lines: unknown === "B"
+      ? [
+          { x1: b.ax, y1: b.ay, x2: b.px, y2: b.py },
+          { x1: b.px, y1: b.py, x2: b.bx, y2: b.by, answer: true },
+        ]
+      : [{ x1: b.ax, y1: b.ay, x2: b.bx, y2: b.by }],
   };
 }
 
@@ -77,7 +84,7 @@ function makeSegmentPartition(rng: RNG): GeometryProblem {
         { label: "P", answer: ans },
       ]),
     ],
-    svgParams: gridFigure(b, true),
+    svgParams: gridFigure(b, "P"),
     verify: { kind: "partition", ax: b.ax, ay: b.ay, bx: b.bx, by: b.by, m: b.m, n: b.n },
   };
 }
@@ -129,7 +136,7 @@ function makeSegmentFraction(rng: RNG): GeometryProblem {
       points: [
         { label: "A", x: ax, y: ay },
         { label: "B", x: bx, y: by },
-        { label: "P", x: px, y: py },
+        { label: "P", x: px, y: py, answer: true },
       ],
       lines: [{ x1: ax, y1: ay, x2: bx, y2: by }],
     },
@@ -157,7 +164,7 @@ function makeSegmentEndpoint(rng: RNG): GeometryProblem {
         { label: "B", answer: ans },
       ]),
     ],
-    svgParams: gridFigure(b, true),
+    svgParams: gridFigure(b, "B"),
     verify: { kind: "partitionEndpoint", ax: b.ax, ay: b.ay, px: b.px, py: b.py, m: b.m, n: b.n },
   };
 }

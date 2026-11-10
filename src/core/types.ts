@@ -97,6 +97,8 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
         ? `Solve for the missing side in the ${p.subtype} triangle.`
         : p.subtype === 'IdentifyRatio' 
         ? `Find the value of ${p.ratioType} θ in the triangle below.`
+        : p.subtype === 'ElevationDepression'
+        ? `${p.scenario ?? ''} Round to the nearest tenth.`.trim()
         : p.subtype === 'SolveForSide'
         ? `Find the value of ${p.find} to the nearest tenth.`
         : `Find the measure of angle ${p.find} to the nearest degree.`,

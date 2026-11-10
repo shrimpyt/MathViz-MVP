@@ -68,7 +68,7 @@ const spots: [string, string][] = [
 for (const [input, want] of spots) {
   check(latexToText(input) === want, `latexToText(${JSON.stringify(input)}) === ${JSON.stringify(want)}`);
 }
-check(pdfSafeText("x ≅ y") === "x ≃ y", "pdfSafeText maps ≅ → ≃");
+check(pdfSafeText("x ≅ y") === "x ≅ y", "pdfSafeText keeps ≅ (the PDF fonts cover it)");
 
 console.log(`answer keys checked: ${keys}`);
 report("run-answerkey");

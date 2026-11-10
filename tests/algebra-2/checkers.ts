@@ -558,7 +558,7 @@ function chkSimplify(p: Algebra2Problem, v: Record<string, number | number[] | s
 function chkMultDiv(p: Algebra2Problem, v: Record<string, number | number[] | string | string[] | boolean>): CheckResult {
   const a = v["a"] as number, b = v["b"] as number, multiply = v["multiply"] as boolean;
   const errs: string[] = [];
-  const expected = `x ${a < 0 ? "+" : "-"} ${Math.abs(a)}`;
+  const expected = `x ${a < 0 ? "-" : "+"} ${Math.abs(a)}`;
   // numeric check at several x avoiding exclusions {a, -b}
   const f1 = (x: number) => (x * x - a * a) / (x + b);
   const f2 = multiply
@@ -1845,7 +1845,10 @@ function iExpBody(aNum: number, aDen: number, b: number, h: number, k: number): 
     const prefix = aNum < 0 ? `-(${frac}) \\cdot ` : `(${frac}) \\cdot `;
     return `${prefix}${b}^{${iXPlus(-h)}}${iPlusConst(k)}`;
   }
-  return `${iAPrefixFrac(aNum, aDen)}${b}^{${iXPlus(-h)}}${iPlusConst(k)}`;
+  // Whole-number coefficients need an explicit dot (2·2^x, never "22^x").
+  const pre = iAPrefixFrac(aNum, aDen);
+  const lead = pre === "" || pre === "-" ? pre : `${pre} \\cdot `;
+  return `${lead}${b}^{${iXPlus(-h)}}${iPlusConst(k)}`;
 }
 
 function iLogBody(aNum: number, aDen: number, b: number, h: number, k: number): string {

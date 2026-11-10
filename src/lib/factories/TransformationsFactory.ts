@@ -59,9 +59,9 @@ function makeTranslatePoint(rng: RNG): GeometryProblem {
       kind: "GridFigure",
       points: [
         { label: "P", x, y },
-        { label: "P′", x: nx, y: ny },
+        { label: "P′", x: nx, y: ny, answer: true },
       ],
-      lines: [{ x1: x, y1: y, x2: nx, y2: ny, dashed: true }],
+      lines: [{ x1: x, y1: y, x2: nx, y2: ny, dashed: true, answer: true }],
     },
     verify: { kind: "translate", x, y, a, b },
   };
@@ -107,7 +107,7 @@ function makeTranslateFigure(rng: RNG): GeometryProblem {
       kind: "GridFigure",
       polygons: [
         { points: tri },
-        { points: img, dashed: true },
+        { points: img, dashed: true, answer: true },
       ],
     },
     verify: { kind: "translateFigure", pts: tri.map((p) => [p.x, p.y]).flat(), a, b },
@@ -206,7 +206,7 @@ function makeReflectionImage(rng: RNG): GeometryProblem {
       kind: "GridFigure",
       points: [
         { label: "P", x, y },
-        { label: "P′", x: nx, y: ny },
+        { label: "P′", x: nx, y: ny, answer: true },
       ],
     },
     verify: { kind: "reflect", rk: kind, x, y, k },
@@ -235,7 +235,7 @@ function makeRotationImage(rng: RNG): GeometryProblem {
       kind: "GridFigure",
       points: [
         { label: "P", x, y },
-        { label: "P′", x: nx, y: ny },
+        { label: "P′", x: nx, y: ny, answer: true },
       ],
     },
     verify: { kind: "rotate", rot, x, y },

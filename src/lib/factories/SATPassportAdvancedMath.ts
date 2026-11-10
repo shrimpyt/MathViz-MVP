@@ -40,9 +40,9 @@ function makeQuadraticRoots(rng: RNG, difficulty: SATDifficulty): SATProblem {
   const ansFrac = q(ansVal);
   const key = { label: qLabel(ansFrac), value: qVal(ansFrac) };
 
-  const bStr = b < 0 ? `− ${-b}` : b > 0 ? `+ ${b}` : "";
+  const bTerm = b < 0 ? ` − ${-b === 1 ? "" : -b}x` : b > 0 ? ` + ${b === 1 ? "" : b}x` : "";
   const cStr = c < 0 ? `− ${-c}` : `+ ${c}`;
-  const eq = `x² ${bStr}x ${cStr} = 0`.replace("x  = ", "x = ").replace(/x \+ 0x/, "x");
+  const eq = `x²${bTerm} ${cStr} = 0`;
   const stem =
     ask === "greater"
       ? `If ${eq}, what is the greater solution for x?`

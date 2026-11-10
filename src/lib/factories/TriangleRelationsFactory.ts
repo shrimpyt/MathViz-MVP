@@ -201,7 +201,7 @@ function makeCoordinateMidsegment(rng: RNG): GeometryProblem {
         { label: "A", x: ax, y: ay }, { label: "B", x: bx, y: by }, { label: "C", x: cx, y: cy },
       ] }],
       points: [
-        { label: "D", x: dx, y: dy }, { label: "E", x: ex, y: ey },
+        { label: "D", x: dx, y: dy, answer: true }, { label: "E", x: ex, y: ey, answer: true },
       ],
     },
     verify: { kind: "coordMid", ax, ay, bx, by, cx, cy },
@@ -709,7 +709,7 @@ function makeMedianMidpoint(rng: RNG): GeometryProblem {
       polygons: [{ points: [
         { label: "A", x: ax, y: ay }, { label: "B", x: bx, y: by }, { label: "C", x: cx, y: cy },
       ] }],
-      points: [{ label: "D", x: dx, y: dy }],
+      points: [{ label: "D", x: dx, y: dy, answer: true }],
     },
     verify: { kind: "midpointPt", bx, by, cx, cy },
   };
@@ -750,7 +750,7 @@ function makeCentroidCoordinates(rng: RNG): GeometryProblem {
       polygons: [{ points: [
         { label: "A", x: ax, y: ay }, { label: "B", x: bx, y: by }, { label: "C", x: cx, y: cy },
       ] }],
-      points: [{ label: "P", x: gx, y: gy }],
+      points: [{ label: "P", x: gx, y: gy, answer: true }],
     },
     verify: { kind: "centroidCoord", ax, ay, bx, by, cx, cy },
   };

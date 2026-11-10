@@ -1,7 +1,7 @@
 // rt-pdf.ts, break the PDF export.
 // 1. Max problems (25/topic) across diagram-heavy topics + answer key on.
 // 2. Decode content streams via ToUnicode CMaps; check special glyphs
-//    (√ θ π ∠ ≃ ² ∞ − · × ÷) decode correctly, no WinAnsi mojibake.
+//    (√ θ π ∠ ≃ ≅ ² ∞ − · × ÷) decode correctly, no WinAnsi mojibake.
 // 3. Blank-page detection, page-count sanity, key/problem count alignment.
 // 4. Hostile titles, empty lists, classical-notes groups, proof docTypes.
 import React from "react";
@@ -157,7 +157,7 @@ async function buildMax(title: string, docType: string, countPer: number, seedBa
   });
   const questions = problems.map((p, i) => problemToQuestion(p, i));
   const el = React.createElement(PdfDocument, {
-    title, questions, advancedProblems: problems, docType, standard: "TEST √ θ π ∠ ≃ ² ∞ − ·",
+    title, questions, advancedProblems: problems, docType, standard: "TEST √ θ π ∠ ≃ ≅ ² ∞ − ·",
     includeAnswerKey: true, classicalGroups: undefined, seed: seedBase,
   });
   const bytes = new Uint8Array(await renderToBuffer(el as any));
@@ -169,7 +169,7 @@ async function main() {
   bump();
   let big: { bytes: Uint8Array; problems: any[] };
   try {
-    big = await buildMax("Max Stress, Geometry √ θ π ∠ ≃ ² ∞ − · × ÷", "worksheet", 25, 9001);
+    big = await buildMax("Max Stress, Geometry √ θ π ∠ ≃ ≅ ² ∞ − · × ÷", "worksheet", 25, 9001);
   } catch (e) {
     fail("PDF-CRASH", "max-doc", "worksheet", 0, `renderToBuffer threw: ${e instanceof Error ? e.message : String(e).slice(0, 200)}`);
     report("rt-pdf"); process.exit(0); return;
@@ -313,7 +313,7 @@ async function main() {
   if (unmappedNonAscii > 0)
     fail("PDF-UNMAPPED", "max-doc", "worksheet", 0, `${unmappedNonAscii}/${total} glyph codes are neither ToUnicode-mapped nor ASCII, possible mojibake`);
 
-  for (const g of ["√", "θ", "π", "∠", "≃", "²", "∞", "−", "·"]) {
+  for (const g of ["√", "θ", "π", "∠", "≃", "≅", "²", "∞", "−", "·"]) {
     bump();
     if (!decoded.includes(g)) fail("PDF-GLYPH", "max-doc", "worksheet", 0, `glyph "${g}" (U+${g.codePointAt(0)!.toString(16)}) not found in decoded PDF text`);
   }

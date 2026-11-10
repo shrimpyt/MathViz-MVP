@@ -89,7 +89,8 @@ function makeRegularInterior(rng: RNG): GeometryProblem {
     svgParams: {
       kind: "PolygonFigure",
       vertices: regularVertices(n),
-      angleLabels: { A: `${each}°` },
+      // Mark the angle to find, not its value (the value is the answer).
+      angleLabels: { A: "x" },
     },
     verify: { kind: "regularInterior", n },
   };
