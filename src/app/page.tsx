@@ -76,7 +76,7 @@ export default function Home() {
           >
             {signIn === "ok"
               ? "You're signed in."
-              : "That sign-in link has expired or was already used. Use Sign in to get a new one."}
+              : "That sign-in didn't go through. Use Sign in to try again."}
           </Alert>
         )}
 

@@ -1,15 +1,35 @@
 // ── Euclid API Worker ────────────────────────────────────────────────────────
-// Auth (magic link), plan entitlement, Free generation counter, and Stripe
+// Auth (emailed 6-digit code, Sign in with Google, legacy magic link), plan entitlement, Free generation counter, and Stripe
 // checkout/portal/webhooks for euclidengine.tech. The marketing/app site
 // stays a static Pages export; this Worker is the only server-shaped piece.
 // Spec: ~/workspace/goals/euclid-engine-deployment/files/auth-workers-spec.md
 //
 // Secrets (Worker env, never in repo): STRIPE_SECRET_KEY,
-// STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, PRICE_* ids. See worker/README.md.
+// STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, PRICE_* ids, and optionally
+// GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET. See worker/README.md.
 
 import {
   FREE_GENERATION_LIMIT,
   MAGIC_LINK_TTL_SEC,
+  OAUTH_COOKIE,
+  OAUTH_COOKIE_TTL_SEC,
+  RATE_LIMIT_CODE_CHECKS_PER_IP,
+  SIGNIN_CODE_MAX_ATTEMPTS,
+  SIGNIN_CODE_TTL_SEC,
+  GOOGLE_TOKEN_URL,
+  decodeJwtPayload,
+  generateSigninCode,
+  googleAuthUrl,
+  googleEmailFromClaims,
+  googleRedirectUri,
+  normalizeEmail,
+  normalizeSigninCode,
+  oauthCookieValue,
+  parseOauthCookie,
+  pkceChallenge,
+  signinCodeHash,
+  signinEmailText,
+  timingSafeEqual,
   RATE_LIMIT_PER_EMAIL,
   RATE_LIMIT_PER_IP,
   RATE_WINDOW_SEC,
@@ -154,7 +174,7 @@ function sessionCookie(token: string, maxAge: number): string {
 
 // ── Email (Resend) ───────────────────────────────────────────────────────────
 
-async function sendMagicLink(env: Env, email: string, link: string): Promise<boolean> {
+async function sendEmail(env: Env, to: string, subject: string, text: string): Promise<boolean> {
   if (!env.RESEND_API_KEY) return false;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -164,12 +184,21 @@ async function sendMagicLink(env: Env, email: string, link: string): Promise<boo
     },
     body: JSON.stringify({
       from: "Euclid Engine <noreply@euclidengine.tech>",
-      to: [email],
-      subject: "Your Euclid Engine sign-in link",
-      text: `Sign in to Euclid Engine:\n\n${link}\n\nThis link expires in 15 minutes. If you didn't request it, ignore this email.`,
+      to: [to],
+      subject,
+      text,
     }),
   });
   return res.ok;
+}
+
+function sendMagicLink(env: Env, email: string, link: string): Promise<boolean> {
+  return sendEmail(
+    env,
+    email,
+    "Your Euclid Engine sign-in link",
+    `Sign in to Euclid Engine:\n\n${link}\n\nThis link expires in 15 minutes. If you didn't request it, ignore this email.`,
+  );
 }
 
 // ── Stripe API (form-encoded REST, no SDK) ──────────────────────────────────
@@ -226,30 +255,236 @@ async function takeRateToken(
   return true;
 }
 
-async function handleRequestLink(env: Env, req: Request): Promise<Response> {
-  const body = (await req.json().catch(() => null)) as { email?: string } | null;
-  const email = body?.email?.trim().toLowerCase();
-  if (!email || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return json(req, { ok: false, error: "valid email required" }, 400);
-  }
+function clientIp(req: Request): string {
+  return req.headers.get("CF-Connecting-IP") ?? "unknown";
+}
 
-  const now = Math.floor(Date.now() / 1000);
-  const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
-  const ipOk = await takeRateToken(env, `ip:${ip}`, RATE_LIMIT_PER_IP, now);
+function rateLimited(req: Request): Response {
+  return json(req, { ok: false, error: "rate_limited" }, 429, {
+    "Retry-After": String(RATE_WINDOW_SEC),
+  });
+}
+
+/** Sign-in emails (links and codes alike) share one budget: per IP and per
+ *  address, so nobody can flood an inbox whichever button they press. */
+async function takeSignInEmailToken(env: Env, req: Request, email: string, now: number): Promise<boolean> {
+  const ipOk = await takeRateToken(env, `ip:${clientIp(req)}`, RATE_LIMIT_PER_IP, now);
   const emailOk =
     ipOk && (await takeRateToken(env, `email:${await sha256Hex(email)}`, RATE_LIMIT_PER_EMAIL, now));
-  if (!ipOk || !emailOk) {
-    return json(
-      req,
-      { ok: false, error: "rate_limited" },
-      429,
-      { "Retry-After": String(RATE_WINDOW_SEC) },
-    );
-  }
+  if (!ipOk || !emailOk) return false;
   // Old windows are never read again; sweep them while we're here.
   await env.DB.prepare("DELETE FROM rate_limits WHERE window_start < ?")
     .bind(now - 2 * RATE_WINDOW_SEC)
     .run();
+  return true;
+}
+
+/** Find or create the account for a verified address and start a session.
+ *  Returns the Set-Cookie value, or null if the user row can't be read. */
+async function startSession(env: Env, email: string, now: number): Promise<string | null> {
+  await env.DB.prepare(
+    "INSERT OR IGNORE INTO users (id, email, plan, founders, created_at) VALUES (?, ?, 'free', 0, ?)",
+  )
+    .bind(randomTokenHex(16), email, now)
+    .run();
+  const user = await getUserByEmail(env, email);
+  if (!user) return null;
+
+  const session = randomTokenHex(32);
+  await env.DB.prepare(
+    "INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
+  )
+    .bind(randomTokenHex(16), user.id, await sha256Hex(session), now + SESSION_TTL_SEC, now)
+    .run();
+
+  // Housekeeping: expired sessions and old sign-in tokens and codes.
+  await env.DB.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(now).run();
+  await env.DB.prepare("DELETE FROM signin_tokens WHERE expires_at < ?").bind(now - 86400).run();
+  await ensureSigninCodesTable(env);
+  await env.DB.prepare("DELETE FROM signin_codes WHERE expires_at < ?").bind(now - 86400).run();
+
+  return sessionCookie(session, SESSION_TTL_SEC);
+}
+
+// The signin_codes table is also in schema.sql. Creating it here too means a
+// deploy that lands before schema.sql is rerun still works.
+let signinCodesTableReady = false;
+async function ensureSigninCodesTable(env: Env): Promise<void> {
+  if (signinCodesTableReady) return;
+  await env.DB.prepare(
+    `CREATE TABLE IF NOT EXISTS signin_codes (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      code_hash TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      used_at INTEGER,
+      created_at INTEGER NOT NULL
+    )`,
+  ).run();
+  await env.DB.prepare(
+    "CREATE INDEX IF NOT EXISTS idx_signin_codes_email ON signin_codes(email, expires_at)",
+  ).run();
+  signinCodesTableReady = true;
+}
+
+/** Which sign-in methods this deployment offers, so the page only shows a
+ *  Google button when Google is set up. */
+function handleMethods(env: Env, req: Request): Response {
+  return json(req, { code: true, google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) });
+}
+
+/** Email a 6-digit code. The account is created only when the code is used. */
+async function handleRequestCode(env: Env, req: Request): Promise<Response> {
+  const body = (await req.json().catch(() => null)) as { email?: unknown } | null;
+  const email = normalizeEmail(body?.email);
+  if (!email) return json(req, { ok: false, error: "valid email required" }, 400);
+
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeSignInEmailToken(env, req, email, now))) return rateLimited(req);
+
+  await ensureSigninCodesTable(env);
+  const code = generateSigninCode();
+  await env.DB.prepare(
+    "INSERT INTO signin_codes (id, email, code_hash, expires_at, attempts, created_at) VALUES (?, ?, ?, ?, 0, ?)",
+  )
+    .bind(randomTokenHex(16), email, await signinCodeHash(email, code), now + SIGNIN_CODE_TTL_SEC, now)
+    .run();
+
+  const dev = devAuthEnabled(env.DEV_AUTH, appUrl(env));
+  const sent = await sendEmail(env, email, `${code} is your Euclid Engine sign-in code`, signinEmailText(code, null));
+  if (!sent && !dev) {
+    return json(req, { ok: false, error: "email provider not configured" }, 503);
+  }
+  return json(req, dev ? { ok: true, devCode: code } : { ok: true });
+}
+
+/** Check a typed code. Right code: spend it, start a session, set the
+ *  cookie. Wrong code: count the guess against every live code for that
+ *  address, so five wrong guesses use them all up. */
+async function handleVerifyCode(env: Env, req: Request): Promise<Response> {
+  const body = (await req.json().catch(() => null)) as { email?: unknown; code?: unknown } | null;
+  const email = normalizeEmail(body?.email);
+  const code = normalizeSigninCode(body?.code);
+  if (!email || !code) return json(req, { ok: false, error: "invalid" }, 400);
+
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `code-ip:${clientIp(req)}`, RATE_LIMIT_CODE_CHECKS_PER_IP, now))) {
+    return rateLimited(req);
+  }
+
+  await ensureSigninCodesTable(env);
+  // One statement checks and spends, so a double submit can't sign in twice.
+  const spent = await env.DB.prepare(
+    `UPDATE signin_codes SET used_at = ?
+     WHERE email = ? AND code_hash = ? AND used_at IS NULL AND expires_at > ? AND attempts < ?`,
+  )
+    .bind(now, email, await signinCodeHash(email, code), now, SIGNIN_CODE_MAX_ATTEMPTS)
+    .run();
+
+  if ((spent.meta?.changes ?? 0) >= 1) {
+    // Any other code still waiting for this address is no longer needed.
+    await env.DB.prepare(
+      "UPDATE signin_codes SET used_at = ? WHERE email = ? AND used_at IS NULL",
+    )
+      .bind(now, email)
+      .run();
+    const cookie = await startSession(env, email, now);
+    if (!cookie) return json(req, { ok: false, error: "internal error" }, 500);
+    return json(req, { ok: true }, 200, { "Set-Cookie": cookie });
+  }
+
+  await env.DB.prepare(
+    `UPDATE signin_codes SET attempts = attempts + 1
+     WHERE email = ? AND used_at IS NULL AND expires_at > ? AND attempts < ?`,
+  )
+    .bind(email, now, SIGNIN_CODE_MAX_ATTEMPTS)
+    .run();
+  const live = await env.DB.prepare(
+    `SELECT COUNT(*) AS n,
+            SUM(CASE WHEN attempts < ? THEN 1 ELSE 0 END) AS usable
+     FROM signin_codes WHERE email = ? AND used_at IS NULL AND expires_at > ?`,
+  )
+    .bind(SIGNIN_CODE_MAX_ATTEMPTS, email, now)
+    .first<{ n: number; usable: number | null }>();
+  const error = !live || live.n === 0 ? "expired" : (live.usable ?? 0) === 0 ? "too_many_attempts" : "wrong_code";
+  return json(req, { ok: false, error }, 400);
+}
+
+function oauthCookie(value: string, maxAge: number): string {
+  return `${OAUTH_COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+}
+
+/** Start Sign in with Google: remember a random state and PKCE verifier in
+ *  a short-lived cookie, then send the browser to Google. */
+async function handleGoogleStart(env: Env): Promise<Response> {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+    return redirect(`${appUrl(env)}/?signin=failed`);
+  }
+  const state = randomTokenHex(32);
+  const verifier = randomTokenHex(32);
+  const location = googleAuthUrl({
+    clientId: env.GOOGLE_CLIENT_ID,
+    redirectUri: googleRedirectUri(appUrl(env)),
+    state,
+    codeChallenge: await pkceChallenge(verifier),
+  });
+  return redirect(location, {
+    "Set-Cookie": oauthCookie(oauthCookieValue(state, verifier), OAUTH_COOKIE_TTL_SEC),
+  });
+}
+
+/** Google sends the browser back here with ?code and ?state. Check the state
+ *  against the cookie, trade the code for an ID token, and sign in as the
+ *  verified email on it. */
+async function handleGoogleCallback(env: Env, req: Request): Promise<Response> {
+  const finish = (outcome: "ok" | "failed", session?: string) => {
+    const headers = new Headers({ Location: `${appUrl(env)}/?signin=${outcome}`, ...SECURITY_HEADERS });
+    headers.append("Set-Cookie", oauthCookie("", 0));
+    if (session) headers.append("Set-Cookie", session);
+    return new Response(null, { status: 303, headers });
+  };
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return finish("failed");
+
+  const url = new URL(req.url);
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state") ?? "";
+  const saved = parseOauthCookie(req.headers.get("Cookie"));
+  if (!code || !saved || !timingSafeEqual(state, saved.state)) return finish("failed");
+
+  const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formEncode({
+      code,
+      client_id: env.GOOGLE_CLIENT_ID,
+      client_secret: env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: googleRedirectUri(appUrl(env)),
+      grant_type: "authorization_code",
+      code_verifier: saved.verifier,
+    }),
+  });
+  if (!tokenRes.ok) {
+    console.error(`Google token exchange failed: ${tokenRes.status}`);
+    return finish("failed");
+  }
+  const tokens = (await tokenRes.json().catch(() => null)) as { id_token?: unknown } | null;
+  const idToken = typeof tokens?.id_token === "string" ? tokens.id_token : "";
+  const now = Math.floor(Date.now() / 1000);
+  const email = googleEmailFromClaims(decodeJwtPayload(idToken), env.GOOGLE_CLIENT_ID, now);
+  if (!email) return finish("failed");
+
+  const session = await startSession(env, email, now);
+  return session ? finish("ok", session) : finish("failed");
+}
+
+async function handleRequestLink(env: Env, req: Request): Promise<Response> {
+  const body = (await req.json().catch(() => null)) as { email?: unknown } | null;
+  const email = normalizeEmail(body?.email);
+  if (!email) return json(req, { ok: false, error: "valid email required" }, 400);
+
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeSignInEmailToken(env, req, email, now))) return rateLimited(req);
 
   // No user row yet: the account is created when the link is actually
   // used, so typing someone else's address never creates an account.
@@ -311,28 +546,9 @@ async function handleVerify(env: Env, req: Request): Promise<Response> {
     .first<{ email: string }>();
   if (!row) return fail();
 
-  await env.DB.prepare(
-    "INSERT OR IGNORE INTO users (id, email, plan, founders, created_at) VALUES (?, ?, 'free', 0, ?)",
-  )
-    .bind(randomTokenHex(16), row.email, now)
-    .run();
-  const user = await getUserByEmail(env, row.email);
-  if (!user) return fail();
-
-  const session = randomTokenHex(32);
-  await env.DB.prepare(
-    "INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
-  )
-    .bind(randomTokenHex(16), user.id, await sha256Hex(session), now + SESSION_TTL_SEC, now)
-    .run();
-
-  // Housekeeping: expired sessions and spent or expired sign-in tokens.
-  await env.DB.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(now).run();
-  await env.DB.prepare("DELETE FROM signin_tokens WHERE expires_at < ?").bind(now - 86400).run();
-
-  return redirect(`${appUrl(env)}/?signin=ok`, {
-    "Set-Cookie": sessionCookie(session, SESSION_TTL_SEC),
-  });
+  const cookie = await startSession(env, row.email, now);
+  if (!cookie) return fail();
+  return redirect(`${appUrl(env)}/?signin=ok`, { "Set-Cookie": cookie });
 }
 
 async function handleSignOut(env: Env, req: Request): Promise<Response> {
@@ -548,12 +764,24 @@ export default {
         return handleVerifyPage(req);
       if (req.method === "GET" && pathname.endsWith("/me"))
         return await handleMe(env, req);
+      if (req.method === "GET" && pathname.endsWith("/auth/methods"))
+        return handleMethods(env, req);
+      // Google sign-in is a pair of top-level navigations; the state cookie
+      // and PKCE verifier tie them together, not the Origin header.
+      if (req.method === "GET" && pathname.endsWith("/auth/google/start"))
+        return await handleGoogleStart(env);
+      if (req.method === "GET" && pathname.endsWith("/auth/google/callback"))
+        return await handleGoogleCallback(env, req);
 
       // Every other route changes state, so it must come from our own pages.
       if (req.method === "POST" && !originAllowed(req.headers.get("Origin"), currentAppUrl)) {
         if (pathname.endsWith("/auth/verify")) return redirect(`${currentAppUrl}/?signin=failed`);
         return json(req, { error: "forbidden origin" }, 403);
       }
+      if (req.method === "POST" && pathname.endsWith("/auth/request-code"))
+        return await handleRequestCode(env, req);
+      if (req.method === "POST" && pathname.endsWith("/auth/verify-code"))
+        return await handleVerifyCode(env, req);
       if (req.method === "POST" && pathname.endsWith("/auth/request-link"))
         return await handleRequestLink(env, req);
       if (req.method === "POST" && pathname.endsWith("/auth/verify"))

@@ -35,7 +35,22 @@ CREATE TABLE IF NOT EXISTS signin_tokens (
   created_at INTEGER NOT NULL
 );
 
--- Fixed-window counters for sign-in emails (per IP and per hashed email).
+-- 6-digit email sign-in codes. Stored hashed with the email; a code dies
+-- when used, after 10 minutes, or after 5 wrong guesses. The Worker also
+-- creates this table on first use, so deploying before rerunning this file
+-- doesn't break sign-in.
+CREATE TABLE IF NOT EXISTS signin_codes (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  code_hash TEXT NOT NULL,                     -- sha256 of 'signin-code:<email>:<code>'
+  expires_at INTEGER NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,         -- wrong guesses against this code
+  used_at INTEGER,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_signin_codes_email ON signin_codes(email, expires_at);
+
+-- Fixed-window counters for sign-in emails and code checks.
 CREATE TABLE IF NOT EXISTS rate_limits (
   bucket TEXT NOT NULL,                        -- 'ip:<addr>' or 'email:<sha256>'
   window_start INTEGER NOT NULL,               -- unix seconds, 15-minute windows

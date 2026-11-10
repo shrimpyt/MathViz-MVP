@@ -48,7 +48,8 @@ export async function fetchAccount(): Promise<AccountState | null> {
 
 export type SignInLinkResult = "sent" | "rate_limited" | "unavailable";
 
-/** Ask the Worker to email a magic sign-in link. "unavailable" when the API
+/** Ask the Worker to email a magic sign-in link (the older flow; the page
+ *  now uses requestSignInCode, kept for compatibility). "unavailable" when the API
  *  is unreachable or email isn't configured, so the UI says so honestly
  *  rather than pretending an email was sent; "rate_limited" after too many
  *  requests for one address or network in 15 minutes. */
@@ -68,6 +69,71 @@ export async function requestSignInLink(email: string): Promise<SignInLinkResult
     return "unavailable";
   }
 }
+
+export type SignInCodeRequest = "sent" | "rate_limited" | "invalid_email" | "unavailable";
+
+/** Ask the Worker to email a 6-digit sign-in code. */
+export async function requestSignInCode(email: string): Promise<SignInCodeRequest> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/request-code`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.status === 429) return "rate_limited";
+    if (res.status === 400) return "invalid_email";
+    if (!res.ok) return "unavailable";
+    const body = (await res.json()) as { ok?: boolean };
+    return body.ok === true ? "sent" : "unavailable";
+  } catch {
+    return "unavailable";
+  }
+}
+
+export type SignInCodeCheck =
+  | "ok"
+  | "wrong_code"
+  | "expired"
+  | "too_many_attempts"
+  | "rate_limited"
+  | "unavailable";
+
+/** Check a typed code. On "ok" the Worker has set the session cookie, so
+ *  fetchAccount() returns the signed-in account. */
+export async function verifySignInCode(email: string, code: string): Promise<SignInCodeCheck> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/verify-code`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code }),
+    });
+    if (res.status === 429) return "rate_limited";
+    const body = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+    if (res.ok && body?.ok === true) return "ok";
+    const err = body?.error;
+    if (err === "wrong_code" || err === "expired" || err === "too_many_attempts") return err;
+    if (err === "invalid") return "wrong_code";
+    return "unavailable";
+  } catch {
+    return "unavailable";
+  }
+}
+
+export interface SignInMethods {
+  google: boolean;
+}
+
+/** Which sign-in buttons to show. Google stays hidden until it is set up
+ *  on the Worker, and whenever the API can't be reached. */
+export async function fetchSignInMethods(): Promise<SignInMethods> {
+  const m = await api<{ google?: boolean }>("/auth/methods");
+  return { google: m?.google === true };
+}
+
+/** Where the "Continue with Google" button points (a full-page navigation). */
+export const GOOGLE_SIGNIN_URL = `${API_BASE}/auth/google/start`;
 
 export async function signOut(): Promise<void> {
   await api("/auth/signout", { method: "POST" });

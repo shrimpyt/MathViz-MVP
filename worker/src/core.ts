@@ -371,3 +371,149 @@ export function signInPageHtml(token: string, actionPath: string): string {
 </body>
 </html>`;
 }
+
+// ── Email sign-in codes ─────────────────────────────────────────────────────
+// A 6-digit code the teacher types back into the page they are already on.
+// Nothing to click, so school mail filters that open links can't spend it,
+// and it works when the email is read on a phone but the site is open on a
+// laptop.
+
+export const SIGNIN_CODE_TTL_SEC = 10 * 60;
+/** Wrong guesses allowed across all of one email's live codes. */
+export const SIGNIN_CODE_MAX_ATTEMPTS = 5;
+/** Code checks allowed per IP per window, across all emails. Generous because
+ *  a whole school can share one IP; the per-code guess limit is what stops
+ *  guessing. */
+export const RATE_LIMIT_CODE_CHECKS_PER_IP = 60;
+
+/** Uniform 6-digit code ("000000" to "999999") from the CSPRNG. Values at or
+ *  above the largest multiple of 1,000,000 are redrawn so no code is likelier. */
+export function generateSigninCode(): string {
+  const limit = 4_294_000_000; // 4294 × 1,000,000, just under 2^32
+  const buf = new Uint32Array(1);
+  for (;;) {
+    crypto.getRandomValues(buf);
+    if (buf[0] < limit) return String(buf[0] % 1_000_000).padStart(6, "0");
+  }
+}
+
+/** Accepts "123456", "123 456" or "123-456"; returns the 6 digits or null. */
+export function normalizeSigninCode(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const digits = input.replace(/[\s-]/g, "");
+  return /^\d{6}$/.test(digits) ? digits : null;
+}
+
+/** Codes are stored hashed with their email, so one leaked row can't be
+ *  replayed against another address. */
+export function signinCodeHash(email: string, code: string): Promise<string> {
+  return sha256Hex(`signin-code:${email}:${code}`);
+}
+
+export function normalizeEmail(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const email = input.trim().toLowerCase();
+  if (!email || email.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return null;
+  return email;
+}
+
+export function signinEmailText(code: string, link: string | null): string {
+  const lines = [
+    `Your Euclid Engine sign-in code is ${code}`,
+    "",
+    "Type it on the sign-in screen. It works once and expires in 10 minutes.",
+  ];
+  if (link) lines.push("", "Or open this link on the device you want to sign in on:", link);
+  lines.push("", "If you didn't ask to sign in, you can ignore this email.");
+  return lines.join("\n");
+}
+
+// ── Sign in with Google (OpenID Connect, authorization code + PKCE) ─────────
+
+export const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+export const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+export const OAUTH_COOKIE = "euclid_oauth";
+export const OAUTH_COOKIE_TTL_SEC = 10 * 60;
+
+export function googleRedirectUri(appUrl: string): string {
+  return `${appUrl.replace(/\/$/, "")}/api/auth/google/callback`;
+}
+
+function base64UrlFromBytes(bytes: Uint8Array): string {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** PKCE S256 challenge for a verifier. */
+export async function pkceChallenge(verifier: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+  return base64UrlFromBytes(new Uint8Array(digest));
+}
+
+export function googleAuthUrl(p: {
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  codeChallenge: string;
+}): string {
+  const q = new URLSearchParams({
+    client_id: p.clientId,
+    redirect_uri: p.redirectUri,
+    response_type: "code",
+    scope: "openid email",
+    state: p.state,
+    code_challenge: p.codeChallenge,
+    code_challenge_method: "S256",
+    prompt: "select_account",
+  });
+  return `${GOOGLE_AUTH_URL}?${q.toString()}`;
+}
+
+/** The short-lived cookie that ties Google's redirect back to the browser
+ *  that started it: "<state>.<pkce verifier>", both hex. */
+export function oauthCookieValue(state: string, verifier: string): string {
+  return `${state}.${verifier}`;
+}
+
+export function parseOauthCookie(cookieHeader: string | null): { state: string; verifier: string } | null {
+  const m = new RegExp(`(?:^|;\\s*)${OAUTH_COOKIE}=([a-f0-9]{64})\\.([a-f0-9]{64})(?:;|$)`).exec(cookieHeader ?? "");
+  return m ? { state: m[1], verifier: m[2] } : null;
+}
+
+/** Payload of a JWT, without checking its signature. Only for an ID token
+ *  received straight from Google's token endpoint over TLS, which OpenID
+ *  Connect Core 3.1.3.7 allows to be trusted on that basis. */
+export function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
+  const parts = jwt.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const bytes = Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
+    const obj = JSON.parse(new TextDecoder().decode(bytes));
+    return obj && typeof obj === "object" ? (obj as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The verified email from Google ID token claims, or null when the token
+ *  isn't from Google, isn't for this app, has expired, or the address isn't
+ *  verified. */
+export function googleEmailFromClaims(
+  claims: Record<string, unknown> | null,
+  clientId: string,
+  nowSec: number,
+): string | null {
+  if (!claims) return null;
+  const iss = claims["iss"];
+  if (iss !== "https://accounts.google.com" && iss !== "accounts.google.com") return null;
+  const aud = claims["aud"];
+  if (Array.isArray(aud) ? !aud.includes(clientId) : aud !== clientId) return null;
+  const exp = Number(claims["exp"]);
+  if (!Number.isFinite(exp) || exp <= nowSec - 60) return null;
+  const verified = claims["email_verified"];
+  if (verified !== true && verified !== "true") return null;
+  return normalizeEmail(claims["email"]);
+}
