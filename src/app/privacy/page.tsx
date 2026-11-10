@@ -24,6 +24,14 @@ export default function PrivacyPage() {
         We never receive or store the worksheets themselves.
       </p>
       <p>
+        <strong>Saved worksheets (Pro).</strong> When you save a worksheet to
+        your library, we store the name you give it and its settings: format,
+        title, topics, problem counts, options, and the random seed. That is
+        enough to rebuild the same worksheet in your browser; the worksheet
+        itself is never sent to us. Rename or delete saved worksheets any time
+        on the Saved worksheets page.
+      </p>
+      <p>
         <strong>Payment data.</strong> Payments are processed by Stripe. We never
         see or store your card number; Stripe gives us a customer reference and
         subscription status.
@@ -68,7 +76,7 @@ export default function PrivacyPage() {
       <p>
         Account data is kept while your account is active. Email
         support@euclidengine.tech to export or delete your account data. We
-        delete your email, sign-in sessions, and usage records within 30 days of
+        delete your email, sign-in sessions, saved worksheets, and usage records within 30 days of
         your request, and they leave our backups within 30 days after that.
         Payment records are kept by Stripe as required for accounting.
       </p>

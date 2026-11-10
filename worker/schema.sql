@@ -94,6 +94,19 @@ CREATE TABLE IF NOT EXISTS events (
   created_at INTEGER NOT NULL
 );
 
+-- Saved worksheets (Pro library): a worksheet's generator settings and
+-- random seed as JSON, never the PDF. The app rebuilds the same problems and
+-- answer key from them. Max 200 per account (enforced by the Worker).
+CREATE TABLE IF NOT EXISTS saved_worksheets (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  name TEXT NOT NULL,                          -- teacher's label, up to 80 characters
+  settings TEXT NOT NULL,                      -- JSON: format, topics, counts, options, seed
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_saved_worksheets_user ON saved_worksheets(user_id, updated_at);
+
 CREATE INDEX IF NOT EXISTS idx_events_user ON events(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_tokens_hash ON magic_tokens(token_hash);

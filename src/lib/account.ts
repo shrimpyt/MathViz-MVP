@@ -186,3 +186,85 @@ export async function logExportEvent(payload: ExportEventPayload): Promise<void>
 export async function recordGeneration(): Promise<GenerationVerdict | null> {
   return api<GenerationVerdict>("/count", { method: "POST" });
 }
+
+// ── Saved worksheets (Pro library) ───────────────────────────────────────────
+// Each saved worksheet is its settings and seed, never the PDF; the app
+// rebuilds it with generateFromSettings() in lib/worksheetSettings.ts.
+
+export interface SavedWorksheet {
+  id: string;
+  name: string;
+  /** Raw stored settings; run through sanitizeSettings() before use. */
+  settings: unknown;
+  createdAt: number; // unix seconds
+  updatedAt: number;
+}
+
+export type SavedLibrary =
+  | { status: "ok"; pro: boolean; limit: number; items: SavedWorksheet[] }
+  | { status: "signed-out" | "rate_limited" | "unavailable" };
+
+/** The signed-in teacher's saved worksheets, newest first. */
+export async function listSavedWorksheets(): Promise<SavedLibrary> {
+  try {
+    const res = await fetch(`${API_BASE}/worksheets`, { credentials: "include" });
+    if (res.status === 401) return { status: "signed-out" };
+    if (res.status === 429) return { status: "rate_limited" };
+    if (!res.ok) return { status: "unavailable" };
+    const body = (await res.json()) as { pro?: boolean; limit?: number; items?: SavedWorksheet[] };
+    return {
+      status: "ok",
+      pro: body.pro === true,
+      limit: typeof body.limit === "number" ? body.limit : 0,
+      items: Array.isArray(body.items) ? body.items : [],
+    };
+  } catch {
+    return { status: "unavailable" };
+  }
+}
+
+export type LibraryWriteError =
+  | "signed-out"
+  | "pro_required"
+  | "library_full"
+  | "invalid"
+  | "not_found"
+  | "rate_limited"
+  | "unavailable";
+
+export type LibraryWrite<T> = { ok: true; value: T } | { ok: false; error: LibraryWriteError };
+
+async function libraryPost<T>(path: string, payload: unknown, pick: (b: Record<string, unknown>) => T): Promise<LibraryWrite<T>> {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const body = ((await res.json().catch(() => null)) ?? {}) as Record<string, unknown>;
+    if (res.ok && body.ok === true) return { ok: true, value: pick(body) };
+    if (res.status === 401) return { ok: false, error: "signed-out" };
+    if (res.status === 429) return { ok: false, error: "rate_limited" };
+    if (res.status === 404) return { ok: false, error: "not_found" };
+    const err = body.error;
+    if (err === "pro_required" || err === "library_full") return { ok: false, error: err };
+    if (res.status === 400 || res.status === 413) return { ok: false, error: "invalid" };
+    return { ok: false, error: "unavailable" };
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+/** Save the current worksheet's settings (Pro only). */
+export function saveWorksheet(name: string, settings: unknown): Promise<LibraryWrite<SavedWorksheet>> {
+  return libraryPost("/worksheets/save", { name, settings }, (b) => b.item as SavedWorksheet);
+}
+
+export function renameSavedWorksheet(id: string, name: string): Promise<LibraryWrite<string>> {
+  return libraryPost("/worksheets/rename", { id, name }, (b) => String(b.name ?? name));
+}
+
+export function deleteSavedWorksheet(id: string): Promise<LibraryWrite<true>> {
+  return libraryPost("/worksheets/delete", { id }, () => true as const);
+}

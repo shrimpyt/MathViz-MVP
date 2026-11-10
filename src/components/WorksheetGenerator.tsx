@@ -14,10 +14,15 @@ import {
   Collapse,
   Chip,
   InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Save,
   UploadFile,
+  BookmarkAdd,
   PictureAsPdf,
   Casino,
   ExpandMore,
@@ -55,30 +60,24 @@ import {
   requestSignInCode,
   signOut as apiSignOut,
   verifySignInCode,
+  listSavedWorksheets,
+  saveWorksheet,
 } from '../lib/account';
+import {
+  generateModuleProblemSets,
+  sanitizeSettings,
+  settingsForSave,
+  toOutputMode,
+  type WorksheetSettings,
+} from '../lib/worksheetSettings';
 import { standardsFor, FRAMEWORKS, frameworkMeta, type StandardsFramework } from '../lib/standards';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
 
-// ── Map DocumentType → EuclidEngine OutputMode ───────────────────────────────
-
-export function toOutputMode(docType: DocumentType): OutputMode {
-  if (docType === 'guided-notes') return 'GuidedNote';
-  if (docType === 'review') return 'Review';
-  if (docType === 'test') return 'Test';
-  if (docType === 'classical-notes') return 'Classical';
-  // proof-fill-reasons / proof-elements / sat-practice generate the clean
-  // student version; presentation is threaded separately (proofDocMode) or
-  // handled by the card itself. proof-two-column shows the complete proof
-  // (Review), so it renders differently from proof-fill-reasons (Test).
-  if (docType === 'proof-two-column') return 'Review';
-  if (docType === 'proof-fill-reasons') return 'Test';
-  if (docType === 'proof-elements') return 'Test';
-  if (docType === 'proof-blank') return 'Test';
-  if (docType === 'sat-practice') return 'Test';
-  return 'Review'; // 'worksheet' → Review style (no step hints)
-}
+// DocumentType → OutputMode lives with the settings code so saved
+// worksheets rebuild through the same mapping; re-exported for callers.
+export { toOutputMode };
 
 function modeWord(docType: DocumentType): string {
   if (docType === 'guided-notes') return 'Notes';
@@ -264,8 +263,6 @@ export default function WorksheetGenerator() {
   const [framework, setFramework] = useState<StandardsFramework>('teks');
   const stdFor = (e: { id: string; teks: string }) => standardsFor(e.id, e.teks, framework);
   const clampCount = (n: number) => Math.min(25, Math.max(1, Math.floor(n)));
-  const countForTopic = (id: string) =>
-    advancedCounts ? clampCount(topicCounts[id] ?? count) : count;
   const setTopicCount = (id: string, v: number | null) =>
     setTopicCounts((prev) => {
       const next = { ...prev };
@@ -523,9 +520,15 @@ export default function WorksheetGenerator() {
   // draw identical sequences). Kept per-module so Classical Notes mode can
   // chunk them back into per-entry groups for its section renderer.
   const moduleProblemSets = useMemo<MathProblem[][]>(() => {
-    return selectedModules.map((mod, i) =>
-      mod.generate(toOutputMode(docType), seed + i * 7919, { count: countForTopic(mod.id), difficulty, wordProblems })
-    );
+    return generateModuleProblemSets(selectedModules, {
+      docType,
+      seed,
+      count,
+      advancedCounts,
+      topicCounts,
+      difficulty,
+      wordProblems,
+    });
   }, [selectedModules, docType, seed, count, difficulty, wordProblems, advancedCounts, topicCounts]);
 
   // Words-only mode (render-side transform, generation untouched): every
@@ -714,6 +717,46 @@ export default function WorksheetGenerator() {
     URL.revokeObjectURL(url);
   };
 
+  // The settings this worksheet is rebuilt from (draft files and the
+  // saved library both store exactly this, plus the seed).
+  const currentSettings = (): WorksheetSettings =>
+    settingsForSave({
+      docType,
+      title: customTitle,
+      topicIds: selectedTopicIds,
+      seed,
+      count,
+      topicCounts,
+      advancedCounts,
+      framework,
+      difficulty,
+      includeAnswerKey,
+      wordProblems,
+      includeDiagrams,
+    });
+
+  const applySettings = (d: WorksheetSettings) => {
+    setDocType(d.docType);
+    setCustomTitle(d.title);
+    setSelectedTopicIds(d.topicIds);
+    // Expand the groups holding the loaded topics so the selection is visible
+    const groups = new Set<string>();
+    for (const id of d.topicIds) {
+      const entry = CURRICULUM_REGISTRY.find((t) => t.id === id);
+      if (entry) groups.add(entry.topicTitle);
+    }
+    setExpandedGroups(groups);
+    setSeed(d.seed);
+    setCount(d.count);
+    setTopicCounts(d.topicCounts);
+    setAdvancedCounts(d.advancedCounts);
+    setFramework(d.framework);
+    setDifficulty(d.difficulty);
+    setIncludeAnswerKey(d.includeAnswerKey);
+    setWordProblems(d.wordProblems);
+    setIncludeDiagrams(d.includeDiagrams);
+  };
+
   const loadDraftFile = (file: File) => {
     setDraftError(null);
     const reader = new FileReader();
@@ -723,46 +766,9 @@ export default function WorksheetGenerator() {
         if (d.app !== 'euclid-engine-worksheet') {
           throw new Error('That file is not a Euclid Engine draft.');
         }
-        if (d.docType === 'worksheet' || d.docType === 'guided-notes' || d.docType === 'review' || d.docType === 'test' || d.docType === 'classical-notes' || d.docType === 'proof-two-column' || d.docType === 'proof-fill-reasons' || d.docType === 'proof-elements' || d.docType === 'sat-practice') {
-          setDocType(d.docType);
-        }
-        if (typeof d.title === 'string') setCustomTitle(d.title);
-        if (Array.isArray(d.topicIds)) {
-          const valid = d.topicIds.filter(
-            (id): id is string =>
-              typeof id === 'string' &&
-              CURRICULUM_REGISTRY.some((t) => t.id === id && !t.underConstruction)
-          );
-          setSelectedTopicIds(valid);
-          // Expand the groups holding the loaded topics so the draft is visible
-          const groups = new Set<string>();
-          for (const id of valid) {
-            const entry = CURRICULUM_REGISTRY.find((t) => t.id === id);
-            if (entry) groups.add(entry.topicTitle);
-          }
-          setExpandedGroups(groups);
-        }
-        if (typeof d.seed === 'number' && Number.isFinite(d.seed)) setSeed(Math.floor(d.seed));
-        if (typeof d.count === 'number' && Number.isFinite(d.count)) {
-          setCount(Math.min(25, Math.max(1, Math.floor(d.count))));
-        }
-        if (d.topicCounts && typeof d.topicCounts === 'object') {
-          const clean: Record<string, number> = {};
-          for (const [id, v] of Object.entries(d.topicCounts)) {
-            if (typeof v === 'number' && Number.isFinite(v)) {
-              clean[id] = Math.min(25, Math.max(1, Math.floor(v)));
-            }
-          }
-          setTopicCounts(clean);
-        }
-        if (typeof d.advancedCounts === 'boolean') setAdvancedCounts(d.advancedCounts);
-        if (d.framework && FRAMEWORKS.some((f) => f.id === d.framework)) setFramework(d.framework);
-        if (d.difficulty === 1 || d.difficulty === 2 || d.difficulty === 3) {
-          setDifficulty(d.difficulty);
-        }
-        if (typeof d.includeAnswerKey === 'boolean') setIncludeAnswerKey(d.includeAnswerKey);
-        if (typeof d.wordProblems === 'boolean') setWordProblems(d.wordProblems);
-        if (typeof d.includeDiagrams === 'boolean') setIncludeDiagrams(d.includeDiagrams);
+        const settings = sanitizeSettings(d);
+        if (!settings) throw new Error('Could not read that draft file.');
+        applySettings(settings);
       } catch (e) {
         setDraftError(e instanceof Error ? e.message : 'Could not read that draft file.');
       }
@@ -770,6 +776,86 @@ export default function WorksheetGenerator() {
     reader.onerror = () => setDraftError('Could not read that draft file.');
     reader.readAsText(file);
   };
+
+  // ── Saved library (Pro) ──
+  const [libraryMsg, setLibraryMsg] = useState<{ severity: 'success' | 'error'; text: string } | null>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const openSaveDialog = () => {
+    setLibraryMsg(null);
+    if (account.status !== 'signed-in') {
+      setGateMsg('Saved worksheets are part of Pro. Sign in with your Pro account to save this one and rebuild it any time.');
+      return;
+    }
+    if (!isPro) {
+      setGateMsg('Saved worksheets are part of Pro. Save a worksheet once, then reprint the exact same problems and answer key next year.');
+      return;
+    }
+    setSaveName(title.slice(0, 80));
+    setSaveDialogOpen(true);
+  };
+
+  const confirmSave = async () => {
+    const name = saveName.trim();
+    if (!name) return;
+    setSaving(true);
+    const result = await saveWorksheet(name, currentSettings());
+    setSaving(false);
+    setSaveDialogOpen(false);
+    if (result.ok) {
+      setLibraryMsg({ severity: 'success', text: `Saved "${result.value.name}" to your library.` });
+      return;
+    }
+    const why: Record<typeof result.error, string> = {
+      'signed-out': 'You are signed out. Sign in again, then save.',
+      pro_required: 'Saved worksheets are part of Pro.',
+      library_full: 'Your library is full. Delete a saved worksheet to make room.',
+      invalid: 'This worksheet could not be saved. Check that it has at least one topic.',
+      not_found: 'This worksheet could not be saved.',
+      rate_limited: 'Too many changes in a short time. Wait a few minutes and try again.',
+      unavailable: 'Saving is unavailable right now. Try again in a moment.',
+    };
+    setLibraryMsg({ severity: 'error', text: why[result.error] });
+  };
+
+  // Opened from the Saved worksheets page as /?open=<id>: load that
+  // worksheet's settings and go straight to Review. Read once after mount,
+  // then take the parameter off the address so a reload doesn't repeat it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('open');
+    if (!id) return;
+    params.delete('open');
+    const rest = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (rest ? `?${rest}` : '') + window.location.hash);
+    let live = true;
+    listSavedWorksheets().then((lib) => {
+      if (!live) return;
+      if (lib.status !== 'ok') {
+        setLibraryMsg({ severity: 'error', text: lib.status === 'signed-out' ? 'Sign in to open your saved worksheets.' : 'Could not open that saved worksheet right now. Try again in a moment.' });
+        return;
+      }
+      if (!lib.pro) {
+        setGateMsg('Opening saved worksheets is part of Pro. Your saved worksheets are kept; renew Pro to rebuild them.');
+        return;
+      }
+      const item = lib.items.find((w) => w.id === id);
+      const settings = item ? sanitizeSettings(item.settings) : null;
+      if (!item || !settings || settings.topicIds.length === 0) {
+        setLibraryMsg({ severity: 'error', text: 'That saved worksheet could not be found.' });
+        return;
+      }
+      applySettings(settings);
+      setStep(3);
+      setLibraryMsg({ severity: 'success', text: `Opened "${item.name}". Same problems and answer key as when you saved it.` });
+    });
+    return () => {
+      live = false;
+    };
+    // Runs once on mount; applySettings only calls state setters.
+  }, []);
 
   const randomizeSeed = () => setSeed(Math.floor(Math.random() * 100000));
 
@@ -929,6 +1015,9 @@ export default function WorksheetGenerator() {
             activeVersionId={activeVersionId}
             setActiveVersionId={setActiveVersionId}
             saveDraft={saveDraft}
+            onSaveToLibrary={openSaveDialog}
+            libraryMsg={libraryMsg}
+            clearLibraryMsg={() => setLibraryMsg(null)}
             fileRef={fileRef}
             mounted={mounted}
             draftError={draftError}
@@ -954,6 +1043,35 @@ export default function WorksheetGenerator() {
         canContinue={step === 0 || selectedTopicIds.length > 0}
         summary={footerSummary}
       />
+
+      <Dialog open={saveDialogOpen} onClose={() => !saving && setSaveDialogOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800 }}>Save to your library</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.82rem', color: '#9aa0be', mb: 1.5 }}>
+            Saves this worksheet&apos;s settings and seed, so you can rebuild the exact same problems and answer key later.
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            size="small"
+            label="Name"
+            value={saveName}
+            onChange={(e) => setSaveName(e.target.value.slice(0, 80))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && saveName.trim() && !saving) void confirmSave();
+            }}
+            helperText={`${saveName.length}/80`}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSaveDialogOpen(false)} disabled={saving} sx={{ color: '#9aa0be' }}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={() => void confirmSave()} disabled={saving || !saveName.trim()}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Hidden draft file input */}
       <input
@@ -1120,6 +1238,9 @@ function AccountControl({
             border: '1px solid rgba(129,140,248,0.30)',
           }}
         />
+        <Button size="small" href="/saved" sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}>
+          Saved
+        </Button>
         {account.plan === 'pro' ? (
           <Button
             size="small"
@@ -2315,6 +2436,9 @@ function StepReview({
   activeVersionId,
   setActiveVersionId,
   saveDraft,
+  onSaveToLibrary,
+  libraryMsg,
+  clearLibraryMsg,
   fileRef,
   mounted,
   draftError,
@@ -2345,6 +2469,9 @@ function StepReview({
   activeVersionId: string;
   setActiveVersionId: (id: string) => void;
   saveDraft: () => void;
+  onSaveToLibrary: () => void;
+  libraryMsg: { severity: 'success' | 'error'; text: string } | null;
+  clearLibraryMsg: () => void;
   fileRef: React.RefObject<HTMLInputElement | null>;
   mounted: boolean;
   draftError: string | null;
@@ -2421,6 +2548,17 @@ function StepReview({
         >
           Load draft
         </Button>
+        <Tooltip title={isPro ? 'Keep it in your library and rebuild it exactly, any time' : 'Saved worksheets are part of Pro'} arrow>
+          <Button
+            variant="outlined"
+            startIcon={<BookmarkAdd />}
+            onClick={onSaveToLibrary}
+            disabled={selectedModules.length === 0}
+            sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '12px', '&:hover': { borderColor: '#818cf8', color: '#818cf8' } }}
+          >
+            Save to library{isPro ? '' : ' (Pro)'}
+          </Button>
+        </Tooltip>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '12px', px: 1.5, py: 0.5 }}>
           <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#9aa0be' }}>Seed</Typography>
           <TextField
@@ -2555,6 +2693,23 @@ function StepReview({
         <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, mb: 1 }}>
           {usageNote} · Free exports carry a small footer note and no answer key.
         </Typography>
+      )}
+
+      {libraryMsg && (
+        <Alert
+          severity={libraryMsg.severity}
+          onClose={clearLibraryMsg}
+          action={
+            libraryMsg.severity === 'success' ? (
+              <Button color="inherit" size="small" href="/saved" sx={{ fontWeight: 800 }}>
+                Saved worksheets
+              </Button>
+            ) : undefined
+          }
+          sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
+        >
+          {libraryMsg.text}
+        </Alert>
       )}
 
       {draftError && (
