@@ -761,6 +761,9 @@ export interface PdfDocumentProps {
   /** Free-tier exports carry a plain "Made with Euclid Engine Free" footer
       line (the Free watermark). Pro exports omit it. */
   watermark?: boolean;
+  /** Mixed-topic worksheet: print advancedProblems in the order given, as
+      one list with no section headings (see orderProblemSets). */
+  mixedOrder?: boolean;
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
@@ -787,6 +790,7 @@ export function PdfVersionPages({
   keyHeading = 'ANSWER KEY',
   wordBank,
   watermark = false,
+  mixedOrder = false,
 }: PdfDocumentProps) {
   const styles = getStyles(presentation);
   const modeLabel =
@@ -828,7 +832,13 @@ export function PdfVersionPages({
   // same order EuclidEngine uses for the on-screen preview. Each problem
   // lands in the first matching section only.
   const sections: { label: string | null; items: PdfItem[] }[] = [];
-  if (advancedProblems && advancedProblems.length > 0) {
+  if (advancedProblems && advancedProblems.length > 0 && mixedOrder) {
+    // Mixed topics: one unlabeled list in the order given, numbered 1..n.
+    sections.push({
+      label: null,
+      items: advancedProblems.map((p, i) => ({ problem: p, question: problemToQuestion(p, i) })),
+    });
+  } else if (advancedProblems && advancedProblems.length > 0) {
     let n = 0;
     const remaining = [...advancedProblems];
     for (const def of SECTION_DEFS) {

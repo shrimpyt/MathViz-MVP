@@ -18,6 +18,7 @@ import {
   DOCUMENT_TYPES,
   entriesForSettings,
   generateFromSettings,
+  orderProblemSets,
   sanitizeSettings,
   settingsForSave,
   toOutputMode,
@@ -41,7 +42,8 @@ const live = CURRICULUM_REGISTRY.filter((e) => !e.underConstruction);
 /** Everything a teacher prints: the problems and the answer-key lines. */
 function fingerprint(s: WorksheetSettings): string {
   const sets = generateFromSettings(s);
-  const flat = sets.flat();
+  // Print order (mixed topics are shuffled by the seed), as the generator uses.
+  const flat = orderProblemSets(sets, s);
   const key = flat.map((p, i) => {
     const q = problemToQuestion(p, i);
     return `${formatAnswer(p)}|${JSON.stringify(q)}`;
@@ -75,6 +77,7 @@ function settings(over: Partial<WorksheetSettings>): WorksheetSettings {
     includeAnswerKey: true,
     wordProblems: false,
     includeDiagrams: true,
+    keepTopicsGrouped: false,
     ...over,
   };
 }
@@ -110,6 +113,7 @@ function cases(): WorksheetSettings[] {
         advancedCounts: k % 2 === 0,
         topicCounts: k % 2 === 0 ? { [unique[0]]: 7, [unique[unique.length - 1]]: 2 } : {},
         difficulty: ((k % 3) + 1) as DifficultyLevel,
+        keepTopicsGrouped: k % 3 === 0,
       }),
     );
   }
