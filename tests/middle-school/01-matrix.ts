@@ -32,9 +32,9 @@ export function run(): void {
 
   // sanity: 80 entries, ids unique, grouped by grade
   const ids = MIDDLE_SCHOOL_ENTRIES.map((e) => e.id);
-  check(MIDDLE_SCHOOL_ENTRIES.length === 91, `expected 91 entries, got ${MIDDLE_SCHOOL_ENTRIES.length}`);
+  check(MIDDLE_SCHOOL_ENTRIES.length === 94, `expected 94 entries, got ${MIDDLE_SCHOOL_ENTRIES.length}`);
   check(new Set(ids).size === ids.length, "entry ids are unique");
-  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 30).length === 34, "34 grade-6 entries");
+  check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 30).length === 37, "37 grade-6 entries");
   check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 31).length === 57, "57 Pre-Algebra entries");
   check(MIDDLE_SCHOOL_ENTRIES.filter((e) => e.topic === 32).length === 0, "0 entries left in the retired grade-8 bucket");
 

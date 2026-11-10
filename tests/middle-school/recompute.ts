@@ -595,6 +595,48 @@ function recompute6(p: MiddleSchoolProblem): string | number {
       }
       throw new Error(`unhandled WriteProblem6 kind=${kind}`);
     }
+    case "GCFAndLCM": {
+      const a = inum(g, "a"), b = inum(g, "b");
+      // Brute force, independent of any gcd routine.
+      let gg = 1;
+      for (let k = 1; k <= Math.min(a, b); k++) if (a % k === 0 && b % k === 0) gg = k;
+      let ll = Math.max(a, b);
+      while (ll % a !== 0 || ll % b !== 0) ll++;
+      const kind = istr(g, "kind");
+      if (kind === "gcf" || kind === "gcf-word") {
+        if (gg <= 1) throw new Error("GCF problem with GCF 1");
+        return gg;
+      }
+      if (kind === "lcm" || kind === "lcm-word") return ll;
+      if (kind === "both") return `GCF = ${gg}, LCM = ${ll}`;
+      throw new Error(`unhandled GCFAndLCM kind=${kind}`);
+    }
+    case "AddSubtractFractionsMixed": {
+      const n1 = inum(g, "w1") * inum(g, "d1") + inum(g, "n1");
+      const n2 = inum(g, "w2") * inum(g, "d2") + inum(g, "n2");
+      const d1 = inum(g, "d1"), d2 = inum(g, "d2");
+      const op = istr(g, "op");
+      const num = op === "add" ? n1 * d2 + n2 * d1 : n1 * d2 - n2 * d1;
+      if (num <= 0) throw new Error("fraction difference is not positive");
+      const f = ifrac(num, d1 * d2);
+      const whole = Math.floor(f.n / f.d);
+      const rem = f.n % f.d;
+      const text = rem === 0 ? String(whole) : whole === 0 ? `${rem}/${f.d}` : `${whole} ${rem}/${f.d}`;
+      const kind = istr(g, "kind");
+      if (kind === "mixed-word") return `${text} ${istr(g, "unit")}`;
+      if (kind === "frac" || kind === "mixed") return text;
+      throw new Error(`unhandled AddSubtractFractionsMixed kind=${kind}`);
+    }
+    case "PercentProblems6": {
+      const pct = inum(g, "pct"), whole = inum(g, "whole"), part = inum(g, "part");
+      if (Math.abs((pct / 100) * whole - part) > 1e-9) throw new Error("percent triple is inconsistent");
+      const kind = istr(g, "kind");
+      if (kind === "part" || kind === "part-word") return part;
+      if (kind === "whole") return whole;
+      if (kind === "whole-word") return inum(g, "money") === 1 ? `$${whole}` : whole;
+      if (kind === "percent" || kind === "percent-word") return `${pct}%`;
+      throw new Error(`unhandled PercentProblems6 kind=${kind}`);
+    }
     default:
       throw new Error(`unhandled grade-6 subtype ${(p as { subtype: string }).subtype}`);
   }

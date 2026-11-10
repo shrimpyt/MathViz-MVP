@@ -50,6 +50,9 @@ const SUBTYPE_LABEL: Record<Grade6Problem["subtype"], string> = {
   FractionMultiplyEffect: "Multiplying by a Fraction: Bigger or Smaller?",
   BenchmarkPercents: "Benchmark Percents",
   CategoricalData6: "Relative Frequency & Percent Bar Graphs",
+  GCFAndLCM: "Greatest Common Factor & Least Common Multiple",
+  AddSubtractFractionsMixed: "Adding & Subtracting Fractions and Mixed Numbers",
+  PercentProblems6: "Percent Problems",
   WriteProblem6: "Write the Problem",
 };
 

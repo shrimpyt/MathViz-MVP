@@ -89,6 +89,13 @@ const LESSONS: LessonDef[] = [
     teks: "TEKS 6.4G · 6.5C", description: "Convert between the three forms, including percents from fractions.",
     grade: 6, subtypes: ["FDPConversions"],
   },
+  {
+    id: "ms6-1-4-add-subtract-fractions-mixed", topic: 30, topicTitle: `${G6} · T1 Numbers & Operations`,
+    title: "1-4: Adding & Subtracting Fractions & Mixed Numbers",
+    story: "Find a common denominator, regroup when you need to, and simplify.",
+    teks: "TEKS 5.3K · 7.3A", description: "Add and subtract fractions with unlike denominators and mixed numbers, with regrouping and word problems.",
+    grade: 6, subtypes: ["AddSubtractFractionsMixed"],
+  },
   // ── Grade 6 · T2 Integers & Rational Numbers ───────────────────────────────
   {
     id: "ms6-2-1-comparing-ordering-integers", topic: 30, topicTitle: `${G6} · T2 Integers & Rational Numbers`,
@@ -196,6 +203,13 @@ const LESSONS: LessonDef[] = [
     teks: "TEKS 6.6A · 6.6B · 6.6C", description: "Evaluate two-variable rules; write rules for real situations.",
     grade: 6, subtypes: ["TwoVariableRelationships"],
   },
+  {
+    id: "ms6-3-12-gcf-lcm", topic: 30, topicTitle: `${G6} · T3 Expressions, Equations & Relationships`,
+    title: "3-11: Greatest Common Factor & Least Common Multiple",
+    story: "Find the biggest shared factor and the smallest shared multiple.",
+    teks: "TEKS 6.7A (extension)", description: "GCF and LCM by listing and by prime factorization; equal-groups and repeating-schedule word problems.",
+    grade: 6, subtypes: ["GCFAndLCM"],
+  },
   // ── Grade 6 · T4 Proportionality ───────────────────────────────────────────
   {
     id: "ms6-4-1-ratios-rates", topic: 30, topicTitle: `${G6} · T4 Proportionality`,
@@ -210,6 +224,13 @@ const LESSONS: LessonDef[] = [
     story: "Use ratios to solve percent and scaling problems.",
     teks: "TEKS 6.4B · 6.5A · 6.5B", description: "Scale ratios; find a percent of a number; ratio word problems.",
     grade: 6, subtypes: ["RatioReasoning"],
+  },
+  {
+    id: "ms6-4-3-percent-problems", topic: 30, topicTitle: `${G6} · T4 Proportionality`,
+    title: "4-3: Percent Problems",
+    story: "Find the part, the whole, or the percent.",
+    teks: "TEKS 6.5B", description: "Find a percent of a number, the whole from a part and a percent, and the percent from a part and a whole, including word problems.",
+    grade: 6, subtypes: ["PercentProblems6"],
   },
   // ── Grade 6 · T5 Geometry ──────────────────────────────────────────────────
   {
