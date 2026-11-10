@@ -23,7 +23,12 @@ interface Env {
   PRICE_PRO_ANNUAL?: string;
   PRICE_SCHOOL?: string;
   PRICE_FOUNDERS?: string;
-  /** "1" in local dev only: request-link responses include the sign-in URL
+  /** Sign in with Google: an OAuth 2.0 "Web application" client from Google
+   *  Cloud Console. Both unset means the Google button stays hidden. */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  /** "1" in local dev only: request-link and request-code responses include
+   *  the sign-in URL or code
    *  so the flow can be tested without an email provider. Ignored unless
    *  APP_URL is localhost, so it can't take effect in production. */
   DEV_AUTH?: string;

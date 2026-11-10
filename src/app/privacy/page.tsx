@@ -12,8 +12,9 @@ export default function PrivacyPage() {
       <H2>What we collect</H2>
       <p>
         <strong>Teacher account email.</strong> When you sign in, we store your
-        email address to operate your account and send sign-in links and receipts.
-        That is the only personal information an account requires.
+        email address to operate your account and send sign-in codes and receipts.
+        If you choose Sign in with Google, Google tells us only your verified
+        email address. That is the only personal information an account requires.
       </p>
       <p>
         <strong>Plan and usage data.</strong> Your subscription plan and status,

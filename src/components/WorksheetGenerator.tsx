@@ -50,8 +50,11 @@ import {
   fetchAccount,
   logExportEvent,
   recordGeneration,
-  requestSignInLink,
+  GOOGLE_SIGNIN_URL,
+  fetchSignInMethods,
+  requestSignInCode,
   signOut as apiSignOut,
+  verifySignInCode,
 } from '../lib/account';
 import { standardsFor, FRAMEWORKS, frameworkMeta, type StandardsFramework } from '../lib/standards';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
@@ -1016,9 +1019,29 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Compact account control for the topbar: sign-in via emailed magic link,
-// plan chip, sign-out, and (for Pro) the Stripe billing portal. All API
-// calls fail soft, if accounts are not live yet, the button says so.
+// Compact account control for the topbar: Sign in with Google (when the
+// Worker has it set up) or a 6-digit code emailed to the teacher, plan chip,
+// sign-out, and (for Pro) the Stripe billing portal. All API calls fail
+// soft, if accounts are not live yet, the button says so.
+
+function GoogleMark() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.7 17.8 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 7-9.9 7-17.1z" />
+      <path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2.2 1.5-5 2.3-8.6 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}
+
+const CODE_ERRORS: Record<string, string> = {
+  wrong_code: "That code doesn't match. Check the latest email and try again.",
+  expired: 'That code has expired or was already used. Send a new one.',
+  too_many_attempts: 'Too many wrong tries. Send a new code.',
+  rate_limited: 'Too many tries from this network. Please wait 15 minutes.',
+  unavailable: 'Sign-in is not available right now. Please try again later.',
+};
 function AccountControl({
   account,
   onAccountChange,
@@ -1029,8 +1052,59 @@ function AccountControl({
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [google, setGoogle] = useState(false);
+
+  // When the menu opens, ask which sign-in methods are live, so the Google
+  // button only shows once the Worker has it set up.
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    fetchSignInMethods().then((m) => {
+      if (live) setGoogle(m.google);
+    });
+    return () => {
+      live = false;
+    };
+  }, [open]);
+
+  const sendCode = async () => {
+    setBusy(true);
+    setError(null);
+    const result = await requestSignInCode(email.trim());
+    setBusy(false);
+    if (result === 'sent') {
+      setSent(true);
+      setCode('');
+    } else if (result === 'rate_limited')
+      setError('Too many sign-in emails were requested. Please wait 15 minutes and try again.');
+    else if (result === 'invalid_email') setError('Please check the email address.');
+    else setError('Sign-in is not available right now. Please try again later.');
+  };
+
+  const checkCode = async () => {
+    setBusy(true);
+    setError(null);
+    const result = await verifySignInCode(email.trim(), code);
+    if (result === 'ok') {
+      const a = await fetchAccount();
+      setBusy(false);
+      if (a) {
+        setOpen(false);
+        setSent(false);
+        setCode('');
+        onAccountChange(a);
+      } else {
+        setError(CODE_ERRORS.unavailable);
+      }
+      return;
+    }
+    setBusy(false);
+    setError(CODE_ERRORS[result]);
+  };
+  const codeReady = code.replace(/\D/g, '').length === 6;
 
   if (account.status === 'signed-in') {
     return (
@@ -1105,11 +1179,90 @@ function AccountControl({
           }}
         >
           {sent ? (
-            <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#f2f3fa' }}>
-              Check your email, your sign-in link is on its way. It expires in 15 minutes. Open it and press Sign in.
-            </Typography>
+            <>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#f2f3fa', mb: 0.5 }}>
+                Enter the 6-digit code
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#9aa0be', fontWeight: 600, mb: 1, overflowWrap: 'anywhere' }}>
+                We emailed it to {email.trim()}. It expires in 10 minutes.
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                autoFocus
+                placeholder="123456"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^\d\s-]/g, '').slice(0, 7))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && codeReady && !busy) checkCode();
+                }}
+                slotProps={{
+                  htmlInput: {
+                    inputMode: 'numeric',
+                    autoComplete: 'one-time-code',
+                    'aria-label': 'Sign-in code',
+                    style: { letterSpacing: '0.3em', fontWeight: 800, textAlign: 'center' },
+                  },
+                }}
+                sx={{ mb: 1 }}
+              />
+              {error && (
+                <Typography sx={{ fontSize: '0.75rem', color: '#f87171', fontWeight: 700, mb: 1 }}>
+                  {error}
+                </Typography>
+              )}
+              <Button
+                fullWidth
+                variant="contained"
+                disabled={busy || !codeReady}
+                onClick={checkCode}
+                sx={{ borderRadius: '10px', fontWeight: 800 }}
+              >
+                {busy ? 'Checking…' : 'Sign in'}
+              </Button>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                <Button size="small" disabled={busy} onClick={sendCode} sx={{ color: '#9aa0be', fontWeight: 700, px: 0.5 }}>
+                  Send a new code
+                </Button>
+                <Button
+                  size="small"
+                  disabled={busy}
+                  onClick={() => {
+                    setSent(false);
+                    setCode('');
+                    setError(null);
+                  }}
+                  sx={{ color: '#9aa0be', fontWeight: 700, px: 0.5 }}
+                >
+                  Change email
+                </Button>
+              </Box>
+            </>
           ) : (
             <>
+              {google && (
+                <>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    href={GOOGLE_SIGNIN_URL}
+                    startIcon={<GoogleMark />}
+                    sx={{
+                      borderRadius: '10px',
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      color: '#f2f3fa',
+                      borderColor: '#2c3247',
+                      '&:hover': { borderColor: '#818cf8' },
+                    }}
+                  >
+                    Continue with Google
+                  </Button>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#9aa0be', fontWeight: 700, textAlign: 'center', my: 1 }}>
+                    or
+                  </Typography>
+                </>
+              )}
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#f2f3fa', mb: 1 }}>
                 Sign in with your email
               </Typography>
@@ -1120,6 +1273,10 @@ function AccountControl({
                 placeholder="you@school.org"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && email.includes('@') && !busy) sendCode();
+                }}
+                slotProps={{ htmlInput: { autoComplete: 'email', 'aria-label': 'Email address' } }}
                 sx={{ mb: 1 }}
               />
               {error && (
@@ -1131,19 +1288,10 @@ function AccountControl({
                 fullWidth
                 variant="contained"
                 disabled={busy || !email.includes('@')}
-                onClick={async () => {
-                  setBusy(true);
-                  setError(null);
-                  const result = await requestSignInLink(email.trim());
-                  setBusy(false);
-                  if (result === 'sent') setSent(true);
-                  else if (result === 'rate_limited')
-                    setError('Too many sign-in emails were requested. Please wait 15 minutes and try again.');
-                  else setError('Sign-in is not available right now. Please try again later.');
-                }}
+                onClick={sendCode}
                 sx={{ borderRadius: '10px', fontWeight: 800 }}
               >
-                {busy ? 'Sending…' : 'Email me a sign-in link'}
+                {busy ? 'Sending…' : 'Email me a sign-in code'}
               </Button>
               <Typography sx={{ fontSize: '0.7rem', color: '#9aa0be', mt: 1, fontWeight: 600 }}>
                 Teacher accounts only. We never collect student data.
