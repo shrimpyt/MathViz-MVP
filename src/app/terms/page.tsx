@@ -26,8 +26,13 @@ export default function TermsPage() {
         export, and the IEP accommodation features.
         Subscriptions renew automatically until cancelled; you can cancel any time
         from the billing portal, and cancellation takes effect at the end of the
-        current paid period. School licenses ($299/year, up to 10 named teacher
-        accounts) are arranged by contacting us.
+        current paid period. Monthly Pro subscriptions pause automatically each
+        year from June 1 to August 1: no charge is made for that period and Pro
+        stays active. School licenses ($499/year, up to 10 named teacher accounts
+        on one campus) are arranged by contacting us. The Founders plan is a
+        one-time $150 payment, offered to the first 50 teachers until January 31,
+        2027, that gives one teacher account Pro for as long as Euclid Engine
+        operates; it does not include School seats or future paid add-ons.
       </p>
       <H2>Your worksheets</H2>
       <p>
