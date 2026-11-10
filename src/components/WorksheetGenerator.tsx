@@ -849,7 +849,7 @@ export default function WorksheetGenerator() {
     if (!sessionRestored) return;
     writeBuilderSession(sessionStore(), { settings: currentSettings(), step });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionRestored, step, docType, customTitle, selectedTopicIds, seed, count, topicCounts, advancedCounts, framework, difficulty, includeAnswerKey, wordProblems, includeDiagrams]);
+  }, [sessionRestored, step, docType, customTitle, selectedTopicIds, seed, count, topicCounts, advancedCounts, framework, difficulty, includeAnswerKey, wordProblems, includeDiagrams, keepTopicsGrouped]);
 
   // ── Saved library (Pro) ──
   const [libraryMsg, setLibraryMsg] = useState<{ severity: 'success' | 'error'; text: string } | null>(null);
