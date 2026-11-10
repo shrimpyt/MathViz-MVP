@@ -83,6 +83,9 @@ interface EuclidEngineProps {
   /** Word bank terms for accommodated versions (IEP word-bank option).
       Rendered in a plain bank box under the header when non-empty. */
   wordBank?: string[];
+  /** Mixed-topic worksheet: show problems in the order given, as one list
+      with no section headings (matches the PDF; see orderProblemSets). */
+  mixedOrder?: boolean;
 }
 
 export interface ClassicalGroup {
@@ -103,6 +106,7 @@ export function EuclidEngine({
   standard,
   presentation = DEFAULT_PRESENTATION,
   wordBank,
+  mixedOrder = false,
 }: EuclidEngineProps) {
   const [revealed, setRevealed] = useState(false);
 
@@ -219,6 +223,59 @@ export function EuclidEngine({
   const showClassicalGroups =
     mode === "Classical" && !!classicalGroups && classicalGroups.length > 0;
 
+  // One card for one problem, by type. Used by the mixed-topic list, where
+  // problems print in the order given instead of section by section.
+  const renderCard = (p: MathProblem, index: number): React.ReactNode => {
+    const common = { index, mode, revealed };
+    const t = (p as { type: string }).type;
+    const domain = (p as { domain?: string }).domain;
+    const subject = (p as { subject?: string }).subject;
+    if (t === "G.12A") return <CircleProblemCard {...common} problem={p as CircleProblem} />;
+    if (t === "G.12B") return <MeasurementProblemCard {...common} problem={p as MeasurementProblem} />;
+    if (t === "G.13B") return <ProbabilityProblemCard {...common} problem={p as ProbabilityProblem} />;
+    if (t === "G.6B") return <CongruenceProblemCard {...common} problem={p as CongruenceProblem} />;
+    if (t === "G.2B") return <CoordinateProblemCard {...common} problem={p as CoordinateProblem} />;
+    if (t === "G.9A" || t === "G.9B") {
+      return (
+        <TrigProblemCard
+          problem={p as TrigProblem | SpecialTriangleProblem}
+          idx={index}
+          mode={mode}
+          revealed={revealed}
+        />
+      );
+    }
+    if (t === "Proof" && domain === "geometry") {
+      const proof = p as ProofProblem;
+      return (
+        <ProofProblemCard
+          {...common}
+          problem={proof}
+          presentation={
+            proofDocMode === "proof-blank"
+              ? "blank"
+              : proofDocMode === "proof-elements" && proof.elementsProposition
+                ? "elements"
+                : "two-column"
+          }
+        />
+      );
+    }
+    if (t === "Proof" && domain === "algebra2") return <Algebra2ProofCard {...common} problem={p as Algebra2ProofProblem} />;
+    if (t.startsWith("A.")) return <Algebra1ProblemCard {...common} problem={p as Algebra1Problem} />;
+    if (t.startsWith("A2.")) return <Algebra2ProblemCard {...common} problem={p as Algebra2Problem} />;
+    if (t === "MS.6") return <MiddleSchoolGrade6Card {...common} problem={p as Grade6Problem} />;
+    if (t === "MS.7") return <MiddleSchoolGrade7Card {...common} problem={p as Grade7Problem} />;
+    if (t === "MS.8") return <MiddleSchoolGrade8Card {...common} problem={p as Grade8Problem} />;
+    if (t === "SAT") return <SATProblemCard {...common} problem={p as SATProblem} />;
+    if (t === "PRECALC_MCQ") return <PrecalcMCQCard {...common} problem={p as PrecalcMCQ} />;
+    if (t === "AP_FRQ" && subject === "precalc") return <PrecalcFRQCard {...common} problem={p as PrecalcFRQ} />;
+    if (t === "CALC_MCQ") return <CalculusMCQCard {...common} problem={p as CalcMCQProblem} />;
+    if (t === "AP_FRQ" && subject === "calc") return <CalculusFRQCard {...common} problem={p as BaseFRQProblem} />;
+    if (t.startsWith("GEO.")) return <GeometryProblemCard {...common} problem={p as GeometryProblem} />;
+    return null;
+  };
+
   return (
     <div className="flex flex-col items-center min-h-screen py-6" style={{ backgroundColor: 'transparent', ...previewZoom }}>
       {/* GuidedNote reveal toggle */}
@@ -278,6 +335,12 @@ export function EuclidEngine({
                 sectionLabel={g.title}
                 teksBadge={g.teks}
               />
+            ))}
+          </>
+        ) : mixedOrder ? (
+          <>
+            {problems.map((p, i) => (
+              <React.Fragment key={`mx-${i}`}>{renderCard(p, i)}</React.Fragment>
             ))}
           </>
         ) : (

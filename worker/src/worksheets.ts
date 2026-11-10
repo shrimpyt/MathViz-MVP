@@ -28,6 +28,8 @@ export interface SavedWorksheetSettings {
   includeAnswerKey: boolean;
   wordProblems: boolean;
   includeDiagrams: boolean;
+  /** Optional: recipes saved before problem mixing existed don't have it. */
+  keepTopicsGrouped?: boolean;
 }
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,79}$/;
@@ -78,6 +80,7 @@ export function validateWorksheetSettings(raw: unknown): SavedWorksheetSettings 
   for (const k of ["advancedCounts", "includeAnswerKey", "wordProblems", "includeDiagrams"] as const) {
     if (typeof s[k] !== "boolean") return null;
   }
+  if (s.keepTopicsGrouped !== undefined && typeof s.keepTopicsGrouped !== "boolean") return null;
 
   return {
     docType: s.docType,
@@ -92,6 +95,7 @@ export function validateWorksheetSettings(raw: unknown): SavedWorksheetSettings 
     includeAnswerKey: s.includeAnswerKey as boolean,
     wordProblems: s.wordProblems as boolean,
     includeDiagrams: s.includeDiagrams as boolean,
+    ...(typeof s.keepTopicsGrouped === "boolean" ? { keepTopicsGrouped: s.keepTopicsGrouped } : {}),
   };
 }
 

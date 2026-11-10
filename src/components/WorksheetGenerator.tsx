@@ -69,6 +69,8 @@ import {
 } from '../lib/account';
 import {
   generateModuleProblemSets,
+  mixesTopics,
+  orderProblemSets,
   sanitizeSettings,
   settingsForSave,
   toOutputMode,
@@ -261,6 +263,8 @@ interface DraftFile {
   includeAnswerKey: boolean;
   wordProblems?: boolean;
   includeDiagrams?: boolean;
+  /** Missing in drafts saved before topic mixing; those load grouped. */
+  keepTopicsGrouped?: boolean;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -557,6 +561,10 @@ export default function WorksheetGenerator() {
     effectiveGroups.length > 0 &&
     effectiveGroups.every(([t]) => expandedGroups.has(t));
 
+  // Mixed-topic worksheets print their problems in one seeded order unless
+  // the teacher keeps topics grouped (see orderProblemSets).
+  const [keepTopicsGrouped, setKeepTopicsGrouped] = useState(false);
+
   // ── Generation ──
   // Per-module problem sets (seed offset per topic so different topics don't
   // draw identical sequences). Kept per-module so Classical Notes mode can
@@ -584,8 +592,13 @@ export default function WorksheetGenerator() {
     );
   }, [moduleProblemSets, includeDiagrams]);
 
-  const advancedProblems = useMemo<MathProblem[]>((
-  ) => displayProblemSets.flat(), [displayProblemSets]);
+  // The print order every output shares: preview, PDF, answer key,
+  // accommodated versions. Mixed when 2+ topics and not kept grouped.
+  const mixedOrder = mixesTopics({ docType, keepTopicsGrouped }, displayProblemSets);
+  const advancedProblems = useMemo<MathProblem[]>(
+    () => orderProblemSets(displayProblemSets, { docType, keepTopicsGrouped, seed }),
+    [displayProblemSets, docType, keepTopicsGrouped, seed]
+  );
 
   // Classical Notes groups: one definitions block + narration per entry.
   const classicalGroups = useMemo<ClassicalGroup[] | undefined>(() => {
@@ -721,13 +734,14 @@ export default function WorksheetGenerator() {
               presentation={v.presentation}
               keyHeading={v.answerKeyLabel}
               wordBank={v.wordBank}
+              mixedOrder={mixedOrder}
             />
           );
           return nodes;
         })}
       </PdfRendererDocument>
     );
-  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, includeAnswerKey, classicalGroups, seed]);
+  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, includeAnswerKey, classicalGroups, seed, mixedOrder]);
 
   // ── Draft save / load ──
   const saveDraft = () => {
@@ -769,6 +783,7 @@ export default function WorksheetGenerator() {
       includeAnswerKey,
       wordProblems,
       includeDiagrams,
+      keepTopicsGrouped,
     });
 
   const applySettings = (d: WorksheetSettings) => {
@@ -791,6 +806,7 @@ export default function WorksheetGenerator() {
     setIncludeAnswerKey(d.includeAnswerKey);
     setWordProblems(d.wordProblems);
     setIncludeDiagrams(d.includeDiagrams);
+    setKeepTopicsGrouped(d.keepTopicsGrouped);
   };
 
   const loadDraftFile = (file: File) => {
@@ -1041,6 +1057,9 @@ export default function WorksheetGenerator() {
             wordCapableSelected={wordCapableSelected}
             includeDiagrams={includeDiagrams}
             setIncludeDiagrams={setIncludeDiagrams}
+            keepTopicsGrouped={keepTopicsGrouped}
+            setKeepTopicsGrouped={setKeepTopicsGrouped}
+            showTopicOrder={selectedModules.length > 1 && docType !== 'classical-notes'}
             framework={framework}
             setFramework={setFramework}
           />
@@ -1061,6 +1080,7 @@ export default function WorksheetGenerator() {
             accommodatedDocument={accommodatedDocument}
             questions={questions}
             advancedProblems={advancedProblems}
+            mixedOrder={mixedOrder}
             docType={docType}
             title={title}
             standards={standards}
@@ -1930,6 +1950,9 @@ function StepTopics({
   wordCapableSelected,
   includeDiagrams,
   setIncludeDiagrams,
+  keepTopicsGrouped,
+  setKeepTopicsGrouped,
+  showTopicOrder,
   framework,
   setFramework,
 }: {
@@ -1966,6 +1989,9 @@ function StepTopics({
   wordCapableSelected: string[];
   includeDiagrams: boolean;
   setIncludeDiagrams: (b: boolean) => void;
+  keepTopicsGrouped: boolean;
+  setKeepTopicsGrouped: (b: boolean) => void;
+  showTopicOrder: boolean;
   framework: StandardsFramework;
   setFramework: (f: StandardsFramework) => void;
 }) {
@@ -2194,6 +2220,27 @@ function StepTopics({
               {includeDiagrams ? 'Problems show their drawings.' : 'Words only: every drawing is left off the worksheet.'}
             </Typography>
           </Box>
+          {showTopicOrder && (
+            <Box sx={railCardSx}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Keep topics grouped 🗂️</Typography>
+                <Switch
+                  checked={keepTopicsGrouped}
+                  onChange={(e) => setKeepTopicsGrouped(e.target.checked)}
+                  inputProps={{ 'aria-label': 'Keep topics grouped' }}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
+                  }}
+                />
+              </Box>
+              <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+                {keepTopicsGrouped
+                  ? 'Each topic gets its own section, in the order you picked them.'
+                  : 'Topics are mixed together, numbered straight through. The answer key follows the same order.'}
+              </Typography>
+            </Box>
+          )}
         </Box>
         {/* ── Main column: search, filters, topic list ── */}
         <Box
@@ -2544,6 +2591,7 @@ function StepReview({
   accommodatedDocument,
   questions,
   advancedProblems,
+  mixedOrder,
   docType,
   title,
   standards,
@@ -2580,6 +2628,8 @@ function StepReview({
   accommodatedDocument: React.ReactElement | null;
   questions: ReturnType<typeof problemToQuestion>[];
   advancedProblems: MathProblem[];
+  /** Mixed-topic order: one list, no section headings. */
+  mixedOrder: boolean;
   docType: DocumentType;
   title: string;
   standards: string;
@@ -2746,6 +2796,7 @@ function StepReview({
                   classicalGroups={classicalGroups}
                   seed={seed}
                   watermark={!isPro}
+                  mixedOrder={mixedOrder}
                 />
               )
             }
@@ -2920,6 +2971,7 @@ function StepReview({
               standard={standards}
               presentation={activeVersion.presentation}
               wordBank={activeVersion.wordBank}
+              mixedOrder={mixedOrder}
             />
             </ScaledPreview>
           </PreviewErrorBoundary>

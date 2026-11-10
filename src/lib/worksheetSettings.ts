@@ -11,6 +11,7 @@ import type { CurriculumEntry, DifficultyLevel } from '../modules/CurriculumRegi
 import type { DocumentType } from '../core/types';
 import type { MathProblem, OutputMode } from './ProblemFactory';
 import { FRAMEWORKS, type StandardsFramework } from './standards';
+import { mulberry32 } from './math-utils';
 
 export const DOCUMENT_TYPES: readonly DocumentType[] = [
   'worksheet',
@@ -46,6 +47,9 @@ export interface WorksheetSettings {
   includeAnswerKey: boolean;
   wordProblems: boolean;
   includeDiagrams: boolean;
+  /** Mixed-topic worksheets: true prints each topic as its own block (the
+   *  original layout); false mixes the topics in one seeded order. */
+  keepTopicsGrouped: boolean;
 }
 
 // ── Map DocumentType → EuclidEngine OutputMode ───────────────────────────────
@@ -98,6 +102,58 @@ export function generateModuleProblemSets(
   );
 }
 
+// ── Problem order on mixed-topic worksheets ──────────────────────────────────
+// Mixing is a render-order choice made after generation: the factories and
+// their seeds are untouched, so turning it on or off never changes which
+// problems exist, only the order they print in.
+
+/** Salt so the order draws its own random stream, apart from the topics'. */
+const ORDER_SALT = 0x5eed0de5;
+
+/** True when this worksheet prints its topics mixed together. Classical
+ *  Notes is built per topic (definitions, then that topic's problems), so it
+ *  always stays grouped, and so does any worksheet with one topic. */
+export function mixesTopics(
+  s: Pick<WorksheetSettings, 'docType' | 'keepTopicsGrouped'>,
+  sets: readonly (readonly MathProblem[])[],
+): boolean {
+  if (s.keepTopicsGrouped || s.docType === 'classical-notes') return false;
+  return sets.filter((set) => set.length > 0).length > 1;
+}
+
+/** Mix several topics' problems into one list, seeded by the worksheet's
+ *  seed. Each step draws the next problem from a topic with chance in
+ *  proportion to how many it has left, so the topics spread across the whole
+ *  sheet, and each topic keeps its own problems in their generated order.
+ *  The same sets and seed always give the same order. */
+export function interleaveProblemSets<T>(sets: readonly (readonly T[])[], seed: number): T[] {
+  const rng = mulberry32((seed ^ ORDER_SALT) | 0);
+  const next = sets.map(() => 0);
+  let left = sets.reduce((n, set) => n + set.length, 0);
+  const out: T[] = [];
+  while (left > 0) {
+    let r = Math.floor(rng() * left);
+    let t = 0;
+    while (r >= sets[t].length - next[t]) {
+      r -= sets[t].length - next[t];
+      t++;
+    }
+    out.push(sets[t][next[t]++]);
+    left--;
+  }
+  return out;
+}
+
+/** The worksheet's problems in print order: mixed when mixesTopics() says
+ *  so, otherwise topic by topic. Student sheet, answer key, accommodated
+ *  versions and the PDF all take their order from this one list. */
+export function orderProblemSets<T extends MathProblem>(
+  sets: readonly (readonly T[])[],
+  s: Pick<WorksheetSettings, 'docType' | 'keepTopicsGrouped' | 'seed'>,
+): T[] {
+  return mixesTopics(s, sets) ? interleaveProblemSets(sets, s.seed) : sets.flat();
+}
+
 /** Registry entries for the settings' topics, skipping unknown ids. */
 export function entriesForSettings(s: Pick<WorksheetSettings, 'topicIds'>): CurriculumEntry[] {
   return s.topicIds
@@ -123,6 +179,7 @@ export const DEFAULT_SETTINGS: WorksheetSettings = {
   includeAnswerKey: true,
   wordProblems: false,
   includeDiagrams: true,
+  keepTopicsGrouped: false,
 };
 
 /** Clean settings read back from a draft file or the saved library. Unknown
@@ -165,6 +222,9 @@ export function sanitizeSettings(raw: unknown): WorksheetSettings | null {
   if (typeof d.includeAnswerKey === 'boolean') out.includeAnswerKey = d.includeAnswerKey;
   if (typeof d.wordProblems === 'boolean') out.wordProblems = d.wordProblems;
   if (typeof d.includeDiagrams === 'boolean') out.includeDiagrams = d.includeDiagrams;
+  // Worksheets saved before mixing existed printed topic by topic, so a
+  // recipe without the field keeps that layout and rebuilds as it was.
+  out.keepTopicsGrouped = typeof d.keepTopicsGrouped === 'boolean' ? d.keepTopicsGrouped : true;
   return out;
 }
 
@@ -188,5 +248,6 @@ export function settingsForSave(s: WorksheetSettings): WorksheetSettings {
     includeAnswerKey: s.includeAnswerKey,
     wordProblems: s.wordProblems,
     includeDiagrams: s.includeDiagrams,
+    keepTopicsGrouped: s.keepTopicsGrouped,
   };
 }
