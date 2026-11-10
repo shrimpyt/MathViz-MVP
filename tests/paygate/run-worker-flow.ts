@@ -7,6 +7,7 @@
 import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import worker from "../../worker/src/index";
+import { FOUNDERS_CAP, FOUNDERS_CLOSES_AT_SEC } from "../../worker/src/core";
 
 let checks = 0;
 let failures = 0;
@@ -48,6 +49,8 @@ function makeDb() {
 // ── fake outbound services ──────────────────────────────────────────────────
 const sentLinks: string[] = [];
 let stripeCalls: string[] = [];
+const stripeBodies: Record<string, string> = {};
+let fakeSubscriptions: unknown[] = [];
 globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = String(input);
   if (url.startsWith("https://api.resend.com/")) {
@@ -64,6 +67,13 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       return new Response(JSON.stringify({ url: "https://checkout.example/s" }), { status: 200 });
     if (url.endsWith("/customers"))
       return new Response(JSON.stringify({ id: "cus_new" }), { status: 200 });
+    const path = url.replace("https://api.stripe.com/v1", "");
+    if ((init?.method ?? "GET") === "GET" && path.startsWith("/subscriptions?"))
+      return new Response(JSON.stringify({ data: fakeSubscriptions, has_more: false }), { status: 200 });
+    if (init?.method === "POST" && /^\/subscriptions\/[^/?]+$/.test(path)) {
+      stripeBodies[path] = String(init.body);
+      return new Response(JSON.stringify({ id: path.split("/").pop() }), { status: 200 });
+    }
   }
   throw new Error(`unexpected fetch ${url}`);
 }) as typeof fetch;
@@ -77,6 +87,7 @@ const env = {
   RESEND_API_KEY: "test",
   STRIPE_SECRET_KEY: "test",
   PRICE_PRO_MONTHLY: "price_m",
+  PRICE_FOUNDERS: "price_f",
 } as unknown as Env;
 
 function post(path: string, body: unknown, headers: Record<string, string> = {}) {
@@ -247,6 +258,54 @@ async function main() {
   );
   const devBody = await res.text();
   ck("DEV_AUTH in production returns no link", !devBody.includes("devLink") && res.status === 503);
+
+  // ── Founders: capped at 50 and closes at the end of January ──
+  res = await worker.fetch(new Request(`${APP}/api/founders`), env);
+  const fs0 = (await res.json()) as { open: boolean; remaining: number; closesAt: number };
+  const openNow = Date.now() / 1000 < FOUNDERS_CLOSES_AT_SEC;
+  ck("GET /founders reports the offer", res.status === 200 && fs0.open === openNow && fs0.remaining === (openNow ? FOUNDERS_CAP : 0) && fs0.closesAt === FOUNDERS_CLOSES_AT_SEC);
+  if (openNow) {
+    stripeCalls = [];
+    res = await post("/checkout", { kind: "founders" }, { Cookie: `euclid_session=${freeSession}` });
+    ck("founders checkout open while seats remain", res.status === 200 && stripeCalls.includes("/checkout/sessions"));
+  }
+  for (let i = 0; i < FOUNDERS_CAP; i++) {
+    raw.prepare("INSERT INTO users (id, email, plan, founders, created_at) VALUES (?, ?, 'pro', 1, 0)").run(`f${i}`, `f${i}@x.org`);
+  }
+  res = await worker.fetch(new Request(`${APP}/api/founders`), env);
+  const fs1 = (await res.json()) as { open: boolean; remaining: number };
+  ck("founders closes at 50 sold", fs1.open === false && fs1.remaining === 0);
+  stripeCalls = [];
+  res = await post("/checkout", { kind: "founders" }, { Cookie: `euclid_session=${freeSession}` });
+  ck("founders checkout refused once sold out", res.status === 410 && !stripeCalls.includes("/checkout/sessions"));
+
+  // ── summer pause cron ──
+  fakeSubscriptions = [
+    { id: "sub_due", status: "active", items: { data: [{ price: { id: "price_m" } }] } },
+    { id: "sub_paused", status: "active", pause_collection: { behavior: "void" }, items: { data: [{ price: { id: "price_m" } }] } },
+    { id: "sub_leaving", status: "active", cancel_at_period_end: true, items: { data: [{ price: { id: "price_m" } }] } },
+    { id: "sub_optout", status: "active", metadata: { summer_pause: "off" }, items: { data: [{ price: { id: "price_m" } }] } },
+  ];
+  const realNow = Date.now;
+  const runCron = async (iso: string) => {
+    Date.now = () => Date.parse(iso);
+    const waits: Promise<unknown>[] = [];
+    await worker.scheduled(null, env, { waitUntil: (p: Promise<unknown>) => waits.push(p) });
+    await Promise.all(waits);
+    Date.now = realNow;
+  };
+  await runCron("2027-04-15T12:00:00Z");
+  ck("cron does nothing outside June and July", Object.keys(stripeBodies).length === 0);
+  await runCron("2027-06-15T12:00:00Z");
+  const paused = Object.keys(stripeBodies);
+  const pauseBody = new URLSearchParams(stripeBodies["/subscriptions/sub_due"] ?? "");
+  ck("cron pauses only the eligible monthly subscription", paused.length === 1 && paused[0] === "/subscriptions/sub_due");
+  ck(
+    "pause voids invoices until August 1 and marks the year",
+    pauseBody.get("pause_collection[behavior]") === "void" &&
+      pauseBody.get("pause_collection[resumes_at]") === String(Date.UTC(2027, 7, 1) / 1000) &&
+      pauseBody.get("metadata[summer_pause]") === "2027",
+  );
 
   console.log(`run-worker-flow: ${checks} checks, ${failures} failures`);
   if (failures > 0) process.exit(1);

@@ -12,6 +12,11 @@ binding = "DB"
 database_name = "euclid"
 database_id = "4c0cf490-d1c9-4629-9bdc-f4f573cdf340"
 
+# Daily at 12:00 UTC. Only does anything June 1 to July 31: pauses monthly
+# Pro billing until August 1 (see runSummerPause in src/index.ts).
+[triggers]
+crons = ["0 12 * * *"]
+
 [vars]
 APP_URL = "https://euclidengine.tech"
 # Secrets — set with `wrangler secret put <NAME>`, never in this file:

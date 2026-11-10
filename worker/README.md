@@ -88,6 +88,26 @@ email address.
 3. The page's button POSTs the token back; one UPDATE checks and spends it,
    then the user row is created if needed and a session cookie is set.
 
+## Summer pause (monthly Pro)
+A daily cron (`[triggers] crons` in wrangler.toml, 12:00 UTC) runs the
+Worker's `scheduled` handler. During June and July it lists active
+subscriptions on PRICE_PRO_MONTHLY and sets
+`pause_collection[behavior]=void` with `resumes_at` = August 1, marking
+`metadata[summer_pause]=<year>`. The subscription stays active, so the
+teacher keeps Pro; invoices in the pause are voided, so nothing is owed.
+It skips subscriptions that are already paused, set to cancel, or carry
+`summer_pause=off` (set that in the Stripe dashboard to opt one out).
+Annual and School plans are never paused. The cron deploys with the
+Worker; check it in the dashboard under Settings, Triggers.
+
+## Founders offer
+`GET /api/founders` returns `{ open, remaining, closesAt }`. The offer
+closes at 50 accounts with `founders = 1` or at the end of January 31,
+2027 (US Central), whichever comes first (FOUNDERS_CAP and
+FOUNDERS_CLOSES_AT_SEC in src/core.ts). After that, a founders checkout
+returns 410 `founders_closed`. The pricing page hides the banner when
+the offer is closed or the API can't be reached.
+
 ## Schema changes
 schema.sql only uses CREATE … IF NOT EXISTS, so re-running it on the live
 database adds new tables without touching existing ones:

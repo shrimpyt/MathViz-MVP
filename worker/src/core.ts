@@ -517,3 +517,77 @@ export function googleEmailFromClaims(
   if (verified !== true && verified !== "true") return null;
   return normalizeEmail(claims["email"]);
 }
+
+// ── Summer pause for monthly Pro ────────────────────────────────────────────
+// Teachers don't use the tool in June and July, so monthly Pro stops
+// charging for those two months instead of inviting a cancellation. A daily
+// cron (index.ts `scheduled`) pauses payment collection on every active
+// monthly subscription during the window, resuming August 1. The
+// subscription stays `active`, so the teacher keeps Pro all summer.
+// Dates are UTC midnight (June 1 starts, August 1 ends): close enough for a
+// billing pause, and the same every year.
+
+/** Unix seconds when collection resumes (August 1, 00:00 UTC) if `nowSec`
+ *  falls inside this year's summer window [June 1, August 1); else null. */
+export function summerPauseResumesAt(nowSec: number): number | null {
+  const year = new Date(nowSec * 1000).getUTCFullYear();
+  const start = Date.UTC(year, 5, 1) / 1000;
+  const end = Date.UTC(year, 7, 1) / 1000;
+  return nowSec >= start && nowSec < end ? end : null;
+}
+
+export interface SubscriptionLike {
+  id: string;
+  status?: string;
+  cancel_at_period_end?: boolean;
+  pause_collection?: unknown;
+  metadata?: Record<string, string> | null;
+  items?: { data?: { price?: { id?: string } | null }[] } | null;
+}
+
+/** Metadata key set on a subscription when the cron pauses it, valued with
+ *  the year. If someone resumes it by hand that summer, the cron leaves it
+ *  alone. Set it to "off" to opt a subscription out for good. */
+export const SUMMER_PAUSE_META = "summer_pause";
+
+/** Should the cron pause this subscription's collection right now? Only
+ *  active monthly Pro subscriptions that aren't already paused, aren't
+ *  ending, and weren't already handled (or opted out) this year. */
+export function shouldPauseForSummer(
+  sub: SubscriptionLike,
+  monthlyPriceId: string,
+  nowSec: number,
+): boolean {
+  if (summerPauseResumesAt(nowSec) === null) return false;
+  if (sub.status !== "active") return false;
+  if (sub.cancel_at_period_end) return false;
+  if (sub.pause_collection) return false;
+  const mark = sub.metadata?.[SUMMER_PAUSE_META];
+  const year = String(new Date(nowSec * 1000).getUTCFullYear());
+  if (mark === "off" || mark === year) return false;
+  return (sub.items?.data ?? []).some((it) => it.price?.id === monthlyPriceId);
+}
+
+// ── Founders offer ──────────────────────────────────────────────────────────
+// Lifetime Pro for a one-time $150, for the first 50 teachers, until the
+// end of January 31, 2027 (US Central). After either limit the checkout
+// refuses it and the pricing page hides it.
+
+export const FOUNDERS_CAP = 50;
+/** 2027-02-01 06:00 UTC = midnight at the end of Jan 31, 2027, US Central. */
+export const FOUNDERS_CLOSES_AT_SEC = Date.UTC(2027, 1, 1, 6, 0, 0) / 1000;
+
+export interface FoundersStatus {
+  open: boolean;
+  remaining: number;
+  closesAt: number;
+}
+
+export function foundersStatus(sold: number, nowSec: number): FoundersStatus {
+  const remaining = Math.max(0, FOUNDERS_CAP - Math.max(0, Math.floor(sold)));
+  return {
+    open: remaining > 0 && nowSec < FOUNDERS_CLOSES_AT_SEC,
+    remaining,
+    closesAt: FOUNDERS_CLOSES_AT_SEC,
+  };
+}
