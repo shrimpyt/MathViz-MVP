@@ -4,7 +4,13 @@
 // user-update reducer. Run: npx tsx tests/paygate/run-worker-tests.ts
 
 import {
+  FOUNDERS_CAP,
+  FOUNDERS_CLOSES_AT_SEC,
   FREE_GENERATION_LIMIT,
+  SUMMER_PAUSE_META,
+  foundersStatus,
+  shouldPauseForSummer,
+  summerPauseResumesAt,
   RATE_LIMIT_PER_EMAIL,
   allowedOrigins,
   checkoutPaymentCleared,
@@ -221,6 +227,60 @@ async function main() {
   ck("sign-in page has a button", page.includes("<button"));
   eq("escapeHtml", escapeHtml(`<a href="x">'&`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;");
   ck("sign-in page escapes its inputs", !signInPageHtml('"><script>', "/x").includes("<script>"));
+
+  // summer pause window: June 1 to August 1, UTC
+  const ut = (y: number, m: number, d: number, h = 0) => Date.UTC(y, m, d, h) / 1000;
+  const aug1 = ut(2027, 7, 1);
+  eq("May 31 is outside the window", summerPauseResumesAt(ut(2027, 4, 31, 23)), null);
+  eq("June 1 starts the window", summerPauseResumesAt(ut(2027, 5, 1)), aug1);
+  eq("July 31 is inside", summerPauseResumesAt(ut(2027, 6, 31, 23)), aug1);
+  eq("August 1 ends the window", summerPauseResumesAt(aug1), null);
+  eq("November is outside", summerPauseResumesAt(ut(2026, 10, 10)), null);
+
+  // which subscriptions the cron pauses
+  const monthlyId = "price_monthly";
+  const june = ut(2027, 5, 15);
+  const sub = {
+    id: "sub_1",
+    status: "active",
+    cancel_at_period_end: false,
+    pause_collection: null,
+    metadata: {},
+    items: { data: [{ price: { id: monthlyId } }] },
+  };
+  eq("active monthly in June is paused", shouldPauseForSummer(sub, monthlyId, june), true);
+  eq("not outside the window", shouldPauseForSummer(sub, monthlyId, ut(2027, 8, 15)), false);
+  eq(
+    "annual is never paused",
+    shouldPauseForSummer({ ...sub, items: { data: [{ price: { id: "price_annual" } }] } }, monthlyId, june),
+    false,
+  );
+  eq("already paused is skipped", shouldPauseForSummer({ ...sub, pause_collection: { behavior: "void" } }, monthlyId, june), false);
+  eq("cancelling is skipped", shouldPauseForSummer({ ...sub, cancel_at_period_end: true }, monthlyId, june), false);
+  eq("past_due is skipped", shouldPauseForSummer({ ...sub, status: "past_due" }, monthlyId, june), false);
+  eq(
+    "resumed by hand this summer is left alone",
+    shouldPauseForSummer({ ...sub, metadata: { [SUMMER_PAUSE_META]: "2027" } }, monthlyId, june),
+    false,
+  );
+  eq(
+    "last year's mark doesn't block this year",
+    shouldPauseForSummer({ ...sub, metadata: { [SUMMER_PAUSE_META]: "2026" } }, monthlyId, june),
+    true,
+  );
+  eq("opted out stays off", shouldPauseForSummer({ ...sub, metadata: { [SUMMER_PAUSE_META]: "off" } }, monthlyId, june), false);
+  eq("no items is skipped", shouldPauseForSummer({ id: "sub_2", status: "active" }, monthlyId, june), false);
+
+  // founders: first 50, until the end of Jan 31, 2027 (US Central)
+  const nov = ut(2026, 10, 10);
+  eq("founders open with none sold", foundersStatus(0, nov).open, true);
+  eq("founders remaining", foundersStatus(12, nov).remaining, FOUNDERS_CAP - 12);
+  eq("founders open at 49", foundersStatus(FOUNDERS_CAP - 1, nov).open, true);
+  eq("founders closed at the cap", foundersStatus(FOUNDERS_CAP, nov).open, false);
+  eq("founders remaining never negative", foundersStatus(FOUNDERS_CAP + 3, nov).remaining, 0);
+  eq("founders open late Jan 31 Central", foundersStatus(0, FOUNDERS_CLOSES_AT_SEC - 60).open, true);
+  eq("founders closed after Jan 31", foundersStatus(0, FOUNDERS_CLOSES_AT_SEC).open, false);
+  eq("close is midnight Central", new Date(FOUNDERS_CLOSES_AT_SEC * 1000).toISOString(), "2027-02-01T06:00:00.000Z");
 
   console.log(`run-worker-tests: ${checks} checks, ${failures} failures`);
   if (failures > 0) process.exit(1);

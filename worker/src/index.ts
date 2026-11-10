@@ -38,6 +38,11 @@ import {
   generationAllowed,
   monthKeyUTC,
   planUpdateFromStripeEvent,
+  SUMMER_PAUSE_META,
+  foundersStatus,
+  shouldPauseForSummer,
+  summerPauseResumesAt,
+  type SubscriptionLike,
   allowedOrigins,
   devAuthEnabled,
   originAllowed,
@@ -225,6 +230,22 @@ async function stripePost(
   const data = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
     throw new Error(`Stripe ${path} failed: ${JSON.stringify(data).slice(0, 300)}`);
+  }
+  return data;
+}
+
+async function stripeGet(
+  env: Env,
+  path: string,
+  params: Record<string, string>,
+): Promise<Record<string, unknown>> {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`https://api.stripe.com/v1${path}?${qs}`, {
+    headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+  });
+  const data = (await res.json()) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(`Stripe GET ${path} failed: ${JSON.stringify(data).slice(0, 300)}`);
   }
   return data;
 }
@@ -619,6 +640,52 @@ async function handleEvent(env: Env, req: Request): Promise<Response> {
   return json(req, { ok: true });
 }
 
+/** Founders sold so far (accounts holding lifetime Pro) against the cap and
+ *  close date. Two checkouts racing for the last seat can both go through;
+ *  at 50 seats that overshoot is acceptable. */
+async function currentFoundersStatus(env: Env) {
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE founders = 1").first<{
+    n: number;
+  }>();
+  return foundersStatus(row?.n ?? 0, Math.floor(Date.now() / 1000));
+}
+
+async function handleFounders(env: Env, req: Request): Promise<Response> {
+  return json(req, await currentFoundersStatus(env));
+}
+
+/** Daily cron: during June and July, pause payment collection on active
+ *  monthly Pro subscriptions until August 1. Invoices in the pause are
+ *  voided, so nothing is owed for the summer, and the subscription stays
+ *  active, so the teacher keeps Pro. Returns how many it paused. */
+async function runSummerPause(env: Env, nowSec: number): Promise<number> {
+  const resumesAt = summerPauseResumesAt(nowSec);
+  const monthly = env.PRICE_PRO_MONTHLY;
+  if (resumesAt === null || !env.STRIPE_SECRET_KEY || !monthly) return 0;
+  const year = String(new Date(nowSec * 1000).getUTCFullYear());
+  let paused = 0;
+  let startingAfter: string | undefined;
+  for (let page = 0; page < 100; page++) {
+    const params: Record<string, string> = { price: monthly, status: "active", limit: "100" };
+    if (startingAfter) params["starting_after"] = startingAfter;
+    const list = await stripeGet(env, "/subscriptions", params);
+    const subs = (list["data"] as SubscriptionLike[] | undefined) ?? [];
+    for (const sub of subs) {
+      if (!shouldPauseForSummer(sub, monthly, nowSec)) continue;
+      await stripePost(env, `/subscriptions/${encodeURIComponent(sub.id)}`, {
+        "pause_collection[behavior]": "void",
+        "pause_collection[resumes_at]": String(resumesAt),
+        [`metadata[${SUMMER_PAUSE_META}]`]: year,
+      });
+      paused++;
+    }
+    if (list["has_more"] !== true || subs.length === 0) break;
+    startingAfter = subs[subs.length - 1].id;
+  }
+  console.log(`summer pause: paused ${paused} monthly subscription(s) until ${resumesAt}`);
+  return paused;
+}
+
 const CHECKOUT_KINDS: Record<
   string,
   { priceEnv: keyof Env; mode: "subscription" | "payment" }
@@ -640,6 +707,11 @@ async function handleCheckout(env: Env, req: Request): Promise<Response> {
   const priceId = spec ? (env[spec.priceEnv] as string | undefined) : undefined;
   if (!spec || !priceId) {
     return json(req, { error: "unknown or unconfigured price" }, 400);
+  }
+
+  if (body!.kind === "founders") {
+    const status = await currentFoundersStatus(env);
+    if (!status.open) return json(req, { error: "founders_closed" }, 410);
   }
 
   // Already Pro: a second checkout would start a second subscription, and
@@ -766,6 +838,8 @@ export default {
         return await handleMe(env, req);
       if (req.method === "GET" && pathname.endsWith("/auth/methods"))
         return handleMethods(env, req);
+      if (req.method === "GET" && pathname.endsWith("/founders"))
+        return await handleFounders(env, req);
       // Google sign-in is a pair of top-level navigations; the state cookie
       // and PKCE verifier tie them together, not the Origin header.
       if (req.method === "GET" && pathname.endsWith("/auth/google/start"))
@@ -802,5 +876,15 @@ export default {
       console.error(err);
       return json(req, { error: "internal error" }, 500);
     }
+  },
+
+  /** Cron trigger (wrangler.toml [triggers]): runs daily; only acts in
+   *  June and July. */
+  async scheduled(
+    _controller: unknown,
+    env: Env,
+    ctx: { waitUntil(p: Promise<unknown>): void },
+  ): Promise<void> {
+    ctx.waitUntil(runSummerPause(env, Math.floor(Date.now() / 1000)));
   },
 };

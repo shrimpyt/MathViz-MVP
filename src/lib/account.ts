@@ -141,6 +141,19 @@ export async function signOut(): Promise<void> {
 
 export type CheckoutKind = "monthly" | "annual" | "school" | "founders";
 
+export interface FoundersOffer {
+  open: boolean;
+  remaining: number;
+  /** Unix seconds when the offer closes. */
+  closesAt: number;
+}
+
+/** The Founders offer (first 50, until Jan 31). Null when the API can't be
+ *  reached, in which case the pricing page simply hides the offer. */
+export async function fetchFoundersOffer(): Promise<FoundersOffer | null> {
+  return api<FoundersOffer>("/founders");
+}
+
 /** Create a Stripe Checkout session and return its URL, or null. */
 export async function createCheckoutUrl(
   kind: CheckoutKind,

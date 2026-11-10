@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, CssBaseline, Typography } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "../../core/theme";
-import { createCheckoutUrl, type CheckoutKind } from "../../lib/account";
+import {
+  createCheckoutUrl,
+  fetchFoundersOffer,
+  type CheckoutKind,
+  type FoundersOffer,
+} from "../../lib/account";
 
 // Pricing copy source: goals/euclid-engine-deployment/files/pricing-page-copy.md
 // (Trystan approves copy before this page ships.)
@@ -23,6 +28,11 @@ const liSx = { fontSize: "0.85rem", color: "#c6c9da", fontWeight: 600, mb: 0.75 
 export default function PricingPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [founders, setFounders] = useState<FoundersOffer | null>(null);
+
+  useEffect(() => {
+    void fetchFoundersOffer().then(setFounders);
+  }, []);
 
   const checkout = async (kind: CheckoutKind) => {
     setBusy(kind);
@@ -31,11 +41,19 @@ export default function PricingPage() {
     setBusy(null);
     if (url) {
       window.location.href = url;
-    } else {
-      setMsg(
-        "Checkout needs a signed-in account first: open the worksheet tool, use Sign in (top right), then come back here to upgrade.",
-      );
+      return;
     }
+    if (kind === "founders") {
+      const latest = await fetchFoundersOffer();
+      setFounders(latest);
+      if (latest && !latest.open) {
+        setMsg("The Founders offer has closed. Pro annual at $79/year is the next best deal.");
+        return;
+      }
+    }
+    setMsg(
+      "Checkout needs a signed-in account first: open the worksheet tool, use Sign in (top right), then come back here to upgrade.",
+    );
   };
 
   return (
@@ -59,6 +77,41 @@ export default function PricingPage() {
             Precalculus, Calculus, and SAT practice.
           </Typography>
 
+          {founders?.open && (
+            <Box
+              sx={{
+                ...cardSx,
+                maxWidth: 760,
+                mb: 3,
+                border: "1.5px solid #fb923c",
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <Box sx={{ flex: "1 1 320px" }}>
+                <Typography sx={{ fontWeight: 900, fontSize: "1.05rem", mb: 0.5 }}>
+                  Founders: Pro for life, $150 once
+                </Typography>
+                <Typography sx={{ ...liSx, mb: 0 }}>
+                  For the first 50 teachers, until January 31.{" "}
+                  {founders.remaining} {founders.remaining === 1 ? "seat" : "seats"} left. One
+                  teacher account, everything in Pro, for as long as Euclid Engine runs.
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                color="secondary"
+                disabled={busy !== null}
+                onClick={() => checkout("founders")}
+                sx={{ borderRadius: "12px", fontWeight: 800 }}
+              >
+                {busy === "founders" ? "Opening checkout…" : "Become a Founder, $150"}
+              </Button>
+            </Box>
+          )}
+
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2.5, mb: 3 }}>
             <Box sx={cardSx}>
               <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", mb: 0.5 }}>Free</Typography>
@@ -78,9 +131,11 @@ export default function PricingPage() {
               <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", mb: 0.5 }}>
                 Pro <Box component="span" sx={{ color: "#fb923c", fontSize: "0.75rem", letterSpacing: 0.8 }}>FOR YOUR CLASSROOM</Box>
               </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: "1.8rem", mb: 1.5 }}>
-                $9<Box component="span" sx={{ fontSize: "0.9rem", color: "#9aa0be" }}>/mo</Box>{" "}
-                <Box component="span" sx={{ fontSize: "0.95rem", color: "#9aa0be" }}>or $79/yr</Box>
+              <Typography sx={{ fontWeight: 900, fontSize: "1.8rem", mb: 0.25 }}>
+                $79<Box component="span" sx={{ fontSize: "0.9rem", color: "#9aa0be" }}>/year</Box>
+              </Typography>
+              <Typography sx={{ fontSize: "0.85rem", color: "#9aa0be", fontWeight: 700, mb: 1.5 }}>
+                About three months free versus monthly. Or $9/month.
               </Typography>
               <Typography sx={liSx}>· Unlimited generations, every topic</Typography>
               <Typography sx={liSx}>
@@ -90,26 +145,27 @@ export default function PricingPage() {
               <Typography sx={liSx}>· Answer keys for everything</Typography>
               <Typography sx={liSx}>· No watermark</Typography>
               <Typography sx={{ ...liSx, mt: 1.5, color: "#9aa0be" }}>
-                $79/year is about two months free versus monthly.
+                On monthly, pay only for the months you teach: billing pauses
+                automatically from June 1 to August 1, and you keep Pro all summer.
               </Typography>
               <Button
                 fullWidth
                 variant="contained"
                 color="secondary"
                 disabled={busy !== null}
-                onClick={() => checkout("monthly")}
+                onClick={() => checkout("annual")}
                 sx={{ mt: 2, borderRadius: "12px", fontWeight: 800 }}
               >
-                {busy === "monthly" ? "Opening checkout…" : "Go Pro, $9/month"}
+                {busy === "annual" ? "Opening checkout…" : "Go Pro, $79/year"}
               </Button>
               <Button
                 fullWidth
                 variant="outlined"
                 disabled={busy !== null}
-                onClick={() => checkout("annual")}
+                onClick={() => checkout("monthly")}
                 sx={{ mt: 1, borderRadius: "12px", borderColor: "#2c3247", color: "#f2f3fa", fontWeight: 800 }}
               >
-                {busy === "annual" ? "Opening checkout…" : "Go Pro, $79/year"}
+                {busy === "monthly" ? "Opening checkout…" : "Go Pro, $9/month"}
               </Button>
             </Box>
           </Box>
@@ -121,7 +177,7 @@ export default function PricingPage() {
           )}
 
           <Typography sx={{ color: "#9aa0be", fontWeight: 700, mb: 1 }}>
-            Schools: $299/year for up to 10 teachers,{" "}
+            Schools: $499/year for up to 10 teachers on one campus,{" "}
             <Box
               component="a"
               href="mailto:support@euclidengine.tech"
