@@ -3,6 +3,7 @@
 // Subtypes: SlopeFromPoints, GraphLine, LinearWordProblem,
 //           WriteSlopeIntercept, WritePointSlope, StandardToSlopeIntercept.
 
+import { coefVar, absCoefVar } from "@/lib/coefficients";
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
 import type { DifficultyLevel } from "@/modules/CurriculumRegistry";
@@ -88,7 +89,7 @@ function makeGraphLine(rng: RNG, difficulty: DifficultyLevel): Algebra1Problem {
   const m = mNum / mDen;
   const b = randInt(rng, -6, 6);
   const xInt = -b / m; // m ≠ 0 by construction
-  const eqText = mDen === 1 ? fmtLineEq(mNum, b) : `y = ${fmtFrac(mNum, mDen)}x${b >= 0 ? ` + ${b}` : ` - ${-b}`}`;
+  const eqText = mDen === 1 ? fmtLineEq(mNum, b) : `y = ${coefVar(fmtFrac(mNum, mDen), "x")}${b >= 0 ? ` + ${b}` : ` - ${-b}`}`;
   const answer = `x-intercept: ${fmtPoint(xInt, 0)}; y-intercept: ${fmtPoint(0, b)}`;
   return {
     type: "A.3C",
@@ -245,7 +246,7 @@ function makeStandardToSlopeIntercept(rng: RNG): Algebra1Problem {
   const A = k * m;
   const B = -k;
   const C = -k * b;
-  const prompt = `Rewrite \\(${fmtLinear(A, 0)}${B >= 0 ? " + " : " - "}${Math.abs(B)}y = ${C}\\) in slope-intercept form.`;
+  const prompt = `Rewrite \\(${fmtLinear(A, 0)}${B >= 0 ? " + " : " - "}${absCoefVar(B, "y")} = ${C}\\) in slope-intercept form.`;
   const answer = fmtLineEq(m, b);
   return {
     type: "A.2B",
@@ -624,7 +625,7 @@ function makeSlopeEveryForm(rng: RNG, difficulty: DifficultyLevel): Algebra1Prob
   const C = B * t;
   const p1: [number, number] = [0, t];
   const p2: [number, number] = [B, t - A];
-  const prompt = `Find the slope of the line \\(${fmtLinear(A, 0)}${B >= 0 ? " + " : " - "}${Math.abs(B)}y = ${C}\\).`;
+  const prompt = `Find the slope of the line \\(${fmtLinear(A, 0)}${B >= 0 ? " + " : " - "}${absCoefVar(B, "y")} = ${C}\\).`;
   return {
     type: "A.3A",
     subtype: "SlopeEveryForm",

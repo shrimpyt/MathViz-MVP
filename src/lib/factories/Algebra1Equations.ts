@@ -6,6 +6,7 @@
 // Generation strategy: pick the solution FIRST, then derive the constants,
 // so every problem has a clean, intentional answer.
 
+import { coefVar } from "@/lib/coefficients";
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
 import type { DifficultyLevel } from "@/modules/CurriculumRegistry";
@@ -281,7 +282,7 @@ function makeLiteralEquation(rng: RNG): Algebra1Problem {
   const slopeT = fmtFrac(-q, p);
   const constT = fmtFrac(c, p);
   const constPart = c === 0 ? "" : constT.startsWith("-") ? ` - ${constT.slice(1)}` : ` + ${constT}`;
-  const answer = `${target} = ${slopeT}${other}${constPart}`;
+  const answer = `${target} = ${coefVar(slopeT, other)}${constPart}`;
   const xTerm = fmtLinear(a, 0);
   const yTerm = b >= 0 ? `+ ${b}y` : `- ${-b}y`;
   const prompt = `Solve \\(${xTerm} ${yTerm} = ${c}\\) for \\(${target}\\).`;

@@ -4,6 +4,7 @@
 // ellipses and hyperbolas (features from standard form, equations from features).
 // Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 
+import { coefVar, signedTerm } from "@/lib/coefficients";
 import type { RNG } from "./PrecalcTypes";
 import {
   randInt,
@@ -68,7 +69,7 @@ function makeIdentifyConic(rng: RNG): PrecalcMCQ {
   if (kind === "parabola") {
     const a = pick(rng, [1, 2, -1, -2] as const);
     const h = randInt(rng, -3, 3), k = randInt(rng, -3, 3);
-    eq = `y = ${a}${linFactor("x", h)}^2 ${k >= 0 ? "+" : "-"} ${Math.abs(k)}`;
+    eq = `y = ${coefVar(a, linFactor("x", h))}^2${signedTerm(k, "", "-")}`;
     givens = { a, h, k };
   } else if (kind === "circle") {
     const h = randInt(rng, -3, 3), k = randInt(rng, -3, 3), r = randInt(rng, 2, 6);
@@ -165,10 +166,10 @@ function makeParabolaVertex(rng: RNG): PrecalcMCQ {
   let eq: string;
   let opens: string;
   if (vertical) {
-    eq = `y = ${a}${linFactor("x", h)}^2 ${k >= 0 ? "+" : "-"} ${Math.abs(k)}`;
+    eq = `y = ${coefVar(a, linFactor("x", h))}^2${signedTerm(k, "", "-")}`;
     opens = a > 0 ? "upward" : "downward";
   } else {
-    eq = `x = ${a}${linFactor("y", k)}^2 ${h >= 0 ? "+" : "-"} ${Math.abs(h)}`;
+    eq = `x = ${coefVar(a, linFactor("y", k))}^2${signedTerm(h, "", "-")}`;
     opens = a > 0 ? "rightward" : "leftward";
   }
   const correct = `Vertex (${h}, ${k}); opens ${opens}`;
@@ -349,7 +350,7 @@ function makeCompleteSquare(rng: RNG): PrecalcMCQ {
   const h = randInt(rng, -4, 4), k = randInt(rng, -4, 4);
   const r = pick(rng, [3, 4, 5, 6] as const);
   const D = -2 * h, E = -2 * k, F = h * h + k * k - r * r;
-  const ds = D === 0 ? "" : D > 0 ? ` + ${D}x` : ` - ${-D}x`;
+  const ds = D === 0 ? "" : D > 0 ? ` + ${coefVar(D, "x")}` : ` - ${coefVar(-D, "x")}`;
   const es = E === 0 ? "" : E > 0 ? ` + ${E}y` : ` - ${-E}y`;
   const fs = F === 0 ? "" : F > 0 ? ` + ${F}` : ` - ${-F}`;
   const eq = `x^2 + y^2${ds}${es}${fs} = 0`;

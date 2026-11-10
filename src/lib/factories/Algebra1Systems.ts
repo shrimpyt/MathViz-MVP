@@ -8,6 +8,7 @@
 // Degenerate cases (parallel / coincident) are generated ONLY by
 // makeSystemSpecialCase (tier 3) and are keyed in meta.
 
+import { absCoefVar } from "@/lib/coefficients";
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
 import type { DifficultyLevel } from "@/modules/CurriculumRegistry";
@@ -33,7 +34,7 @@ const OWN_SUBTYPES: readonly Algebra1Subtype[] = [
 ];
 
 function fmtSysEq(a: number, b: number, c: number): string {
-  const lhs = b === 0 ? fmtLinear(a, 0) : `${fmtLinear(a, 0)}${b > 0 ? " + " : " - "}${Math.abs(b)}y`;
+  const lhs = b === 0 ? fmtLinear(a, 0) : `${fmtLinear(a, 0)}${b > 0 ? " + " : " - "}${absCoefVar(b, "y")}`;
   return `${lhs} = ${c}`;
 }
 

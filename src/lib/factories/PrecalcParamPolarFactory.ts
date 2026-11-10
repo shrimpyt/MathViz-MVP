@@ -4,6 +4,7 @@
 // points, identifying polar curves, symmetry tests.
 // Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 
+import { coefVar } from "@/lib/coefficients";
 import type { RNG } from "./PrecalcTypes";
 import {
   randInt,
@@ -64,7 +65,7 @@ function makeParametricEvaluate(rng: RNG): PrecalcMCQ {
     calculator: false,
     topicTag: "parametric-polar",
     subtype: "ParametricEvaluate",
-    stem: `A curve is defined parametrically by x = ${a}t ${b >= 0 ? "+" : "-"} ${Math.abs(b)}, y = ${c}t^2 ${d >= 0 ? "+" : "-"} ${Math.abs(d)}. What point (x, y) corresponds to t = ${t}?`,
+    stem: `A curve is defined parametrically by x = ${coefVar(a, "t")} ${b >= 0 ? "+" : "-"} ${Math.abs(b)}, y = ${coefVar(c, "t")}^2 ${d >= 0 ? "+" : "-"} ${Math.abs(d)}. What point (x, y) corresponds to t = ${t}?`,
     givens: { a, b, c, d, t },
     correct,
     wrongPool,
@@ -128,14 +129,14 @@ function makeEliminateParameter(rng: RNG): PrecalcMCQ {
     const h = randInt(rng, -3, 3);
     // x = t + h, y = m*t + b  ->  y = m(x - h) + b
     const c = b - m * h;
-    correct = `y = ${m}x ${c >= 0 ? "+" : "-"} ${Math.abs(c)}`;
-    stem = `Eliminate the parameter: x = t ${h >= 0 ? "+" : "-"} ${Math.abs(h)}, y = ${m}t ${b >= 0 ? "+" : "-"} ${Math.abs(b)}.`;
+    correct = `y = ${coefVar(m, "x")} ${c >= 0 ? "+" : "-"} ${Math.abs(c)}`;
+    stem = `Eliminate the parameter: x = t ${h >= 0 ? "+" : "-"} ${Math.abs(h)}, y = ${coefVar(m, "t")} ${b >= 0 ? "+" : "-"} ${Math.abs(b)}.`;
     givens = { m, b, h, kindCode: 0 };
   } else {
     const a = pick(rng, [2, 3] as const);
     // x = a*t, y = t^2  ->  y = x^2 / a^2
     correct = `y = x^2/${a * a}`;
-    stem = `Eliminate the parameter: x = ${a}t, y = t^2.`;
+    stem = `Eliminate the parameter: x = ${coefVar(a, "t")}, y = t^2.`;
     givens = { a, kindCode: 1 };
   }
   const m = givens.m as number;
@@ -145,12 +146,12 @@ function makeEliminateParameter(rng: RNG): PrecalcMCQ {
   const cSign = c >= 0 ? "+" : "-";
   const wrongPool = kind === "linear"
     ? [
-        `y = ${m}x ${b >= 0 ? "+" : "-"} ${Math.abs(b)}`,
-        `y = ${m}x ${cSign} ${Math.abs(c) + 1}`,
+        `y = ${coefVar(m, "x")} ${b >= 0 ? "+" : "-"} ${Math.abs(b)}`,
+        `y = ${coefVar(m, "x")} ${cSign} ${Math.abs(c) + 1}`,
         `x = ${m}y ${b >= 0 ? "+" : "-"} ${Math.abs(b)}`,
-        `y = ${-m}x ${cSign} ${Math.abs(c)}`,
+        `y = ${coefVar(-m, "x")} ${cSign} ${Math.abs(c)}`,
       ]
-    : [`y = x^2/${givens.a}`, `y = ${givens.a}x^2`, `x = y^2/${givens.a * givens.a}`, `y = x^2`];
+    : [`y = x^2/${givens.a}`, `y = ${coefVar(givens.a, "x")}^2`, `x = y^2/${givens.a * givens.a}`, `y = x^2`];
   return assembleMCQ(rng, {
     calculator: false,
     topicTag: "parametric-polar",

@@ -341,7 +341,8 @@ function checkParametricScenario(p: PrecalcFRQ, where: string): void {
     check(n.includes(2 * v) && n.includes(2 * u - 20), `${where}: (a) position at t=2`);
   }
   if (sb) {
-    const want = `y = ${ifrac(u, v)}x − ${ifrac(5, v * v)}x².`;
+    const slope = ifrac(u, v); // a slope of 1 prints as "x", not "1x"
+    const want = `y = ${slope === "1" ? "" : slope}x − ${ifrac(5, v * v)}x².`;
     check(sb.answer === want, `${where}: (b) eliminated (got "${sb.answer}", want "${want}")`);
     // Contradiction hunt: (b) must reproduce (a): plug x=2v into the cartesian equation.
     const x = 2 * v;

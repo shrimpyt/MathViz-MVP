@@ -6,6 +6,7 @@
 // family. Tests recompute asymptotes/holes independently and substitute
 // solutions into the ORIGINAL equation.
 
+import { absCoefVar, coefVar } from "@/lib/coefficients";
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
 import type { ProblemStep } from "../types";
@@ -175,7 +176,7 @@ function makeSimplifyRational(rng: RNG): Algebra2Problem {
   return {
     type: "A2.11",
     subtype: "SimplifyRational",
-    given: { expression: `(x^2 ${b < 0 ? "-" : "+"} ${Math.abs(b)}x)/x` },
+    given: { expression: `(x^2 ${b < 0 ? "-" : "+"} ${absCoefVar(b, "x")})/x` },
     find: "simplified form (state any restrictions)",
     answer: `x ${b < 0 ? "-" : "+"} ${Math.abs(b)}, x ≠ 0`,
     steps: [
@@ -548,7 +549,7 @@ function makeSolveRational(rng: RNG, level: 1 | 2 | 3): Algebra2Problem {
         {
           instruction: "Multiply both sides by x to clear the denominator:",
           reason: "Clear denominators",
-          blanks: [{ label: "cleared", answer: `${a} = ${b}x` }],
+          blanks: [{ label: "cleared", answer: `${a} = ${coefVar(b, "x")}` }],
         },
         {
           instruction: "Solve and check that the denominator is nonzero:",

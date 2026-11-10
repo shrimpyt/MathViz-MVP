@@ -4,6 +4,7 @@
 // removable discontinuities (factor and cancel), piecewise one-sided limits,
 // limit laws. Pure + seeded (mulberry32). Difficulty tiers 1|2|3 cumulative.
 
+import { coefVar, absCoefVar } from "@/lib/coefficients";
 import type { RNG } from "./PrecalcTypes";
 import {
   randInt,
@@ -47,7 +48,7 @@ function makeDirectSubstitution(rng: RNG): PrecalcMCQ {
     calculator: false,
     topicTag: "limits",
     subtype: "DirectSubstitution",
-    stem: `Evaluate the limit: lim(x->${a}) (${p}x^2 ${q >= 0 ? "+" : "-"} ${Math.abs(q)}x ${r >= 0 ? "+" : "-"} ${Math.abs(r)}).`,
+    stem: `Evaluate the limit: lim(x->${a}) (${coefVar(p, "x")}^2 ${q >= 0 ? "+" : "-"} ${absCoefVar(q, "x")} ${r >= 0 ? "+" : "-"} ${Math.abs(r)}).`,
     givens: { a, p, q, r },
     correct,
     wrongPool,
@@ -277,7 +278,7 @@ function makeOneSidedPiecewise(rng: RNG): PrecalcMCQ {
     calculator: false,
     topicTag: "limits",
     subtype: "OneSidedPiecewise",
-    stem: `Let f(x) = ${p}x ${qStr} for x < ${a}, and f(x) = ${r}x ${sStr} for x >= ${a}. Is f continuous at x = ${a}? Justify using one-sided limits.`,
+    stem: `Let f(x) = ${coefVar(p, "x")} ${qStr} for x < ${a}, and f(x) = ${coefVar(r, "x")} ${sStr} for x >= ${a}. Is f continuous at x = ${a}? Justify using one-sided limits.`,
     givens: { a, p, q, r, s, agree: agree ? 1 : 0 },
     correct,
     wrongPool,

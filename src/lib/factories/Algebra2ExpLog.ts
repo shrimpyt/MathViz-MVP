@@ -201,12 +201,12 @@ function makeSolveExponential(rng: RNG, level: 1 | 2 | 3): Algebra2Problem {
     return {
       type: "A2.7",
       subtype: "SolveExponential",
-      given: { equation: `${base}^{${a}x} = ${Math.pow(base, m)}` },
+      given: { equation: `${base}^{${a}x} = ${m < 0 ? `\\frac{1}{${Math.pow(base, -m)}}` : Math.pow(base, m)}` },
       find: "x",
       answer: `x = ${x}`,
       steps: [
         {
-          instruction: `Write ${Math.pow(base, m)} as a power of ${base} and equate exponents:`,
+          instruction: `Write ${m < 0 ? `1/${Math.pow(base, -m)}` : Math.pow(base, m)} as a power of ${base} and equate exponents:`,
           reason: "Rewrite with same base",
           blanks: [{ label: "exponents", answer: `${a}x = ${m}` }],
         },

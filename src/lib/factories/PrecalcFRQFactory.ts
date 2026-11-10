@@ -6,6 +6,7 @@
 // no-calculator flavor per FRQ.
 // Pure + seeded (mulberry32). Difficulty: 1 -> 2 subparts, 2 -> 3, 3 -> 4.
 
+import { coefVar } from "@/lib/coefficients";
 import type { RNG } from "./PrecalcTypes";
 import {
   randInt,
@@ -503,15 +504,15 @@ function makeParametricScenarioFRQ(rng: RNG, difficulty: PrecalcDifficulty): Pre
   const subB: FRQSubpart = {
     label: "b",
     prompt: `Eliminate the parameter to write y as a function of x.`,
-    answer: `y = ${slope}x − ${curve}x².`,
-    justification: `t = x/${v}; substituting: y = ${u}(x/${v}) − 5(x/${v})² = ${slope}x − ${curve}x².`,
+    answer: `y = ${coefVar(slope, "x")} − ${coefVar(curve, "x")}².`,
+    justification: `t = x/${v}; substituting: y = ${u}(x/${v}) − 5(x/${v})² = ${coefVar(slope, "x")} − ${coefVar(curve, "x")}².`,
     points: 3,
   };
   const subC: FRQSubpart = {
     label: "c",
     prompt: `At what time t > 0 does the projectile hit the ground (y = 0)? Justify.`,
     answer: `t = ${fmt(tHit)} seconds.`,
-    justification: `${u}t − 5t² = t(${u} − 5t) = 0 gives t = 0 (launch) or t = ${u}/5 = ${fmt(tHit)}.`,
+    justification: `${coefVar(u, "t")} − 5t² = t(${u} − 5t) = 0 gives t = 0 (launch) or t = ${u}/5 = ${fmt(tHit)}.`,
     points: 2,
   };
   const subD: FRQSubpart = {
@@ -527,7 +528,7 @@ function makeParametricScenarioFRQ(rng: RNG, difficulty: PrecalcDifficulty): Pre
     calculator: false,
     stimulus: {
       kind: "scenario",
-      text: `A projectile is launched with horizontal velocity ${v} m/s and initial vertical velocity ${u} m/s. Its position t seconds after launch is x = ${v}t, y = ${u}t − 5t² (meters).`,
+      text: `A projectile is launched with horizontal velocity ${v} m/s and initial vertical velocity ${u} m/s. Its position t seconds after launch is x = ${coefVar(v, "t")}, y = ${coefVar(u, "t")} − 5t² (meters).`,
     },
     subparts: subpartsFor(difficulty, [subA, subB], [subC], [subD]),
     topicTag: "parametric-polar",
