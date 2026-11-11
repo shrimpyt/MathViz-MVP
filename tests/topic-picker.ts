@@ -82,7 +82,10 @@ ok(finds("log", "Properties of Logarithms"), "log → logarithms");
 ok(finds("completing square", "Completing the Square"), "stop words don't block a match");
 ok(finds("triangle congruence", "SSS & SAS Congruence Proofs"), "words can match the concept group");
 ok(!titles("sin").includes("Using Models for Decisions"), "sin doesn't match inside a word (using)");
-ok(expandQuery("FOIL practice").includes("multiplying binomials practice"), "synonym expands inside a phrase");
+ok(expandQuery("FOIL practice").some((a) => a.phrase === "multiplying binomials" && a.words === "practice"),
+  "synonym expands inside a longer query");
+ok(!titles("pemdas", "Algebra I").includes("Multi-Step Equations"),
+  "pemdas needs the phrase order of operations, not the two words apart");
 ok(search("zzzz not a skill").length === 0, "nonsense finds nothing");
 
 // ── Search stays in a course ──

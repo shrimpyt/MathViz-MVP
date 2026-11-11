@@ -152,17 +152,25 @@ function wordVariants(w: string): string[] {
   return [...out];
 }
 
-/** Whole query plus one alternative per synonym phrase it contains. */
-export function expandQuery(query: string): string[] {
+/** One way to read the query: free words, plus (for a synonym) the phrase
+ *  it stands for, which has to appear as written ("pemdas" needs "order of
+ *  operations" together, not "order" and "operations" anywhere). */
+export interface QueryAlternative {
+  words: string;
+  phrase: string | null;
+}
+
+/** The query as typed, plus one reading per synonym phrase it contains. */
+export function expandQuery(query: string): QueryAlternative[] {
   const q = clean(query);
   if (!q) return [];
-  const out = [q];
+  const out: QueryAlternative[] = [{ words: q, phrase: null }];
   for (const [key, targets] of Object.entries(SEARCH_SYNONYMS)) {
     const re = new RegExp(`(^|[^a-z0-9])${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9])`);
     if (!re.test(q)) continue;
+    const words = clean(q.replace(re, '$1 $2'));
     for (const t of targets) {
-      const alt = clean(q.replace(re, `$1${t}$2`));
-      if (!out.includes(alt)) out.push(alt);
+      if (!out.some((a) => a.words === words && a.phrase === t)) out.push({ words, phrase: t });
     }
   }
   return out;
@@ -199,9 +207,10 @@ function hasWordPrefix(text: string, w: string): boolean {
   return false;
 }
 
-function alternativeMatches(alt: string, ix: EntryIndex): boolean {
-  const toks = tokens(alt);
-  if (toks.length === 0) return false;
+function alternativeMatches(alt: QueryAlternative, ix: EntryIndex): boolean {
+  const toks = tokens(alt.words);
+  if (alt.phrase !== null && !hasWordPrefix(ix.text, alt.phrase)) return false;
+  if (toks.length === 0) return alt.phrase !== null;
   return toks.every((t) =>
     looksLikeCode(t)
       ? codeQueryMatches(t, ix.codes)
