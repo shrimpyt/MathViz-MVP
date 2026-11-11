@@ -56,13 +56,19 @@ export interface Curriculum {
   modules: StoryModule[];
 }
 
+/** "the slope", whether the generator's find already starts with "the" or
+ *  not, so no prompt reads "Find the the solution set". */
+function findPhrase(find: string): string {
+  return /^the\s/i.test(find) ? find : `the ${find}`;
+}
+
 export function problemToQuestion(p: MathProblem, idx: number): Question {
   if (p.type === 'G.12A') {
     const entries = Object.entries(p.given);
     const givenStr = entries.map(([k, v]) => `${givenKeyName(k)} = ${v}°`).join(', ');
     return {
       id: idx + 1,
-      text: `Given ${givenStr}. Find the ${p.find}.`,
+      text: `Given ${givenStr}. Find ${findPhrase(p.find)}.`,
       points: 10,
       diagramType: 'circle',
       scaffolding: p.steps.map(s => ({ text: latexToText(s.instruction) })),
@@ -111,7 +117,7 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
   if (p.type === 'G.2B') {
     return {
       id: idx + 1,
-      text: `Given points ${p.p1.label}(${p.p1.x}, ${p.p1.y}) and ${p.p2.label}(${p.p2.x}, ${p.p2.y}). Find the ${p.find}.`,
+      text: `Given points ${p.p1.label}(${p.p1.x}, ${p.p1.y}) and ${p.p2.label}(${p.p2.x}, ${p.p2.y}). Find ${findPhrase(p.find)}.`,
       points: 10,
       diagramType: 'coordinate',
       scaffolding: p.steps.map(s => ({ text: latexToText(s.instruction) })),
@@ -120,7 +126,7 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
   if (p.type === 'G.12B') {
     return {
       id: idx + 1,
-      text: `A circle has a radius of ${p.radius}. Find the ${p.find}.`,
+      text: `A circle has a radius of ${p.radius}. Find ${findPhrase(p.find)}.`,
       points: 10,
       diagramType: 'circle',
       scaffolding: p.steps.map(s => ({ text: latexToText(s.instruction) })),
@@ -158,7 +164,7 @@ export function problemToQuestion(p: MathProblem, idx: number): Question {
     const givenStr = givenEntries.map(([k, v]) => `${givenKeyName(k)} = ${v}`).join(', ');
     return {
       id: idx + 1,
-      text: `Given ${givenStr}. Find the ${p.find}.`,
+      text: `Given ${givenStr}. Find ${findPhrase(p.find)}.`,
       points: 10,
       scaffolding: p.steps.map((s) => ({ text: latexToText(s.instruction) })),
     };
