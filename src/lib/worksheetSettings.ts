@@ -7,7 +7,7 @@
 // problem sets, so the generator page and the saved library can't drift.
 
 import { CURRICULUM_REGISTRY } from '../modules/CurriculumRegistry';
-import type { CurriculumEntry, DifficultyLevel } from '../modules/CurriculumRegistry';
+import type { RegisteredEntry, DifficultyLevel } from '../modules/CurriculumRegistry';
 import type { DocumentType } from '../core/types';
 import type { MathProblem, OutputMode } from './ProblemFactory';
 import { FRAMEWORKS, type StandardsFramework } from './standards';
@@ -90,7 +90,7 @@ export function topicSeed(seed: number, index: number): number {
 /** One problem set per entry, in the order given. The generator page and
  *  the saved library both build worksheets through here. */
 export function generateModuleProblemSets(
-  entries: CurriculumEntry[],
+  entries: RegisteredEntry[],
   s: Pick<WorksheetSettings, 'docType' | 'seed' | 'count' | 'advancedCounts' | 'topicCounts' | 'difficulty' | 'wordProblems'>,
 ): MathProblem[][] {
   return entries.map((entry, i) =>
@@ -155,10 +155,10 @@ export function orderProblemSets<T extends MathProblem>(
 }
 
 /** Registry entries for the settings' topics, skipping unknown ids. */
-export function entriesForSettings(s: Pick<WorksheetSettings, 'topicIds'>): CurriculumEntry[] {
+export function entriesForSettings(s: Pick<WorksheetSettings, 'topicIds'>): RegisteredEntry[] {
   return s.topicIds
     .map((id) => CURRICULUM_REGISTRY.find((t) => t.id === id))
-    .filter((m): m is CurriculumEntry => !!m);
+    .filter((m): m is RegisteredEntry => !!m);
 }
 
 /** Rebuild the problem sets a saved worksheet describes. */

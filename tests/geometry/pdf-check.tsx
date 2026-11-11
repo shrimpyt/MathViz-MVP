@@ -15,6 +15,7 @@ import { execSync } from "node:child_process";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { pdf, Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import { WIRED_GEOMETRY } from "../../src/modules/geometry-lessons";
+import { getModule } from "../../src/modules/CurriculumRegistry";
 import { formatGeometryAnswer } from "../../src/lib/factories/GeometryTypes";
 import type { GeometryProblem } from "../../src/lib/factories/GeometryTypes";
 import { PdfGeometryFigureSVG } from "../../src/components/diagrams/GeometryPdfDiagrams";
@@ -82,12 +83,12 @@ function SampleDoc({ title, problems }: { title: string; problems: GeometryProbl
   );
 }
 
-const SAMPLES: { id: string; title: string; marker: string; difficulty: 1 | 2 | 3 }[] = [
-  { id: "ch5-1-midsegments", title: "5-1: Midsegments of Triangles", marker: "midsegment", difficulty: 2 },
-  { id: "ch8-1-translations", title: "8-1: Translations", marker: "image", difficulty: 2 },
-  { id: "ch12-1-tangent-lines", title: "12-1: Tangent Lines", marker: "tangent", difficulty: 3 },
-  { id: "ch3-test", title: "Topic 3 Test: Parallel and Perpendicular Lines", marker: "slope", difficulty: 2 },
-  { id: "ch14-test", title: "Topic 14 Test: Surface Area and Volume", marker: "volume", difficulty: 2 },
+const SAMPLES: { id: string; marker: string; difficulty: 1 | 2 | 3 }[] = [
+  { id: "ch5-1-midsegments", marker: "midsegment", difficulty: 2 },
+  { id: "ch8-1-translations", marker: "image", difficulty: 2 },
+  { id: "ch12-1-tangent-lines", marker: "tangent", difficulty: 3 },
+  { id: "ch3-test", marker: "slope", difficulty: 2 },
+  { id: "ch14-test", marker: "volume", difficulty: 2 },
 ];
 
 async function main() {
@@ -96,7 +97,7 @@ async function main() {
   for (const s of SAMPLES) {
     const entry = WIRED_GEOMETRY.find((e) => e.id === s.id)!;
     const problems = entry.generate("Test", 20260, { count: 6, difficulty: s.difficulty });
-    const doc = React.createElement(SampleDoc, { title: s.title, problems });
+    const doc = React.createElement(SampleDoc, { title: getModule(s.id)?.title ?? s.id, problems });
     const stream = (await pdf(doc as never).toBuffer()) as unknown as AsyncIterable<Uint8Array>;
     const chunks: Buffer[] = [];
     for await (const c of stream) chunks.push(Buffer.from(c));
