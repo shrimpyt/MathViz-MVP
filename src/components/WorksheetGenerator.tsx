@@ -69,6 +69,7 @@ import {
   saveWorksheet,
 } from '../lib/account';
 import {
+  countForTopic,
   generateModuleProblemSets,
   mixesTopics,
   orderProblemSets,
@@ -78,6 +79,15 @@ import {
   type WorksheetSettings,
 } from '../lib/worksheetSettings';
 import { standardsFor, FRAMEWORKS, frameworkMeta, type StandardsFramework } from '../lib/standards';
+import { entryMatches, indexEntry, type EntryIndex } from '../lib/topicSearch';
+import {
+  localStore,
+  readRememberedCourse,
+  rememberCourse,
+  splitTotal,
+  totalRange,
+  trayTotal,
+} from '../lib/pickerPrefs';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -303,13 +313,6 @@ export default function WorksheetGenerator() {
   const [framework, setFramework] = useState<StandardsFramework>('teks');
   const stdFor = (e: { id: string; teks: string }) => standardsFor(e.id, e.teks, framework);
   const clampCount = (n: number) => Math.min(25, Math.max(1, Math.floor(n)));
-  const setTopicCount = (id: string, v: number | null) =>
-    setTopicCounts((prev) => {
-      const next = { ...prev };
-      if (v == null || !Number.isFinite(v)) delete next[id];
-      else next[id] = clampCount(v);
-      return next;
-    });
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(2);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [wordProblems, setWordProblems] = useState(false);
@@ -459,6 +462,27 @@ export default function WorksheetGenerator() {
     setSelectedTopicIds([]);
   };
 
+  // ── Picks tray counts ──
+  // The tray shows one total and a count per lesson. Both write the per-lesson
+  // counts a worksheet has always stored (advancedCounts + topicCounts), so a
+  // saved worksheet or draft file keeps its shape and rebuilds the same way.
+  const countSettings = { advancedCounts, topicCounts, count };
+  const setPickCount = (id: string, n: number) => {
+    setTopicCounts((prev) => {
+      const next = { ...prev };
+      // Switching from one shared count: pin every pick at what it shows now.
+      if (!advancedCounts) for (const pid of selectedTopicIds) next[pid] = count;
+      next[id] = clampCount(n);
+      return next;
+    });
+    setAdvancedCounts(true);
+  };
+  const setTrayTotal = (total: number) => {
+    if (selectedTopicIds.length === 0) return;
+    setTopicCounts((prev) => ({ ...prev, ...splitTotal(total, selectedTopicIds) }));
+    setAdvancedCounts(true);
+  };
+
   // ── Topic group accordion state ──
   // Collapsed by default; no topic is pre-selected, so no group starts open.
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -492,32 +516,62 @@ export default function WorksheetGenerator() {
   const isFiltering =
     topicSearch.trim() !== '' || availableOnly || subjectFilter !== 'All';
 
+  // The course chip a teacher picks is remembered in this browser, so the
+  // picker opens on their course next time. Read once after mount (static
+  // page), and written only when a chip is tapped.
+  useEffect(() => {
+    const saved = readRememberedCourse(localStore(), subjectOptions);
+    if (saved) setSubjectFilter(saved);
+  }, [subjectOptions]);
+  const pickCourse = (view: string) => {
+    setSubjectFilter(view);
+    rememberCourse(localStore(), view);
+  };
+
+  // Search index: skill name, concept group, course, description and every
+  // standards label (TEKS plus the other frameworks' codes), built once.
+  const searchIndex = useMemo(() => {
+    const m = new Map<string, EntryIndex>();
+    for (const e of CURRICULUM_REGISTRY) {
+      const other = FRAMEWORKS.filter((f) => f.id !== 'teks').map((f) => standardsFor(e.id, e.teks, f.id));
+      m.set(e.id, indexEntry(e, other));
+    }
+    return m;
+  }, []);
+  const matchesSearch = (e: RegisteredEntry, q: string) => {
+    const ix = searchIndex.get(e.id);
+    return !ix || entryMatches(q, ix);
+  };
+
   const visibleGroups = useMemo(() => {
     if (!isFiltering) return topicGroups;
-    const q = topicSearch.trim().toLowerCase();
+    const q = topicSearch.trim();
     return topicGroups
       .map(([groupKey, entries]): [string, RegisteredEntry[]] => {
-        const head = entries[0];
-        const groupHit =
-          q !== '' &&
-          (head.group.toLowerCase().includes(q) || head.course.toLowerCase().includes(q));
         const kept = entries.filter((e) => {
           if (availableOnly && !isTopicAvailable(e, isPro)) return false;
           if (!entryInView(e, subjectFilter)) return false;
-          if (q === '') return true;
-          if (groupHit) return true;
-          return (
-            e.title.toLowerCase().includes(q) ||
-            e.teks.toLowerCase().includes(q) ||
-            FRAMEWORKS.some(
-              (f) => f.id !== 'teks' && standardsFor(e.id, e.teks, f.id).toLowerCase().includes(q)
-            )
-          );
+          return q === '' || matchesSearch(e, q);
         });
         return [groupKey, kept];
       })
       .filter(([, entries]) => entries.length > 0);
-  }, [topicGroups, isFiltering, topicSearch, availableOnly, subjectFilter, isPro]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topicGroups, isFiltering, topicSearch, availableOnly, subjectFilter, isPro, searchIndex]);
+
+  // Search stays inside the teacher's course; this counts what it would
+  // find in the other courses, so the picker can offer to widen it.
+  const otherCourseMatches = useMemo(() => {
+    const q = topicSearch.trim();
+    if (q === '' || subjectFilter === 'All') return 0;
+    return CURRICULUM_REGISTRY.filter(
+      (e) =>
+        !entryInView(e, subjectFilter) &&
+        (!availableOnly || isTopicAvailable(e, isPro)) &&
+        matchesSearch(e, q)
+    ).length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topicSearch, subjectFilter, availableOnly, isPro, searchIndex]);
 
   const handleSearchChange = (v: string) => {
     const was = topicSearch.trim() !== '';
@@ -530,10 +584,21 @@ export default function WorksheetGenerator() {
     setTopicSearch(v);
   };
 
+  // Clear keeps the teacher's course: it's a setting, not a filter they
+  // typed. "All subjects" is one tap away on the chips.
   const clearTopicFilters = () => {
     handleSearchChange('');
     setAvailableOnly(false);
-    setSubjectFilter('All');
+  };
+
+  // Enter in the search box adds the lesson when the search narrowed the
+  // list to exactly one, then clears the box for the next one.
+  const addOnlyMatch = () => {
+    if (topicSearch.trim() === '') return;
+    const hits = visibleGroups.flatMap(([, es]) => es).filter((e) => !e.underConstruction);
+    if (hits.length !== 1) return;
+    if (!selectedTopicIds.includes(hits[0].id)) toggleTopic(hits[0].id);
+    handleSearchChange('');
   };
 
   // While searching, auto-expand every group that contains a match.
@@ -1035,11 +1100,13 @@ export default function WorksheetGenerator() {
             topicSearch={topicSearch}
             handleSearchChange={handleSearchChange}
             clearTopicFilters={clearTopicFilters}
-            isFiltering={isFiltering}
             availableOnly={availableOnly}
             setAvailableOnly={setAvailableOnly}
             subjectFilter={subjectFilter}
-            setSubjectFilter={setSubjectFilter}
+            pickCourse={pickCourse}
+            searchAllCourses={() => setSubjectFilter('All')}
+            otherCourseMatches={otherCourseMatches}
+            addOnlyMatch={addOnlyMatch}
             subjectOptions={subjectOptions}
             effectiveGroups={effectiveGroups}
             expandedGroups={expandedGroups}
@@ -1053,11 +1120,11 @@ export default function WorksheetGenerator() {
             isPro={isPro}
             count={count}
             setCount={setCount}
-            advancedCounts={advancedCounts}
-            setAdvancedCounts={setAdvancedCounts}
-            topicCounts={topicCounts}
-            setTopicCount={setTopicCount}
-            selectedEntries={selectedModules.map((m) => ({ id: m.id, title: m.title }))}
+            countFor={(id) => countForTopic(countSettings, id)}
+            trayTotal={trayTotal(countSettings, selectedTopicIds)}
+            setPickCount={setPickCount}
+            setTrayTotal={setTrayTotal}
+            selectedEntries={selectedModules}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
             wordProblems={wordProblems}
@@ -1924,15 +1991,200 @@ const topicCardSx = (checked: boolean) => ({
   },
 });
 
+// ── Picks tray: what's in the packet, with one total ─────────────────────────
+// Every lesson picked so far, in pick order, with its own count and one total
+// for the packet. Changing the total splits it evenly (the first picks take
+// any extra); the − and + on a lesson change just that lesson.
+function CountStepper({
+  value,
+  min,
+  max,
+  onChange,
+  label,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  onChange: (n: number) => void;
+  label: string;
+}) {
+  const btnSx = {
+    minWidth: 0,
+    width: 26,
+    height: 26,
+    p: 0,
+    borderRadius: '8px',
+    fontWeight: 900,
+    fontSize: '0.95rem',
+    color: '#c7cbe3',
+    border: '1.5px solid #2c3247',
+    '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
+    '&.Mui-disabled': { color: '#3a4058', borderColor: '#262b3d' },
+  } as const;
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+      <Button sx={btnSx} disabled={value <= min} onClick={() => onChange(value - 1)} aria-label={`Fewer problems: ${label}`}>
+        −
+      </Button>
+      <Typography
+        sx={{ minWidth: 22, textAlign: 'center', fontWeight: 800, fontSize: '0.85rem', color: '#f2f3fa' }}
+        aria-label={`${value} problems: ${label}`}
+      >
+        {value}
+      </Typography>
+      <Button sx={btnSx} disabled={value >= max} onClick={() => onChange(value + 1)} aria-label={`More problems: ${label}`}>
+        +
+      </Button>
+    </Box>
+  );
+}
+
+function PicksTray({
+  cardSx,
+  picks,
+  isPro,
+  count,
+  setCount,
+  countFor,
+  total,
+  setPickCount,
+  setTotal,
+  removePick,
+  clearPicks,
+}: {
+  cardSx: Record<string, unknown>;
+  picks: RegisteredEntry[];
+  isPro: boolean;
+  count: number;
+  setCount: (n: number) => void;
+  countFor: (id: string) => number;
+  total: number;
+  setPickCount: (id: string, n: number) => void;
+  setTotal: (n: number) => void;
+  removePick: (id: string) => void;
+  clearPicks: () => void;
+}) {
+  const range = totalRange(picks.length);
+  // The total box takes typing; it applies on Enter or when it loses focus,
+  // so typing 12 doesn't split 1 first.
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    if (draft == null) return;
+    const v = Math.floor(Number(draft));
+    if (draft.trim() !== '' && Number.isFinite(v)) setTotal(v);
+    setDraft(null);
+  };
+  return (
+    <Box sx={cardSx} role="region" aria-label="Your picks">
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>
+          Your picks{picks.length > 0 ? ` (${picks.length})` : ''} 🧺
+        </Typography>
+        {picks.length > 0 && (
+          <Button
+            size="small"
+            onClick={clearPicks}
+            sx={{ color: '#f0a0a0', fontWeight: 800, fontSize: '0.72rem', minWidth: 0, p: 0.25, '&:hover': { color: '#f87171' } }}
+          >
+            Clear all
+          </Button>
+        )}
+      </Box>
+      {picks.length === 0 ? (
+        <>
+          <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5 }}>
+            Tap lessons, or search and press Enter, to add them here. You can mix lessons from any course.
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5 }}>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#c7cbe3' }}>Problems per lesson</Typography>
+            <CountStepper value={count} min={1} max={25} onChange={setCount} label="each new lesson" />
+          </Box>
+        </>
+      ) : (
+        <>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 280, overflowY: 'auto', pr: 0.5 }}>
+            {picks.map((e) => (
+              <Box key={e.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  size="small"
+                  aria-label={`Remove ${e.title}`}
+                  onClick={() => removePick(e.id)}
+                  sx={{ color: '#9aa0be', '&:hover': { color: '#f87171' }, p: 0.25 }}
+                >
+                  <ClearIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#f2f3fa', lineHeight: 1.3 }}
+                    title={e.title}
+                  >
+                    {e.title}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.66rem', fontWeight: 600, color: '#9aa0be', lineHeight: 1.3 }}>
+                    {e.course} · {e.group}
+                    {!isPro && !isFreeTopic(e.id) && (
+                      <Box component="span" sx={{ ml: 0.75, color: '#fb923c', fontWeight: 900 }}>
+                        PRO
+                      </Box>
+                    )}
+                  </Typography>
+                </Box>
+                <CountStepper
+                  value={countFor(e.id)}
+                  min={1}
+                  max={25}
+                  onChange={(n) => setPickCount(e.id, n)}
+                  label={e.title}
+                />
+              </Box>
+            ))}
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mt: 1.5,
+              pt: 1.5,
+              borderTop: '1.5px solid #2c3247',
+            }}
+          >
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#f2f3fa' }}>Total problems</Typography>
+            <TextField
+              type="number"
+              size="small"
+              value={draft ?? String(total)}
+              onChange={(ev) => setDraft(ev.target.value)}
+              onBlur={commit}
+              onKeyDown={(ev) => {
+                if (ev.key === 'Enter') commit();
+              }}
+              inputProps={{ min: range.min, max: range.max, 'aria-label': 'Total problems' }}
+              sx={{ width: 84 }}
+            />
+          </Box>
+          <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.75 }}>
+            {picks.length > 1
+              ? 'A new total is shared evenly. Use − and + to give one lesson more or fewer.'
+              : 'Use − and + or type a total.'}
+          </Typography>
+        </>
+      )}
+    </Box>
+  );
+}
+
 function StepTopics({
   topicSearch,
   handleSearchChange,
   clearTopicFilters,
-  isFiltering,
   availableOnly,
   setAvailableOnly,
   subjectFilter,
-  setSubjectFilter,
+  pickCourse,
+  searchAllCourses,
+  otherCourseMatches,
+  addOnlyMatch,
   subjectOptions,
   effectiveGroups,
   expandedGroups,
@@ -1946,10 +2198,10 @@ function StepTopics({
   isPro,
   count,
   setCount,
-  advancedCounts,
-  setAdvancedCounts,
-  topicCounts,
-  setTopicCount,
+  countFor,
+  trayTotal,
+  setPickCount,
+  setTrayTotal,
   selectedEntries,
   difficulty,
   setDifficulty,
@@ -1967,11 +2219,13 @@ function StepTopics({
   topicSearch: string;
   handleSearchChange: (v: string) => void;
   clearTopicFilters: () => void;
-  isFiltering: boolean;
   availableOnly: boolean;
   setAvailableOnly: (v: boolean | ((p: boolean) => boolean)) => void;
   subjectFilter: string;
-  setSubjectFilter: (s: string) => void;
+  pickCourse: (s: string) => void;
+  searchAllCourses: () => void;
+  otherCourseMatches: number;
+  addOnlyMatch: () => void;
   subjectOptions: string[];
   effectiveGroups: [string, RegisteredEntry[]][];
   expandedGroups: Set<string>;
@@ -1985,11 +2239,11 @@ function StepTopics({
   isPro: boolean;
   count: number;
   setCount: (n: number) => void;
-  advancedCounts: boolean;
-  setAdvancedCounts: (b: boolean) => void;
-  topicCounts: Record<string, number>;
-  setTopicCount: (id: string, v: number | null) => void;
-  selectedEntries: { id: string; title: string }[];
+  countFor: (id: string) => number;
+  trayTotal: number;
+  setPickCount: (id: string, n: number) => void;
+  setTrayTotal: (n: number) => void;
+  selectedEntries: RegisteredEntry[];
   difficulty: DifficultyLevel;
   setDifficulty: (d: DifficultyLevel) => void;
   wordProblems: boolean;
@@ -2040,6 +2294,19 @@ function StepTopics({
             gap: 2,
           }}
         >
+          <PicksTray
+            cardSx={railCardSx}
+            picks={selectedEntries}
+            isPro={isPro}
+            count={count}
+            setCount={setCount}
+            countFor={countFor}
+            total={trayTotal}
+            setPickCount={setPickCount}
+            setTotal={setTrayTotal}
+            removePick={toggleTopic}
+            clearPicks={clearTopics}
+          />
           <Box sx={railCardSx}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Standards 🏷️</Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -2071,94 +2338,6 @@ function StepTopics({
             <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 1 }}>
               {frameworkMeta(framework).note}
             </Typography>
-          </Box>
-          <Box sx={railCardSx}>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Problems per topic 🔢</Typography>
-            <TextField
-              type="number"
-              value={count}
-              inputProps={{ min: 1, max: 25 }}
-              onChange={(e) => {
-                const v = Math.floor(Number(e.target.value));
-                if (Number.isFinite(v)) setCount(Math.min(25, Math.max(1, v)));
-              }}
-              sx={{ width: 120 }}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Advanced mode 🎛️</Typography>
-              <Switch
-                checked={advancedCounts}
-                onChange={(e) => setAdvancedCounts(e.target.checked)}
-                inputProps={{ 'aria-label': 'Set a different number of problems for each topic' }}
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
-                }}
-              />
-            </Box>
-            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
-              {advancedCounts
-                ? 'Give each selected topic its own count below. A topic left blank uses the count above.'
-                : 'Set a different number of questions for each topic, instead of one count for all.'}
-            </Typography>
-            {advancedCounts && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1.5 }}>
-                {selectedEntries.length === 0 ? (
-                  <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5 }}>
-                    No topics selected yet. Pick topics and they will show up here.
-                  </Typography>
-                ) : (
-                  selectedEntries.map((e) => {
-                    const custom = topicCounts[e.id];
-                    return (
-                      <Box key={e.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography
-                          sx={{
-                            flex: 1,
-                            minWidth: 0,
-                            fontSize: '0.76rem',
-                            fontWeight: 700,
-                            color: '#f2f3fa',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                          title={e.title}
-                        >
-                          {e.title}
-                        </Typography>
-                        <TextField
-                          type="number"
-                          size="small"
-                          value={custom ?? ''}
-                          placeholder={String(count)}
-                          inputProps={{ min: 1, max: 25, 'aria-label': `Problems for ${e.title}` }}
-                          onChange={(ev) => {
-                            const raw = ev.target.value.trim();
-                            if (raw === '') setTopicCount(e.id, null);
-                            else {
-                              const v = Math.floor(Number(raw));
-                              if (Number.isFinite(v)) setTopicCount(e.id, v);
-                            }
-                          }}
-                          sx={{ width: 68 }}
-                        />
-                        {custom != null && (
-                          <IconButton
-                            size="small"
-                            aria-label={`Reset ${e.title} to the shared count`}
-                            onClick={() => setTopicCount(e.id, null)}
-                            sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' }, p: 0.25 }}
-                          >
-                            <ClearIcon sx={{ fontSize: 14 }} />
-                          </IconButton>
-                        )}
-                      </Box>
-                    );
-                  })
-                )}
-              </Box>
-            )}
           </Box>
           <Box sx={railCardSx}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Difficulty 💪</Typography>
@@ -2265,7 +2444,17 @@ function StepTopics({
         <TextField
           value={topicSearch}
           onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="🔍 Search topics or TEKS…"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addOnlyMatch();
+            }
+          }}
+          placeholder={
+            subjectFilter === 'All'
+              ? '🔍 Search a skill or standard, like midsegment or G.5(D)'
+              : `🔍 Search ${subjectFilter}: a skill or standard`
+          }
           aria-label="Search topics"
           sx={{ width: '100%', maxWidth: 520, mb: 1.5 }}
           slotProps={{
@@ -2316,7 +2505,8 @@ function StepTopics({
                 key={s}
                 clickable
                 label={s === 'All' ? 'All subjects' : s}
-                onClick={() => setSubjectFilter(s)}
+                onClick={() => pickCourse(s)}
+                aria-pressed={active}
                 sx={{
                   fontWeight: 800,
                   border: '1.5px solid',
@@ -2328,7 +2518,7 @@ function StepTopics({
               />
             );
           })}
-          {isFiltering && (
+          {(topicSearch.trim() !== '' || availableOnly) && (
             <Button
               size="small"
               onClick={clearTopicFilters}
@@ -2341,13 +2531,13 @@ function StepTopics({
 
         <Box sx={{ width: '100%', maxWidth: 920 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            {selectedTopicIds.length > 0 ? (
+            {otherCourseMatches > 0 ? (
               <Button
                 size="small"
-                onClick={clearTopics}
-                sx={{ color: '#f0a0a0', fontWeight: 800, fontSize: '0.75rem', '&:hover': { color: '#f87171' } }}
+                onClick={searchAllCourses}
+                sx={{ color: '#9aa0be', fontWeight: 800, fontSize: '0.75rem', textTransform: 'none', '&:hover': { color: '#818cf8' } }}
               >
-                Clear selections ({selectedTopicIds.length})
+                {otherCourseMatches} more in other courses · Search all courses
               </Button>
             ) : (
               <span />
@@ -2479,9 +2669,9 @@ function StepTopics({
                           <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
                             {entry.title}
                           </Typography>
-                          {advancedCounts && checked && (
+                          {checked && (
                             <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8' }}>
-                              ×{topicCounts[entry.id] ?? count} problems
+                              ×{countFor(entry.id)} problems
                             </Typography>
                           )}
                           {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
@@ -2505,10 +2695,17 @@ function StepTopics({
           {effectiveGroups.length === 0 && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography sx={{ color: '#9aa0be', fontWeight: 700, mb: 2 }}>
-                No topics match your search. 🔍
+                {subjectFilter === 'All'
+                  ? 'No topics match your search. 🔍'
+                  : `Nothing in ${subjectFilter} matches. 🔍`}
               </Typography>
+              {otherCourseMatches > 0 && (
+                <Button onClick={searchAllCourses} sx={{ color: '#818cf8', fontWeight: 800, mr: 1 }}>
+                  Search all courses ({otherCourseMatches})
+                </Button>
+              )}
               <Button onClick={clearTopicFilters} sx={{ color: '#818cf8', fontWeight: 800 }}>
-                Clear search & filters
+                Clear search
               </Button>
             </Box>
           )}
