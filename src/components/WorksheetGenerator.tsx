@@ -41,7 +41,8 @@ import {
   type NewGroupInput,
 } from '../lib/accommodations';
 import { CURRICULUM_REGISTRY } from '../modules/CurriculumRegistry';
-import type { CurriculumEntry, DifficultyLevel } from '../modules/CurriculumRegistry';
+import { CATALOG_ORDER, COURSES, COURSE_GROUPS } from '../modules/topicCatalog';
+import type { RegisteredEntry, DifficultyLevel } from '../modules/CurriculumRegistry';
 import { DocumentType, problemToQuestion } from '../core/types';
 import {
   ANON_ACCOUNT,
@@ -99,21 +100,36 @@ function modeWord(docType: DocumentType): string {
 }
 
 // ── Export scope guard ───────────────────────────────────────────────────────
-// Course label for a registry entry, from its id prefix (the same prefix
-// convention plan.ts isFreeTopic uses). Ids with no known prefix fall back
-// to the entry's topic title. Used by StepReview to show exactly which
-// lessons are in the packet before export, and to warn when the selection
-// mixes courses (e.g. stale Algebra 2 selections inside a Geometry packet).
-function courseOfEntry(entry: CurriculumEntry): string {
-  const id = entry.id;
-  if (id.startsWith('proofs-') || id.startsWith('g-')) return 'Geometry';
-  if (id.startsWith('a1-')) return 'Algebra 1';
-  if (id.startsWith('a2-') || id.startsWith('a2x-')) return 'Algebra 2';
-  if (id.startsWith('ms6-') || id.startsWith('ms7-') || id.startsWith('ms8-')) return 'Middle School';
-  if (id.startsWith('sat-')) return 'SAT';
-  if (id.startsWith('calc-')) return 'Calculus';
-  if (id.startsWith('precalc-') || id.startsWith('trig-')) return 'Precalculus';
-  return entry.topicTitle;
+// Course label for a registry entry, from the topic catalog. Used by
+// StepReview to show exactly which lessons are in the packet before export,
+// and to warn when the selection mixes courses (e.g. stale Algebra II
+// selections inside a Geometry packet).
+function courseOfEntry(entry: RegisteredEntry): string {
+  return entry.course;
+}
+
+// Grade 6 and Pre-Algebra share middle-school classrooms, so mixing them is
+// not flagged as a stray selection (it wasn't before the courses split).
+function courseFamily(course: string): string {
+  return course === 'Grade 6' || course === 'Pre-Algebra' ? 'Middle School' : course;
+}
+
+// Accordion key for a concept group. Group names repeat across courses
+// (Systems, Geometry, ...), so the key carries the course too.
+function groupKeyOf(entry: Pick<RegisteredEntry, 'course' | 'group'>): string {
+  return `${entry.course}::${entry.group}`;
+}
+
+// Picker views: every course, plus Grade 7 and Grade 8 as views of Pre-Algebra.
+const SUBJECT_VIEWS: string[] = COURSES.flatMap((c) =>
+  c === 'Pre-Algebra' ? [c, 'Grade 7', 'Grade 8'] : [c]
+);
+
+function entryInView(entry: RegisteredEntry, view: string): boolean {
+  if (view === 'All') return true;
+  if (view === 'Grade 7') return entry.course === 'Pre-Algebra' && entry.grade === 7;
+  if (view === 'Grade 8') return entry.course === 'Pre-Algebra' && entry.grade === 8;
+  return entry.course === view;
 }
 
 // ── Document mode definitions (sidebar segmented control) ────────────────────
@@ -391,13 +407,23 @@ export default function WorksheetGenerator() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ── Topic groups (registry order) ──
+  // ── Topic groups (catalog order: course, then concept group, then lesson) ──
   const topicGroups = useMemo(() => {
-    const map = new Map<string, CurriculumEntry[]>();
-    for (const entry of CURRICULUM_REGISTRY) {
-      const arr = map.get(entry.topicTitle);
+    const rank = (e: RegisteredEntry, i: number) => {
+      const c = COURSES.indexOf(e.course);
+      const g = COURSE_GROUPS[e.course].indexOf(e.group);
+      const l = CATALOG_ORDER.indexOf(e.id);
+      return [c, g < 0 ? 1e3 : g, l < 0 ? 1e4 + i : l];
+    };
+    const sorted = CURRICULUM_REGISTRY.map((e, i) => ({ e, r: rank(e, i) }))
+      .sort((a, b) => a.r[0] - b.r[0] || a.r[1] - b.r[1] || a.r[2] - b.r[2])
+      .map(({ e }) => e);
+    const map = new Map<string, RegisteredEntry[]>();
+    for (const entry of sorted) {
+      const key = groupKeyOf(entry);
+      const arr = map.get(key);
       if (arr) arr.push(entry);
-      else map.set(entry.topicTitle, [entry]);
+      else map.set(key, [entry]);
     }
     return [...map.entries()];
   }, []);
@@ -406,7 +432,7 @@ export default function WorksheetGenerator() {
     () =>
       selectedTopicIds
         .map((id) => CURRICULUM_REGISTRY.find((t) => t.id === id))
-        .filter((m): m is CurriculumEntry => !!m),
+        .filter((m): m is RegisteredEntry => !!m),
     [selectedTopicIds]
   );
 
@@ -455,27 +481,7 @@ export default function WorksheetGenerator() {
     topicGroups.length > 0 && expandedGroups.size === topicGroups.length;
 
   // ── Topic search + filters ──────────────────────────────────────────────
-  // Subject is derived from the registry's topic-number bands (the registry
-  // carries no explicit subject field).
-  const subjectOfTopic = (topicNum: number): string => {
-    if (topicNum >= 1 && topicNum <= 15) return 'Geometry';
-    if (topicNum === 16) return 'Precalculus';
-    if (topicNum === 21) return 'AP Calculus';
-    if (topicNum >= 30 && topicNum <= 32) return 'Middle School';
-    if (topicNum >= 101 && topicNum <= 109) return 'Algebra I';
-    if (topicNum >= 202 && topicNum <= 214) return 'Algebra II';
-    if (topicNum === 401) return 'SAT Math';
-    return 'Other';
-  };
-
-  const subjectOptions = useMemo(() => {
-    const seen: string[] = [];
-    for (const e of CURRICULUM_REGISTRY) {
-      const s = subjectOfTopic(e.topic);
-      if (!seen.includes(s)) seen.push(s);
-    }
-    return ['All', ...seen];
-  }, []);
+  const subjectOptions = useMemo(() => ['All', ...SUBJECT_VIEWS], []);
 
   const [topicSearch, setTopicSearch] = useState('');
   const [availableOnly, setAvailableOnly] = useState(false);
@@ -490,12 +496,14 @@ export default function WorksheetGenerator() {
     if (!isFiltering) return topicGroups;
     const q = topicSearch.trim().toLowerCase();
     return topicGroups
-      .map(([groupTitle, entries]): [string, CurriculumEntry[]] => {
-        const groupHit = q !== '' && groupTitle.toLowerCase().includes(q);
+      .map(([groupKey, entries]): [string, RegisteredEntry[]] => {
+        const head = entries[0];
+        const groupHit =
+          q !== '' &&
+          (head.group.toLowerCase().includes(q) || head.course.toLowerCase().includes(q));
         const kept = entries.filter((e) => {
           if (availableOnly && !isTopicAvailable(e, isPro)) return false;
-          if (subjectFilter !== 'All' && subjectOfTopic(e.topic) !== subjectFilter)
-            return false;
+          if (!entryInView(e, subjectFilter)) return false;
           if (q === '') return true;
           if (groupHit) return true;
           return (
@@ -506,7 +514,7 @@ export default function WorksheetGenerator() {
             )
           );
         });
-        return [groupTitle, kept];
+        return [groupKey, kept];
       })
       .filter(([, entries]) => entries.length > 0);
   }, [topicGroups, isFiltering, topicSearch, availableOnly, subjectFilter, isPro]);
@@ -794,7 +802,7 @@ export default function WorksheetGenerator() {
     const groups = new Set<string>();
     for (const id of d.topicIds) {
       const entry = CURRICULUM_REGISTRY.find((t) => t.id === id);
-      if (entry) groups.add(entry.topicTitle);
+      if (entry) groups.add(groupKeyOf(entry));
     }
     setExpandedGroups(groups);
     setSeed(d.seed);
@@ -937,7 +945,7 @@ export default function WorksheetGenerator() {
 
   // Titles of the selected lessons that offer story (word problem) variants.
   const wordCapableSelected = useMemo(
-    () => selectedModules.filter((m) => m.wordProblems).map((m) => m.title.replace(/^\d+-\d+:\s*/, '')),
+    () => selectedModules.filter((m) => m.wordProblems).map((m) => m.title),
     [selectedModules]
   );
 
@@ -1965,7 +1973,7 @@ function StepTopics({
   subjectFilter: string;
   setSubjectFilter: (s: string) => void;
   subjectOptions: string[];
-  effectiveGroups: [string, CurriculumEntry[]][];
+  effectiveGroups: [string, RegisteredEntry[]][];
   expandedGroups: Set<string>;
   toggleGroup: (t: string) => void;
   allEffectiveExpanded: boolean;
@@ -2117,7 +2125,7 @@ function StepTopics({
                           }}
                           title={e.title}
                         >
-                          {e.title.replace(/^\d+-\d+:\s*/, '')}
+                          {e.title}
                         </Typography>
                         <TextField
                           type="number"
@@ -2352,12 +2360,16 @@ function StepTopics({
               {allEffectiveExpanded ? 'Collapse all' : 'Expand all'}
             </Button>
           </Box>
-          {effectiveGroups.map(([groupTitle, entries]) => {
-            const open = expandedGroups.has(groupTitle);
+          {effectiveGroups.map(([groupKey, entries]) => {
+            const open = expandedGroups.has(groupKey);
+            const { group: groupTitle, course: groupCourse } = entries[0];
+            // The course goes beside the group name unless one course is
+            // already picked (group names like Systems repeat across courses).
+            const showCourse = subjectFilter === 'All';
             const selectedCount = entries.filter((e) => selectedTopicIds.includes(e.id)).length;
             return (
               <Box
-                key={groupTitle}
+                key={groupKey}
                 sx={{
                   mb: 1.25,
                   borderRadius: '16px',
@@ -2368,7 +2380,7 @@ function StepTopics({
               >
                 <Button
                   fullWidth
-                  onClick={() => toggleGroup(groupTitle)}
+                  onClick={() => toggleGroup(groupKey)}
                   aria-expanded={open}
                   sx={{
                     display: 'flex',
@@ -2390,6 +2402,14 @@ function StepTopics({
                     />
                     <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f2f3fa', textAlign: 'left' }}>
                       {groupTitle}
+                      {showCourse && (
+                        <Box
+                          component="span"
+                          sx={{ ml: 1, fontWeight: 600, fontSize: '0.78rem', color: '#9aa0be' }}
+                        >
+                          {groupCourse}
+                        </Box>
+                      )}
                     </Typography>
                   </Box>
                   {selectedCount > 0 && (
@@ -2655,7 +2675,7 @@ function StepReview({
   /** Free can't export this one: explain why instead of leaving the page. */
   onGatedExport: () => void;
   proofDocMode: 'proof-two-column' | 'proof-fill-reasons' | 'proof-elements' | 'proof-blank' | undefined;
-  selectedModules: CurriculumEntry[];
+  selectedModules: RegisteredEntry[];
   /** Per-module generated problem counts, parallel to selectedModules. */
   moduleProblemCounts: number[];
   errorBoundaryKey: string;
@@ -2679,7 +2699,7 @@ function StepReview({
     if (found) found.count += row.count;
     else scopeCourses.push({ course: row.course, count: row.count });
   }
-  const mixesCourses = scopeCourses.length > 1;
+  const mixesCourses = new Set(scopeCourses.map((c) => courseFamily(c.course))).size > 1;
   const mixParts = scopeCourses.map((c) => `${c.course} (${problemsWord(c.count)})`);
   const mixSummary =
     mixParts.length > 1

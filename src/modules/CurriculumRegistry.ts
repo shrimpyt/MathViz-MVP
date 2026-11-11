@@ -148,6 +148,7 @@ import { CALCULUS_ENTRIES } from "./calculus";
 
 import { mulberry32 } from "@/lib/math-utils";
 import { assignDiagramVariants } from "@/lib/diagramVariants";
+import { TOPIC_CATALOG, courseForTopic, type CourseName } from "./topicCatalog";
 
 // ── Registry shape ────────────────────────────────────────────────────────────
 
@@ -2569,12 +2570,32 @@ function sanitizeOptions(options?: GenerateOptions): GenerateOptions | undefined
   return out;
 }
 
-export const CURRICULUM_REGISTRY: CurriculumEntry[] = REGISTRY_ENTRIES.map((e) => ({
-  ...e,
-  generate: (mode, seed, options) => e.generate(mode, seed, sanitizeOptions(options)),
-}));
+/**
+ * A registry entry as the app sees it: the lesson's skill name as `title`,
+ * plus the course and concept group it is listed under (from topicCatalog.ts).
+ * The id never changes, so saved worksheets keep opening.
+ */
+export interface RegisteredEntry extends CurriculumEntry {
+  course: CourseName;
+  /** Concept group shown as the picker heading. */
+  group: string;
+  /** Pre-Algebra only: 7 or 8, for the Grade 7 and Grade 8 views. */
+  grade?: 7 | 8;
+}
+
+export const CURRICULUM_REGISTRY: RegisteredEntry[] = REGISTRY_ENTRIES.map((e) => {
+  const cat = TOPIC_CATALOG[e.id];
+  return {
+    ...e,
+    title: cat?.name ?? e.title,
+    course: cat?.course ?? courseForTopic(e.topic, e.id),
+    group: cat?.group ?? e.topicTitle,
+    ...(cat?.grade ? { grade: cat.grade } : {}),
+    generate: (mode, seed, options) => e.generate(mode, seed, sanitizeOptions(options)),
+  };
+});
 
 /** Look up a registry entry by id. Returns undefined if not found. */
-export function getModule(id: string): CurriculumEntry | undefined {
+export function getModule(id: string): RegisteredEntry | undefined {
   return CURRICULUM_REGISTRY.find((e) => e.id === id);
 }
