@@ -6,6 +6,7 @@
 import { CURRICULUM_REGISTRY } from "../src/modules/CurriculumRegistry";
 import { formatAnswer, latexToText, pdfSafeText } from "../src/lib/answerKey";
 import type { OutputMode } from "../src/lib/ProblemFactory";
+import { problemToQuestion } from "../src/core/types";
 
 let checks = 0;
 const failures: string[] = [];
@@ -36,6 +37,18 @@ eq("y = -\\frac{1}{2}x + \\frac{5}{2}", "y = -1/2x + 5/2");
 // Exponents that can't be written as unicode superscripts.
 eq("(1.05)^{t}", "(1.05)^t");
 eq("Pe^{rt}", "Pe^(rt)");
+// The PDF key runs latexToText twice (pdfSafeText over formatAnswer); a
+// grouped exponent must survive the second pass unchanged.
+function twice(input: string, want: string) {
+  checks++;
+  const got = pdfSafeText(latexToText(input));
+  if (got !== want) failures.push(`twice ${JSON.stringify(input)} -> ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
+}
+twice("y^{5/2}", "y^(5/2)");
+twice("x^{4/3}", "x^(4/3)");
+twice("Pe^{rt}", "Pe^(rt)");
+twice("(1.05)^{t}", "(1.05)^t");
+twice("x^{2}", "x²");
 
 // Words, symbols, sets, money.
 eq("x = 2 \\text{ or } x = 12", "x = 2 or x = 12");
@@ -51,10 +64,11 @@ eq("a \\mp b", "a ∓ b");
 
 // Every printed key in the registry: no LaTeX may reach the page.
 const SEEDS = Number(process.env.SEEDS ?? 10);
-const LEAK = /\\|text\{|\bfrac\b|dfrac|overline|≤ft|right\)/;
+const LEAK = /\\|text\{|\bfrac\b|dfrac|overline|≤ft|right\)|[⁽⁾₍₎]/;
 const MODES: OutputMode[] = ["Test", "Review"];
 let keys = 0;
 const leaks = new Map<string, string>();
+const doubled = new Map<string, string>();
 for (const e of CURRICULUM_REGISTRY)
   for (const mode of MODES)
     for (const d of [1, 2, 3] as const)
@@ -63,10 +77,14 @@ for (const e of CURRICULUM_REGISTRY)
           keys++;
           const s = pdfSafeText(formatAnswer(p));
           if (LEAK.test(s) && !leaks.has(e.id)) leaks.set(e.id, s.slice(0, 100));
+          // Prompts too: no doubled word from "Find the" + a find that starts with "the".
+          const q = problemToQuestion(p, 0).text;
+          if (/\bthe the\b/i.test(q) && !doubled.has(e.id)) doubled.set(e.id, q.slice(0, 100));
         }
       }
 checks += keys;
 for (const [id, s] of leaks) failures.push(`${id}: raw LaTeX in printed key: ${s}`);
+for (const [id, s] of doubled) failures.push(`${id}: doubled "the" in prompt: ${s}`);
 
 console.log(`latex-to-text: ${checks} checks (${keys} printed keys), ${failures.length} failures`);
 for (const f of failures) console.log("  FAIL " + f);

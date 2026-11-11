@@ -202,9 +202,13 @@ export function latexToText(input: string | number | null | undefined): string {
 
   // Sub/superscripts before fractions, so \frac{1}{x^{2}} has no inner braces.
   s = s.replace(/_\{([^{}]*)\}/g, (_m, g: string) => subscript(g));
-  s = s.replace(/_([0-9+\-nxieao()])/g, (_m, c: string) => SUBSCRIPT[c] ?? c);
+  // A bare _ or ^ never raises a parenthesis: "^(" is how a grouped exponent
+  // that has no unicode form is written out (y^{5/2} -> "y^(5/2)"), so a
+  // second pass (the PDF key runs pdfSafeText over formatAnswer) must leave
+  // it alone instead of printing "y⁽5/2)".
+  s = s.replace(/_([0-9+\-nxieao])/g, (_m, c: string) => SUBSCRIPT[c] ?? c);
   s = s.replace(/\^\{([^{}]*)\}/g, (_m, g: string) => superscript(g));
-  s = s.replace(/\^([0-9+\-=nxiao()])/g, (_m, c: string) => SUPERSCRIPT[c] ?? c);
+  s = s.replace(/\^([0-9+\-=nxiao])/g, (_m, c: string) => SUPERSCRIPT[c] ?? c);
 
   // ± and ∓ first, so a fraction like \frac{3 \pm \sqrt{17}}{4} sees two
   // terms in its numerator and keeps them grouped.
