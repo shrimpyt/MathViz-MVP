@@ -107,6 +107,18 @@ CREATE TABLE IF NOT EXISTS saved_worksheets (
 );
 CREATE INDEX IF NOT EXISTS idx_saved_worksheets_user ON saved_worksheets(user_id, updated_at);
 
+-- Taught shelf: one row per lesson a teacher has taught (an export, or the
+-- "Mark taught" button). Lesson ids and times only. The Worker keeps at most
+-- 600 per account, dropping the ones taught longest ago.
+CREATE TABLE IF NOT EXISTS taught_lessons (
+  user_id TEXT NOT NULL REFERENCES users(id),
+  topic_id TEXT NOT NULL,
+  taught_at INTEGER NOT NULL,                  -- first time it was taught
+  last_at INTEGER NOT NULL,                    -- latest time it was taught
+  PRIMARY KEY (user_id, topic_id)
+);
+CREATE INDEX IF NOT EXISTS idx_taught_lessons_user ON taught_lessons(user_id, last_at);
+
 CREATE INDEX IF NOT EXISTS idx_events_user ON events(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_tokens_hash ON magic_tokens(token_hash);
