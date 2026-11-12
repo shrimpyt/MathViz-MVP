@@ -96,7 +96,7 @@ ok(/href="\/\?signin=open"/.test(login), "/login has a fallback link");
 
 // ── Wiring in the builder (source checks; there's no browser here) ──
 const src = fs.readFileSync(path.join(__dirname, "../src/components/WorksheetGenerator.tsx"), "utf8");
-const exportGated = src.slice(src.indexOf("gateReason ? (\n          <Button"), src.indexOf("Export PDF 🎉"));
+const exportGated = src.slice(src.indexOf("gateReason ? (\n          <Button"), src.indexOf("<PDFDownloadLink"));
 ok(exportGated.includes("onClick={onGatedExport}") && !exportGated.includes('href="/pricing"'),
   "gated Export opens the explanation instead of linking to /pricing");
 const signIn = src.slice(src.indexOf('href="/login"') - 200, src.indexOf('href="/login"') + 300);

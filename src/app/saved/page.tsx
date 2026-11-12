@@ -10,8 +10,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Box, Button, CssBaseline, IconButton, TextField, Tooltip, Typography } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import NextLink from "next/link";
-import { Check, Close, DeleteOutline, Edit, OpenInNew } from "@mui/icons-material";
+import { ArrowLeft, Check, ExternalLink, Pencil, Trash2, X } from "lucide-react";
 import theme from "../../core/theme";
+import { color, icon, radius } from "../../core/tokens";
 import {
   deleteSavedWorksheet,
   listSavedWorksheets,
@@ -34,13 +35,14 @@ const FORMAT_LABELS: Record<string, string> = {
   "sat-practice": "SAT practice",
 };
 
+// One row per saved worksheet: a quiet list, separated by hairlines.
 const cardSx = {
-  bgcolor: "#1e2233",
-  border: "1.5px solid #2c3247",
-  borderRadius: "16px",
-  px: 2.5,
+  borderBottom: `1px solid ${color.border}`,
+  px: 1,
   py: 2,
 } as const;
+
+const iconProps = { size: icon.size, strokeWidth: icon.strokeWidth } as const;
 
 function describe(item: SavedWorksheet): string {
   const s = sanitizeSettings(item.settings);
@@ -134,15 +136,20 @@ export default function SavedWorksheetsPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box component="main" sx={{ minHeight: "100vh", bgcolor: "#14161f", color: "#f2f3fa", px: 2.5, pt: 5, pb: 8 }}>
+      <Box component="main" sx={{ minHeight: "100vh", bgcolor: color.bg, color: color.text, px: 2, pt: { xs: 4, md: 6 }, pb: 6 }}>
         <Box sx={{ maxWidth: 760, mx: "auto" }}>
-          <NextLink href="/" style={{ color: "#9aa0be", fontWeight: 700, textDecoration: "none" }}>
-            ← Euclid Engine
-          </NextLink>
-          <Typography component="h1" sx={{ fontSize: "1.9rem", fontWeight: 900, mt: 2.25, mb: 0.75 }}>
+          <Button
+            component={NextLink}
+            href="/"
+            startIcon={<ArrowLeft {...iconProps} />}
+            sx={{ ml: -1, px: 1 }}
+          >
+            Euclid Engine
+          </Button>
+          <Typography component="h1" sx={{ fontSize: "1.75rem", fontWeight: 700, letterSpacing: "-0.02em", mt: 3, mb: 1 }}>
             Saved worksheets
           </Typography>
-          <Typography sx={{ color: "#9aa0be", fontWeight: 600, mb: 3, fontSize: "0.92rem" }}>
+          <Typography sx={{ color: color.textMuted, fontWeight: 400, mb: 4, fontSize: "0.9375rem", maxWidth: "62ch" }}>
             Each one rebuilds the exact same problems and answer key from its settings and seed.
           </Typography>
 
@@ -152,10 +159,10 @@ export default function SavedWorksheetsPage() {
             </Alert>
           )}
 
-          {lib === null && <Typography sx={{ color: "#9aa0be" }}>Loading…</Typography>}
+          {lib === null && <Typography sx={{ color: color.textMuted }}>Loading…</Typography>}
 
           {lib?.status === "signed-out" && (
-            <Alert severity="info" action={<Button color="inherit" size="small" href="/" sx={{ fontWeight: 800 }}>Sign in</Button>}>
+            <Alert severity="info" action={<Button color="inherit" size="small" href="/">Sign in</Button>}>
               Sign in on the worksheet page (top right) to see your saved worksheets.
             </Alert>
           )}
@@ -166,7 +173,7 @@ export default function SavedWorksheetsPage() {
           {lib?.status === "ok" && !pro && (
             <Alert
               severity="info"
-              action={<Button color="inherit" size="small" href="/pricing" sx={{ fontWeight: 800 }}>See Pro</Button>}
+              action={<Button color="inherit" size="small" href="/pricing">See Pro</Button>}
               sx={{ mb: 2 }}
             >
               {items.length > 0
@@ -176,21 +183,21 @@ export default function SavedWorksheetsPage() {
           )}
 
           {lib?.status === "ok" && pro && items.length === 0 && (
-            <Box sx={cardSx}>
-              <Typography sx={{ fontWeight: 800, mb: 0.5 }}>Nothing saved yet</Typography>
-              <Typography sx={{ color: "#9aa0be", fontSize: "0.88rem" }}>
+            <Box sx={{ py: 6, textAlign: "center", border: `1px dashed ${color.borderStrong}`, borderRadius: `${radius.lg}px` }}>
+              <Typography sx={{ fontWeight: 600, mb: 1 }}>Nothing saved yet</Typography>
+              <Typography sx={{ color: color.textMuted, fontSize: "0.875rem" }}>
                 Build a worksheet, then use Save to library on the Review step.
               </Typography>
             </Box>
           )}
 
           {items.length > 0 && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", borderTop: `1px solid ${color.border}` }}>
               {items.map((w) => (
-                <Box key={w.id} sx={{ ...cardSx, display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+                <Box key={w.id} sx={{ ...cardSx, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                   <Box sx={{ flex: "1 1 280px", minWidth: 0 }}>
                     {editing === w.id ? (
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <TextField
                           autoFocus
                           size="small"
@@ -203,45 +210,45 @@ export default function SavedWorksheetsPage() {
                           }}
                           inputProps={{ "aria-label": "New name" }}
                         />
-                        <IconButton aria-label="Save name" disabled={busy || !draftName.trim()} onClick={() => void rename(w.id)} sx={{ color: "#818cf8" }}>
-                          <Check />
+                        <IconButton aria-label="Save name" disabled={busy || !draftName.trim()} onClick={() => void rename(w.id)} sx={{ color: color.accent }}>
+                          <Check {...iconProps} />
                         </IconButton>
-                        <IconButton aria-label="Cancel rename" onClick={() => setEditing(null)} sx={{ color: "#9aa0be" }}>
-                          <Close />
+                        <IconButton aria-label="Cancel rename" onClick={() => setEditing(null)}>
+                          <X {...iconProps} />
                         </IconButton>
                       </Box>
                     ) : (
-                      <Typography sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>{w.name}</Typography>
+                      <Typography sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>{w.name}</Typography>
                     )}
-                    <Typography sx={{ color: "#9aa0be", fontSize: "0.8rem", fontWeight: 600, mt: 0.25 }}>
+                    <Typography sx={{ color: color.textMuted, fontSize: "0.8125rem", fontWeight: 400 }}>
                       {descriptions.get(w.id)}
                     </Typography>
-                    <Typography sx={{ color: "#6f7590", fontSize: "0.74rem", fontWeight: 600 }}>
+                    <Typography sx={{ color: color.textSubtle, fontSize: "0.75rem", fontWeight: 400 }}>
                       Saved {savedOn(w.createdAt)}
                     </Typography>
                   </Box>
 
                   {confirmDelete === w.id ? (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography sx={{ fontSize: "0.82rem", fontWeight: 700 }}>Delete it?</Typography>
+                      <Typography sx={{ fontSize: "0.8125rem", fontWeight: 500 }}>Delete it?</Typography>
                       <Button size="small" color="error" variant="contained" disabled={busy} onClick={() => void remove(w.id)}>
                         Delete
                       </Button>
-                      <Button size="small" onClick={() => setConfirmDelete(null)} sx={{ color: "#9aa0be" }}>
+                      <Button size="small" onClick={() => setConfirmDelete(null)}>
                         Keep
                       </Button>
                     </Box>
                   ) : (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Tooltip title={pro ? "Rebuild it in the generator" : "Opening saved worksheets is part of Pro"} arrow>
                         <span>
                           <Button
-                            variant="contained"
+                            variant="outlined"
                             size="small"
-                            startIcon={<OpenInNew />}
+                            startIcon={<ExternalLink {...iconProps} />}
                             disabled={!pro}
                             href={`/?open=${w.id}`}
-                            sx={{ borderRadius: "10px", fontWeight: 800 }}
+                            sx={{ px: 2 }}
                           >
                             Open
                           </Button>
@@ -255,9 +262,8 @@ export default function SavedWorksheetsPage() {
                             setDraftName(w.name);
                             setConfirmDelete(null);
                           }}
-                          sx={{ color: "#9aa0be" }}
                         >
-                          <Edit fontSize="small" />
+                          <Pencil {...iconProps} />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete" arrow>
@@ -267,9 +273,9 @@ export default function SavedWorksheetsPage() {
                             setConfirmDelete(w.id);
                             setEditing(null);
                           }}
-                          sx={{ color: "#9aa0be" }}
+                          sx={{ "&:hover": { color: color.danger } }}
                         >
-                          <DeleteOutline fontSize="small" />
+                          <Trash2 {...iconProps} />
                         </IconButton>
                       </Tooltip>
                     </Box>
@@ -277,7 +283,7 @@ export default function SavedWorksheetsPage() {
                 </Box>
               ))}
               {lib?.status === "ok" && (
-                <Typography sx={{ color: "#6f7590", fontSize: "0.74rem", fontWeight: 600, mt: 0.5 }}>
+                <Typography sx={{ color: color.textSubtle, fontSize: "0.75rem", fontWeight: 400, mt: 2 }}>
                   {items.length} of {lib.limit} saved
                 </Typography>
               )}

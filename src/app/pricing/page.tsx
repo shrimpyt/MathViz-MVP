@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, CssBaseline, Typography } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+import { ArrowLeft, Check } from "lucide-react";
 import theme from "../../core/theme";
+import { color, icon, radius, shadow, sx as ui } from "../../core/tokens";
 import {
   createCheckoutUrl,
   fetchFoundersOffer,
@@ -15,15 +17,34 @@ import {
 // (Trystan approves copy before this page ships.)
 
 const cardSx = {
-  flex: "1 1 260px",
-  maxWidth: 360,
-  bgcolor: "#1e2233",
-  border: "1.5px solid #2c3247",
-  borderRadius: "20px",
+  flex: "1 1 280px",
+  maxWidth: 400,
+  bgcolor: color.surface,
+  border: `1px solid ${color.border}`,
+  borderRadius: `${radius.xl}px`,
   p: 3,
+  display: "flex",
+  flexDirection: "column",
 } as const;
 
-const liSx = { fontSize: "0.85rem", color: "#c6c9da", fontWeight: 600, mb: 0.75 } as const;
+// A card's buttons sit 24px in from 24px corners; they get the standalone radius.
+const buttonSx = { borderRadius: `${radius.md}px` } as const;
+
+function Feature({ children }: { children: React.ReactNode }) {
+  return (
+    <Box component="li" sx={{ display: "flex", gap: 1, alignItems: "flex-start", fontSize: "0.875rem", color: color.text, lineHeight: 1.6 }}>
+      <Box component="span" sx={{ color: color.textMuted, display: "flex", pt: "3px", flexShrink: 0 }}>
+        <Check size={icon.size} strokeWidth={icon.strokeWidth} aria-hidden />
+      </Box>
+      <span>{children}</span>
+    </Box>
+  );
+}
+
+const listSx = { listStyle: "none", p: 0, m: 0, display: "flex", flexDirection: "column", gap: 1 } as const;
+const priceSx = { fontWeight: 700, fontSize: "2rem", letterSpacing: "-0.02em", lineHeight: 1.2 } as const;
+const planNameSx = { fontWeight: 600, fontSize: "1rem", color: color.text } as const;
+const noteSx = { ...ui.help, fontSize: "0.8125rem" } as const;
 
 export default function PricingPage() {
   const [busy, setBusy] = useState<string | null>(null);
@@ -59,18 +80,25 @@ export default function PricingPage() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: "100vh", bgcolor: "#14161f", color: "#f2f3fa", px: 2, py: 5 }}>
-        <Box sx={{ maxWidth: 900, mx: "auto" }}>
-          <Button href="/" sx={{ color: "#9aa0be", fontWeight: 800, mb: 2 }}>
-            ← Back to the worksheet tool
+      <Box component="main" sx={{ minHeight: "100vh", bgcolor: color.bg, color: color.text, px: 2, py: { xs: 4, md: 6 } }}>
+        <Box sx={{ maxWidth: 840, mx: "auto" }}>
+          <Button
+            href="/"
+            startIcon={<ArrowLeft size={icon.size} strokeWidth={icon.strokeWidth} />}
+            sx={{ mb: 4, ml: -1, px: 1 }}
+          >
+            Back to the worksheet tool
           </Button>
-          <Typography sx={{ fontSize: { xs: "1.7rem", md: "2.3rem" }, fontWeight: 900, lineHeight: 1.15, mb: 1.5 }}>
+          <Typography
+            component="h1"
+            sx={{ fontSize: { xs: "1.75rem", md: "2.25rem" }, fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.2, mb: 2, maxWidth: "22ch" }}
+          >
             Worksheets and guided notes,{" "}
-            <Box component="span" sx={{ color: "#818cf8" }}>
+            <Box component="span" sx={{ color: color.textMuted }}>
               with the accommodations built in.
             </Box>
           </Typography>
-          <Typography sx={{ color: "#9aa0be", fontWeight: 600, maxWidth: 640, mb: 4 }}>
+          <Typography sx={{ color: color.textMuted, fontWeight: 400, fontSize: "1rem", maxWidth: "62ch", mb: 6 }}>
             Euclid generates fresh TEKS-aligned math worksheets and guided notes,
             base versions and per-group IEP-accommodated versions that actually
             match, for middle-school math, Algebra I and II, Geometry and proofs,
@@ -80,81 +108,93 @@ export default function PricingPage() {
           {founders?.open && (
             <Box
               sx={{
-                ...cardSx,
-                maxWidth: 760,
-                mb: 3,
-                border: "1.5px solid #fb923c",
                 display: "flex",
                 flexWrap: "wrap",
                 alignItems: "center",
-                gap: 2,
+                gap: 3,
+                mb: 3,
+                p: 3,
+                maxWidth: 824,
+                borderRadius: `${radius.xl}px`,
+                border: `1px solid ${color.border}`,
               }}
             >
               <Box sx={{ flex: "1 1 320px" }}>
-                <Typography sx={{ fontWeight: 900, fontSize: "1.05rem", mb: 0.5 }}>
+                <Typography sx={{ ...planNameSx, mb: 1 }}>
                   Founders: Pro for life, $150 once
                 </Typography>
-                <Typography sx={{ ...liSx, mb: 0 }}>
+                <Typography sx={{ ...noteSx, fontSize: "0.875rem", maxWidth: "60ch" }}>
                   For the first 50 teachers, until January 31.{" "}
                   {founders.remaining} {founders.remaining === 1 ? "seat" : "seats"} left. One
                   teacher account, everything in Pro, for as long as Euclid Engine runs.
                 </Typography>
               </Box>
               <Button
-                variant="contained"
-                color="secondary"
+                variant="outlined"
                 disabled={busy !== null}
                 onClick={() => checkout("founders")}
-                sx={{ borderRadius: "12px", fontWeight: 800 }}
+                sx={buttonSx}
               >
                 {busy === "founders" ? "Opening checkout…" : "Become a Founder, $150"}
               </Button>
             </Box>
           )}
 
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2.5, mb: 3 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, mb: 3, alignItems: "stretch" }}>
             <Box sx={cardSx}>
-              <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", mb: 0.5 }}>Free</Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: "1.8rem", mb: 1.5 }}>$0</Typography>
-              <Typography sx={liSx}>· 5 worksheet exports a month</Typography>
-              <Typography sx={liSx}>· Algebra I and middle-school topics</Typography>
-              <Typography sx={liSx}>· Watermarked PDFs, no answer keys</Typography>
-              <Typography sx={{ ...liSx, mt: 1.5, color: "#9aa0be" }}>
-                Free is a trial, not a classroom tool, that's deliberate.
+              <Typography sx={planNameSx}>Free</Typography>
+              <Typography sx={{ ...priceSx, mt: 1, mb: 3 }}>$0</Typography>
+              <Box component="ul" sx={listSx}>
+                <Feature>5 worksheet exports a month</Feature>
+                <Feature>Algebra I and middle-school topics</Feature>
+                <Feature>Watermarked PDFs, no answer keys</Feature>
+              </Box>
+              <Typography sx={{ ...noteSx, mt: 3 }}>
+                Free is a trial, not a classroom tool, that&apos;s deliberate.
               </Typography>
-              <Button fullWidth variant="outlined" href="/" sx={{ mt: 2, borderRadius: "12px", borderColor: "#2c3247", color: "#f2f3fa", fontWeight: 800 }}>
+              <Box sx={{ flex: 1 }} />
+              <Button fullWidth href="/" sx={{ ...buttonSx, mt: 3 }}>
                 Start free
               </Button>
             </Box>
 
-            <Box sx={{ ...cardSx, border: "1.5px solid #818cf8", boxShadow: "0 8px 32px rgba(129,140,248,.25)" }}>
-              <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", mb: 0.5 }}>
-                Pro <Box component="span" sx={{ color: "#fb923c", fontSize: "0.75rem", letterSpacing: 0.8 }}>FOR YOUR CLASSROOM</Box>
+            <Box sx={{ ...cardSx, bgcolor: color.bgRaised, border: `1px solid ${color.borderStrong}`, boxShadow: shadow.md }}>
+              <Typography sx={planNameSx}>
+                Pro{" "}
+                <Box component="span" sx={{ color: color.textMuted, fontWeight: 500, fontSize: "0.875rem" }}>
+                  for your classroom
+                </Box>
               </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: "1.8rem", mb: 0.25 }}>
-                $79<Box component="span" sx={{ fontSize: "0.9rem", color: "#9aa0be" }}>/year</Box>
+              <Typography sx={{ ...priceSx, mt: 1 }}>
+                $79
+                <Box component="span" sx={{ fontSize: "0.9375rem", fontWeight: 500, color: color.textMuted, letterSpacing: 0 }}>
+                  /year
+                </Box>
               </Typography>
-              <Typography sx={{ fontSize: "0.85rem", color: "#9aa0be", fontWeight: 700, mb: 1.5 }}>
+              <Typography sx={{ ...noteSx, mt: 1, mb: 3 }}>
                 About three months free versus monthly. Or $9/month.
               </Typography>
-              <Typography sx={liSx}>· Unlimited generations, every topic</Typography>
-              <Typography sx={liSx}>
-                · All IEP accommodations: word bank, large print, extra spacing, reduced
-                count, per-group versions with matched answer keys
-              </Typography>
-              <Typography sx={liSx}>· Answer keys for everything</Typography>
-              <Typography sx={liSx}>· No watermark</Typography>
-              <Typography sx={{ ...liSx, mt: 1.5, color: "#9aa0be" }}>
+              <Box component="ul" sx={listSx}>
+                <Feature>Unlimited generations, every topic</Feature>
+                <Feature>
+                  All IEP accommodations: word bank, large print, extra spacing, reduced
+                  count, per-group versions with matched answer keys
+                </Feature>
+                <Feature>Answer keys for everything</Feature>
+                <Feature>No watermark</Feature>
+              </Box>
+              <Typography sx={{ ...noteSx, mt: 3 }}>
                 On monthly, pay only for the months you teach: billing pauses
                 automatically from June 1 to August 1, and you keep Pro all summer.
               </Typography>
+              <Box sx={{ flex: 1 }} />
               <Button
                 fullWidth
+                size="large"
                 variant="contained"
-                color="secondary"
                 disabled={busy !== null}
                 onClick={() => checkout("annual")}
-                sx={{ mt: 2, borderRadius: "12px", fontWeight: 800 }}
+                sx={{ ...buttonSx, mt: 3 }}
               >
                 {busy === "annual" ? "Opening checkout…" : "Go Pro, $79/year"}
               </Button>
@@ -163,7 +203,7 @@ export default function PricingPage() {
                 variant="outlined"
                 disabled={busy !== null}
                 onClick={() => checkout("monthly")}
-                sx={{ mt: 1, borderRadius: "12px", borderColor: "#2c3247", color: "#f2f3fa", fontWeight: 800 }}
+                sx={{ ...buttonSx, mt: 1 }}
               >
                 {busy === "monthly" ? "Opening checkout…" : "Go Pro, $9/month"}
               </Button>
@@ -171,32 +211,34 @@ export default function PricingPage() {
           </Box>
 
           {msg && (
-            <Typography sx={{ color: "#fb923c", fontWeight: 700, fontSize: "0.85rem", mb: 3, maxWidth: 640 }}>
+            <Typography role="status" sx={{ color: color.text, fontWeight: 500, fontSize: "0.875rem", mb: 3, maxWidth: "62ch" }}>
               {msg}
             </Typography>
           )}
 
-          <Typography sx={{ color: "#9aa0be", fontWeight: 700, mb: 1 }}>
-            Schools: $499/year for up to 10 teachers on one campus,{" "}
-            <Box
-              component="a"
-              href="mailto:support@euclidengine.tech"
-              sx={{ color: "#818cf8" }}
-            >
-              contact us
-            </Box>
-            .
-          </Typography>
-          <Typography sx={{ color: "#9aa0be", fontWeight: 600, fontSize: "0.8rem", maxWidth: 640 }}>
-            14-day refund on your first payment, no questions. Teacher accounts only,
-            we collect teacher emails, never student data. Support: support@euclidengine.tech
-          </Typography>
-          <Typography sx={{ color: "#5b6076", fontWeight: 600, fontSize: "0.75rem", mt: 3 }}>
-            <Box component="a" href="/terms" sx={{ color: "inherit" }}>Terms</Box>
+          <Box sx={{ mt: 6, display: "flex", flexDirection: "column", gap: 1 }}>
+            <Typography sx={{ color: color.textMuted, fontWeight: 400, fontSize: "0.9375rem" }}>
+              Schools: $499/year for up to 10 teachers on one campus,{" "}
+              <Box
+                component="a"
+                href="mailto:support@euclidengine.tech"
+                sx={{ color: color.accent, textDecoration: "none", fontWeight: 500, "&:hover": { textDecoration: "underline" } }}
+              >
+                contact us
+              </Box>
+              .
+            </Typography>
+            <Typography sx={{ ...noteSx, maxWidth: "62ch" }}>
+              14-day refund on your first payment, no questions. Teacher accounts only,
+              we collect teacher emails, never student data. Support: support@euclidengine.tech
+            </Typography>
+          </Box>
+          <Typography sx={{ color: color.textSubtle, fontWeight: 400, fontSize: "0.75rem", mt: 4 }}>
+            <Box component="a" href="/terms" sx={{ color: "inherit", "&:hover": { color: color.text } }}>Terms</Box>
             {" · "}
-            <Box component="a" href="/privacy" sx={{ color: "inherit" }}>Privacy</Box>
+            <Box component="a" href="/privacy" sx={{ color: "inherit", "&:hover": { color: color.text } }}>Privacy</Box>
             {" · "}
-            <Box component="a" href="/refund" sx={{ color: "inherit" }}>Refunds</Box>
+            <Box component="a" href="/refund" sx={{ color: "inherit", "&:hover": { color: color.text } }}>Refunds</Box>
           </Typography>
         </Box>
       </Box>
