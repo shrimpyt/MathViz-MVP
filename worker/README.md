@@ -113,6 +113,15 @@ schema.sql only uses CREATE … IF NOT EXISTS, so re-running it on the live
 database adds new tables without touching existing ones:
 `npx wrangler d1 execute euclid --remote --file=schema.sql`
 
+The Worker also creates `saved_worksheets` and `taught_lessons` on first
+use, so a deploy works before either migration in `migrations/` is run.
+
+## Taught shelf
+`GET /taught`, `POST /taught/mark`, `POST /taught/remove` (`{topicIds}`).
+Every export (`POST /event`) also marks its lessons taught. One row per
+lesson per account: lesson id, first and latest time taught, nothing else.
+Open to every plan; capped at 600 per account, oldest dropped first.
+
 ## Notes / honest limits
 - Soft gate: the Free 5/month counter is server-side per account; a user
   can register a second email. Accepted at $9 price points (spec).

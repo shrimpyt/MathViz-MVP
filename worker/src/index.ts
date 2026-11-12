@@ -66,6 +66,14 @@ import {
   serializeWorksheetSettings,
   validateWorksheetSettings,
 } from "./worksheets";
+import {
+  MAX_TAUGHT_LESSONS,
+  RATE_LIMIT_TAUGHT_READS,
+  RATE_LIMIT_TAUGHT_WRITES,
+  TAUGHT_LESSONS_DDL,
+  shelfIdsFromExport,
+  validateTaughtIds,
+} from "./taught";
 
 const SESSION_COOKIE = "euclid_session";
 
@@ -737,6 +745,83 @@ async function handleDeleteWorksheet(env: Env, req: Request): Promise<Response> 
   return json(req, { ok: true });
 }
 
+// ── Taught shelf ─────────────────────────────────────────────────────────────
+// Which lessons a teacher has taught and when, so the picker can offer them
+// again and build spiral review. Exports add to it on their own; "Mark
+// taught" covers lessons taught without the site. Open to every plan: a Pro
+// lesson on a Free teacher's shelf keeps its lock in the app.
+
+let taughtTableReady = false;
+async function ensureTaughtTable(env: Env): Promise<void> {
+  if (taughtTableReady) return;
+  for (const sql of TAUGHT_LESSONS_DDL) await env.DB.prepare(sql).run();
+  taughtTableReady = true;
+}
+
+/** Put lessons on the shelf as taught now. A lesson already there keeps its
+ *  first date and moves to the top. Past the cap, the lessons taught longest
+ *  ago drop off. */
+async function markTaught(env: Env, userId: string, ids: string[], now: number): Promise<void> {
+  if (ids.length === 0) return;
+  await ensureTaughtTable(env);
+  await env.DB.prepare(
+    `INSERT INTO taught_lessons (user_id, topic_id, taught_at, last_at)
+     SELECT ?, value, ?, ? FROM json_each(?) WHERE true
+     ON CONFLICT(user_id, topic_id) DO UPDATE SET last_at = excluded.last_at`,
+  )
+    .bind(userId, now, now, JSON.stringify(ids))
+    .run();
+  await env.DB.prepare(
+    `DELETE FROM taught_lessons WHERE user_id = ? AND topic_id NOT IN (
+       SELECT topic_id FROM taught_lessons WHERE user_id = ?
+       ORDER BY last_at DESC, topic_id LIMIT ?)`,
+  )
+    .bind(userId, userId, MAX_TAUGHT_LESSONS)
+    .run();
+}
+
+async function handleListTaught(env: Env, req: Request): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `taught-read:${user.id}`, RATE_LIMIT_TAUGHT_READS, now))) {
+    return rateLimited(req);
+  }
+  await ensureTaughtTable(env);
+  const { results } = await env.DB.prepare(
+    `SELECT topic_id, taught_at, last_at FROM taught_lessons
+     WHERE user_id = ? ORDER BY last_at DESC, topic_id LIMIT ?`,
+  )
+    .bind(user.id, MAX_TAUGHT_LESSONS)
+    .all<{ topic_id: string; taught_at: number; last_at: number }>();
+  return json(req, {
+    items: results.map((r) => ({ topicId: r.topic_id, taughtAt: r.taught_at, lastAt: r.last_at })),
+  });
+}
+
+async function handleTaughtWrite(env: Env, req: Request, kind: "mark" | "remove"): Promise<Response> {
+  const user = await sessionUser(env, req);
+  if (!user) return json(req, { error: "not signed in" }, 401);
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `taught-write:${user.id}`, RATE_LIMIT_TAUGHT_WRITES, now))) {
+    return rateLimited(req);
+  }
+  const body = (await req.json().catch(() => null)) as { topicIds?: unknown } | null;
+  const ids = validateTaughtIds(body?.topicIds);
+  if (!ids) return json(req, { error: "invalid" }, 400);
+  if (kind === "mark") {
+    await markTaught(env, user.id, ids, now);
+    return json(req, { ok: true, at: now });
+  }
+  await ensureTaughtTable(env);
+  await env.DB.prepare(
+    "DELETE FROM taught_lessons WHERE user_id = ? AND topic_id IN (SELECT value FROM json_each(?))",
+  )
+    .bind(user.id, JSON.stringify(ids))
+    .run();
+  return json(req, { ok: true });
+}
+
 async function handleCount(env: Env, req: Request): Promise<Response> {
   const user = await sessionUser(env, req);
   if (!user) return json(req, { error: "not signed in" }, 401);
@@ -781,6 +866,13 @@ async function handleEvent(env: Env, req: Request): Promise<Response> {
       Math.floor(Date.now() / 1000),
     )
     .run();
+  // Every export puts its lessons on the teacher's taught shelf. The event is
+  // already logged, so a shelf hiccup is logged and never fails the call.
+  try {
+    await markTaught(env, user.id, shelfIdsFromExport(event.topics), Math.floor(Date.now() / 1000));
+  } catch (err) {
+    console.error(err);
+  }
   return json(req, { ok: true });
 }
 
@@ -982,6 +1074,8 @@ export default {
         return await handleMe(env, req);
       if (req.method === "GET" && pathname.endsWith("/worksheets"))
         return await handleListWorksheets(env, req);
+      if (req.method === "GET" && pathname.endsWith("/taught"))
+        return await handleListTaught(env, req);
       if (req.method === "GET" && pathname.endsWith("/auth/methods"))
         return handleMethods(env, req);
       if (req.method === "GET" && pathname.endsWith("/founders"))
@@ -1014,6 +1108,10 @@ export default {
         return await handleRenameWorksheet(env, req);
       if (req.method === "POST" && pathname.endsWith("/worksheets/delete"))
         return await handleDeleteWorksheet(env, req);
+      if (req.method === "POST" && pathname.endsWith("/taught/mark"))
+        return await handleTaughtWrite(env, req, "mark");
+      if (req.method === "POST" && pathname.endsWith("/taught/remove"))
+        return await handleTaughtWrite(env, req, "remove");
       if (req.method === "POST" && pathname.endsWith("/count"))
         return await handleCount(env, req);
       if (req.method === "POST" && pathname.endsWith("/event"))

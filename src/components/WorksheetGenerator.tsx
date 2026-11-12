@@ -67,6 +67,9 @@ import {
   verifySignInCode,
   listSavedWorksheets,
   saveWorksheet,
+  fetchTaughtShelf,
+  markTaughtLessons,
+  removeTaughtLessons,
 } from '../lib/account';
 import {
   countForTopic,
@@ -88,6 +91,16 @@ import {
   totalRange,
   trayTotal,
 } from '../lib/pickerPrefs';
+import {
+  againLessons,
+  markOnShelf,
+  removeFromShelf,
+  reviewCounts,
+  reviewLessons,
+  sortShelf,
+  taughtWhen,
+  type ShelfLesson,
+} from '../lib/taughtShelf';
 import type { OutputMode, MathProblem } from '@/lib/ProblemFactory';
 
 const drawerWidth = 320;
@@ -134,6 +147,8 @@ function groupKeyOf(entry: Pick<RegisteredEntry, 'course' | 'group'>): string {
 const SUBJECT_VIEWS: string[] = COURSES.flatMap((c) =>
   c === 'Pre-Algebra' ? [c, 'Grade 7', 'Grade 8'] : [c]
 );
+
+const REGISTRY_BY_ID = new Map(CURRICULUM_REGISTRY.map((e) => [e.id, e]));
 
 function entryInView(entry: RegisteredEntry, view: string): boolean {
   if (view === 'All') return true;
@@ -343,12 +358,34 @@ export default function WorksheetGenerator() {
     let live = true;
     fetchAccount().then((a) => {
       if (live) setAccount(a ?? { ...ANON_ACCOUNT, used: readLocalUsage() });
+      if (live && !a) setShelfStatus('signed-out');
     });
     return () => {
       live = false;
     };
   }, []);
   const isPro = account.plan === 'pro';
+
+  // ── Taught shelf (saved to the teacher's account) ──
+  // Every export adds its lessons on the server; the app keeps its own copy
+  // in step so the shelf updates without a reload.
+  const [shelf, setShelf] = useState<ShelfLesson[]>([]);
+  const [shelfStatus, setShelfStatus] = useState<'loading' | 'ok' | 'signed-out' | 'unavailable'>('loading');
+  const [shelfMsg, setShelfMsg] = useState<string | null>(null);
+  useEffect(() => {
+    if (account.status !== 'signed-in') return;
+    let live = true;
+    fetchTaughtShelf().then((r) => {
+      if (!live) return;
+      if (r.status === 'ok') {
+        setShelf(sortShelf(r.items));
+        setShelfStatus('ok');
+      } else setShelfStatus(r.status === 'signed-out' ? 'signed-out' : 'unavailable');
+    });
+    return () => {
+      live = false;
+    };
+  }, [account.status, account.email]);
   // ── Wizard step: 0 Format · 1 Topics · 2 Accommodations · 3 Review ──
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -737,6 +774,7 @@ export default function WorksheetGenerator() {
         problems: advancedProblems.length,
         versions: versionPlan.all().length,
       });
+      setShelf((prev) => markOnShelf(prev, selectedTopicIds, Math.floor(Date.now() / 1000)));
     }
     if (isPro) return;
     if (account.status === 'signed-in') {
@@ -1006,6 +1044,82 @@ export default function WorksheetGenerator() {
 
   const randomizeSeed = () => setSeed(Math.floor(Math.random() * 100000));
 
+  // ── Quick starts from the taught shelf ──
+  // Each one fills the picks, draws fresh problems and goes straight to
+  // Review, so repeating a lesson is two clicks: the quick start, then
+  // Download. A Pro lesson stays locked for Free: it's skipped here.
+  const usableLesson = (id: string) => {
+    const e = REGISTRY_BY_ID.get(id);
+    return !!e && !e.underConstruction && isTopicAvailable(e, isPro);
+  };
+  const inChosenCourse = (id: string) => {
+    const e = REGISTRY_BY_ID.get(id);
+    return !!e && entryInView(e, subjectFilter);
+  };
+  const againIds = againLessons(shelf, usableLesson);
+  const reviewIds = reviewLessons(shelf, usableLesson, inChosenCourse);
+  const startQuick = (ids: string[], opts: { docType?: DocumentType; counts?: Record<string, number> } = {}) => {
+    if (ids.length === 0) return;
+    setGateMsg(null);
+    setShelfMsg(null);
+    setSelectedTopicIds(ids);
+    if (opts.counts) {
+      setTopicCounts((prev) => ({ ...prev, ...opts.counts }));
+      setAdvancedCounts(true);
+    }
+    if (opts.docType) setDocType(opts.docType);
+    randomizeSeed();
+    setStep(3);
+  };
+  const quickAgain = () => startQuick(againIds);
+  const quickReview = () => {
+    setKeepTopicsGrouped(false);
+    startQuick(reviewIds, { docType: 'review', counts: reviewCounts(reviewIds) });
+  };
+  const quickQuiz = () => startQuick(selectedTopicIds, { docType: 'test' });
+
+  const markPicksTaught = async () => {
+    const ids = [...selectedTopicIds];
+    if (ids.length === 0) return;
+    const before = shelf;
+    setShelf((prev) => markOnShelf(prev, ids, Math.floor(Date.now() / 1000)));
+    const r = await markTaughtLessons(ids);
+    if (r.ok) {
+      setShelfMsg(`Marked ${ids.length === 1 ? 'that lesson' : `${ids.length} lessons`} taught.`);
+      return;
+    }
+    setShelf(before);
+    setShelfMsg(
+      r.error === 'signed-out'
+        ? 'You are signed out. Sign in again to mark lessons taught.'
+        : r.error === 'rate_limited'
+          ? 'Too many changes in a short time. Wait a few minutes and try again.'
+          : 'Could not mark those lessons right now. Try again in a moment.'
+    );
+  };
+  const takeOffShelf = async (id: string) => {
+    const before = shelf;
+    setShelf((prev) => removeFromShelf(prev, [id]));
+    const r = await removeTaughtLessons([id]);
+    if (!r.ok) {
+      setShelf(before);
+      setShelfMsg('Could not take that lesson off the shelf right now. Try again in a moment.');
+    }
+  };
+  const taughtView: TaughtView = {
+    status: account.status === 'signed-in' ? shelfStatus : shelfStatus === 'loading' ? 'loading' : 'signed-out',
+    shelf,
+    againIds,
+    reviewIds,
+    picks: selectedTopicIds,
+    msg: shelfMsg,
+    onAgain: quickAgain,
+    onReview: quickReview,
+    onQuiz: quickQuiz,
+    onRemove: takeOffShelf,
+    onSignIn: () => setSignInOpen(true),
+  };
+
   const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${includeDiagrams}-${selectedTopicIds.join(',')}-${advancedCounts ? JSON.stringify(topicCounts) : ''}`;
 
   // Titles of the selected lessons that offer story (word problem) variants.
@@ -1093,6 +1207,7 @@ export default function WorksheetGenerator() {
             customTitle={customTitle}
             setCustomTitle={setCustomTitle}
             defaultTitle={defaultTitle}
+            taught={taughtView}
           />
         )}
         {step === 1 && (
@@ -1137,6 +1252,8 @@ export default function WorksheetGenerator() {
             showTopicOrder={selectedModules.length > 1 && docType !== 'classical-notes'}
             framework={framework}
             setFramework={setFramework}
+            taught={taughtView}
+            onMarkTaught={markPicksTaught}
           />
         )}
         {step === 2 && (
@@ -1892,12 +2009,14 @@ function StepFormat({
   customTitle,
   setCustomTitle,
   defaultTitle,
+  taught,
 }: {
   docType: DocumentType;
   setDocType: (d: DocumentType) => void;
   customTitle: string;
   setCustomTitle: (s: string) => void;
   defaultTitle: string;
+  taught: TaughtView;
 }) {
   return (
     <Box sx={stepScrollSx}>
@@ -1906,6 +2025,7 @@ function StepFormat({
         title="What are you making?"
         sub="Pick a format, you can always change it later."
       />
+      <TaughtPanel view={taught} compact />
       <TextField
         label="Document title"
         placeholder={defaultTitle}
@@ -2039,6 +2159,258 @@ function CountStepper({
   );
 }
 
+// ── Taught shelf panel ───────────────────────────────────────────────────────
+// Lessons this teacher has taught, newest first, with the quick starts. On
+// Format it shows the quick starts only; on Topics, the shelf too.
+
+interface TaughtView {
+  status: 'loading' | 'ok' | 'signed-out' | 'unavailable';
+  shelf: ShelfLesson[];
+  againIds: string[];
+  reviewIds: string[];
+  picks: string[];
+  msg: string | null;
+  onAgain: () => void;
+  onReview: () => void;
+  onQuiz: () => void;
+  onRemove: (id: string) => void;
+  onSignIn: () => void;
+}
+
+const SHELF_PREVIEW = 12;
+
+const titlesLabel = (ids: string[]) => {
+  const first = REGISTRY_BY_ID.get(ids[0])?.title ?? '';
+  return ids.length > 1 ? `${first} + ${ids.length - 1} more` : first;
+};
+
+function QuickStartButton({
+  emoji,
+  label,
+  sub,
+  disabled,
+  onClick,
+}: {
+  emoji: string;
+  label: string;
+  sub: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      onClick={onClick}
+      disabled={disabled}
+      sx={{
+        flex: '1 1 200px',
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        textAlign: 'left',
+        gap: 0.25,
+        px: 1.75,
+        py: 1.25,
+        borderRadius: '12px',
+        border: '1.5px solid #2c3247',
+        backgroundColor: 'rgba(129,140,248,0.06)',
+        textTransform: 'none',
+        '&:hover': { borderColor: '#818cf8', backgroundColor: 'rgba(129,140,248,0.12)' },
+        '&.Mui-disabled': { opacity: 0.5 },
+      }}
+    >
+      <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: '#f2f3fa' }}>
+        {emoji} {label}
+      </Typography>
+      <Typography
+        sx={{
+          fontSize: '0.7rem',
+          fontWeight: 600,
+          color: '#9aa0be',
+          lineHeight: 1.35,
+          width: '100%',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+        title={sub}
+      >
+        {sub}
+      </Typography>
+    </Button>
+  );
+}
+
+function TaughtPanel({
+  view,
+  compact = false,
+  isPro = false,
+  subjectFilter = 'All',
+  selectedTopicIds = [],
+  toggleTopic,
+}: {
+  view: TaughtView;
+  compact?: boolean;
+  isPro?: boolean;
+  subjectFilter?: string;
+  selectedTopicIds?: string[];
+  toggleTopic?: (id: string) => void;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  if (view.status === 'loading') return null;
+  if (compact && (view.status !== 'ok' || view.shelf.length === 0)) return null;
+  const cardSx = {
+    width: '100%',
+    maxWidth: compact ? 780 : 920,
+    mb: compact ? 3 : 2.5,
+    bgcolor: '#1e2233',
+    border: '1.5px solid #2c3247',
+    borderRadius: '16px',
+    p: 2,
+  } as const;
+
+  if (view.status === 'signed-out') {
+    return (
+      <Box sx={{ ...cardSx, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }} role="region" aria-label="Taught lessons">
+        <Typography sx={{ flex: '1 1 260px', fontSize: '0.8rem', fontWeight: 600, color: '#9aa0be', lineHeight: 1.5 }}>
+          📌 Sign in and every lesson you export is kept here, so you can run it again or mix a review in one tap.
+        </Typography>
+        <Button size="small" variant="outlined" onClick={view.onSignIn} sx={{ borderRadius: '10px', fontWeight: 800 }}>
+          Sign in
+        </Button>
+      </Box>
+    );
+  }
+  if (view.status === 'unavailable') {
+    return (
+      <Box sx={cardSx} role="region" aria-label="Taught lessons">
+        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#9aa0be' }}>
+          📌 Your taught lessons can&apos;t be loaded right now. Picking and exporting still work.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const inCourse = (id: string) => {
+    const e = REGISTRY_BY_ID.get(id);
+    return !!e && entryInView(e, subjectFilter);
+  };
+  const known = view.shelf.filter((l) => REGISTRY_BY_ID.has(l.topicId));
+  const courseShelf = subjectFilter === 'All' ? known : known.filter((l) => inCourse(l.topicId));
+  const listed = showAll ? known : courseShelf;
+  const shown = showAll ? listed : listed.slice(0, SHELF_PREVIEW);
+  const hidden = known.length - shown.length;
+
+  return (
+    <Box sx={cardSx} role="region" aria-label="Taught lessons">
+      <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1.25 }}>
+        {compact ? 'Quick start ⚡' : 'Taught 📌'}
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+        <QuickStartButton
+          emoji="↻"
+          label="Again"
+          sub={view.againIds.length > 0 ? titlesLabel(view.againIds) : 'Nothing taught yet'}
+          disabled={view.againIds.length === 0}
+          onClick={view.onAgain}
+        />
+        <QuickStartButton
+          emoji="🌀"
+          label="Review what I've taught"
+          sub={
+            view.reviewIds.length > 0
+              ? `10 problems from ${view.reviewIds.length === 1 ? '1 lesson' : `${view.reviewIds.length} lessons`}, oldest first`
+              : 'Nothing taught yet'
+          }
+          disabled={view.reviewIds.length === 0}
+          onClick={view.onReview}
+        />
+        <QuickStartButton
+          emoji="✅"
+          label="Quiz on picks"
+          sub={
+            view.picks.length > 0
+              ? `A test on ${view.picks.length === 1 ? 'your 1 pick' : `your ${view.picks.length} picks`}`
+              : 'Pick lessons first'
+          }
+          disabled={view.picks.length === 0}
+          onClick={view.onQuiz}
+        />
+      </Box>
+      {view.msg && (
+        <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#818cf8', mt: 1 }}>{view.msg}</Typography>
+      )}
+      {!compact && (
+        <Box sx={{ mt: 1.75 }}>
+          {known.length === 0 ? (
+            <Typography sx={{ fontSize: '0.76rem', fontWeight: 600, color: '#9aa0be', lineHeight: 1.5 }}>
+              Lessons you export land here, newest first. Taught some without the site? Pick them and tap Mark these taught.
+            </Typography>
+          ) : (
+            <>
+              {shown.length === 0 && (
+                <Typography sx={{ fontSize: '0.76rem', fontWeight: 600, color: '#9aa0be', mb: 1 }}>
+                  Nothing taught in {subjectFilter} yet.
+                </Typography>
+              )}
+              <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                {shown.map((l) => {
+                  const e = REGISTRY_BY_ID.get(l.topicId)!;
+                  const picked = selectedTopicIds.includes(l.topicId);
+                  const locked = !isPro && !isFreeTopic(l.topicId);
+                  return (
+                    <Chip
+                      key={l.topicId}
+                      clickable
+                      disabled={e.underConstruction}
+                      onClick={() => toggleTopic?.(l.topicId)}
+                      onDelete={() => view.onRemove(l.topicId)}
+                      aria-pressed={picked}
+                      title={`${e.course} · taught ${taughtWhen(l.lastAt)}`}
+                      label={
+                        <span>
+                          {e.title}
+                          <Box component="span" sx={{ ml: 0.75, fontWeight: 600, color: picked ? '#c7cbe3' : '#7d84a6' }}>
+                            {taughtWhen(l.lastAt)}
+                          </Box>
+                          {locked && (
+                            <Box component="span" sx={{ ml: 0.75, color: '#fb923c', fontWeight: 900, fontSize: '0.62rem' }}>
+                              PRO
+                            </Box>
+                          )}
+                        </span>
+                      }
+                      deleteIcon={<ClearIcon aria-label={`Take ${e.title} off the taught shelf`} />}
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: '0.74rem',
+                        border: '1.5px solid',
+                        borderColor: picked ? '#818cf8' : '#2c3247',
+                        backgroundColor: picked ? 'rgba(129,140,248,0.15)' : '#171a27',
+                        color: picked ? '#f2f3fa' : '#c7cbe3',
+                        '& .MuiChip-deleteIcon': { color: '#7d84a6', fontSize: 16, '&:hover': { color: '#f87171' } },
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+              {(hidden > 0 || showAll) && (
+                <Button
+                  size="small"
+                  onClick={() => setShowAll((v) => !v)}
+                  sx={{ mt: 0.75, color: '#9aa0be', fontWeight: 800, fontSize: '0.72rem', textTransform: 'none', '&:hover': { color: '#818cf8' } }}
+                >
+                  {showAll ? 'Show fewer' : `Show all ${known.length}`}
+                </Button>
+              )}
+            </>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 function PicksTray({
   cardSx,
   picks,
@@ -2051,6 +2423,7 @@ function PicksTray({
   setTotal,
   removePick,
   clearPicks,
+  onMarkTaught,
 }: {
   cardSx: Record<string, unknown>;
   picks: RegisteredEntry[];
@@ -2063,6 +2436,8 @@ function PicksTray({
   setTotal: (n: number) => void;
   removePick: (id: string) => void;
   clearPicks: () => void;
+  /** Shown when signed in: puts the picks on the taught shelf. */
+  onMarkTaught?: () => void;
 }) {
   const range = totalRange(picks.length);
   // The total box takes typing; it applies on Enter or when it loses focus,
@@ -2168,6 +2543,16 @@ function PicksTray({
               ? 'A new total is shared evenly. Use − and + to give one lesson more or fewer.'
               : 'Use − and + or type a total.'}
           </Typography>
+          {onMarkTaught && (
+            <Button
+              size="small"
+              onClick={onMarkTaught}
+              title="For lessons you taught without the site: puts them on your taught shelf"
+              sx={{ mt: 1, color: '#9aa0be', fontWeight: 800, fontSize: '0.74rem', textTransform: 'none', p: 0.25, '&:hover': { color: '#818cf8' } }}
+            >
+              📌 Mark these taught
+            </Button>
+          )}
         </>
       )}
     </Box>
@@ -2215,6 +2600,8 @@ function StepTopics({
   showTopicOrder,
   framework,
   setFramework,
+  taught,
+  onMarkTaught,
 }: {
   topicSearch: string;
   handleSearchChange: (v: string) => void;
@@ -2256,7 +2643,12 @@ function StepTopics({
   showTopicOrder: boolean;
   framework: StandardsFramework;
   setFramework: (f: StandardsFramework) => void;
+  taught: TaughtView;
+  onMarkTaught: () => void;
 }) {
+  const lastTaught = new Map(
+    taught.status === 'ok' ? taught.shelf.map((l) => [l.topicId, l.lastAt] as const) : []
+  );
   const railCardSx = {
     bgcolor: '#1e2233',
     border: '1.5px solid #2c3247',
@@ -2306,6 +2698,7 @@ function StepTopics({
             setTotal={setTrayTotal}
             removePick={toggleTopic}
             clearPicks={clearTopics}
+            onMarkTaught={taught.status === 'ok' ? onMarkTaught : undefined}
           />
           <Box sx={railCardSx}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Standards 🏷️</Typography>
@@ -2441,6 +2834,13 @@ function StepTopics({
             alignItems: 'center',
           }}
         >
+        <TaughtPanel
+          view={taught}
+          isPro={isPro}
+          subjectFilter={subjectFilter}
+          selectedTopicIds={selectedTopicIds}
+          toggleTopic={toggleTopic}
+        />
         <TextField
           value={topicSearch}
           onChange={(e) => handleSearchChange(e.target.value)}
@@ -2672,6 +3072,11 @@ function StepTopics({
                           {checked && (
                             <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8' }}>
                               ×{countFor(entry.id)} problems
+                            </Typography>
+                          )}
+                          {lastTaught.has(entry.id) && (
+                            <Typography sx={{ fontSize: '0.66rem', fontWeight: 700, color: '#7d84a6' }}>
+                              📌 Taught {taughtWhen(lastTaught.get(entry.id)!)}
                             </Typography>
                           )}
                           {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
