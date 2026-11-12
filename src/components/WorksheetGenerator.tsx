@@ -1117,7 +1117,9 @@ export default function WorksheetGenerator() {
     onReview: quickReview,
     onQuiz: quickQuiz,
     onRemove: takeOffShelf,
-    onSignIn: () => setSignInOpen(true),
+    // Opened on the next tick: the sign-in menu closes on any click outside
+    // it, and this click is outside it.
+    onSignIn: () => setTimeout(() => setSignInOpen(true), 0),
   };
 
   const errorBoundaryKey = `${docType}-${seed}-${count}-${difficulty}-${wordProblems}-${includeDiagrams}-${selectedTopicIds.join(',')}-${advancedCounts ? JSON.stringify(topicCounts) : ''}`;
