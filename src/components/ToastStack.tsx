@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Alert, Slide } from '@mui/material';
-import { color, motion, radius, shadow } from '../core/tokens';
+import { Alert, Box, IconButton, Slide } from '@mui/material';
+import { X } from 'lucide-react';
+import { color, icon, motion, radius, shadow } from '../core/tokens';
 
 // Notifications slide in from the right edge of the viewport and stack in
 // one column at the bottom right. Every ToastStack on the page portals into
 // the same container, so toasts from different parts of the page stack
-// together instead of overlapping.
+// together instead of overlapping. The stack sits above the builder's
+// bottom action bar so a toast never covers Continue or Export.
 
 export type Toast = {
   key: string;
@@ -30,7 +32,7 @@ function toastRoot(): HTMLElement | null {
     Object.assign(el.style, {
       position: 'fixed',
       right: '16px',
-      bottom: '16px',
+      bottom: '88px',
       zIndex: '1400',
       display: 'flex',
       flexDirection: 'column-reverse',
@@ -46,27 +48,51 @@ function toastRoot(): HTMLElement | null {
 
 export default function ToastStack({ toasts }: { toasts: Toast[] }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
+  // Toasts that were just removed stay mounted until their exit slide ends.
+  const [leaving, setLeaving] = useState<Toast[]>([]);
+  const [prev, setPrev] = useState<Toast[]>(toasts);
+  if (prev !== toasts) {
+    const live = new Set(toasts.map((t) => t.key));
+    const gone = prev.filter((t) => !live.has(t.key));
+    setPrev(toasts);
+    setLeaving((l) => [...l.filter((t) => !live.has(t.key)), ...gone.filter((g) => !l.some((t) => t.key === g.key))]);
+  }
   useEffect(() => {
     // The container only exists in the browser, after mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRoot(toastRoot());
   }, []);
   if (!root) return null;
+  const all = [...toasts.map((t) => ({ t, on: true })), ...leaving.map((t) => ({ t, on: false }))];
   return createPortal(
     <>
-      {toasts.map((t) => (
+      {all.map(({ t, on }) => (
         <Slide
           key={t.key}
           direction="left"
-          in
+          in={on}
           appear
+          onExited={() => setLeaving((l) => l.filter((x) => x.key !== t.key))}
           timeout={{ enter: motion.enter, exit: motion.exit }}
           easing={{ enter: motion.easeOut, exit: motion.easeIn }}
         >
           <Alert
             severity={t.severity}
-            onClose={t.onClose}
-            action={t.action}
+            onClose={t.action ? undefined : t.onClose}
+            action={
+              t.action && t.onClose ? (
+                // MUI drops its close button when an action is given, so
+                // keep both: the action, then a dismiss button.
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {t.action}
+                  <IconButton size="small" aria-label="Dismiss" onClick={t.onClose}>
+                    <X size={icon.size} strokeWidth={icon.strokeWidth} />
+                  </IconButton>
+                </Box>
+              ) : (
+                t.action
+              )
+            }
             role={t.role}
             sx={{
               pointerEvents: 'auto',

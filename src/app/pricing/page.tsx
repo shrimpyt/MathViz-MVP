@@ -91,7 +91,7 @@ export default function PricingPage() {
           </Button>
           <Typography
             component="h1"
-            sx={{ fontSize: { xs: "1.75rem", md: "2.25rem" }, fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.2, mb: 2, maxWidth: "22ch" }}
+            sx={{ fontSize: { xs: "1.75rem", md: "2.25rem" }, fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.2, mb: 2, maxWidth: "30ch" }}
           >
             Worksheets and guided notes,{" "}
             <Box component="span" sx={{ color: color.textMuted }}>

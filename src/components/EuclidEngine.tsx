@@ -4,6 +4,8 @@
 // All visual components live in ./problem-cards/.
 
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { color, font, icon, motion, radius } from "../core/tokens";
 import type {
   MathProblem,
   CircleProblem,
@@ -280,22 +282,29 @@ export function EuclidEngine({
     <div className="flex flex-col items-center min-h-screen py-6" style={{ backgroundColor: 'transparent', ...previewZoom }}>
       {/* GuidedNote reveal toggle */}
       {mode === "GuidedNote" && (
-        <div className="mb-4 flex items-center gap-3">
+        <div className="mb-4 flex items-center">
           <button
+            type="button"
             onClick={() => setRevealed((r) => !r)}
-            className="px-4 py-1.5 rounded-full text-sm font-sans font-medium shadow-sm transition-colors"
+            aria-pressed={revealed}
+            className="flex items-center gap-2 text-sm font-medium"
             style={{
-              background: revealed ? "#818cf8" : "rgba(30, 45, 69, 0.4)",
-              color: revealed ? "#14161f" : "#fff",
-              backdropFilter: "blur(4px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              fontFamily: font.ui,
+              padding: "6px 16px",
+              borderRadius: radius.pill,
+              background: revealed ? color.accentSoft : "transparent",
+              color: revealed ? color.text : color.textMuted,
+              border: `1px solid ${revealed ? color.accentRing : color.borderStrong}`,
+              transition: `background-color ${motion.exit}ms ${motion.easeOut}, border-color ${motion.exit}ms ${motion.easeOut}, color ${motion.exit}ms ${motion.easeOut}`,
             }}
           >
-            {revealed ? "Hide Answers" : "Reveal Answers"}
+            {revealed ? (
+              <EyeOff size={icon.size} strokeWidth={icon.strokeWidth} />
+            ) : (
+              <Eye size={icon.size} strokeWidth={icon.strokeWidth} />
+            )}
+            {revealed ? "Hide answers" : "Show answers"}
           </button>
-          <span className="text-xs text-slate-500 font-sans italic opacity-70">
-            Toggle to check your analytical truth
-          </span>
         </div>
       )}
 

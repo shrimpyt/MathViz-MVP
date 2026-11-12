@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   TextField,
+  MenuItem,
   Tooltip,
   FormControlLabel,
   Switch,
@@ -1070,10 +1071,12 @@ export default function WorksheetGenerator() {
   return (
     <Box
       sx={{
+        // Fill what the page shell leaves under its intro strip, so the
+        // bottom bar with Continue and Export stays on screen.
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        '@supports (height: 100dvh)': { height: '100dvh' },
+        flex: 1,
+        minHeight: 0,
         bgcolor: color.bg,
       }}
     >
@@ -2382,34 +2385,22 @@ function StepTopics({
           />
           <Box sx={railCardSx}>
             <Typography sx={railTitleSx}>Standards</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
-              {FRAMEWORKS.map((f) => {
-                const active = framework === f.id;
-                return (
-                  <Box
-                    key={f.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={active}
-                    onClick={() => setFramework(f.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setFramework(f.id);
-                      }
-                    }}
-                    sx={{
-                      ...segmentSx(active),
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                  >
-                    {f.label}
-                  </Box>
-                );
-              })}
-            </Box>
+            {/* One quiet select instead of a grid of 13 boxed buttons. */}
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={framework}
+              onChange={(e) => setFramework(e.target.value as StandardsFramework)}
+              slotProps={{ htmlInput: { 'aria-label': 'Standards framework' } }}
+              sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.875rem' } }}
+            >
+              {FRAMEWORKS.map((f) => (
+                <MenuItem key={f.id} value={f.id} sx={{ fontSize: '0.875rem' }}>
+                  {f.label}
+                </MenuItem>
+              ))}
+            </TextField>
             <Typography sx={{ ...ui.help, mt: 1 }}>
               {frameworkMeta(framework).note}
             </Typography>
