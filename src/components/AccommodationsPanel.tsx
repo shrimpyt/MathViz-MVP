@@ -11,7 +11,8 @@ import {
   IconButton,
   Alert,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Plus, Trash2 } from 'lucide-react';
+import { color, icon, radius, sx as ui } from '../core/tokens';
 import {
   ALL_ACCOMMODATION_IDS,
   ACCOMMODATION_DISPLAY_NAMES,
@@ -21,22 +22,17 @@ import {
   type NewGroupInput,
 } from '../lib/accommodations';
 
-// Dark input styling, matching the Control Panel drawer conventions.
+// Inputs sit 16px inside a 24px-corner card, so their corners are 8px.
+// Border, focus and colors come from the theme.
 const accomFieldSx = {
   '& .MuiOutlinedInput-root': {
-    backgroundColor: 'rgba(2,6,23,0.55)',
-    borderRadius: 2,
-    fontSize: '0.8rem',
-    '& fieldset': { borderColor: 'rgba(255,255,255,0.10)' },
-    '&:hover fieldset': { borderColor: 'rgba(129,140,248,0.40)' },
-    '&.Mui-focused fieldset': { borderColor: '#818cf8', borderWidth: 1 },
+    borderRadius: `${radius.sm}px`,
+    fontSize: '0.875rem',
   },
-  '& .MuiInputBase-input': { color: '#fbfbfb', py: 0.9 },
-  '& .MuiInputBase-input::placeholder': {
-    color: 'rgba(148,163,184,0.55)',
-    opacity: 1,
-  },
+  '& .MuiInputBase-input::placeholder': { color: color.textSubtle, opacity: 1 },
 } as const;
+
+const quietButtonSx = { px: 2, borderRadius: `${radius.sm}px` } as const;
 
 const FLAG_KEYS = ['reducedCount', 'wordBank', 'largePrint', 'sansSerif', 'extraSpacing', 'fewerPerPage'] as const;
 type FlagKey = (typeof FLAG_KEYS)[number];
@@ -56,7 +52,7 @@ function flagCheckboxes(
   testPrefix: string
 ) {
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.25, mt: 0.75 }}>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, columnGap: 2, mt: 1 }}>
       {FLAG_KEYS.map((key) => {
         const id = FLAG_TO_ID[key];
         const displayId = (ALL_ACCOMMODATION_IDS as readonly string[]).includes(id)
@@ -72,16 +68,16 @@ function flagCheckboxes(
                 onChange={() => onToggle(key)}
                 data-testid={`${testPrefix}-flag-${key}`}
                 sx={{
-                  p: 0.4,
-                  mr: 0.5,
-                  color: 'rgba(255,255,255,0.28)',
-                  '&:hover': { backgroundColor: 'rgba(129,140,248,0.10)' },
-                  '&.Mui-checked': { color: '#818cf8' },
+                  p: 0.5,
+                  mr: 1,
+                  color: color.borderStrong,
+                  '&:hover': { backgroundColor: 'transparent', color: color.textMuted },
+                  '&.Mui-checked': { color: color.accent },
                 }}
               />
             }
             label={
-              <Typography sx={{ fontSize: '0.7rem', color: 'rgba(251,251,251,0.78)', lineHeight: 1.25 }}>
+              <Typography sx={{ fontSize: '0.8125rem', color: color.text, lineHeight: 1.5 }}>
                 {displayId}
               </Typography>
             }
@@ -123,7 +119,7 @@ export default function AccommodationsPanel({
   if (!list) {
     return (
       <Box>
-        <Typography sx={{ fontSize: '0.72rem', color: 'rgba(148,163,184,0.85)', mb: 1, lineHeight: 1.5 }}>
+        <Typography sx={{ ...ui.help, fontSize: '0.875rem', mb: 2, maxWidth: '60ch' }}>
           Save a reusable accommodation profile for a class. Groups are anonymous,
           student counts only, never names.
         </Typography>
@@ -134,30 +130,20 @@ export default function AccommodationsPanel({
           onChange={(e) => setClassLabelDraft(e.target.value)}
           placeholder="Class label, e.g. Algebra 2, Period 3"
           data-testid="accom-class-label"
-          sx={{ mb: 1.25, ...accomFieldSx }}
+          sx={{ mb: 2, ...accomFieldSx }}
         />
         <Button
           fullWidth
           variant="outlined"
-          startIcon={<AddIcon />}
+          startIcon={<Plus size={icon.size} strokeWidth={icon.strokeWidth} />}
           onClick={() => onCreateList(classLabelDraft)}
           data-testid="accom-create-list"
-          sx={{
-            textTransform: 'none',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            borderColor: 'rgba(129,140,248,0.45)',
-            color: '#818cf8',
-            '&:hover': {
-              borderColor: '#818cf8',
-              backgroundColor: 'rgba(129,140,248,0.07)',
-            },
-          }}
+          sx={quietButtonSx}
         >
           Create class list
         </Button>
         {error && (
-          <Alert severity="error" sx={{ mt: 1.25, fontSize: '0.72rem' }}>
+          <Alert severity="error" sx={{ mt: 2, fontSize: '0.8125rem' }}>
             {error}
           </Alert>
         )}
@@ -180,22 +166,16 @@ export default function AccommodationsPanel({
         placeholder="Class label"
         aria-label="Class label"
         data-testid="accom-class-label"
-        sx={{ mb: 0.5, ...accomFieldSx }}
+        sx={{ mb: 1, ...accomFieldSx }}
       />
-      <Typography sx={{ fontSize: '0.65rem', color: 'rgba(148,163,184,0.6)', mb: 1.5, lineHeight: 1.5 }}>
+      <Typography sx={{ ...ui.help, mb: 2 }}>
         Anonymous groups only, never enter student names.
       </Typography>
 
       {list.groups.map((g) => (
         <Box
           key={g.id}
-          sx={{
-            mb: 1,
-            p: 1.25,
-            borderRadius: 2,
-            border: '1px solid rgba(255,255,255,0.08)',
-            backgroundColor: 'rgba(2,6,23,0.35)',
-          }}
+          sx={{ py: 2, borderTop: `1px solid ${color.border}` }}
         >
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <TextField
@@ -219,19 +199,16 @@ export default function AccommodationsPanel({
               aria-label="Student count"
               title="Number of students in this group"
               data-testid={`accom-group-count-${g.id}`}
-              sx={{ width: 76, ...accomFieldSx }}
+              sx={{ width: 80, ...accomFieldSx }}
             />
             <IconButton
               size="small"
               aria-label={`Remove ${g.label}`}
               onClick={() => onRemoveGroup(list.id, g.id)}
               data-testid={`accom-group-delete-${g.id}`}
-              sx={{
-                color: 'rgba(148,163,184,0.7)',
-                '&:hover': { color: '#e11d48', backgroundColor: 'rgba(225,29,72,0.08)' },
-              }}
+              sx={{ '&:hover': { color: color.danger, backgroundColor: 'rgba(248, 113, 113, 0.08)' } }}
             >
-              <DeleteIcon sx={{ fontSize: 17 }} />
+              <Trash2 size={icon.size} strokeWidth={icon.strokeWidth} />
             </IconButton>
           </Box>
           {flagCheckboxes(
@@ -244,16 +221,10 @@ export default function AccommodationsPanel({
 
       {/* ── Add group ── */}
       <Box
-        sx={{
-          mt: 1.5,
-          p: 1.25,
-          borderRadius: 2,
-          border: '1px dashed rgba(129,140,248,0.30)',
-          backgroundColor: 'rgba(129,140,248,0.04)',
-        }}
+        sx={{ pt: 2, borderTop: `1px solid ${color.border}` }}
       >
-        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#818cf8', mb: 1 }}>
-          Add group
+        <Typography sx={{ ...ui.label, mb: 1 }}>
+          Add a group
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
@@ -277,14 +248,15 @@ export default function AccommodationsPanel({
             aria-label="New group student count"
             title="Number of students"
             data-testid="accom-new-count"
-            sx={{ width: 76, ...accomFieldSx }}
+            sx={{ width: 80, ...accomFieldSx }}
           />
         </Box>
         {flagCheckboxes(newFlags, toggleNewFlag, 'accom-new')}
         <Button
           fullWidth
           size="small"
-          startIcon={<AddIcon />}
+          variant="outlined"
+          startIcon={<Plus size={icon.size} strokeWidth={icon.strokeWidth} />}
           onClick={() => {
             onAddGroup(list.id, { label: newLabel, studentCount: newCount, flags: newFlags });
             setNewLabel('');
@@ -292,28 +264,19 @@ export default function AccommodationsPanel({
             setNewFlags({ ...EMPTY_FLAGS });
           }}
           data-testid="accom-add-group"
-          sx={{
-            mt: 1,
-            textTransform: 'none',
-            fontSize: '0.72rem',
-            fontWeight: 600,
-            color: '#818cf8',
-            border: '1px solid rgba(129,140,248,0.35)',
-            borderRadius: 2,
-            '&:hover': { backgroundColor: 'rgba(129,140,248,0.08)', borderColor: '#818cf8' },
-          }}
+          sx={{ ...quietButtonSx, mt: 2 }}
         >
           Add group
         </Button>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mt: 1.25, fontSize: '0.72rem' }}>
+        <Alert severity="error" sx={{ mt: 2, fontSize: '0.8125rem' }}>
           {error}
         </Alert>
       )}
 
-      <Typography sx={{ fontSize: '0.65rem', color: 'rgba(148,163,184,0.55)', mt: 1.5, lineHeight: 1.5 }}>
+      <Typography sx={{ ...ui.help, color: color.textSubtle, mt: 2 }}>
         Versions reflect your list at the time of generation. Re-export after
         changing groups.
       </Typography>
