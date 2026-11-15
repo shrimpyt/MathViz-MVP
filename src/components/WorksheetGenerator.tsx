@@ -52,7 +52,9 @@ import {
   isFreeTopic,
   isTopicAvailable,
   readLocalUsage,
+  splitTopicsForPlan,
   type AccountState,
+  type ExportGateReason,
 } from '../lib/plan';
 import { readBuilderSession, sessionStore, writeBuilderSession } from '../lib/builderSession';
 import {
@@ -259,13 +261,17 @@ function draftSavedText(fileName: string, topics: number): string {
   return topics === 0 ? `${base} It has no topics selected yet.` : base;
 }
 
-function draftLoadedText(fileName: string, topics: number, skipped: number): string {
+function draftLoadedText(fileName: string, topics: number, skipped: number, proSkipped = 0): string {
   const t = `${topics} topic${topics === 1 ? '' : 's'}`;
   const skip =
     skipped > 0
       ? ` ${skipped} topic${skipped === 1 ? ' was' : 's were'} left out because ${skipped === 1 ? "it's" : "they're"} no longer offered.`
       : '';
-  return `Loaded ${fileName}: ${t}, with its settings and problem seed.${skip}`;
+  const pro =
+    proSkipped > 0
+      ? ` ${proSkipped} Pro topic${proSkipped === 1 ? ' was' : 's were'} left out, because Free covers Algebra I and middle-school topics.`
+      : '';
+  return `Loaded ${fileName}: ${t}, with its settings and problem seed.${skip}${pro}`;
 }
 
 // ── Draft file shape ──────────────────────────────────────────────────────────
@@ -722,9 +728,12 @@ export default function WorksheetGenerator() {
   const hasAccommodations = versionPlan.groups.length > 0;
 
   // ── Pay-gate verdict for the export button ──
-  const gateReason: 'accommodations' | 'limit' | null = isPro
+  const hasProTopics = splitTopicsForPlan(selectedTopicIds, isPro).proOnly.length > 0;
+  const gateReason: ExportGateReason | null = isPro
     ? null
-    : hasAccommodations
+    : hasProTopics
+      ? 'pro_topics'
+      : hasAccommodations
       ? 'accommodations'
       : account.used >= (account.limit ?? FREE_GENERATION_LIMIT)
         ? 'limit'
@@ -894,9 +903,13 @@ export default function WorksheetGenerator() {
         }
         const settings = sanitizeSettings(d);
         if (!settings) throw new Error('Could not read that draft file.');
-        applySettings(settings);
+        // A draft saved on Pro (or edited by hand) can name Pro topics; Free
+        // keeps only its own, the same rule the topic picker applies.
+        const { allowed, proOnly } = splitTopicsForPlan(settings.topicIds, isPro);
+        applySettings({ ...settings, topicIds: allowed });
         const asked = Array.isArray(d.topicIds) ? d.topicIds.length : 0;
-        setDraftNotice(draftLoadedText(file.name, settings.topicIds.length, asked - settings.topicIds.length));
+        const retired = asked - settings.topicIds.length;
+        setDraftNotice(draftLoadedText(file.name, allowed.length, retired, proOnly.length));
       } catch (e) {
         setDraftError(e instanceof Error ? e.message : 'Could not read that draft file.');
       }
@@ -2877,7 +2890,7 @@ function StepReview({
   moduleProblemCounts: number[];
   errorBoundaryKey: string;
   isPro: boolean;
-  gateReason: 'accommodations' | 'limit' | null;
+  gateReason: ExportGateReason | null;
   onExportCount: () => void;
   usageNote: string | null;
 }) {
@@ -3081,9 +3094,11 @@ function StepReview({
           }
           sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
         >
-          {gateReason === 'accommodations'
-            ? 'Accommodated versions (IEP groups) export with Pro, the accommodations are the Pro feature.'
-            : 'You have used your free exports for this month. Pro is unlimited.'}
+          {gateReason === 'pro_topics'
+            ? 'Some selected topics are part of Pro. Remove them to export on Free, or get Pro.'
+            : gateReason === 'accommodations'
+              ? 'Accommodated versions (IEP groups) export with Pro, the accommodations are the Pro feature.'
+              : 'You have used your free exports for this month. Pro is unlimited.'}
         </Alert>
       )}
       {usageNote && !gateReason && (

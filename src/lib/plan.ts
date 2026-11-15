@@ -81,7 +81,21 @@ export function isTopicAvailable(
   return isPro || isFreeTopic(entry.id);
 }
 
-export type ExportGateReason = "accommodations" | "limit";
+/** Splits topic ids into the ones this plan may use and the Pro ones it may
+ *  not. A draft file or a restored builder can carry Pro topics onto Free,
+ *  so loading and exporting both run through this. */
+export function splitTopicsForPlan(
+  ids: string[],
+  isPro: boolean,
+): { allowed: string[]; proOnly: string[] } {
+  if (isPro) return { allowed: [...ids], proOnly: [] };
+  const allowed: string[] = [];
+  const proOnly: string[] = [];
+  for (const id of ids) (isFreeTopic(id) ? allowed : proOnly).push(id);
+  return { allowed, proOnly };
+}
+
+export type ExportGateReason = "pro_topics" | "accommodations" | "limit";
 
 /** What the Export button explains when Free can't export this worksheet,
  *  instead of jumping to /pricing without a word. */
@@ -90,7 +104,12 @@ export function exportGateCopy(
   opts: { signedIn: boolean; limit: number },
 ): { title: string; body: string[] } {
   const body: string[] = [];
-  if (reason === "accommodations") {
+  if (reason === "pro_topics") {
+    body.push(
+      "This worksheet includes topics that are part of Pro. Free covers Algebra I and middle-school topics.",
+      "To export on Free, remove the Pro topics in step 2, Topics.",
+    );
+  } else if (reason === "accommodations") {
     body.push(
       "This worksheet includes accommodated versions for your IEP groups, and exporting those is part of Pro.",
       "To export just the base worksheet on Free, remove the groups in step 3, Accommodations.",
@@ -102,7 +121,12 @@ export function exportGateCopy(
   }
   if (!opts.signedIn) body.push("Already have Pro? Sign in and export from here.");
   return {
-    title: reason === "accommodations" ? "Accommodated versions need Pro" : "Free exports used up for this month",
+    title:
+      reason === "pro_topics"
+        ? "Some of these topics need Pro"
+        : reason === "accommodations"
+          ? "Accommodated versions need Pro"
+          : "Free exports used up for this month",
     body,
   };
 }
