@@ -4,28 +4,9 @@
 // same labels. Web and PDF both show ≅ (the PDF sets it in Euclid Sans).
 
 import React from "react";
-import { Svg, Circle, Line, Path, Text, Polygon, Font } from "@react-pdf/renderer";
-
-// The two-triangle center symbol needs ≃ (U+2243), which Times-Roman (the
-// label font below) does not have: it silently renders as a stray "C".
-// Register the document serif in THIS module so the figure is
-// self-contained; standalone renders (test harnesses) never import
-// PdfDocument, where the family is also registered with identical files.
-function proofFontSrc(file: string): string {
-  if (typeof window === "undefined") {
-    return `${process.cwd()}/public/fonts/${file}`;
-  }
-  return `/fonts/${file}`;
-}
-Font.register({
-  family: "WorksheetSerif",
-  fonts: [
-    { src: proofFontSrc("DejaVuSerif.ttf"), fontWeight: 400 },
-    { src: proofFontSrc("DejaVuSerif-Italic.ttf"), fontWeight: 400, fontStyle: "italic" },
-  ],
-});
+import { DIAGRAM_FONT, DIAGRAM_FONT_BOLD } from "./pdfDiagramFont";
+import { Svg, Circle, Line, Path, Text, Polygon } from "@react-pdf/renderer";
 import { pdfSafeText } from "@/lib/answerKey";
-import "../pdfFonts"; // registers WorksheetSans for the ≅ between the triangles
 import type {
   ProofSVGParams,
   ProofCongruenceSVGParams,
@@ -41,7 +22,6 @@ import type {
 } from "@/lib/proofDiagrams";
 
 type Pt = { x: number; y: number };
-const FONT = "Times-Roman";
 const INK = "#111111";
 
 // ── Shared mark helpers ──────────────────────────────────────────────────────
@@ -121,7 +101,7 @@ function PdfLabel({ pt, text, dx = 0, dy = 0, size = 9, color = "#111111", bold 
   return (
     <Text
       x={pt.x + dx - 3} y={pt.y + dy + 3}
-      style={{ fontSize: size, fontFamily: bold ? "Times-Bold" : FONT, color }}
+      style={{ fontSize: size, ...(bold ? DIAGRAM_FONT_BOLD : DIAGRAM_FONT), color }}
     >
       {text}
     </Text>
@@ -340,7 +320,7 @@ function PdfTwoTrianglesSVG({
           return (
             <React.Fragment key={label}>
               <Circle cx={mid.x} cy={mid.y} r={1.8} fill={INK} />
-              <Text x={mid.x + (dx / len) * 10 - 3} y={mid.y + (dy / len) * 10 + 3} style={{ fontSize: 9, fontFamily: FONT, color: "#111111" }}>
+              <Text x={mid.x + (dx / len) * 10 - 3} y={mid.y + (dy / len) * 10 + 3} style={{ fontSize: 9, ...DIAGRAM_FONT, color: "#111111" }}>
                 {label}
               </Text>
             </React.Fragment>
@@ -359,7 +339,7 @@ function PdfTwoTrianglesSVG({
       {verts2.map((v, i) => (
         <PdfLabel key={i} pt={v} text={labels2[i]} dx={off2[i].x} dy={off2[i].y} />
       ))}
-      <Text x={symbolPt.x} y={symbolPt.y} style={{ fontSize: 13, fontFamily: "WorksheetSans", color: "#64748b" }}>
+      <Text x={symbolPt.x} y={symbolPt.y} style={{ fontSize: 13, ...DIAGRAM_FONT, color: "#64748b" }}>
         {pdfSafeText(centerSymbol)}
       </Text>
     </Svg>
@@ -467,7 +447,7 @@ function PdfSlotArc({ n, slot, marked, givenAngle }: { n: number; slot: { v: Pt;
       />
       <Text
         x={givenAngle !== undefined ? lx - 10 : lx - 3} y={ly + 3}
-        style={{ fontSize: givenAngle !== undefined ? 9.5 : marked ? 10 : 8.5, fontFamily: marked || givenAngle !== undefined ? "Times-Bold" : FONT, color: marked || givenAngle !== undefined ? "#111111" : "#64748b" }}
+        style={{ fontSize: givenAngle !== undefined ? 9.5 : marked ? 10 : 8.5, ...(marked || givenAngle !== undefined ? DIAGRAM_FONT_BOLD : DIAGRAM_FONT), color: marked || givenAngle !== undefined ? "#111111" : "#64748b" }}
       >
         {givenAngle !== undefined ? `${givenAngle}°` : String(n)}
       </Text>
@@ -542,10 +522,10 @@ export function PdfProofCircleSVG(p: ProofCircleSVGParams) {
         <PdfLabel pt={C} text="C" dx={9} dy={2} />
         <PdfLabel pt={B} text="B" dy={12} />
         <PdfAngleArc v={B} p1={A} p2={C} r={14} />
-        <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
+        <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: "#111111" }}>
           {`${p.arc}°`}
         </Text>
-        <Text x={B.x - 8} y={B.y - 15} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
+        <Text x={B.x - 8} y={B.y - 15} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: "#111111" }}>
           {`${p.angle}°`}
         </Text>
       </Svg>
@@ -566,10 +546,10 @@ export function PdfProofCircleSVG(p: ProofCircleSVGParams) {
       <PdfLabel pt={A} text="A" dx={-9} dy={-6} />
       <PdfLabel pt={Bp} text="B" dx={9} dy={2} />
       <PdfLabel pt={{ x: A.x + 48, y: A.y }} text="t" dy={-6} size={10} />
-      <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
+      <Text x={mid.x - 8} y={mid.y + 3} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: "#111111" }}>
         {`${p.arc}°`}
       </Text>
-      <Text x={A.x + 12} y={A.y + 19} style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
+      <Text x={A.x + 12} y={A.y + 19} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: "#111111" }}>
         {`${p.angle}°`}
       </Text>
     </Svg>
@@ -703,7 +683,7 @@ function PdfElementsI47({ a = 6, b = 8 }: { a?: number; b?: number }) {
     return (
       <React.Fragment key={label}>
         <Circle cx={q.x} cy={q.y} r={2.2} fill={INK} />
-        <Text x={q.x + dxl - 3} y={q.y + dyl + 3} style={{ fontSize: 9, fontFamily: FONT, color: "#111111" }}>
+        <Text x={q.x + dxl - 3} y={q.y + dyl + 3} style={{ fontSize: 9, ...DIAGRAM_FONT, color: "#111111" }}>
           {label}
         </Text>
       </React.Fragment>

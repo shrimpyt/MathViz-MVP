@@ -4,8 +4,10 @@
 // matching exporter here; keep them in sync.
 
 import React from "react";
+import { DIAGRAM_FONT, DIAGRAM_FONT_BOLD } from "./pdfDiagramFont";
+import { isPairFigure, layoutPairFigure } from "@/lib/msFigureLayout";
 import { layoutGridPointLabels, polygonEdges, baselineY, layoutRightTriangle, rightTriangleFromDims, type Seg } from "@/lib/labelPlacement";
-import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse, Font } from "@react-pdf/renderer";
+import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse } from "@react-pdf/renderer";
 import type {
   MiddleSchoolSVGParams,
   MSNumberLineParams,
@@ -19,29 +21,6 @@ import type {
 const INK = "#111111";
 const ACCENT = "#2563eb";
 const RED = "#e11d48";
-const SERIF = "Times-Roman";
-const SERIF_BOLD = "Times-Bold";
-
-// Bar-model labels embed U+2212 (minus) inside expressions like "23 − m",
-// which Times-Bold (base-14, WinAnsi) does not have: the glyph silently
-// drops and the segment reads as "23 m". Register the document's embedded
-// bold serif in THIS module (same pattern as PdfProofSVG) so bar labels
-// render completely even in standalone renders that never import
-// PdfDocument, where the family is registered with identical files.
-function msFontSrc(file: string): string {
-  if (typeof window === "undefined") {
-    return `${process.cwd()}/public/fonts/${file}`;
-  }
-  return `/fonts/${file}`;
-}
-Font.register({
-  family: "WorksheetSerifBold",
-  fonts: [
-    { src: msFontSrc("DejaVuSerif-Bold.ttf"), fontWeight: 700 },
-    { src: msFontSrc("DejaVuSerif-BoldItalic.ttf"), fontWeight: 700, fontStyle: "italic" },
-  ],
-});
-const BAR_FONT = "WorksheetSerifBold";
 
 function PdfLabel({ x, y, text, anchor = "middle", size = 9 }: {
   x: number; y: number; text: string; anchor?: "middle" | "start"; size?: number;
@@ -50,7 +29,7 @@ function PdfLabel({ x, y, text, anchor = "middle", size = 9 }: {
     <Text
       x={anchor === "middle" ? x - 3 : x}
       y={y + 3}
-      style={{ fontSize: size, fontFamily: SERIF_BOLD, color: INK }}
+      style={{ fontSize: size, ...DIAGRAM_FONT_BOLD, color: INK }}
     >
       {text}
     </Text>
@@ -72,7 +51,7 @@ export function PdfMSNumberLineSVG(p: MSNumberLineParams) {
       {p.marks.map((v) => (
         <React.Fragment key={v}>
           <Line x1={x(v)} y1={yMid - 5} x2={x(v)} y2={yMid + 5} stroke={INK} strokeWidth={1} />
-          <Text x={x(v) - 3} y={yMid + 19} style={{ fontSize: 9, fontFamily: SERIF, color: INK }}>
+          <Text x={x(v) - 3} y={yMid + 19} style={{ fontSize: 9, ...DIAGRAM_FONT, color: INK }}>
             {String(v)}
           </Text>
         </React.Fragment>
@@ -172,7 +151,7 @@ export function PdfMSCoordinateGridSVG(p: MSCoordinateGridParams) {
             <Text
               x={X(poly.points[0].x) + (polyLabelPos === 1 ? 8 : 0)}
               y={Y(poly.points[0].y) + (polyLabelPos === 0 ? -8 : polyLabelPos === 2 ? 16 : 3)}
-              style={{ fontSize: 10, fontFamily: SERIF_BOLD, color: INK }}>
+              style={{ fontSize: 10, ...DIAGRAM_FONT_BOLD, color: INK }}>
               {poly.label}
             </Text>
           )}
@@ -194,7 +173,7 @@ export function PdfMSCoordinateGridSVG(p: MSCoordinateGridParams) {
           )}
           {pt.label && ptLabels[i] && (
             <Text x={ptLabels[i]!.x} y={baselineY(ptLabels[i]!.y, 10)} textAnchor="middle"
-              style={{ fontSize: 10, fontFamily: SERIF_BOLD, color: INK }}>
+              style={{ fontSize: 10, ...DIAGRAM_FONT_BOLD, color: INK }}>
               {pt.label}
             </Text>
           )}
@@ -241,7 +220,7 @@ export function PdfMSSpinnerSVG(p: MSSpinnerParams) {
               strokeWidth={1.2}
             />
             <Text x={mid.x - 4} y={mid.y + 4}
-              style={{ fontSize: 13, fontFamily: SERIF_BOLD, color: "#ffffff" }}>
+              style={{ fontSize: 13, ...DIAGRAM_FONT_BOLD, color: "#ffffff" }}>
               {label}
             </Text>
           </React.Fragment>
@@ -255,7 +234,37 @@ export function PdfMSSpinnerSVG(p: MSSpinnerParams) {
 
 // ── Geometric figures ─────────────────────────────────────────────────────────
 
+// Two-shape and angle-mark figures (similar figures, exterior angle, AA
+// similarity, dilation area): geometry and label spots come from
+// msFigureLayout, shared with the web renderer.
+function PdfMSPairFigureSVG(p: MSGeometryFigureParams) {
+  const lay = layoutPairFigure(p);
+  const pts = (q: { x: number; y: number }[]) => q.map((c) => `${c.x},${c.y}`).join(" ");
+  return (
+    <Svg viewBox={`0 0 ${lay.width} ${lay.height}`} width={String(lay.width)} height={String(lay.height)}>
+      {lay.polygons.map((poly, i) => (
+        <Polygon key={`pg${i}`} points={pts(poly.points)}
+          fill={poly.dashed ? "#ffffff" : ACCENT} fillOpacity={poly.dashed ? 0 : 0.1}
+          stroke={INK} strokeWidth={poly.dashed ? 1.2 : 1.6} strokeDasharray={poly.dashed ? "4,3" : undefined} />
+      ))}
+      {lay.lines.map((l, i) => (
+        <Line key={`ln${i}`} x1={l.a.x} y1={l.a.y} x2={l.b.x} y2={l.b.y}
+          stroke={l.dashed ? RED : INK} strokeWidth={l.dashed ? 1.2 : 1.6} strokeDasharray={l.dashed ? "4,2" : undefined} />
+      ))}
+      {lay.arcs.map((d, i) => <Path key={`arc${i}`} d={d} fill="none" stroke={INK} strokeWidth={1.1} />)}
+      {lay.leaders.map(([a, b], i) => <Line key={`ld${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={INK} strokeWidth={0.6} />)}
+      {lay.labels.map((l, i) => (
+        <Text key={`lb${i}`} x={l.center.x} y={baselineY(l.center.y, l.size)} textAnchor="middle"
+          style={{ fontSize: l.size, ...(l.bold ? DIAGRAM_FONT_BOLD : DIAGRAM_FONT), color: l.bold ? INK : "#475569" }}>
+          {l.text}
+        </Text>
+      ))}
+    </Svg>
+  );
+}
+
 export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
+  if (isPairFigure(p.figure)) return <PdfMSPairFigureSVG {...p} />;
   const W = 200;
   const H = 170;
   const d = p.dims;
@@ -324,7 +333,7 @@ export function PdfMSGeometryFigureSVG(p: MSGeometryFigureParams) {
           {lay.leaders.map(([a, b], i) => <Line key={`ld${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={INK} strokeWidth={0.6} />)}
           {lay.labels.map((l, i) => (
             <Text key={i} x={l.center.x} y={baselineY(l.center.y, FONT)} textAnchor="middle"
-              style={{ fontSize: FONT, fontFamily: SERIF_BOLD, color: INK }}>
+              style={{ fontSize: FONT, ...DIAGRAM_FONT_BOLD, color: INK }}>
               {l.text}
             </Text>
           ))}
@@ -910,10 +919,10 @@ export function PdfMSScatterPlotSVG(p: MSScatterPlotParams) {
           cy={Y(Math.min(p.maxY, Math.max(0, pt.y)))}
           r={3} fill={ACCENT} />
       ))}
-      <Text x={padL + pw / 2 - 20} y={H - 6} style={{ fontSize: 9, fontFamily: SERIF, color: INK }}>
+      <Text x={padL + pw / 2 - 20} y={H - 6} style={{ fontSize: 9, ...DIAGRAM_FONT, color: INK }}>
         {p.xLabel}
       </Text>
-      <Text x={4} y={padT + ph / 2 + 20} style={{ fontSize: 9, fontFamily: SERIF, color: INK }}>
+      <Text x={4} y={padT + ph / 2 + 20} style={{ fontSize: 9, ...DIAGRAM_FONT, color: INK }}>
         {p.yLabel}
       </Text>
     </Svg>
@@ -954,19 +963,19 @@ export function PdfMSBarModelSVG(p: MSBarModelParams) {
       {model.map(({ row, barY, labelY, segments }, ri) => (
         <React.Fragment key={ri}>
           {row.totalLabel && (
-            <Text x={centered(barX + barW / 2, row.totalLabel)} y={labelY} style={{ fontSize: 9, fontFamily: BAR_FONT, color: INK }}>
+            <Text x={centered(barX + barW / 2, row.totalLabel)} y={labelY} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: INK }}>
               {row.totalLabel}
             </Text>
           )}
           {row.caption && (
-            <Text x={2} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: BAR_FONT, color: INK }}>
+            <Text x={2} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: INK }}>
               {row.caption}
             </Text>
           )}
           {segments.map((seg, si) => (
             <React.Fragment key={si}>
               <Rect x={seg.x} y={barY} width={seg.w} height={BAR_H} fill="#ffffff" stroke={INK} strokeWidth={1.2} />
-              <Text x={centered(seg.x + seg.w / 2, seg.label)} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, fontFamily: BAR_FONT, color: INK }}>
+              <Text x={centered(seg.x + seg.w / 2, seg.label)} y={barY + BAR_H / 2 + 3} style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: INK }}>
                 {seg.label}
               </Text>
             </React.Fragment>

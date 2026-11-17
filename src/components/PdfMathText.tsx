@@ -181,11 +181,14 @@ class Parser {
 }
 
 // ── Slash fractions ──────────────────────────────────────────────────────────
-// Several generators write rational expressions with a slash:
-// "(x^2 - 25)/(x - 5)". When at least one side is in parentheses it is an
-// algebraic fraction, so print it stacked (the parentheses were only there to
-// group, and the bar does that job). Plain "3/4" or "-48/x" stays inline, and
-// so does anything glued to a word, like P(A)/P(B).
+// Several generators write fractions with a slash: "(x^2 - 25)/(x - 5)",
+// "3/4", "-48/x". These print stacked, with a bar:
+//   • either side in parentheses (an algebraic fraction; the parentheses were
+//     only there to group, and the bar does that job),
+//   • two whole numbers, like 3/4 or -5/2,
+//   • a whole number over a variable term or the reverse, like -48/x or 3x/4.
+// Rates and units stay inline (km/h, 5/hour, m/s), and so does anything glued
+// to a word, like P(A)/P(B), or a date, like 11/17/2026.
 const PAREN = String.raw`\((?:[^()]|\([^()]*\))*\)`;
 const TOKEN = String.raw`-?[A-Za-z0-9]+(?:\.[0-9]+)?(?:\^\{[^}]*\}|\^[0-9a-z])?`;
 const SLASH_FRAC = new RegExp(
@@ -195,17 +198,39 @@ const SLASH_FRAC = new RegExp(
 const isParen = (t: string) => t.startsWith("(") && t.endsWith(")");
 const unwrap = (t: string) => (isParen(t) ? t.slice(1, -1) : t);
 
+const WHOLE = /^-?\d+$/;
+// A variable term: optional coefficient, one lowercase letter, optional
+// exponent. Single letters that are usually units (h, s, m, g, l) don't count.
+const VAR_TERM = /^-?\d*([a-z])(?:\^\{?\d+\}?)?$/;
+const isVarTerm = (t: string) => {
+  const m = VAR_TERM.exec(t);
+  return !!m && !"hsmgl".includes(m[1]);
+};
+
+/** True when a slash between these two sides is a fraction to stack.
+ *  `before` is the text ahead of the match: a plain fraction that is itself
+ *  an exponent, like x^{1/2} or 8^(2/3), stays inline in the exponent. */
+function isStackable(a: string, b: string, before: string): boolean {
+  if (isParen(a) || isParen(b)) return true;
+  if (/\^\s*[{(]?\s*$/.test(before)) return false;
+  if (WHOLE.test(a) && WHOLE.test(b)) return !/^-?0+$/.test(b);
+  return (WHOLE.test(a) && isVarTerm(b)) || (isVarTerm(a) && WHOLE.test(b));
+}
+
 function hasSlashFraction(s: string): boolean {
   SLASH_FRAC.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = SLASH_FRAC.exec(s))) if (isParen(m[1]) || isParen(m[2])) return true;
+  while ((m = SLASH_FRAC.exec(s))) if (isStackable(m[1], m[2], s.slice(0, m.index))) return true;
   return false;
 }
 
 function slashToFrac(s: string): string {
-  return s.replace(SLASH_FRAC, (whole, a: string, b: string) =>
-    isParen(a) || isParen(b) ? `\\frac{${unwrap(a)}}{${unwrap(b)}}` : whole,
-  );
+  return s.replace(SLASH_FRAC, (whole: string, a: string, b: string, at: number) => {
+    if (!isStackable(a, b, s.slice(0, at))) return whole;
+    // A leading minus sits in front of the bar, not on the numerator.
+    if (!isParen(a) && a.startsWith("-")) return `−\\frac{${a.slice(1)}}{${unwrap(b)}}`;
+    return `\\frac{${unwrap(a)}}{${unwrap(b)}}`;
+  });
 }
 
 export function parseMath(input: string): Node[] {
