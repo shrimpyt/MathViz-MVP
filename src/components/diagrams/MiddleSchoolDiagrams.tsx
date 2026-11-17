@@ -5,6 +5,7 @@
 // Every kind here has a matching PDF renderer in PdfMiddleSchoolDiagrams.tsx.
 
 import React from "react";
+import { isPairFigure, layoutPairFigure } from "@/lib/msFigureLayout";
 import { layoutGridPointLabels, polygonEdges, baselineY, layoutRightTriangle, rightTriangleFromDims, type Seg } from "@/lib/labelPlacement";
 import type {
   MiddleSchoolSVGParams,
@@ -218,7 +219,38 @@ function MSSpinnerSVG(p: MSSpinnerParams) {
 
 // ── Geometric figures ─────────────────────────────────────────────────────────
 
+// Two-shape and angle-mark figures (similar figures, exterior angle, AA
+// similarity, dilation area), laid out by msFigureLayout like the PDF twin.
+// The web serif runs wider than the PDF sans the layout measures, so its
+// labels print a touch smaller to keep the same clearances.
+function MSPairFigureSVG(p: MSGeometryFigureParams) {
+  const lay = layoutPairFigure(p);
+  const pts = (q: { x: number; y: number }[]) => q.map((c) => `${c.x},${c.y}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${lay.width} ${lay.height}`} width={lay.width} height={lay.height} role="img" aria-label={p.figure.replace(/-/g, " ")}>
+      {lay.polygons.map((poly, i) => (
+        <polygon key={`pg${i}`} points={pts(poly.points)}
+          fill={poly.dashed ? "none" : ACCENT} fillOpacity={poly.dashed ? undefined : 0.1}
+          stroke={INK} strokeWidth={poly.dashed ? 1.2 : 1.6} strokeDasharray={poly.dashed ? "4,3" : undefined} />
+      ))}
+      {lay.lines.map((l, i) => (
+        <line key={`ln${i}`} x1={l.a.x} y1={l.a.y} x2={l.b.x} y2={l.b.y}
+          stroke={l.dashed ? RED : INK} strokeWidth={l.dashed ? 1.2 : 1.6} strokeDasharray={l.dashed ? "4,2" : undefined} />
+      ))}
+      {lay.arcs.map((d, i) => <path key={`arc${i}`} d={d} fill="none" stroke={INK} strokeWidth={1.1} />)}
+      {lay.leaders.map(([a, b], i) => <line key={`ld${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={INK} strokeWidth={0.6} />)}
+      {lay.labels.map((l, i) => (
+        <text key={`lb${i}`} x={l.center.x} y={baselineY(l.center.y, l.size * 0.9)} textAnchor="middle"
+          fontSize={l.size * 0.9} fill={l.bold ? INK : "#475569"} fontFamily="serif" fontWeight={l.bold ? "bold" : "normal"}>
+          {l.text}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
 function MSGeometryFigureSVG(p: MSGeometryFigureParams) {
+  if (isPairFigure(p.figure)) return <MSPairFigureSVG {...p} />;
   const W = 200;
   const H = 170;
   const d = p.dims;

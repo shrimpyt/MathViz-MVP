@@ -4,6 +4,7 @@
 import type { CoordinateProblem, CoordinateSVGParams } from "../types";
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
+import { fmtNum } from "./Algebra1Format";
 
 // ── Individual makers ─────────────────────────────────────────────────────────
 
@@ -19,7 +20,8 @@ function makeDistanceProblem(rng: RNG): CoordinateProblem {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const distSq = dx * dx + dy * dy;
-  const answer = Math.sqrt(distSq).toFixed(2);
+  // Clean number: 5, not 5.00; irrational distances keep two decimals.
+  const answer = fmtNum(Math.sqrt(distSq));
 
   return {
     type: "G.2B",
@@ -94,7 +96,8 @@ function makeSlopeProblem(rng: RNG): CoordinateProblem {
 
   const riser = y2 - y1;
   const runner = x2 - x1;
-  const answer = (riser / runner).toFixed(2);
+  // Clean number: 1 and 0, not 1.00 and 0.00 (and never -0).
+  const answer = fmtNum(riser / runner);
 
   return {
     type: "G.2B",

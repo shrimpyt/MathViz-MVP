@@ -11,6 +11,7 @@
 // @react-pdf/renderer primitives.
 
 import React from "react";
+import { DIAGRAM_FONT, DIAGRAM_FONT_BOLD, DIAGRAM_FONT_ITALIC } from "./pdfDiagramFont";
 import {
   Svg,
   Path as PdfPath,
@@ -432,7 +433,7 @@ export function CalcGraphPdf({ params }: { params: CalcGraphParams }) {
         <React.Fragment key={`m${i}`}>
           <PdfCircle cx={mk.pt.x} cy={mk.pt.y} r={3} fill="#dc2626" />
           {mk.label && (
-            <PdfText x={mk.pt.x + 6} y={mk.pt.y - 2} style={{ fontSize: 7.5, fontFamily: "Times-Roman" }}>
+            <PdfText x={mk.pt.x + 6} y={mk.pt.y - 2} style={{ fontSize: 7.5, ...DIAGRAM_FONT }}>
               {mk.label}
             </PdfText>
           )}
@@ -443,13 +444,13 @@ export function CalcGraphPdf({ params }: { params: CalcGraphParams }) {
           key={`t${i}`}
           x={t.x - 4}
           y={t.y}
-          style={{ fontSize: 6, fontFamily: "Times-Roman", color: "#64748b" }}
+          style={{ fontSize: 6, ...DIAGRAM_FONT, color: "#64748b" }}
         >
           {t.text}
         </PdfText>
       ))}
       {m.fnLabel && (
-        <PdfText x={m.fnLabel.x} y={m.fnLabel.y} style={{ fontSize: 8, fontFamily: "Times-Italic" }}>
+        <PdfText x={m.fnLabel.x} y={m.fnLabel.y} style={{ fontSize: 8, ...DIAGRAM_FONT_ITALIC }}>
           {m.fnLabel.text}
         </PdfText>
       )}
@@ -472,14 +473,14 @@ export function CalcTablePdf({
     padding: 4,
     borderRight: "0.5pt solid #111111",
     fontSize: 8,
-    fontFamily: "Times-Roman",
+    ...DIAGRAM_FONT,
     textAlign: "center" as const,
   };
   return (
     <PdfView style={{ marginVertical: 6, border: "1pt solid #111111", maxWidth: 320 }}>
       <PdfView style={{ flexDirection: "row", backgroundColor: "#f1f5f9", borderBottom: "1pt solid #111111" }}>
         {headers.map((h, i) => (
-          <PdfText key={i} style={{ ...cell, fontFamily: "Times-Bold", borderRight: i === headers.length - 1 ? "none" : cell.borderRight }}>
+          <PdfText key={i} style={{ ...cell, ...DIAGRAM_FONT_BOLD, borderRight: i === headers.length - 1 ? "none" : cell.borderRight }}>
             {h}
           </PdfText>
         ))}
@@ -501,7 +502,7 @@ export function CalcTablePdf({
         </PdfView>
       ))}
       {caption && (
-        <PdfText style={{ fontSize: 7, fontFamily: "Times-Italic", padding: 4, textAlign: "center" }}>
+        <PdfText style={{ fontSize: 7, ...DIAGRAM_FONT_ITALIC, padding: 4, textAlign: "center" }}>
           {caption}
         </PdfText>
       )}

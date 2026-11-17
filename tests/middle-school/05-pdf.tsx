@@ -94,7 +94,9 @@ export async function run(): Promise<void> {
       const text = b
         .toString("latin1")
         .replace(/\(D:[0-9]{14}[^)]*\)/g, "(D:)")
-        .replace(/\/ID \[<[0-9a-f]*> <[0-9a-f]*>\]/g, "/ID []");
+        .replace(/\/ID \[<[0-9a-f]*> <[0-9a-f]*>\]/g, "/ID []")
+        // Embedded font subsets get a random 6-letter tag (e.g. "ABCDEF+EuclidSans-Bold").
+        .replace(/\/[A-Z]{6}\+/g, "/XXXXXX+");
       const objects = text.match(/\d+ 0 obj[\s\S]*?endobj/g) ?? [text];
       return [...objects].sort().join("\n");
     };

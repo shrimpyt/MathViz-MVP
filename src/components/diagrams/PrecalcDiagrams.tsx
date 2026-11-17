@@ -7,6 +7,7 @@
 // (PrecalcDiagramParams) and the same pure geometry helpers below.
 
 import React from "react";
+import { DIAGRAM_FONT } from "./pdfDiagramFont";
 import { Svg, Circle, Ellipse, Line, Path, Text, Polygon } from "@react-pdf/renderer";
 import type { PrecalcDiagramParams } from "@/lib/factories/PrecalcTypes";
 
@@ -365,7 +366,7 @@ export function PrecalcWebSVG({ params }: { params: PrecalcDiagramParams }) {
 
 function PLabel({ x, y, text, size = 8, fill = NAVY }: { x: number; y: number; text: string; size?: number; fill?: string }) {
   return (
-    <Text x={x - 3} y={y + 3} style={{ fontSize: size, fontFamily: "Times-Roman", color: fill }}>
+    <Text x={x - 3} y={y + 3} style={{ fontSize: size, ...DIAGRAM_FONT, color: fill }}>
       {text}
     </Text>
   );

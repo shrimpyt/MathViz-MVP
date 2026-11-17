@@ -1,11 +1,12 @@
 // GeometryPdfDiagrams.tsx
 // PDF (@react-pdf/renderer) twins of GeometryDiagrams.tsx for the geometry
 // diagram kinds introduced with the Topic 1/2/3/5/6/8/9/12/13/14/15
-// generators. Same layouts and labels as the web renderers; text uses the
-// WorksheetSerif (DejaVu) family registered by PdfDocument so math glyphs
-// (∠, △, √, π, ⁻…) survive in print.
+// generators. Same layouts and labels as the web renderers; labels use the
+// worksheet sans (pdfDiagramFont) so they match the body text and math
+// glyphs (∠, △, √, π, ⁻…) survive in print.
 
 import React from "react";
+import { DIAGRAM_FONT } from "./pdfDiagramFont";
 import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse } from "@react-pdf/renderer";
 import type {
   GeometryDiagramParams,
@@ -26,11 +27,10 @@ import { worksheetGrid } from "@/lib/factories/GeometryTypes";
 const INK = "#111111";
 const FAINT = "#94a3b8";
 const GRID = "#e2e8f0";
-const FONT = "WorksheetSerif";
 
 function Lab({ x, y, text, size = 8 }: { x: number; y: number; text: string; size?: number }) {
   return (
-    <Text x={x - 3} y={y + 3} style={{ fontSize: size, fontFamily: FONT, color: INK }}>
+    <Text x={x - 3} y={y + 3} style={{ fontSize: size, ...DIAGRAM_FONT, color: INK }}>
       {text}
     </Text>
   );
