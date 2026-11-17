@@ -86,7 +86,7 @@ export function validateExportEvent(body: unknown): ExportEvent | null {
   if (!Array.isArray(b["topics"])) return null;
   const topics = b["topics"]
     .filter((t): t is string => typeof t === "string" && t.length > 0 && t.length <= 80)
-    .slice(0, 24);
+    .slice(0, 60); // a worksheet holds at most 60 lessons; all of them go on the taught shelf
   const docType =
     typeof b["docType"] === "string" && b["docType"].length > 0 && b["docType"].length <= 40
       ? b["docType"]

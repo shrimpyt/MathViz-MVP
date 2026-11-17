@@ -101,8 +101,8 @@ export default function PricingPage() {
           <Typography sx={{ color: color.textMuted, fontWeight: 400, fontSize: "1rem", maxWidth: "62ch", mb: 6 }}>
             Euclid generates fresh TEKS-aligned math worksheets and guided notes,
             base versions and per-group IEP-accommodated versions that actually
-            match, for middle-school math, Algebra I and II, Geometry and proofs,
-            Precalculus, Calculus, and SAT practice.
+            match, for middle-school math, Algebra I, Geometry and proofs,
+            Algebra II, Precalculus, Calculus, and SAT practice.
           </Typography>
 
           {founders?.open && (
@@ -146,7 +146,7 @@ export default function PricingPage() {
               <Typography sx={{ ...priceSx, mt: 1, mb: 3 }}>$0</Typography>
               <Box component="ul" sx={listSx}>
                 <Feature>5 worksheet exports a month</Feature>
-                <Feature>Algebra I and middle-school topics</Feature>
+                <Feature>Middle-school and Algebra I topics</Feature>
                 <Feature>Watermarked PDFs, no answer keys</Feature>
               </Box>
               <Typography sx={{ ...noteSx, mt: 3 }}>

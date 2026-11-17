@@ -106,7 +106,7 @@ export function exportGateCopy(
   const body: string[] = [];
   if (reason === "pro_topics") {
     body.push(
-      "This worksheet includes topics that are part of Pro. Free covers Algebra I and middle-school topics.",
+      "This worksheet includes topics that are part of Pro. Free covers middle-school and Algebra I topics.",
       "To export on Free, remove the Pro topics in step 2, Topics.",
     );
   } else if (reason === "accommodations") {
