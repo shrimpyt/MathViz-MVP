@@ -33,6 +33,7 @@ import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/ren
 import type { DocumentProps } from '@react-pdf/renderer';
 import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
 import PdfPagePreview from './PdfPagePreview';
+import { usePreviewVisit } from '../lib/previewVisit';
 import { EuclidEngine } from './EuclidEngine';
 import type { ClassicalGroup } from './EuclidEngine';
 import AccommodationsPanel from './AccommodationsPanel';
@@ -2931,6 +2932,11 @@ function StepReview({
   usageNote: string | null;
 }) {
   void fileRef;
+  // Anonymous timing for this visit to Review (see lib/previewVisit.ts).
+  const previewVisit = usePreviewVisit({
+    docType,
+    versions: hasAccommodations ? versionPlan.all().length : 1,
+  });
   // The file the preview built. Without accommodations it is exactly the
   // export, so Export downloads these bytes instead of rendering again.
   const [previewFile, setPreviewFile] = useState<{ blob: Blob | null; failed: boolean }>({ blob: null, failed: false });
@@ -2944,6 +2950,7 @@ function StepReview({
     const blob = previewFile.blob;
     if (!blob) return;
     onExportCount();
+    previewVisit.exported();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -3062,14 +3069,22 @@ function StepReview({
             variant="contained"
             color="secondary"
             startIcon={<PictureAsPdf />}
-            onClick={onGatedExport}
+            onClick={() => {
+              previewVisit.gateHit();
+              onGatedExport();
+            }}
             sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
           >
             Export PDF 🎉
           </Button>
         ) : mounted && selectedModules.length > 0 && hasAccommodations && accommodatedDocument ? (
           // Accommodated: one combined file with every version, built on its own.
-          <Box onClick={() => onExportCount()}>
+          <Box
+            onClick={() => {
+              onExportCount();
+              previewVisit.exported();
+            }}
+          >
           <PDFDownloadLink
             document={accommodatedDocument as React.ReactElement<DocumentProps>}
             fileName={exportFileName}
@@ -3245,6 +3260,7 @@ function StepReview({
             <PdfPagePreview
               document={previewDocument}
               onReady={hasAccommodations ? undefined : onPreviewReady}
+              onRendered={previewVisit.rendered}
               fallback={
                 <ScaledPreview>
             <EuclidEngine
