@@ -73,8 +73,8 @@ export default function PricingPage() {
           <Typography sx={{ color: "#9aa0be", fontWeight: 600, maxWidth: 640, mb: 4 }}>
             Euclid generates fresh TEKS-aligned math worksheets and guided notes,
             base versions and per-group IEP-accommodated versions that actually
-            match, for middle-school math, Algebra I and II, Geometry and proofs,
-            Precalculus, Calculus, and SAT practice.
+            match, for middle-school math, Algebra I, Geometry and proofs,
+            Algebra II, Precalculus, Calculus, and SAT practice.
           </Typography>
 
           {founders?.open && (
@@ -117,7 +117,7 @@ export default function PricingPage() {
               <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", mb: 0.5 }}>Free</Typography>
               <Typography sx={{ fontWeight: 900, fontSize: "1.8rem", mb: 1.5 }}>$0</Typography>
               <Typography sx={liSx}>· 5 worksheet exports a month</Typography>
-              <Typography sx={liSx}>· Algebra I and middle-school topics</Typography>
+              <Typography sx={liSx}>· Middle-school and Algebra I topics</Typography>
               <Typography sx={liSx}>· Watermarked PDFs, no answer keys</Typography>
               <Typography sx={{ ...liSx, mt: 1.5, color: "#9aa0be" }}>
                 Free is a trial, not a classroom tool, that's deliberate.

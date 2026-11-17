@@ -272,7 +272,7 @@ function draftLoadedText(fileName: string, topics: number, skipped: number, proS
       : '';
   const pro =
     proSkipped > 0
-      ? ` ${proSkipped} Pro topic${proSkipped === 1 ? ' was' : 's were'} left out, because Free covers Algebra I and middle-school topics.`
+      ? ` ${proSkipped} Pro topic${proSkipped === 1 ? ' was' : 's were'} left out, because Free covers middle-school and Algebra I topics.`
       : '';
   return `Loaded ${fileName}: ${t}, with its settings and problem seed.${skip}${pro}`;
 }
@@ -451,7 +451,7 @@ export default function WorksheetGenerator() {
   const toggleTopic = (id: string) => {
     if (!selectedTopicIds.includes(id) && !isPro && !isFreeTopic(id)) {
       setGateMsg(
-        'That topic is part of Pro. Free covers Algebra I and middle-school topics, Pro unlocks everything, plus accommodations and answer keys.'
+        'That topic is part of Pro. Free covers middle-school and Algebra I topics, Pro unlocks everything, plus accommodations and answer keys.'
       );
       return;
     }
