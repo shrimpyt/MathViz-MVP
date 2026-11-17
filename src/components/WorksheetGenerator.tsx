@@ -1108,6 +1108,10 @@ export default function WorksheetGenerator() {
     if (step === 1) {
       return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${frameworkMeta(framework).short} ${teksSelected}/${teksTotal}`;
     }
+    if (step === 3) {
+      const versions = hasAccommodations ? versionPlan.all().length : 1;
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${versions === 1 ? 'one version for everyone' : `${versions} versions`}`;
+    }
     if (hasAccommodations) {
       return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready`;
     }
