@@ -30,7 +30,9 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/renderer';
+import type { DocumentProps } from '@react-pdf/renderer';
 import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
+import PdfPagePreview from './PdfPagePreview';
 import { EuclidEngine } from './EuclidEngine';
 import type { ClassicalGroup } from './EuclidEngine';
 import AccommodationsPanel from './AccommodationsPanel';
@@ -786,6 +788,29 @@ export default function WorksheetGenerator() {
     return labels.length > 0 ? labels.join(' · ') : frameworkMeta(framework).fallback;
   }, [selectedModules, framework]);
 
+  // Free never gets an answer key, in the file or in its preview.
+  const exportIncludesKey = isPro ? includeAnswerKey : false;
+
+  // One version's pages exactly as the accommodated export prints them.
+  type PlannedVersion = ReturnType<typeof planVersions>['base'];
+  const versionPages = (v: PlannedVersion) => (
+    <PdfVersionPages
+      key={v.versionId}
+      title={v.kind === 'base' ? title : `${title}, ${v.label}`}
+      questions={versionQuestions.get(v.versionId) ?? []}
+      advancedProblems={v.problems}
+      docType={docType}
+      standard={standards}
+      includeAnswerKey={exportIncludesKey}
+      classicalGroups={classicalGroups}
+      seed={seed}
+      presentation={v.presentation}
+      keyHeading={v.answerKeyLabel}
+      wordBank={v.wordBank}
+      mixedOrder={mixedOrder}
+    />
+  );
+
   // Combined multi-version PDF document for the accommodated export.
   // Base version + its key, then each group version + its key, with labeled
   // divider pages between versions. (Keys always derive from their own
@@ -802,28 +827,41 @@ export default function WorksheetGenerator() {
               <AccommodationDividerPage key={`div-${v.versionId}`} text={v.dividerText} />
             );
           }
-          nodes.push(
-            <PdfVersionPages
-              key={v.versionId}
-              title={v.kind === 'base' ? title : `${title}, ${v.label}`}
-              questions={versionQuestions.get(v.versionId) ?? []}
-              advancedProblems={v.problems}
-              docType={docType}
-              standard={standards}
-              includeAnswerKey={includeAnswerKey}
-              classicalGroups={classicalGroups}
-              seed={seed}
-              presentation={v.presentation}
-              keyHeading={v.answerKeyLabel}
-              wordBank={v.wordBank}
-              mixedOrder={mixedOrder}
-            />
-          );
+          nodes.push(versionPages(v));
           return nodes;
         })}
       </PdfRendererDocument>
     );
-  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, includeAnswerKey, classicalGroups, seed, mixedOrder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder]);
+
+  // The plain (no accommodations) export. The Review step previews this exact
+  // element and Export downloads the file the preview built.
+  const baseDocument = useMemo(
+    () => (
+      <PdfDocument
+        title={title}
+        questions={questions}
+        advancedProblems={advancedProblems}
+        docType={docType}
+        standard={standards}
+        includeAnswerKey={exportIncludesKey}
+        classicalGroups={classicalGroups}
+        seed={seed}
+        watermark={!isPro}
+        mixedOrder={mixedOrder}
+      />
+    ),
+    [title, questions, advancedProblems, docType, standards, exportIncludesKey, classicalGroups, seed, isPro, mixedOrder]
+  );
+
+  // What the Review step shows: the plain export, or (with accommodations)
+  // the selected version's pages exactly as they print in the combined file.
+  const previewDocument = useMemo(() => {
+    if (!hasAccommodations) return baseDocument;
+    return <PdfRendererDocument>{versionPages(activeVersion)}</PdfRendererDocument>;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccommodations, baseDocument, activeVersion, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder]);
 
   // ── Draft save / load ──
   const saveDraft = () => {
@@ -1166,8 +1204,7 @@ export default function WorksheetGenerator() {
           <StepReview
             hasAccommodations={hasAccommodations}
             accommodatedDocument={accommodatedDocument}
-            questions={questions}
-            advancedProblems={advancedProblems}
+            previewDocument={previewDocument}
             mixedOrder={mixedOrder}
             docType={docType}
             title={title}
@@ -2819,8 +2856,7 @@ function StepAccommodations({
 function StepReview({
   hasAccommodations,
   accommodatedDocument,
-  questions,
-  advancedProblems,
+  previewDocument,
   mixedOrder,
   docType,
   title,
@@ -2856,8 +2892,8 @@ function StepReview({
 }: {
   hasAccommodations: boolean;
   accommodatedDocument: React.ReactElement | null;
-  questions: ReturnType<typeof problemToQuestion>[];
-  advancedProblems: MathProblem[];
+  /** What the preview draws: the plain export, or the selected version's pages. */
+  previewDocument: React.ReactElement;
   /** Mixed-topic order: one list, no section headings. */
   mixedOrder: boolean;
   docType: DocumentType;
@@ -2895,6 +2931,28 @@ function StepReview({
   usageNote: string | null;
 }) {
   void fileRef;
+  // The file the preview built. Without accommodations it is exactly the
+  // export, so Export downloads these bytes instead of rendering again.
+  const [previewFile, setPreviewFile] = useState<{ blob: Blob | null; failed: boolean }>({ blob: null, failed: false });
+  const onPreviewReady = React.useCallback((blob: Blob | null, failed?: boolean) => {
+    setPreviewFile({ blob, failed: !!failed });
+  }, []);
+  const exportFileName = hasAccommodations
+    ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
+    : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+  const downloadPreviewFile = () => {
+    const blob = previewFile.blob;
+    if (!blob) return;
+    onExportCount();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = exportFileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  };
   // Export scope guard: exactly which lessons are in the packet, grouped by
   // course, so a mixed selection can never slip into an export unnoticed.
   const problemsWord = (n: number) => `${n} problem${n === 1 ? '' : 's'}`;
@@ -3009,32 +3067,12 @@ function StepReview({
           >
             Export PDF 🎉
           </Button>
-        ) : mounted && selectedModules.length > 0 ? (
+        ) : mounted && selectedModules.length > 0 && hasAccommodations && accommodatedDocument ? (
+          // Accommodated: one combined file with every version, built on its own.
           <Box onClick={() => onExportCount()}>
           <PDFDownloadLink
-            document={
-              hasAccommodations && accommodatedDocument ? (
-                accommodatedDocument
-              ) : (
-                <PdfDocument
-                  title={title}
-                  questions={questions}
-                  advancedProblems={advancedProblems}
-                  docType={docType}
-                  standard={standards}
-                  includeAnswerKey={isPro ? includeAnswerKey : false}
-                  classicalGroups={classicalGroups}
-                  seed={seed}
-                  watermark={!isPro}
-                  mixedOrder={mixedOrder}
-                />
-              )
-            }
-            fileName={
-              hasAccommodations
-                ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
-                : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`
-            }
+            document={accommodatedDocument as React.ReactElement<DocumentProps>}
+            fileName={exportFileName}
             style={{ textDecoration: 'none' }}
           >
             {({ loading }: { loading: boolean }) => (
@@ -3050,6 +3088,18 @@ function StepReview({
             )}
           </PDFDownloadLink>
           </Box>
+        ) : mounted && selectedModules.length > 0 ? (
+          // The preview's own file: what you see is what downloads.
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<PictureAsPdf />}
+            disabled={!previewFile.blob}
+            onClick={downloadPreviewFile}
+            sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
+          >
+            {previewFile.blob ? 'Export PDF 🎉' : previewFile.failed ? 'PDF failed to build' : 'Preparing PDF…'}
+          </Button>
         ) : null}
       </Box>
 
@@ -3192,7 +3242,11 @@ function StepReview({
           </Alert>
         ) : (
           <PreviewErrorBoundary key={errorBoundaryKey}>
-            <ScaledPreview>
+            <PdfPagePreview
+              document={previewDocument}
+              onReady={hasAccommodations ? undefined : onPreviewReady}
+              fallback={
+                <ScaledPreview>
             <EuclidEngine
               problems={activeVersion.problems}
               mode={toOutputMode(docType)}
@@ -3205,7 +3259,9 @@ function StepReview({
               wordBank={activeVersion.wordBank}
               mixedOrder={mixedOrder}
             />
-            </ScaledPreview>
+                </ScaledPreview>
+              }
+            />
           </PreviewErrorBoundary>
         )}
       </Box>
