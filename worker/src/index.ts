@@ -74,6 +74,11 @@ import {
   shelfIdsFromExport,
   validateTaughtIds,
 } from "./taught";
+import {
+  PREVIEW_VISITS_DDL,
+  RATE_LIMIT_PREVIEW_VISITS,
+  validatePreviewVisit,
+} from "./previewVisits";
 
 const SESSION_COOKIE = "euclid_session";
 
@@ -876,6 +881,52 @@ async function handleEvent(env: Env, req: Request): Promise<Response> {
   return json(req, { ok: true });
 }
 
+// ── Review-step timing ───────────────────────────────────────────────────────
+// One anonymous row per visit to the Review step (see previewVisits.ts). Open
+// to signed-out visitors too, so it shows how new teachers experience the
+// preview; rate-limited per IP, and the IP itself is never stored.
+
+let previewVisitsTableReady = false;
+async function ensurePreviewVisitsTable(env: Env): Promise<void> {
+  if (previewVisitsTableReady) return;
+  for (const sql of PREVIEW_VISITS_DDL) await env.DB.prepare(sql).run();
+  previewVisitsTableReady = true;
+}
+
+async function handlePreviewVisit(env: Env, req: Request): Promise<Response> {
+  const now = Math.floor(Date.now() / 1000);
+  if (!(await takeRateToken(env, `pv:${await sha256Hex(clientIp(req))}`, RATE_LIMIT_PREVIEW_VISITS, now))) {
+    return rateLimited(req);
+  }
+  const visit = validatePreviewVisit(await req.json().catch(() => null));
+  if (!visit) return json(req, { error: "invalid visit" }, 400);
+  const user = await sessionUser(env, req);
+  const plan = user ? planOf(user) : "anon";
+  await ensurePreviewVisitsTable(env);
+  await env.DB.prepare(
+    `INSERT INTO preview_visits (id, plan, device, outcome, render_ms, stay_ms, pages, rebuilds,
+       preview_failed, gate_hit, doc_type, versions, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      randomTokenHex(16),
+      plan,
+      visit.device,
+      visit.outcome,
+      visit.renderMs,
+      visit.stayMs,
+      visit.pages,
+      visit.rebuilds,
+      visit.previewFailed ? 1 : 0,
+      visit.gateHit ? 1 : 0,
+      visit.docType,
+      visit.versions,
+      now,
+    )
+    .run();
+  return json(req, { ok: true });
+}
+
 /** Founders sold so far (accounts holding lifetime Pro) against the cap and
  *  close date. Two checkouts racing for the last seat can both go through;
  *  at 50 seats that overshoot is acceptable. */
@@ -1114,6 +1165,8 @@ export default {
         return await handleTaughtWrite(env, req, "remove");
       if (req.method === "POST" && pathname.endsWith("/count"))
         return await handleCount(env, req);
+      if (req.method === "POST" && pathname.endsWith("/preview-visit"))
+        return await handlePreviewVisit(env, req);
       if (req.method === "POST" && pathname.endsWith("/event"))
         return await handleEvent(env, req);
       if (req.method === "POST" && pathname.endsWith("/checkout"))

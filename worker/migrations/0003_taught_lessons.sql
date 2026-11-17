@@ -1,5 +1,5 @@
 -- Taught shelf: which lessons each teacher has taught, and when. Safe to run more than once.
--- From worker/:  npx wrangler d1 execute euclid --remote --file=migrations/0002_taught_lessons.sql
+-- From worker/:  npx wrangler d1 execute euclid --remote --file=migrations/0003_taught_lessons.sql
 -- The Worker also creates this table on first use, so the feature works
 -- even before this runs; running it just makes the table exist up front.
 CREATE TABLE IF NOT EXISTS taught_lessons (

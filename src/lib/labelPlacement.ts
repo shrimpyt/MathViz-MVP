@@ -14,18 +14,21 @@ export type Rect = { x0: number; y0: number; x1: number; y1: number };
 
 // ── Text metrics ─────────────────────────────────────────────────────────────
 
-// Advance widths in ems for Times-Bold, which the PDF diagrams use. Close
-// enough for the serif faces the web diagrams use too (pass widthScale > 1).
+// Advance widths in ems for Euclid Sans Bold (the worksheet sans, FreeSans),
+// which the PDF diagram labels use. The web diagrams set labels in Georgia,
+// a little wider again, so they pass widthScale > 1.
 function charEm(ch: string): number {
-  if (/[0-9]/.test(ch)) return 0.5;
-  if (ch === "°") return 0.4;
+  if (/[0-9]/.test(ch)) return 0.556;
+  if (ch === "°") return 0.403;
   if (ch === "." || ch === "," || ch === ":" || ch === "'") return 0.25;
-  if (ch === " ") return 0.25;
-  if (ch === "(" || ch === ")") return 0.33;
-  if (ch === "-" || ch === "−") return 0.5;
-  if (ch === "=" || ch === "+" || ch === "√") return 0.57;
-  if (/[A-Z]/.test(ch)) return 0.7;
-  return 0.5;
+  if (ch === " ") return 0.278;
+  if (ch === "(" || ch === ")") return 0.333;
+  if (ch === "-") return 0.333;
+  if (ch === "−" || ch === "=" || ch === "+") return 0.584;
+  if (ch === "√") return 0.594;
+  if (ch === "?") return 0.611;
+  if (/[A-Z]/.test(ch)) return 0.72;
+  return 0.556;
 }
 
 /** Approximate box of a one-line label: width from glyph advances, height

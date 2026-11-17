@@ -11,6 +11,7 @@
 // Plotting is always recomputed from params, nothing is hardcoded.
 
 import React from "react";
+import { DIAGRAM_FONT, DIAGRAM_FONT_BOLD } from "./pdfDiagramFont";
 import { Svg, Line as PdfLine, Path as PdfPath, Circle as PdfCircle, Text as PdfText, Rect as PdfRect } from "@react-pdf/renderer";
 import type {
   Algebra1GraphParams,
@@ -420,7 +421,6 @@ export function AlgebraGraphSVG({ params }: { params: Algebra1GraphParams }) {
 
 // ── PDF renderers (react-pdf primitives) ─────────────────────────────────────
 
-const PDF_FONT = "Times-Roman";
 
 function PdfGrid({ xRange, yRange }: { xRange: [number, number]; yRange: [number, number] }) {
   const { X, Y } = makeMapper(xRange, yRange);
@@ -432,7 +432,7 @@ function PdfGrid({ xRange, yRange }: { xRange: [number, number]; yRange: [number
         stroke={isAxis ? "#64748b" : "#e2e8f0"} strokeWidth={isAxis ? 1.2 : 0.5} />
     );
     els.push(
-      <PdfText key={`vl${gx}`} x={X(gx) - 3} y={VH - PAD + 9} style={{ fontSize: 6.5, fontFamily: PDF_FONT, color: "#94a3b8" }}>
+      <PdfText key={`vl${gx}`} x={X(gx) - 3} y={VH - PAD + 9} style={{ fontSize: 6.5, ...DIAGRAM_FONT, color: "#94a3b8" }}>
         {`${gx}`}
       </PdfText>
     );
@@ -445,7 +445,7 @@ function PdfGrid({ xRange, yRange }: { xRange: [number, number]; yRange: [number
     );
     if (gy !== 0) {
       els.push(
-        <PdfText key={`hl${gy}`} x={PAD - 9} y={Y(gy) + 2.5} style={{ fontSize: 6.5, fontFamily: PDF_FONT, color: "#94a3b8" }}>
+        <PdfText key={`hl${gy}`} x={PAD - 9} y={Y(gy) + 2.5} style={{ fontSize: 6.5, ...DIAGRAM_FONT, color: "#94a3b8" }}>
           {`${gy}`}
         </PdfText>
       );
@@ -492,7 +492,7 @@ export function PdfFunctionGraphSVG({ params }: { params: FunctionGraphSVGParams
         <React.Fragment key={i}>
           <PdfCircle cx={X(mk.x)} cy={Y(mk.y)} r={3} fill="#111111" />
           {mk.label ? (
-            <PdfText x={X(mk.x) + 5} y={Y(mk.y) - 1} style={{ fontSize: 7.5, fontFamily: PDF_FONT, color: "#111111" }}>
+            <PdfText x={X(mk.x) + 5} y={Y(mk.y) - 1} style={{ fontSize: 7.5, ...DIAGRAM_FONT, color: "#111111" }}>
               {mk.label}
             </PdfText>
           ) : null}
@@ -502,7 +502,7 @@ export function PdfFunctionGraphSVG({ params }: { params: FunctionGraphSVGParams
         <React.Fragment>
           <PdfCircle cx={X(params.solution.x)} cy={Y(params.solution.y)} r={4.5} fill="#e11d48" />
           <PdfText x={X(params.solution.x) + 7} y={Y(params.solution.y) + 4}
-            style={{ fontSize: 8, fontFamily: "Times-Bold", color: "#e11d48" }}>
+            style={{ fontSize: 8, ...DIAGRAM_FONT_BOLD, color: "#e11d48" }}>
             ({trimNum(params.solution.x)}, {trimNum(params.solution.y)})
           </PdfText>
         </React.Fragment>
@@ -553,7 +553,7 @@ export function PdfNumberLineSVG({ params }: { params: NumberLineSVGParams }) {
         return (
           <React.Fragment key={v}>
             <PdfLine x1={X(v)} y1={midY - 4} x2={X(v)} y2={midY + 4} stroke="#111111" strokeWidth={1} />
-            <PdfText x={X(v) - 3} y={midY + 15} style={{ fontSize: 7.5, fontFamily: PDF_FONT, color: "#475569" }}>
+            <PdfText x={X(v) - 3} y={midY + 15} style={{ fontSize: 7.5, ...DIAGRAM_FONT, color: "#475569" }}>
               {`${v}`}
             </PdfText>
           </React.Fragment>
@@ -582,7 +582,7 @@ export function PdfTwoWayTableSVG({ params }: { params: TwoWayTableSVGParams }) 
     <React.Fragment key={`${x}-${y}-${text}`}>
       <PdfRect x={x} y={y} width={w} height={h} fill="#ffffff" stroke="#111111" strokeWidth={1} />
       <PdfText x={x + w / 2 - text.length * 2} y={y + h / 2 + 3}
-        style={{ fontSize: 7.5, fontFamily: bold ? "Times-Bold" : PDF_FONT, color: "#111111" }}>
+        style={{ fontSize: 7.5, ...(bold ? DIAGRAM_FONT_BOLD : DIAGRAM_FONT), color: "#111111" }}>
         {text}
       </PdfText>
     </React.Fragment>
@@ -590,7 +590,7 @@ export function PdfTwoWayTableSVG({ params }: { params: TwoWayTableSVGParams }) 
   return (
     <Svg viewBox={`0 0 ${W} ${H}`} width={String(Math.min(W, 150))} height={String(Math.min(H, 130))}>
       {params.title && (
-        <PdfText x={W / 2 - params.title.length * 2.2} y={12} style={{ fontSize: 8.5, fontFamily: PDF_FONT, color: "#111111" }}>
+        <PdfText x={W / 2 - params.title.length * 2.2} y={12} style={{ fontSize: 8.5, ...DIAGRAM_FONT, color: "#111111" }}>
           {params.title}
         </PdfText>
       )}

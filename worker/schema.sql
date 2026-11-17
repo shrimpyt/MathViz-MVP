@@ -119,9 +119,30 @@ CREATE TABLE IF NOT EXISTS taught_lessons (
 );
 CREATE INDEX IF NOT EXISTS idx_taught_lessons_user ON taught_lessons(user_id, last_at);
 
+-- Review-step timing: one anonymous row per visit to the Review step (how
+-- long the preview took to draw, how long they stayed, whether they then
+-- exported). No user id, email, IP or worksheet contents. Summary query:
+-- worker/queries/preview-summary.sql.
+CREATE TABLE IF NOT EXISTS preview_visits (
+  id TEXT PRIMARY KEY,
+  plan TEXT NOT NULL,                          -- 'anon' | 'free' | 'pro', looked up by the Worker
+  device TEXT NOT NULL,                        -- 'phone' | 'tablet' | 'desktop' | 'unknown'
+  outcome TEXT NOT NULL,                       -- 'exported' | 'back' (another step) | 'left' (closed or hid the tab)
+  render_ms INTEGER,                           -- opening Review to first pages shown; NULL if they never showed
+  stay_ms INTEGER NOT NULL,                    -- time on Review in this visit
+  pages INTEGER NOT NULL DEFAULT 0,
+  rebuilds INTEGER NOT NULL DEFAULT 0,         -- preview redraws after a change during the visit
+  preview_failed INTEGER NOT NULL DEFAULT 0,   -- 1 = fell back to the HTML look-alike
+  gate_hit INTEGER NOT NULL DEFAULT 0,         -- 1 = Free user pressed Export on a Pro-only worksheet
+  doc_type TEXT NOT NULL,
+  versions INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_events_user ON events(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_tokens_hash ON magic_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_signin_expires ON signin_tokens(expires_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_users_customer ON users(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_preview_visits_created ON preview_visits(created_at);

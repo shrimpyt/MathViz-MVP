@@ -21,6 +21,10 @@ export default function PrivacyPage() {
         and a monthly count of worksheet exports (used to enforce Free-plan
         limits). For signed-in accounts we also record which topics and format
         each export used, so we can tell which lessons teachers actually run.
+        On the Review step we also record, without your email, account or IP
+        address, how long the preview took to appear, how long you stayed, the
+        page count, whether you were on a phone, tablet or computer, and
+        whether you then exported, so we can tell if the preview needs work.
         We never receive or store the worksheets themselves.
       </p>
       <p>

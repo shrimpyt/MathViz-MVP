@@ -108,6 +108,19 @@ FOUNDERS_CLOSES_AT_SEC in src/core.ts). After that, a founders checkout
 returns 410 `founders_closed`. The pricing page hides the banner when
 the offer is closed or the API can't be reached.
 
+## Review-step timing
+`POST /api/preview-visit` stores one anonymous row per visit to the Review
+step in `preview_visits`: how long the preview took to draw, how long the
+visitor stayed, page count, device type (phone, tablet or desktop), and
+whether they exported, went back a step or left. No user id, email, IP or
+worksheet contents; the plan (anon, free, pro) is looked up from the
+session. It works signed out, is rate-limited per IP (60 per 15 minutes),
+and the app sends it fire-and-forget, so a failure never touches the
+preview. The table is created on first use.
+
+Summary for the last 30 days, by device:
+`npx wrangler d1 execute euclid --remote --file=queries/preview-summary.sql`
+
 ## Schema changes
 schema.sql only uses CREATE … IF NOT EXISTS, so re-running it on the live
 database adds new tables without touching existing ones:

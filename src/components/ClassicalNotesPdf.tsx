@@ -381,6 +381,14 @@ export interface ClassicalNotesPdfSectionProps {
   presentation?: Presentation;
 }
 
+// Rough height in points of one demonstration block: heading, steps (each
+// with its reason line), answer line, and a figure. Only used to decide
+// whether the block is short enough to keep on one page.
+const KEEP_TOGETHER_MAX = 340;
+function estimateBlockHeight(stepCount: number, hasDiagram: boolean): number {
+  return 26 + stepCount * 36 + 26 + (hasDiagram ? 210 : 0);
+}
+
 export function ClassicalNotesPdfSection({
   entryId,
   problems,
@@ -439,34 +447,53 @@ export function ClassicalNotesPdfSection({
         const steps = stepLists[pi];
         const stepPrompts = promptsFor(steps.length);
         const diagram = classicalDiagram(p);
+        // A short demonstration stays on one page. A long one (a proof with
+        // many steps and a figure) may run onto the next page a step at a
+        // time: kept whole, it could not fit under the page-1 header and
+        // jumped to page 2, leaving page 1 blank.
+        const keepTogether = estimateBlockHeight(steps.length, !!diagram) <= KEEP_TOGETHER_MAX;
         return (
-          <View key={pi} style={styles.problemBlock} wrap={false}>
-            <View style={styles.problemHead} wrap={false}>
-              <Text style={styles.problemNumber}>{startIndex + pi + 1}.</Text>
-              <Text style={styles.questionText}>{pdfSafeText(q.text)}</Text>
+          <View key={pi} style={styles.problemBlock} wrap={!keepTogether}>
+            {/* The question never ends a page alone: it travels with step 1. */}
+            <View wrap={false}>
+              <View style={styles.problemHead} wrap={false}>
+                <Text style={styles.problemNumber}>{startIndex + pi + 1}.</Text>
+                <Text style={styles.questionText}>{pdfSafeText(q.text)}</Text>
+              </View>
+              {steps.slice(0, 1).map((s, si) => (
+                <PdfClassicalStep
+                  key={si}
+                  step={s}
+                  stepIndex={si}
+                  marginPrompt={stepPrompts[si] ?? GENERIC_MARGIN_PROMPT}
+                  styles={styles}
+                />
+              ))}
             </View>
-            {steps.map((s, si) => (
+            {steps.slice(1).map((s, i) => (
               <PdfClassicalStep
-                key={si}
+                key={i + 1}
                 step={s}
-                stepIndex={si}
-                marginPrompt={stepPrompts[si] ?? GENERIC_MARGIN_PROMPT}
+                stepIndex={i + 1}
+                marginPrompt={stepPrompts[i + 1] ?? GENERIC_MARGIN_PROMPT}
                 styles={styles}
               />
             ))}
-            <View style={styles.answerLine} wrap={false}>
-              <Text style={styles.answerLabel}>Answer:</Text>
-              <Text style={styles.answerText}>{pdfSafeText(formatAnswer(p))}</Text>
-            </View>
-            {diagram && (
-              <View style={styles.diagramBox} wrap={false}>
-                {diagram.kind.startsWith('Proof') ? (
-                  <PdfProofSVG params={diagram as unknown as ProofSVGParams} />
-                ) : (
-                  <PdfGeometrySVG params={diagram as unknown as Parameters<typeof PdfGeometrySVG>[0]['params']} />
-                )}
+            <View wrap={false}>
+              <View style={styles.answerLine} wrap={false}>
+                <Text style={styles.answerLabel}>Answer:</Text>
+                <Text style={styles.answerText}>{pdfSafeText(formatAnswer(p))}</Text>
               </View>
-            )}
+              {diagram && (
+                <View style={styles.diagramBox} wrap={false}>
+                  {diagram.kind.startsWith('Proof') ? (
+                    <PdfProofSVG params={diagram as unknown as ProofSVGParams} />
+                  ) : (
+                    <PdfGeometrySVG params={diagram as unknown as Parameters<typeof PdfGeometrySVG>[0]['params']} />
+                  )}
+                </View>
+              )}
+            </View>
           </View>
         );
       })}
