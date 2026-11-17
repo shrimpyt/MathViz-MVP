@@ -81,12 +81,15 @@ async function rasterize(data: ArrayBuffer, isCurrent: () => boolean): Promise<P
 export default function PdfPagePreview({
   document: pdfDocument,
   onReady,
+  onRendered,
   fallback,
 }: {
   /** The @react-pdf <Document> to show. Memoize it: a new element rebuilds the preview. */
   document: React.ReactElement;
   /** The finished file, or null while it is being rebuilt (failed: it could not be built). */
   onReady?: (blob: Blob | null, failed?: boolean) => void;
+  /** Pages finished drawing (failed: the preview gave up and shows the fallback). For timing only. */
+  onRendered?: (pages: number, failed: boolean) => void;
   /** Shown if the PDF cannot be drawn in this browser. */
   fallback?: React.ReactNode;
 }) {
@@ -95,9 +98,19 @@ export default function PdfPagePreview({
   const [error, setError] = useState<string | null>(null);
   const run = useRef(0);
   const onReadyRef = useRef(onReady);
+  const onRenderedRef = useRef(onRendered);
   useEffect(() => {
     onReadyRef.current = onReady;
-  }, [onReady]);
+    onRenderedRef.current = onRendered;
+  }, [onReady, onRendered]);
+  // Timing callbacks must never break the preview.
+  const reportRendered = (pages: number, failed: boolean) => {
+    try {
+      onRenderedRef.current?.(pages, failed);
+    } catch {
+      /* ignore */
+    }
+  };
 
   useEffect(() => {
     const id = ++run.current;
@@ -114,6 +127,7 @@ export default function PdfPagePreview({
         onReadyRef.current?.(null, true);
         setError(e instanceof Error ? e.message : String(e));
         setBusy(false);
+        reportRendered(0, true);
         return;
       }
       try {
@@ -126,10 +140,12 @@ export default function PdfPagePreview({
           return images;
         });
         setError(null);
+        reportRendered(images.length, false);
       } catch (e) {
         if (!isCurrent()) return;
         console.error('PDF preview failed:', e);
         setError(e instanceof Error ? e.message : String(e));
+        reportRendered(0, true);
       } finally {
         if (isCurrent()) setBusy(false);
       }
