@@ -1976,15 +1976,15 @@ function StepFormat({
                 textAlign: 'left',
                 gap: 1,
                 p: 2,
-                borderRadius: `${radius.lg}px`,
-                border: '1px solid',
+                borderRadius: '20px',
+                border: '1.5px solid',
                 borderColor: selected ? color.accent : color.border,
-                backgroundColor: selected ? color.accentSoft : color.surface,
-                boxShadow: selected ? `0 0 0 1px ${color.accent}` : 'none',
+                backgroundColor: color.surface,
+                boxShadow: selected ? 'none' : shadow.sm,
                 transition: ui.transition('border-color, background-color, box-shadow'),
                 '&:hover': {
                   borderColor: selected ? color.accent : color.borderStrong,
-                  backgroundColor: selected ? color.accentSoft : color.surfaceHover,
+                  backgroundColor: color.surface,
                 },
               }}
             >
@@ -2074,12 +2074,12 @@ const segmentSx = (active: boolean) => ({
   borderRadius: `${radius.sm}px`,
   border: '1px solid',
   borderColor: active ? color.accent : color.border,
-  backgroundColor: active ? color.accentSoft : 'transparent',
+  backgroundColor: active ? color.surface : 'transparent',
   color: active ? color.accent : color.textMuted,
   transition: ui.transition('border-color, background-color, color'),
   '&:hover': {
     borderColor: active ? color.accent : color.borderStrong,
-    backgroundColor: active ? color.accentSoft : color.hover,
+    backgroundColor: active ? color.surface : color.hover,
     color: active ? color.accent : color.text,
   },
 });
