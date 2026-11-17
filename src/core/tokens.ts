@@ -10,7 +10,7 @@
 
 export const color = {
   bg: '#eef3f0',
-  bgRaised: '#f6f9f7',
+  bgRaised: '#ffffff',
   surface: '#ffffff',
   surfaceHover: '#f5f8f6',
   border: 'rgba(27, 43, 38, 0.08)',

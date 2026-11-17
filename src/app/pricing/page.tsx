@@ -158,7 +158,7 @@ export default function PricingPage() {
               </Button>
             </Box>
 
-            <Box sx={{ ...cardSx, bgcolor: color.bgRaised, border: `1px solid ${color.borderStrong}`, boxShadow: shadow.md }}>
+            <Box sx={{ ...cardSx, bgcolor: color.surface, border: `1.5px solid ${color.accent}`, boxShadow: shadow.md }}>
               <Typography sx={planNameSx}>
                 Pro{" "}
                 <Box component="span" sx={{ color: color.textMuted, fontWeight: 500, fontSize: "0.875rem" }}>
