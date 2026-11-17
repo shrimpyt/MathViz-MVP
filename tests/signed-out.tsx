@@ -13,7 +13,7 @@ import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CURRICULUM_REGISTRY } from "../src/modules/CurriculumRegistry";
-import { exportGateCopy, isFreeTopic, isTopicAvailable } from "../src/lib/plan";
+import { exportGateCopy, isFreeTopic, isTopicAvailable, splitTopicsForPlan } from "../src/lib/plan";
 import {
   BUILDER_SESSION_KEY,
   clampStep,
@@ -42,7 +42,7 @@ ok(built.some((e) => !isFreeTopic(e.id)), "the registry has Pro lessons to hide"
 ok(!isTopicAvailable({ id: "a1-x", underConstruction: true }, true), "unbuilt lessons stay hidden");
 
 // ── Export explanation ──
-for (const reason of ["accommodations", "limit"] as const) {
+for (const reason of ["pro_topics", "accommodations", "limit"] as const) {
   for (const signedIn of [false, true]) {
     const c = exportGateCopy(reason, { signedIn, limit: 5 });
     ok(c.title.length > 0 && c.body.length > 0, `${reason}/${signedIn}: has a title and body`);
@@ -53,8 +53,21 @@ for (const reason of ["accommodations", "limit"] as const) {
 }
 ok(/remove the groups/.test(exportGateCopy("accommodations", { signedIn: true, limit: 5 }).body.join(" ")),
   "accommodations copy says how to export on Free");
+ok(/remove the Pro topics in step 2, Topics/.test(exportGateCopy("pro_topics", { signedIn: true, limit: 5 }).body.join(" ")),
+  "Pro-topics copy says how to export on Free");
 ok(/all 5 free exports/.test(exportGateCopy("limit", { signedIn: true, limit: 5 }).body.join(" ")),
   "limit copy names the limit");
+
+// ── Free keeps only Free topics from a draft or a restored builder ──
+const freeIds = built.filter((e) => isFreeTopic(e.id)).slice(0, 2).map((e) => e.id);
+const proIds = built.filter((e) => !isFreeTopic(e.id)).slice(0, 3).map((e) => e.id);
+const mixed = [proIds[0], freeIds[0], proIds[1], freeIds[1], proIds[2]];
+const onFree = splitTopicsForPlan(mixed, false);
+ok(JSON.stringify(onFree.allowed) === JSON.stringify(freeIds), "Free keeps its own topics, in order");
+ok(JSON.stringify(onFree.proOnly) === JSON.stringify(proIds), "Free sets aside every Pro topic");
+const onPro = splitTopicsForPlan(mixed, true);
+ok(JSON.stringify(onPro.allowed) === JSON.stringify(mixed) && onPro.proOnly.length === 0, "Pro keeps everything");
+ok(splitTopicsForPlan([], false).allowed.length === 0, "empty selection stays empty");
 
 // ── Builder survives navigation ──
 class MemStore {
@@ -108,6 +121,14 @@ ok(/setGateMsg\(null\);\s*setSelectedTopicIds/.test(toggle), "a successful pick 
 ok(/isTopicAvailable\(e, isPro\)/.test(src), "filter uses the plan check");
 ok(/setDraftNotice\(draftSavedText/.test(src) && /setDraftNotice\(draftLoadedText/.test(src),
   "save and load draft confirm what happened");
+const draftLoad = src.slice(src.indexOf("const loadDraftFile"), src.indexOf("reader.readAsText(file)"));
+ok(/splitTopicsForPlan\(settings\.topicIds, isPro\)/.test(draftLoad) && /applySettings\(\{ \.\.\.settings, topicIds: allowed \}\)/.test(draftLoad),
+  "loading a draft on Free drops Pro topics before applying it");
+ok(/draftLoadedText\(file\.name, allowed\.length, retired, proOnly\.length\)/.test(draftLoad),
+  "the load notice counts the Pro topics left out");
+const gate = src.slice(src.indexOf("const gateReason"), src.indexOf("const handleExportCount"));
+ok(/hasProTopics\s*\?\s*'pro_topics'/.test(gate), "export is gated when Free has Pro topics selected (restored builder)");
+ok(/gateReason === 'pro_topics'/.test(src), "the warning names the Pro-topics reason");
 ok(/writeBuilderSession\(sessionStore\(\)/.test(src) && /readBuilderSession\(sessionStore\(\)\)/.test(src),
   "builder state is written and restored");
 

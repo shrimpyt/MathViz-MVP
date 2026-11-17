@@ -1,10 +1,10 @@
 // SatPdfDiagrams.tsx
 // @react-pdf/renderer counterparts of SatWebDiagrams.tsx.
 // The two files must stay visually parallel: same geometry, same labels.
-// Uses Times-Roman (always available) rather than the embedded DejaVu Serif,
-// matching the existing PdfGeometrySVG conventions.
+// Labels use the worksheet sans (pdfDiagramFont), like every PDF diagram.
 
 import React from "react";
+import { DIAGRAM_FONT, DIAGRAM_FONT_BOLD } from "./pdfDiagramFont";
 import { Svg, Line, Path, Text, Polygon, Circle } from "@react-pdf/renderer";
 import type { SATDiagramParams } from "@/lib/satTypes";
 
@@ -62,7 +62,7 @@ function SatPdfTable({
           key={`h${i}`}
           x={x0 + i * colW + colW / 2 - h.length * 2.4}
           y={y0 + 11}
-          style={{ fontSize: 9, fontFamily: "Times-Bold", color: INK }}
+          style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: INK }}
         >
           {h}
         </Text>
@@ -73,7 +73,7 @@ function SatPdfTable({
             key={`c${r}-${c}`}
             x={x0 + c * colW + colW / 2 - cell.length * 2.4}
             y={y0 + (r + 1) * rowH + 11}
-            style={{ fontSize: 9, fontFamily: "Times-Roman", color: INK }}
+            style={{ fontSize: 9, ...DIAGRAM_FONT, color: INK }}
           >
             {cell}
           </Text>
@@ -83,7 +83,7 @@ function SatPdfTable({
         <Text
           x={100 - caption.length * 2.2}
           y={y0 + tableH + 14}
-          style={{ fontSize: 8, fontFamily: "Times-Roman", color: "#64748b" }}
+          style={{ fontSize: 8, ...DIAGRAM_FONT, color: "#64748b" }}
         >
           {caption}
         </Text>
@@ -144,28 +144,28 @@ function SatPdfRightTriangle({
       <Text
         x={bx - rArc - 16}
         y={by - 2}
-        style={{ fontSize: 12, fontFamily: "Times-Roman", color: INK }}
+        style={{ fontSize: 12, ...DIAGRAM_FONT, color: INK }}
       >
         {angleLabel}
       </Text>
       <Text
         x={(ax + bx) / 2 - 4}
         y={ay + 16}
-        style={{ fontSize: 11, fontFamily: "Times-Roman", color: INK }}
+        style={{ fontSize: 11, ...DIAGRAM_FONT, color: INK }}
       >
         {labels.adj}
       </Text>
       <Text
         x={bx + 8}
         y={(by + cy) / 2 + 4}
-        style={{ fontSize: 11, fontFamily: "Times-Roman", color: INK }}
+        style={{ fontSize: 11, ...DIAGRAM_FONT, color: INK }}
       >
         {labels.opp}
       </Text>
       <Text
         x={(ax + cx) / 2 - 12}
         y={(ay + cy) / 2 - 4}
-        style={{ fontSize: 11, fontFamily: "Times-Roman", color: INK }}
+        style={{ fontSize: 11, ...DIAGRAM_FONT, color: INK }}
       >
         {labels.hyp}
       </Text>
@@ -209,14 +209,14 @@ function SatPdfTriangle({
           <Text
             x={p.x + vOff[i].x - 3}
             y={p.y + vOff[i].y + 3}
-            style={{ fontSize: 12, fontFamily: "Times-Bold", color: INK }}
+            style={{ fontSize: 12, ...DIAGRAM_FONT_BOLD, color: INK }}
           >
             {vertices[i]}
           </Text>
           <Text
             x={inner[i].x - angleLabels[i].length * 2.4}
             y={inner[i].y + 3}
-            style={{ fontSize: 11, fontFamily: "Times-Roman", color: "#334155" }}
+            style={{ fontSize: 11, ...DIAGRAM_FONT, color: "#334155" }}
           >
             {angleLabels[i]}
           </Text>

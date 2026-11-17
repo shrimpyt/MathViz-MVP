@@ -1,4 +1,5 @@
 import React from 'react';
+import { DIAGRAM_FONT, DIAGRAM_FONT_BOLD } from "./diagrams/pdfDiagramFont";
 import { Svg, Circle, Line, Path, Text, Polygon, Rect, Ellipse } from '@react-pdf/renderer';
 import type {
   InscribedAngleSVGParams,
@@ -65,7 +66,7 @@ function Label({
     <Text
       x={x + offset.x - 3}
       y={y + offset.y + 3}
-      style={{ fontSize: 8, fontFamily: "Times-Roman", color: "#111111" }}
+      style={{ fontSize: 8, ...DIAGRAM_FONT, color: "#111111" }}
     >
       {text}
     </Text>
@@ -79,7 +80,7 @@ function CLabel({ c, text, size = 8 }: { c: { x: number; y: number }; text: stri
       x={c.x}
       y={baselineY(c.y, size)}
       textAnchor="middle"
-      style={{ fontSize: size, fontFamily: "Times-Roman", color: "#111111" }}
+      style={{ fontSize: size, ...DIAGRAM_FONT, color: "#111111" }}
     >
       {text}
     </Text>
@@ -365,7 +366,7 @@ export function PdfRightTriangleSVG({
           x={l.center.x}
           y={baselineY(l.center.y, FONT)}
           textAnchor="middle"
-          style={{ fontSize: FONT, fontFamily: "Times-Bold", color: "#111111" }}
+          style={{ fontSize: FONT, ...DIAGRAM_FONT_BOLD, color: "#111111" }}
         >
           {l.text}
         </Text>
@@ -397,7 +398,7 @@ export function PdfShadedSectorSVG({ sectorAngle, variant }: SectorSVGParams) {
         return (
           <Text
             x={mid.x - 5} y={mid.y + 3}
-            style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#111111" }}
+            style={{ fontSize: 9, ...DIAGRAM_FONT, color: "#111111" }}
           >
             {sectorAngle}°
           </Text>
@@ -587,7 +588,7 @@ export function PdfCongruenceSVG({
 
       <Text
         x={95} y={105}
-        style={{ fontSize: 12, fontFamily: "Times-Roman", color: "#64748b" }}
+        style={{ fontSize: 12, ...DIAGRAM_FONT, color: "#64748b" }}
       >
         ~
       </Text>
@@ -641,7 +642,7 @@ export function PdfCoordinateGridSVG({
       )}
       {coordinatePairLabels(p1, p2, 1).map((l, i) => (
         <Text key={`l${i}`} x={l.center.x} y={baselineY(l.center.y, 9)} textAnchor="middle"
-          style={{ fontSize: 9, fontFamily: "Times-Bold", color: "#111111" }}>
+          style={{ fontSize: 9, ...DIAGRAM_FONT_BOLD, color: "#111111" }}>
           {l.text}
         </Text>
       ))}
@@ -674,7 +675,7 @@ export function PdfCircleMeasurementSVG({
       <Circle cx={C} cy={C} r={2.5} fill="#111111" />
       {/* Radius line */}
       <Line x1={C} y1={C} x2={p0.x} y2={p0.y} stroke="#111111" strokeWidth={1} />
-      <Text x={(C + p0.x) / 2 - 8} y={(C + p0.y) / 2 - 6} style={{ fontSize: 10, fontFamily: "Times-Bold", color: "#111111" }}>
+      <Text x={(C + p0.x) / 2 - 8} y={(C + p0.y) / 2 - 6} style={{ fontSize: 10, ...DIAGRAM_FONT_BOLD, color: "#111111" }}>
         r={radius}
       </Text>
       {showAngle && end && (
@@ -695,7 +696,7 @@ export function PdfCircleMeasurementSVG({
           )}
           <Line x1={C} y1={C} x2={end.x} y2={end.y} stroke="#111111" strokeWidth={1} />
           <Text x={C + (R + 14) * Math.cos(midA) - 6} y={C - (R + 14) * Math.sin(midA) + 3}
-            style={{ fontSize: 9, fontFamily: "Times-Roman", color: "#64748b" }}>
+            style={{ fontSize: 9, ...DIAGRAM_FONT, color: "#64748b" }}>
             {angle}°
           </Text>
         </>

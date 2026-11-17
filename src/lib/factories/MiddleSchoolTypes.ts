@@ -242,9 +242,18 @@ export interface MSGeometryFigureParams {
     | "composite-stadium"
     | "composite-sailboat"
     | "composite-octagon"
-    | "net-cube";
+    | "net-cube"
+    // Two-shape and angle-mark figures, laid out by src/lib/msFigureLayout.ts
+    | "similar-triangles"
+    | "exterior-angle"
+    | "aa-similarity"
+    | "dilation-area";
   /** Named dimensions, e.g. { base: 8, height: 5 }. */
   dims: Record<string, number>;
+  /** Unit printed after each length label, e.g. "cm" (two-shape figures). */
+  unit?: string;
+  /** Names printed under the two shapes, e.g. ["Figure A", "Figure B"]. */
+  captions?: string[];
 }
 
 export interface MSScatterPlotParams {

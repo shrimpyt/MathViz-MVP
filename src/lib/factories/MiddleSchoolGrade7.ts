@@ -2860,7 +2860,15 @@ function makeScaleFactor7(rng: RNG): Grade7Problem {
         blanks: [{ label: "answer", answer: ans }],
       },
     ],
-    { kind: "scale-factor", sideA, sideB }
+    { kind: "scale-factor", sideA, sideB },
+    {
+      kind: "MSGeometryFigure",
+      figure: "similar-triangles",
+      variant: (sideA + sideB) % 8,
+      dims: { base1: sideA, base2: sideB },
+      unit: "cm",
+      captions: ["Figure A", "Figure B"],
+    }
   );
 }
 
@@ -2888,7 +2896,14 @@ function makeSimilarMissingSide(rng: RNG): Grade7Problem {
       },
     ],
     { kind: "missing-side", known1, known2, side1 },
-    null,
+    {
+      kind: "MSGeometryFigure",
+      figure: "similar-triangles",
+      variant: (known1 + side1) % 8,
+      dims: { base1: known1, base2: known2, side1 },
+      unit: "in.",
+      captions: ["First triangle", "Second triangle"],
+    },
     "inches"
   );
 }
@@ -2950,7 +2965,14 @@ function makeSimilarAreaScale(rng: RNG): Grade7Problem {
       },
     ],
     { kind: "area-scale", side1, side2, area1 },
-    null,
+    {
+      kind: "MSGeometryFigure",
+      figure: "similar-triangles",
+      variant: (side1 + area1) % 8,
+      dims: { base1: side1, base2: side2, area1 },
+      unit: "cm",
+      captions: ["Figure A", "Figure B"],
+    },
     "cm²"
   );
 }

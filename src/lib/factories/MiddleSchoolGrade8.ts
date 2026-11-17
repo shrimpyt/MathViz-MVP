@@ -1633,7 +1633,7 @@ function makeExteriorAngle(rng: RNG): Grade8Problem {
       { instruction: "So the exterior angle measures:", blanks: [{ label: "answer", answer: `${ext}°` }] },
     ],
     { kind: "exterior-angle", r1, r2 },
-    undefined,
+    { kind: "MSGeometryFigure", figure: "exterior-angle", variant: (r1 + r2) % 8, dims: { r1, r2 } },
     "degrees"
   );
 }
@@ -1659,7 +1659,7 @@ function makeAASimilarity(rng: RNG): Grade8Problem {
       },
     ],
     { kind: "aa-similarity", a, b },
-    undefined,
+    { kind: "MSGeometryFigure", figure: "aa-similarity", variant: (a + b) % 8, dims: { a, b } },
     "degrees"
   );
 }
@@ -1866,7 +1866,7 @@ function makeDilationEffectArea(rng: RNG): Grade8Problem {
         },
       ],
       { kind: "effect-area", shape, w, h, kn: k, kd: 1 },
-      undefined,
+      { kind: "MSGeometryFigure", figure: "dilation-area", dims: { w, h, k }, unit: "cm" },
       "cm²"
     );
   }
@@ -1886,7 +1886,7 @@ function makeDilationEffectArea(rng: RNG): Grade8Problem {
       },
     ],
     { kind: "effect-area", shape, b, h, kn: k, kd: 1 },
-    undefined,
+    { kind: "MSGeometryFigure", figure: "dilation-area", dims: { b, h, k, tri: 1 }, unit: "cm" },
     "cm²"
   );
 }

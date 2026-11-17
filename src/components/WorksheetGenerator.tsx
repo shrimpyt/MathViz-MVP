@@ -47,7 +47,10 @@ import {
 import ToastStack, { type Toast } from './ToastStack';
 import { color, icon, motion, radius, shadow, sx as ui } from '../core/tokens';
 import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/renderer';
+import type { DocumentProps } from '@react-pdf/renderer';
 import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
+import PdfPagePreview from './PdfPagePreview';
+import { usePreviewVisit } from '../lib/previewVisit';
 import { EuclidEngine } from './EuclidEngine';
 import type { ClassicalGroup } from './EuclidEngine';
 import AccommodationsPanel from './AccommodationsPanel';
@@ -69,7 +72,9 @@ import {
   isFreeTopic,
   isTopicAvailable,
   readLocalUsage,
+  splitTopicsForPlan,
   type AccountState,
+  type ExportGateReason,
 } from '../lib/plan';
 import { readBuilderSession, sessionStore, writeBuilderSession } from '../lib/builderSession';
 import {
@@ -204,7 +209,7 @@ function PanelSection({
           sx={{
             textTransform: 'uppercase',
             letterSpacing: 2,
-            color: 'rgba(148,163,184,0.85)',
+            color: color.textMuted,
             fontWeight: 700,
             fontSize: '0.66rem',
           }}
@@ -276,13 +281,17 @@ function draftSavedText(fileName: string, topics: number): string {
   return topics === 0 ? `${base} It has no topics selected yet.` : base;
 }
 
-function draftLoadedText(fileName: string, topics: number, skipped: number): string {
+function draftLoadedText(fileName: string, topics: number, skipped: number, proSkipped = 0): string {
   const t = `${topics} topic${topics === 1 ? '' : 's'}`;
   const skip =
     skipped > 0
       ? ` ${skipped} topic${skipped === 1 ? ' was' : 's were'} left out because ${skipped === 1 ? "it's" : "they're"} no longer offered.`
       : '';
-  return `Loaded ${fileName}: ${t}, with its settings and problem seed.${skip}`;
+  const pro =
+    proSkipped > 0
+      ? ` ${proSkipped} Pro topic${proSkipped === 1 ? ' was' : 's were'} left out, because Free covers Algebra I and middle-school topics.`
+      : '';
+  return `Loaded ${fileName}: ${t}, with its settings and problem seed.${skip}${pro}`;
 }
 
 // ── Draft file shape ──────────────────────────────────────────────────────────
@@ -739,9 +748,12 @@ export default function WorksheetGenerator() {
   const hasAccommodations = versionPlan.groups.length > 0;
 
   // ── Pay-gate verdict for the export button ──
-  const gateReason: 'accommodations' | 'limit' | null = isPro
+  const hasProTopics = splitTopicsForPlan(selectedTopicIds, isPro).proOnly.length > 0;
+  const gateReason: ExportGateReason | null = isPro
     ? null
-    : hasAccommodations
+    : hasProTopics
+      ? 'pro_topics'
+      : hasAccommodations
       ? 'accommodations'
       : account.used >= (account.limit ?? FREE_GENERATION_LIMIT)
         ? 'limit'
@@ -794,6 +806,29 @@ export default function WorksheetGenerator() {
     return labels.length > 0 ? labels.join(' · ') : frameworkMeta(framework).fallback;
   }, [selectedModules, framework]);
 
+  // Free never gets an answer key, in the file or in its preview.
+  const exportIncludesKey = isPro ? includeAnswerKey : false;
+
+  // One version's pages exactly as the accommodated export prints them.
+  type PlannedVersion = ReturnType<typeof planVersions>['base'];
+  const versionPages = (v: PlannedVersion) => (
+    <PdfVersionPages
+      key={v.versionId}
+      title={v.kind === 'base' ? title : `${title}, ${v.label}`}
+      questions={versionQuestions.get(v.versionId) ?? []}
+      advancedProblems={v.problems}
+      docType={docType}
+      standard={standards}
+      includeAnswerKey={exportIncludesKey}
+      classicalGroups={classicalGroups}
+      seed={seed}
+      presentation={v.presentation}
+      keyHeading={v.answerKeyLabel}
+      wordBank={v.wordBank}
+      mixedOrder={mixedOrder}
+    />
+  );
+
   // Combined multi-version PDF document for the accommodated export.
   // Base version + its key, then each group version + its key, with labeled
   // divider pages between versions. (Keys always derive from their own
@@ -810,28 +845,41 @@ export default function WorksheetGenerator() {
               <AccommodationDividerPage key={`div-${v.versionId}`} text={v.dividerText} />
             );
           }
-          nodes.push(
-            <PdfVersionPages
-              key={v.versionId}
-              title={v.kind === 'base' ? title : `${title}, ${v.label}`}
-              questions={versionQuestions.get(v.versionId) ?? []}
-              advancedProblems={v.problems}
-              docType={docType}
-              standard={standards}
-              includeAnswerKey={includeAnswerKey}
-              classicalGroups={classicalGroups}
-              seed={seed}
-              presentation={v.presentation}
-              keyHeading={v.answerKeyLabel}
-              wordBank={v.wordBank}
-              mixedOrder={mixedOrder}
-            />
-          );
+          nodes.push(versionPages(v));
           return nodes;
         })}
       </PdfRendererDocument>
     );
-  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, includeAnswerKey, classicalGroups, seed, mixedOrder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder]);
+
+  // The plain (no accommodations) export. The Review step previews this exact
+  // element and Export downloads the file the preview built.
+  const baseDocument = useMemo(
+    () => (
+      <PdfDocument
+        title={title}
+        questions={questions}
+        advancedProblems={advancedProblems}
+        docType={docType}
+        standard={standards}
+        includeAnswerKey={exportIncludesKey}
+        classicalGroups={classicalGroups}
+        seed={seed}
+        watermark={!isPro}
+        mixedOrder={mixedOrder}
+      />
+    ),
+    [title, questions, advancedProblems, docType, standards, exportIncludesKey, classicalGroups, seed, isPro, mixedOrder]
+  );
+
+  // What the Review step shows: the plain export, or (with accommodations)
+  // the selected version's pages exactly as they print in the combined file.
+  const previewDocument = useMemo(() => {
+    if (!hasAccommodations) return baseDocument;
+    return <PdfRendererDocument>{versionPages(activeVersion)}</PdfRendererDocument>;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAccommodations, baseDocument, activeVersion, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder]);
 
   // ── Draft save / load ──
   const saveDraft = () => {
@@ -911,9 +959,13 @@ export default function WorksheetGenerator() {
         }
         const settings = sanitizeSettings(d);
         if (!settings) throw new Error('Could not read that draft file.');
-        applySettings(settings);
+        // A draft saved on Pro (or edited by hand) can name Pro topics; Free
+        // keeps only its own, the same rule the topic picker applies.
+        const { allowed, proOnly } = splitTopicsForPlan(settings.topicIds, isPro);
+        applySettings({ ...settings, topicIds: allowed });
         const asked = Array.isArray(d.topicIds) ? d.topicIds.length : 0;
-        setDraftNotice(draftLoadedText(file.name, settings.topicIds.length, asked - settings.topicIds.length));
+        const retired = asked - settings.topicIds.length;
+        setDraftNotice(draftLoadedText(file.name, allowed.length, retired, proOnly.length));
       } catch (e) {
         setDraftError(e instanceof Error ? e.message : 'Could not read that draft file.');
       }
@@ -1176,8 +1228,7 @@ export default function WorksheetGenerator() {
           <StepReview
             hasAccommodations={hasAccommodations}
             accommodatedDocument={accommodatedDocument}
-            questions={questions}
-            advancedProblems={advancedProblems}
+            previewDocument={previewDocument}
             mixedOrder={mixedOrder}
             docType={docType}
             title={title}
@@ -1762,7 +1813,7 @@ function WizardTopbar({
                   borderRadius: `${radius.sm}px`,
                   minWidth: 0,
                   color: current ? color.text : color.textMuted,
-                  '&:hover': { color: color.text, backgroundColor: 'rgba(160, 168, 214, 0.06)' },
+                  '&:hover': { color: color.text, backgroundColor: color.hover },
                 }}
               >
                 <Box
@@ -2030,7 +2081,7 @@ const filterChipSx = (active: boolean) => ({
   color: active ? color.accent : color.textMuted,
   '&:hover': {
     borderColor: active ? color.accent : color.borderStrong,
-    backgroundColor: active ? color.accentSoft : 'rgba(160, 168, 214, 0.06)',
+    backgroundColor: active ? color.accentSoft : color.hover,
     color: active ? color.accent : color.text,
   },
 });
@@ -2050,7 +2101,7 @@ const segmentSx = (active: boolean) => ({
   transition: ui.transition('border-color, background-color, color'),
   '&:hover': {
     borderColor: active ? color.accent : color.borderStrong,
-    backgroundColor: active ? color.accentSoft : 'rgba(160, 168, 214, 0.06)',
+    backgroundColor: active ? color.accentSoft : color.hover,
     color: active ? color.accent : color.text,
   },
 });
@@ -2083,7 +2134,7 @@ function CountStepper({
     lineHeight: 1,
     color: color.textMuted,
     border: `1px solid ${color.border}`,
-    '&:hover': { borderColor: color.borderStrong, color: color.text, backgroundColor: 'rgba(160, 168, 214, 0.06)' },
+    '&:hover': { borderColor: color.borderStrong, color: color.text, backgroundColor: color.hover },
     '&.Mui-disabled': { color: color.textSubtle, borderColor: color.border, opacity: 0.5 },
   } as const;
   return (
@@ -2829,8 +2880,7 @@ function StepAccommodations({
 function StepReview({
   hasAccommodations,
   accommodatedDocument,
-  questions,
-  advancedProblems,
+  previewDocument,
   mixedOrder,
   docType,
   title,
@@ -2866,8 +2916,8 @@ function StepReview({
 }: {
   hasAccommodations: boolean;
   accommodatedDocument: React.ReactElement | null;
-  questions: ReturnType<typeof problemToQuestion>[];
-  advancedProblems: MathProblem[];
+  /** What the preview draws: the plain export, or the selected version's pages. */
+  previewDocument: React.ReactElement;
   /** Mixed-topic order: one list, no section headings. */
   mixedOrder: boolean;
   docType: DocumentType;
@@ -2900,11 +2950,39 @@ function StepReview({
   moduleProblemCounts: number[];
   errorBoundaryKey: string;
   isPro: boolean;
-  gateReason: 'accommodations' | 'limit' | null;
+  gateReason: ExportGateReason | null;
   onExportCount: () => void;
   usageNote: string | null;
 }) {
   void fileRef;
+  // Anonymous timing for this visit to Review (see lib/previewVisit.ts).
+  const previewVisit = usePreviewVisit({
+    docType,
+    versions: hasAccommodations ? versionPlan.all().length : 1,
+  });
+  // The file the preview built. Without accommodations it is exactly the
+  // export, so Export downloads these bytes instead of rendering again.
+  const [previewFile, setPreviewFile] = useState<{ blob: Blob | null; failed: boolean }>({ blob: null, failed: false });
+  const onPreviewReady = React.useCallback((blob: Blob | null, failed?: boolean) => {
+    setPreviewFile({ blob, failed: !!failed });
+  }, []);
+  const exportFileName = hasAccommodations
+    ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
+    : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+  const downloadPreviewFile = () => {
+    const blob = previewFile.blob;
+    if (!blob) return;
+    onExportCount();
+    previewVisit.exported();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = exportFileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  };
   // Export scope guard: exactly which lessons are in the packet, grouped by
   // course, so a mixed selection can never slip into an export unnoticed.
   const problemsWord = (n: number) => `${n} problem${n === 1 ? '' : 's'}`;
@@ -3020,36 +3098,24 @@ function StepReview({
             variant="contained"
             size="large"
             startIcon={<FileDown size={icon.size} strokeWidth={icon.strokeWidth} />}
-            onClick={onGatedExport}
+            onClick={() => {
+              previewVisit.gateHit();
+              onGatedExport();
+            }}
           >
             Export PDF
           </Button>
-        ) : mounted && selectedModules.length > 0 ? (
-          <Box onClick={() => onExportCount()}>
+        ) : mounted && selectedModules.length > 0 && hasAccommodations && accommodatedDocument ? (
+          // Accommodated: one combined file with every version, built on its own.
+          <Box
+            onClick={() => {
+              onExportCount();
+              previewVisit.exported();
+            }}
+          >
           <PDFDownloadLink
-            document={
-              hasAccommodations && accommodatedDocument ? (
-                accommodatedDocument
-              ) : (
-                <PdfDocument
-                  title={title}
-                  questions={questions}
-                  advancedProblems={advancedProblems}
-                  docType={docType}
-                  standard={standards}
-                  includeAnswerKey={isPro ? includeAnswerKey : false}
-                  classicalGroups={classicalGroups}
-                  seed={seed}
-                  watermark={!isPro}
-                  mixedOrder={mixedOrder}
-                />
-              )
-            }
-            fileName={
-              hasAccommodations
-                ? `${title.replace(/\s+/g, '_').toLowerCase()}-accommodated.pdf`
-                : `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`
-            }
+            document={accommodatedDocument as React.ReactElement<DocumentProps>}
+            fileName={exportFileName}
             style={{ textDecoration: 'none' }}
           >
             {({ loading }: { loading: boolean }) => (
@@ -3064,6 +3130,17 @@ function StepReview({
             )}
           </PDFDownloadLink>
           </Box>
+        ) : mounted && selectedModules.length > 0 ? (
+          // The preview's own file: what you see is what downloads.
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<FileDown size={icon.size} strokeWidth={icon.strokeWidth} />}
+            disabled={!previewFile.blob}
+            onClick={downloadPreviewFile}
+          >
+            {previewFile.blob ? 'Export PDF' : previewFile.failed ? 'PDF failed to build' : 'Preparing PDF…'}
+          </Button>
         ) : null}
       </Box>
 
@@ -3108,9 +3185,11 @@ function StepReview({
           }
           sx={{ mx: 'auto', mb: 2, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
         >
-          {gateReason === 'accommodations'
-            ? 'Accommodated versions (IEP groups) export with Pro, the accommodations are the Pro feature.'
-            : 'You have used your free exports for this month. Pro is unlimited.'}
+          {gateReason === 'pro_topics'
+            ? 'Some selected topics are part of Pro. Remove them to export on Free, or get Pro.'
+            : gateReason === 'accommodations'
+              ? 'Accommodated versions (IEP groups) export with Pro, the accommodations are the Pro feature.'
+              : 'You have used your free exports for this month. Pro is unlimited.'}
         </Alert>
       )}
       {usageNote && !gateReason && (
@@ -3198,7 +3277,12 @@ function StepReview({
           </Alert>
         ) : (
           <PreviewErrorBoundary key={errorBoundaryKey}>
-            <ScaledPreview>
+            <PdfPagePreview
+              document={previewDocument}
+              onReady={hasAccommodations ? undefined : onPreviewReady}
+              onRendered={previewVisit.rendered}
+              fallback={
+                <ScaledPreview>
             <EuclidEngine
               problems={activeVersion.problems}
               mode={toOutputMode(docType)}
@@ -3211,7 +3295,9 @@ function StepReview({
               wordBank={activeVersion.wordBank}
               mixedOrder={mixedOrder}
             />
-            </ScaledPreview>
+                </ScaledPreview>
+              }
+            />
           </PreviewErrorBoundary>
         )}
       </Box>
