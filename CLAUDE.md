@@ -33,6 +33,7 @@ Hand long runs to the `test-runner` agent so only failures come back.
 - Worker (sign-in, plans, Stripe): `npx tsx tests/paygate/run-worker-tests.ts`
   and the other `tests/paygate/run-worker-*.ts`
 - Saved worksheets: `npx tsx tests/saved-worksheets.ts`
+- Topic picker and taught shelf: `npx tsx tests/topic-picker.ts`, `tests/taught-shelf.ts`
 
 ## Ship rules
 - `main` auto-deploys both the site (Cloudflare Pages) and the API worker.

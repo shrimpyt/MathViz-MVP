@@ -281,3 +281,53 @@ export function renameSavedWorksheet(id: string, name: string): Promise<LibraryW
 export function deleteSavedWorksheet(id: string): Promise<LibraryWrite<true>> {
   return libraryPost("/worksheets/delete", { id }, () => true as const);
 }
+
+// ── Taught shelf ─────────────────────────────────────────────────────────────
+// Which lessons this teacher has taught, saved to their account. Exports add
+// to it on the server (the /event call), so the app only calls mark for the
+// "Mark taught" button.
+
+export interface TaughtLesson {
+  topicId: string;
+  taughtAt: number; // unix seconds, first time
+  lastAt: number; // unix seconds, latest time
+}
+
+export type TaughtShelfResult =
+  | { status: "ok"; items: TaughtLesson[] }
+  | { status: "signed-out" | "rate_limited" | "unavailable" };
+
+/** The signed-in teacher's taught lessons, newest first. */
+export async function fetchTaughtShelf(): Promise<TaughtShelfResult> {
+  try {
+    const res = await fetch(`${API_BASE}/taught`, { credentials: "include" });
+    if (res.status === 401) return { status: "signed-out" };
+    if (res.status === 429) return { status: "rate_limited" };
+    if (!res.ok) return { status: "unavailable" };
+    const body = (await res.json()) as { items?: unknown };
+    const items = Array.isArray(body.items)
+      ? body.items.filter(
+          (i): i is TaughtLesson =>
+            !!i &&
+            typeof (i as TaughtLesson).topicId === "string" &&
+            typeof (i as TaughtLesson).taughtAt === "number" &&
+            typeof (i as TaughtLesson).lastAt === "number",
+        )
+      : [];
+    return { status: "ok", items };
+  } catch {
+    return { status: "unavailable" };
+  }
+}
+
+/** Put lessons on the shelf as taught now. */
+export function markTaughtLessons(topicIds: string[]): Promise<LibraryWrite<number>> {
+  return libraryPost("/taught/mark", { topicIds }, (b) =>
+    typeof b.at === "number" ? b.at : Math.floor(Date.now() / 1000),
+  );
+}
+
+/** Take lessons off the shelf. */
+export function removeTaughtLessons(topicIds: string[]): Promise<LibraryWrite<true>> {
+  return libraryPost("/taught/remove", { topicIds }, () => true as const);
+}
