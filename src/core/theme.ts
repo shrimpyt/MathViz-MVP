@@ -1,13 +1,13 @@
 import { createTheme } from '@mui/material/styles';
 import { color, font, motion, radius, shadow } from './tokens';
 
-// Euclid Engine site theme: indigo-tinted dark neutrals with one indigo
-// accent, Nunito for every piece of UI text, hierarchy by weight and muted
+// Euclid Engine site theme, the "Notebook" look: sage-tinted light
+// neutrals with one plum accent, Nunito for every piece of UI text, hierarchy by weight and muted
 // color rather than size. The printed worksheet has its own styles and is
 // untouched by this file.
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: { main: color.accent, light: color.accentHover, contrastText: color.accentContrast },
     // Kept equal to primary so the site has one accent color.
     secondary: { main: color.accent, light: color.accentHover, contrastText: color.accentContrast },
@@ -16,9 +16,9 @@ const theme = createTheme({
     text: { primary: color.text, secondary: color.textMuted, disabled: color.textSubtle },
     divider: color.border,
     action: {
-      hover: 'rgba(160, 168, 214, 0.06)',
+      hover: color.hover,
       selected: color.accentSoft,
-      disabledBackground: 'rgba(160, 168, 214, 0.08)',
+      disabledBackground: color.disabledBg,
       disabled: color.textSubtle,
     },
   },
@@ -78,16 +78,16 @@ const theme = createTheme({
           color: color.accentContrast,
           boxShadow: shadow.sm,
           '&:hover': { backgroundColor: color.accentHover, boxShadow: shadow.sm },
-          '&.Mui-disabled': { backgroundColor: 'rgba(160, 168, 214, 0.08)', color: color.textSubtle, boxShadow: 'none' },
+          '&.Mui-disabled': { backgroundColor: color.disabledBg, color: color.textSubtle, boxShadow: 'none' },
         },
         outlined: {
           borderColor: color.borderStrong,
           color: color.text,
-          '&:hover': { borderColor: 'rgba(160, 168, 214, 0.36)', backgroundColor: 'rgba(160, 168, 214, 0.06)' },
+          '&:hover': { borderColor: color.track, backgroundColor: color.hover },
         },
         text: {
           color: color.textMuted,
-          '&:hover': { color: color.text, backgroundColor: 'rgba(160, 168, 214, 0.06)' },
+          '&:hover': { color: color.text, backgroundColor: color.hover },
         },
       },
     },
@@ -96,7 +96,7 @@ const theme = createTheme({
         root: {
           borderRadius: radius.sm,
           color: color.textMuted,
-          '&:hover': { color: color.text, backgroundColor: 'rgba(160, 168, 214, 0.08)' },
+          '&:hover': { color: color.text, backgroundColor: color.hover },
         },
       },
     },
@@ -151,34 +151,34 @@ const theme = createTheme({
     MuiSwitch: {
       styleOverrides: {
         switchBase: {
-          '&.Mui-checked': { color: color.text },
+          '&.Mui-checked': { color: color.surface },
           '&.Mui-checked + .MuiSwitch-track': { backgroundColor: color.accent, opacity: 1 },
         },
-        track: { backgroundColor: 'rgba(160, 168, 214, 0.28)', opacity: 1 },
+        track: { backgroundColor: color.track, opacity: 1 },
       },
     },
     MuiTooltip: {
       defaultProps: { enterDelay: 300 },
       styleOverrides: {
         tooltip: {
-          backgroundColor: color.surfaceHover,
-          color: color.text,
-          border: `1px solid ${color.border}`,
+          backgroundColor: color.ink,
+          color: color.surface,
+          border: 'none',
           boxShadow: shadow.md,
           borderRadius: radius.sm,
           fontSize: '0.75rem',
           fontWeight: 500,
         },
-        arrow: { color: color.surfaceHover },
+        arrow: { color: color.ink },
       },
     },
     MuiAlert: {
       styleOverrides: {
         root: { borderRadius: radius.md, border: `1px solid ${color.border}`, alignItems: 'center' },
-        standardInfo: { backgroundColor: 'rgba(129, 140, 248, 0.08)', color: color.text, '& .MuiAlert-icon': { color: color.accent } },
-        standardSuccess: { backgroundColor: 'rgba(74, 222, 128, 0.08)', color: color.text },
-        standardWarning: { backgroundColor: 'rgba(251, 191, 36, 0.08)', color: color.text },
-        standardError: { backgroundColor: 'rgba(248, 113, 113, 0.08)', color: color.text },
+        standardInfo: { backgroundColor: color.accentSoft, color: color.text, '& .MuiAlert-icon': { color: color.accent } },
+        standardSuccess: { backgroundColor: 'rgba(22, 128, 61, 0.08)', color: color.text },
+        standardWarning: { backgroundColor: 'rgba(181, 110, 0, 0.10)', color: color.text },
+        standardError: { backgroundColor: 'rgba(180, 35, 24, 0.08)', color: color.text },
       },
     },
   },

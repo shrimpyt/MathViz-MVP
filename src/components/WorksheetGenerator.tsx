@@ -1743,108 +1743,60 @@ function WizardTopbar({
         display: 'flex',
         alignItems: 'center',
         gap: 2,
-        px: { xs: 2, md: 3 },
+        px: { xs: 2, md: 4 },
         py: 1,
         minHeight: 64,
-        bgcolor: color.bgRaised,
-        borderBottom: `1px solid ${color.border}`,
+        bgcolor: color.bg,
         flexShrink: 0,
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-        <Box
-          aria-hidden
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: `${radius.sm}px`,
-            bgcolor: color.accent,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 700,
-            fontSize: 16,
-            color: color.accentContrast,
-          }}
-        >
-          E
-        </Box>
-        <Typography sx={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-          Euclid <Box component="span" sx={{ color: color.textMuted, fontWeight: 500 }}>Engine</Box>
-        </Typography>
-      </Box>
-      <Typography
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          color: color.textMuted,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {step + 1} / 4 · {WIZARD_STEPS[step]}
+      <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        Euclid Engine
       </Typography>
 
       <Box
         component="nav"
         aria-label="Steps"
-        sx={{
-          display: { xs: 'none', md: 'flex' },
-          alignItems: 'center',
-          gap: 1,
-          mx: 'auto',
-        }}
+        sx={{ display: 'flex', alignItems: 'center', gap: 1, mx: 'auto' }}
       >
         {WIZARD_STEPS.map((label, i) => {
           const current = i === step;
-          const done = i < step;
           return (
-            <React.Fragment key={label}>
-              {i > 0 && <Box aria-hidden sx={{ width: 24, height: '1px', bgcolor: color.borderStrong }} />}
-              <Button
-                onClick={() => goTo(i)}
-                aria-current={current ? 'step' : undefined}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: `${radius.sm}px`,
-                  minWidth: 0,
-                  color: current ? color.text : color.textMuted,
-                  '&:hover': { color: color.text, backgroundColor: color.hover },
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    flexShrink: 0,
-                    backgroundColor: current ? color.accent : 'transparent',
-                    color: current ? color.accentContrast : color.textMuted,
-                    border: current ? `1px solid ${color.accent}` : `1px solid ${color.borderStrong}`,
-                    transition: ui.transition('background-color, border-color, color'),
-                  }}
-                >
-                  {done ? <Check size={icon.size} strokeWidth={icon.strokeWidth} aria-label="done" /> : i + 1}
-                </Box>
-                <Typography component="span" sx={{ fontSize: '0.8125rem', fontWeight: current ? 600 : 500, color: 'inherit' }}>
-                  {label}
-                </Typography>
-              </Button>
-            </React.Fragment>
+            <Box
+              key={label}
+              component="button"
+              type="button"
+              onClick={() => goTo(i)}
+              aria-current={current ? 'step' : undefined}
+              aria-label={`Step ${i + 1}, ${label}`}
+              title={label}
+              sx={{
+                display: 'block',
+                p: 0,
+                border: 0,
+                cursor: 'pointer',
+                width: current ? 40 : 24,
+                height: 8,
+                borderRadius: `${radius.pill}px`,
+                bgcolor: current ? color.accent : color.inkMuted,
+                transition: ui.transition('width, background-color'),
+                '&:hover': { bgcolor: current ? color.accentHover : color.borderStrong },
+                '&:focus-visible': { outline: `2px solid ${color.accent}`, outlineOffset: 2 },
+              }}
+            />
           );
         })}
+        <Typography
+          component="span"
+          sx={{ ml: 1, fontSize: '0.875rem', color: color.textMuted, whiteSpace: 'nowrap' }}
+        >
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Step </Box>
+          {step + 1} of 4
+          <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}> · {WIZARD_STEPS[step]}</Box>
+        </Typography>
       </Box>
 
-      <Box sx={{ ml: { xs: 'auto', md: 0 } }}>{accountControl}</Box>
+      <Box sx={{ flexShrink: 0 }}>{accountControl}</Box>
     </Box>
   );
 }
@@ -1860,59 +1812,81 @@ function WizardFooter({
   canContinue: boolean;
   summary: string;
 }) {
+  // Notebook look: one dark bar floating over the page, centered on the
+  // column, holding Back, the running summary and the one primary action.
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        px: { xs: 2, md: 4 },
-        py: 2,
-        bgcolor: color.bgRaised,
-        borderTop: `1px solid ${color.border}`,
-        flexShrink: 0,
-      }}
-    >
-      {step > 0 ? (
-        <Button
-          onClick={() => setStep(step - 1)}
-          startIcon={<ArrowLeft size={icon.size} strokeWidth={icon.strokeWidth} />}
-          sx={{ px: 2, minWidth: 128, justifyContent: 'flex-start' }}
-        >
-          Back
-        </Button>
-      ) : (
-        <Box sx={{ width: 128 }} />
-      )}
-      <Typography
+    <Box sx={{ px: { xs: 2, md: 3 }, pb: { xs: 2, md: 3 }, pt: 1, bgcolor: color.bg, flexShrink: 0 }}>
+      <Box
         sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          maxWidth: 760,
           mx: 'auto',
-          color: color.textMuted,
-          fontWeight: 500,
-          fontSize: '0.875rem',
-          textAlign: 'center',
+          minHeight: 64,
+          py: 1,
+          pr: 1,
+          pl: step > 0 ? 1 : 3,
+          bgcolor: color.ink,
+          color: color.accentContrast,
+          borderRadius: '24px',
+          boxShadow: shadow.lg,
         }}
       >
-        {summary}
-      </Typography>
-      {step < 3 ? (
-      <Tooltip title={canContinue ? '' : 'Pick at least one topic to continue'} arrow>
-        <span>
-          <Button
-            variant="contained"
-            size="large"
-            disabled={!canContinue}
-            onClick={() => setStep(step + 1)}
-            endIcon={<ArrowRight size={icon.size} strokeWidth={icon.strokeWidth} />}
-            sx={{ minWidth: 128 }}
-          >
-            Continue
-          </Button>
-        </span>
-      </Tooltip>
-      ) : (
-        <Box sx={{ width: 128 }} />
-      )}
+        {step > 0 && (
+          <Tooltip title="Back" arrow>
+            <IconButton
+              onClick={() => setStep(step - 1)}
+              aria-label={`Back to ${WIZARD_STEPS[step - 1].toLowerCase()}`}
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '16px',
+                color: color.inkMuted,
+                '&:hover': { color: color.accentContrast, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+              }}
+            >
+              <ArrowLeft size={icon.size} strokeWidth={icon.strokeWidth} />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Typography
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            fontWeight: 700,
+            fontSize: '0.9375rem',
+            color: color.accentContrast,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {summary}
+        </Typography>
+        {step < 3 && (
+          <Tooltip title={canContinue ? '' : 'Pick at least one topic to continue'} arrow>
+            <span>
+              <Button
+                variant="contained"
+                size="large"
+                disabled={!canContinue}
+                onClick={() => setStep(step + 1)}
+                endIcon={<ArrowRight size={icon.size} strokeWidth={icon.strokeWidth} />}
+                sx={{
+                  minWidth: 128,
+                  height: 48,
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                  '&.Mui-disabled': { color: 'rgba(255, 255, 255, 0.45)', backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+                }}
+              >
+                Continue
+              </Button>
+            </span>
+          </Tooltip>
+        )}
+      </Box>
     </Box>
   );
 }
@@ -1932,10 +1906,14 @@ const stepScrollSx = {
 function StepHeading({ title, sub }: { title: string; sub: string }) {
   return (
     <Box sx={{ textAlign: 'center', mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <Typography variant="h4" component="h2" sx={{ mb: 1 }}>
+      <Typography
+        variant="h4"
+        component="h2"
+        sx={{ mb: 1, fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.125rem' }, lineHeight: 1.15, letterSpacing: '-0.03em' }}
+      >
         {title}
       </Typography>
-      <Typography sx={{ color: color.textMuted, fontWeight: 400, fontSize: '0.9375rem', maxWidth: '62ch' }}>
+      <Typography sx={{ color: color.textMuted, fontWeight: 400, fontSize: '1rem', maxWidth: '52ch' }}>
         {sub}
       </Typography>
     </Box>
@@ -2041,15 +2019,15 @@ const topicCardSx = (checked: boolean) => ({
   textAlign: 'left',
   gap: 1,
   p: 2,
-  borderRadius: `${radius.md}px`,
-  border: '1px solid',
+  borderRadius: '20px',
+  border: '1.5px solid',
   borderColor: checked ? color.accent : color.border,
-  backgroundColor: checked ? color.accentSoft : color.surface,
-  boxShadow: checked ? `0 0 0 1px ${color.accent}` : 'none',
+  backgroundColor: color.surface,
+  boxShadow: checked ? 'none' : shadow.sm,
   transition: ui.transition('border-color, background-color, box-shadow'),
   '&:hover': {
     borderColor: checked ? color.accent : color.borderStrong,
-    backgroundColor: checked ? color.accentSoft : color.surfaceHover,
+    backgroundColor: color.surface,
   },
   '&.Mui-disabled': {
     opacity: 0.45,
@@ -2074,15 +2052,15 @@ const tagSx = {
 
 // Course filters and the Available only toggle.
 const filterChipSx = (active: boolean) => ({
-  fontWeight: active ? 600 : 500,
-  border: '1px solid',
-  borderColor: active ? color.accent : color.border,
-  backgroundColor: active ? color.accentSoft : 'transparent',
-  color: active ? color.accent : color.textMuted,
+  height: 36,
+  px: 0.5,
+  fontWeight: active ? 700 : 600,
+  border: 0,
+  backgroundColor: active ? color.ink : 'transparent',
+  color: active ? color.accentContrast : color.textMuted,
   '&:hover': {
-    borderColor: active ? color.accent : color.borderStrong,
-    backgroundColor: active ? color.accentSoft : color.hover,
-    color: active ? color.accent : color.text,
+    backgroundColor: active ? color.ink : color.hover,
+    color: active ? color.accentContrast : color.text,
   },
 });
 
@@ -2553,7 +2531,12 @@ function StepTopics({
               : `Search ${subjectFilter}: a skill or standard`
           }
           aria-label="Search topics"
-          sx={{ width: '100%', maxWidth: 560, mb: 2 }}
+          sx={{
+            width: '100%',
+            maxWidth: 712,
+            mb: 2,
+            '& .MuiOutlinedInput-root': { borderRadius: `${radius.pill}px`, height: 52, px: 1, boxShadow: shadow.sm },
+          }}
           slotProps={{
             input: {
               startAdornment: (

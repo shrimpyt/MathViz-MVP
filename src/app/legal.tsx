@@ -30,7 +30,7 @@ export function LegalShell({
         <p style={{ color: color.textMuted, fontWeight: 400, margin: "0 0 32px" }}>
           Last updated: November 10, 2026
         </p>
-        <div style={{ lineHeight: 1.7, fontSize: "0.9375rem", color: "#d3d6e4" }}>{children}</div>
+        <div style={{ lineHeight: 1.7, fontSize: "0.9375rem", color: color.text }}>{children}</div>
       </div>
     </main>
   );

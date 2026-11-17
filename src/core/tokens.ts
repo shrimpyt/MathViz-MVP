@@ -1,27 +1,35 @@
 // Design tokens for the site chrome (not the printed worksheet).
 //
-// One accent, used only for the primary action, the selected/active state,
-// focus rings and key links. Everything else is an indigo-tinted neutral.
-// Spacing is the MUI 8px unit: use 1, 2, 3, 4 and 6 (8, 16, 24, 32, 48px).
-// Radii nest: an element inside a padded container gets the container's
-// radius minus the padding, so the corners stay concentric.
+// The "Notebook" look: a soft sage page, white sheets, deep green-black ink
+// and one plum accent. The accent is used only for the primary action, the
+// selected/active state, focus rings and key links. Everything else is a
+// green-tinted neutral. Spacing is the MUI 8px unit: use 1, 2, 3, 4 and 6
+// (8, 16, 24, 32, 48px). Radii nest: an element inside a padded container
+// gets the container's radius minus the padding, so the corners stay
+// concentric.
 
 export const color = {
-  bg: '#13151d',
-  bgRaised: '#171a24',
-  surface: '#1b1e2a',
-  surfaceHover: '#212535',
-  border: 'rgba(160, 168, 214, 0.12)',
-  borderStrong: 'rgba(160, 168, 214, 0.22)',
-  text: '#eef0f7',
-  textMuted: '#9aa0be',
-  textSubtle: '#6c7290',
-  accent: '#818cf8',
-  accentHover: '#9aa3fa',
-  accentContrast: '#13151d',
-  accentSoft: 'rgba(129, 140, 248, 0.12)',
-  accentRing: 'rgba(129, 140, 248, 0.45)',
-  danger: '#f87171',
+  bg: '#eef3f0',
+  bgRaised: '#f6f9f7',
+  surface: '#ffffff',
+  surfaceHover: '#f5f8f6',
+  border: 'rgba(27, 43, 38, 0.08)',
+  borderStrong: 'rgba(27, 43, 38, 0.16)',
+  text: '#1b2b26',
+  textMuted: '#4d605a',
+  textSubtle: '#5e6f69',
+  hover: 'rgba(27, 43, 38, 0.05)',
+  track: 'rgba(27, 43, 38, 0.18)',
+  disabledBg: 'rgba(27, 43, 38, 0.06)',
+  // The dark bar that holds the summary and Continue.
+  ink: '#1b2b26',
+  inkMuted: '#c9d6d0',
+  accent: '#6d3b7a',
+  accentHover: '#5a2f66',
+  accentContrast: '#ffffff',
+  accentSoft: 'rgba(109, 59, 122, 0.08)',
+  accentRing: 'rgba(109, 59, 122, 0.45)',
+  danger: '#b42318',
 } as const;
 
 // Radii, outer to inner. Card (24) - padding (16) = control (8).
@@ -35,9 +43,9 @@ export const radius = {
 
 // Soft layered elevation: a tight contact shadow plus wider, fainter ambient ones.
 export const shadow = {
-  sm: '0 1px 1px rgba(4, 5, 12, 0.18), 0 2px 4px rgba(4, 5, 12, 0.14)',
-  md: '0 1px 2px rgba(4, 5, 12, 0.20), 0 4px 8px rgba(4, 5, 12, 0.16), 0 12px 24px rgba(4, 5, 12, 0.14)',
-  lg: '0 2px 4px rgba(4, 5, 12, 0.20), 0 8px 16px rgba(4, 5, 12, 0.18), 0 24px 48px rgba(4, 5, 12, 0.22)',
+  sm: '0 1px 2px rgba(27, 43, 38, 0.04), 0 2px 6px rgba(27, 43, 38, 0.04)',
+  md: '0 1px 2px rgba(27, 43, 38, 0.05), 0 4px 10px rgba(27, 43, 38, 0.05), 0 12px 24px rgba(27, 43, 38, 0.05)',
+  lg: '0 2px 4px rgba(27, 43, 38, 0.12), 0 16px 40px rgba(27, 43, 38, 0.18)',
 } as const;
 
 // Motion: short, ease-out in, a little faster out.

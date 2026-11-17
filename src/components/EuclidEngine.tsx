@@ -310,7 +310,7 @@ export function EuclidEngine({
 
       {/* US Letter page */}
       <div
-        className="bg-white shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden"
+        className="bg-white shadow-[0_2px_4px_rgba(27,43,38,0.12),0_16px_40px_rgba(27,43,38,0.18)] rounded-sm overflow-hidden"
         style={pageStyle}
       >
         <DocumentHeader mode={mode} title={title} />

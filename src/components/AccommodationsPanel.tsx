@@ -206,7 +206,7 @@ export default function AccommodationsPanel({
               aria-label={`Remove ${g.label}`}
               onClick={() => onRemoveGroup(list.id, g.id)}
               data-testid={`accom-group-delete-${g.id}`}
-              sx={{ '&:hover': { color: color.danger, backgroundColor: 'rgba(248, 113, 113, 0.08)' } }}
+              sx={{ '&:hover': { color: color.danger, backgroundColor: 'rgba(180, 35, 24, 0.08)' } }}
             >
               <Trash2 size={icon.size} strokeWidth={icon.strokeWidth} />
             </IconButton>

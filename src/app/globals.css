@@ -2,11 +2,11 @@
 
 @theme {
   /* Site chrome tokens; the same values live in src/core/tokens.ts. */
-  --color-accent: #818cf8;
-  --color-night: #13151d;
-  --color-card: #1b1e2a;
-  --color-line: rgba(160, 168, 214, 0.12);
-  --color-muted: #9aa0be;
+  --color-accent: #6d3b7a;
+  --color-night: #eef3f0;
+  --color-card: #ffffff;
+  --color-line: rgba(27, 43, 38, 0.08);
+  --color-muted: #4d605a;
   --font-friendly: var(--font-nunito), sans-serif;
   /* Faces for the worksheet preview (the paper) only. The site's own UI
      uses Nunito alone. */
@@ -15,13 +15,13 @@
 }
 
 :root {
-  --background: #13151d;
-  --foreground: #eef0f7;
-  --accent: #818cf8;
-  --card: #1b1e2a;
-  --line: rgba(160, 168, 214, 0.12);
-  --muted: #9aa0be;
-  color-scheme: dark;
+  --background: #eef3f0;
+  --foreground: #1b2b26;
+  --accent: #6d3b7a;
+  --card: #ffffff;
+  --line: rgba(27, 43, 38, 0.08);
+  --muted: #4d605a;
+  color-scheme: light;
 }
 
 body {
@@ -43,12 +43,12 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(160, 168, 214, 0.18);
+  background: rgba(27, 43, 38, 0.16);
   border-radius: 8px;
-  border: 2px solid #13151d;
+  border: 2px solid #eef3f0;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(160, 168, 214, 0.32);
+  background: rgba(27, 43, 38, 0.28);
 }
 
 @media (prefers-reduced-motion: reduce) {
