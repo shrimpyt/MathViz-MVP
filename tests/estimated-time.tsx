@@ -21,6 +21,7 @@ import {
   CLASS_PERIOD_MINUTES,
   TIME_ON_SHEET_PREF_KEY,
   aboutMinutes,
+  aboutMinutesShort,
   estimateWorksheet,
   estimatedTimeLine,
   overPeriodNote,
@@ -58,6 +59,8 @@ ck("a tiny sheet still says 5", roundToFive(1.2) === 5);
 ck("wording", estimatedTimeLine(25) === "Estimated time: about 25 minutes for a typical student");
 ck("student wording", studentTimeLine(25) === "Estimated time: about 25 minutes");
 ck("hours wording", aboutMinutes(70) === "about 1 hour 10 minutes" && aboutMinutes(120) === "about 2 hours");
+ck("short wording matches the long one",
+  aboutMinutesShort(25) === "about 25 min" && aboutMinutesShort(60) === "about 1 hr" && aboutMinutesShort(70) === "about 1 hr 10 min");
 ck("45 is one period, no note", overPeriodNote(45) === null && teacherTimeLine(45) === estimatedTimeLine(45));
 ck("50 gets the period note", overPeriodNote(50) === "That runs longer than one 45-minute class period.");
 ck("key line names the period", teacherTimeLine(50).endsWith("longer than one 45-minute class period"));

@@ -163,9 +163,12 @@ export function aboutMinutes(minutes: number): string {
   return m === 0 ? `about ${hours}` : `about ${hours} ${m} minutes`;
 }
 
-/** Short form for the builder's bottom bar: "about 25 min". */
+/** Short form for the builder's bottom bar: "about 25 min", "about 1 hr 10 min". */
 export function aboutMinutesShort(minutes: number): string {
-  return `about ${minutes} min`;
+  if (minutes < 60) return `about ${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `about ${h} hr` : `about ${h} hr ${m} min`;
 }
 
 /** Teacher copy and builder: "Estimated time: about 25 minutes for a typical student". */
