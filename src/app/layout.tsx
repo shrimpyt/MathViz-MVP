@@ -21,6 +21,16 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${playfair.variable} ${nunito.variable} h-full antialiased`}
     >
+      <head>
+        {/* Throwaway probe branch, never merged: ?probe=360 lays the page out
+            as if the screen were 360 CSS px wide. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var m=/[?&]probe=(\\d+)/.exec(location.search);if(m){sessionStorage.setItem('probe',m[1]);}var w=+(sessionStorage.getItem('probe')||0);if(w){document.documentElement.style.zoom=String(window.innerWidth/w);}}catch(e){}",
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
