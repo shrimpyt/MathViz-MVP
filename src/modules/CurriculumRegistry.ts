@@ -23,6 +23,7 @@ import {
   proofCircleTheoremProblems,
   proofElementsProblems,
   proofQuadrilateralProblems,
+  proofSpecialParallelogramProblems,
   proofAngleProofProblems,
 } from "./geometry-proofs";
 import { generateAlgebra1Lesson } from "./algebra-1";
@@ -110,6 +111,11 @@ import {
   geo_2_1_inductive,
   geo_5_1_midsegments,
   geo_6_1_polygons,
+  geo_6_parallelogramProps,
+  geo_6_specialProps,
+  geo_6_kitesTrapezoids,
+  geo_6_classifyQuads,
+  geo_6_coordQuads,
   geo_8_1_translations,
   geo_12_1_tangentLines,
   geo_13_1_area,
@@ -518,6 +524,56 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     teks: "G.5(A)",
     description: "Calculate the sum of interior angles and measures of individual exterior angles.",
     generate: geo_6_1_polygons,
+  },
+  {
+    id: "ch6-parallelogram-properties",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
+    title: "Properties of Parallelograms",
+    story: "Opposite sides, opposite angles, consecutive angles, and diagonals that bisect each other.",
+    teks: "G.6(E)",
+    description: "Use parallelogram properties to find sides, angles, and diagonal lengths, including solving for x.",
+    generate: geo_6_parallelogramProps,
+  },
+  {
+    id: "ch6-special-parallelogram-properties",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
+    title: "Rectangles, Rhombuses & Squares",
+    story: "Congruent diagonals, perpendicular diagonals, and the angles they make.",
+    teks: "G.6(E)",
+    description: "Rectangle, rhombus, and square diagonal and angle properties with marked diagrams and algebra.",
+    generate: geo_6_specialProps,
+  },
+  {
+    id: "ch6-classify-quadrilaterals",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
+    title: "Classifying Quadrilaterals",
+    story: "Read only the marks: is it a parallelogram, rectangle, rhombus, or square?",
+    teks: "G.6(E)",
+    description: "Classify from tick marks, arrows, arcs, and right-angle marks; name every name that applies; decide whether a parallelogram test is met; and say what one more fact would make it a rectangle, rhombus, or square.",
+    generate: geo_6_classifyQuads,
+  },
+  {
+    id: "ch6-kites-trapezoids",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
+    title: "Kites & Trapezoids",
+    story: "Trapezoid midsegments, isosceles trapezoids, and kites.",
+    teks: "G.6(E)",
+    description: "Trapezoid midsegment (with algebra), isosceles trapezoid angles and diagonals, and kite angles and sides.",
+    generate: geo_6_kitesTrapezoids,
+  },
+  {
+    id: "ch6-coordinate-quadrilaterals",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
+    title: "Quadrilaterals on the Coordinate Plane",
+    story: "Slope and distance decide the name.",
+    teks: "G.2(B) · G.6(E)",
+    description: "Classify quadrilaterals from coordinates, find a missing vertex, midpoints with variable coordinates, and coordinate proofs of diagonal properties.",
+    generate: geo_6_coordQuads,
   },
   {
     id: "ch6-test",
@@ -1044,6 +1100,21 @@ const REGISTRY_ENTRIES: CurriculumEntry[] = [
     generate: (m, s, o) =>
       proofQuadrilateralProblems(
         ["OnePairBoth", "OppositeSidesCongruent", "DiagonalsBisect"],
+        m, s, o
+      ),
+  },
+  {
+    id: "proofs-6-special-parallelograms",
+    topic: 6,
+    topicTitle: "Topic 6: Polygons and Quadrilaterals",
+    title: "Rectangle, Rhombus & Square Proofs",
+    story: "Start from a parallelogram and earn the special name.",
+    teks: "G.6(E)",
+    description:
+      "Two-column proofs that a quadrilateral is a rhombus (consecutive sides congruent, perpendicular diagonals), a rectangle (one right angle, congruent diagonals), or a square (a rectangle with congruent consecutive sides).",
+    generate: (m, s, o) =>
+      proofSpecialParallelogramProblems(
+        ["RhombusFromConsecutiveSides", "RectangleFromRightAngle", "SquareFromRectangle", "RectangleFromDiagonals", "RhombusFromPerpDiagonals"],
         m, s, o
       ),
   },

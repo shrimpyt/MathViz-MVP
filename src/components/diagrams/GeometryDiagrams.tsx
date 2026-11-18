@@ -22,6 +22,7 @@ import type {
   GeoPt,
 } from "@/lib/factories/GeometryTypes";
 import { worksheetGrid } from "@/lib/factories/GeometryTypes";
+import { polygonMarks } from "@/lib/polygonMarks";
 
 const INK = "#111111";
 const FAINT = "#94a3b8";
@@ -141,7 +142,7 @@ export function TriangleFigureSVG({ params }: { params: TriangleFigureParams }) 
 export function PolygonFigureSVG({ params }: { params: PolygonFigureParams }) {
   const V = params.vertices;
   const pts = V.map((p) => `${p.x},${p.y}`).join(" ");
-  const P = byLabel(V);
+  const marks = polygonMarks(params);
   return (
     <svg viewBox="0 0 200 200" width={190} height={190} role="img">
       <polygon points={pts} fill="none" stroke={INK} strokeWidth={1.4} />
@@ -154,45 +155,14 @@ export function PolygonFigureSVG({ params }: { params: PolygonFigureParams }) {
           {s.label ? <Lab x={(s.x1 + s.x2) / 2 + 6} y={(s.y1 + s.y2) / 2} text={s.label} size={9} anchor="start" /> : null}
         </g>
       ))}
-      {Object.entries(params.ticks ?? {}).map(([k, c]) => {
-        const a = P.get(k[0]);
-        const b = P.get(k[1]);
-        return a && b ? <g key={k}>{ticksAt(a, b, c, false)}</g> : null;
-      })}
-      {Object.entries(params.sideLabels ?? {}).map(([k, text]) => {
-        if (!text) return null;
-        const a = P.get(k[0]);
-        const b = P.get(k[1]);
-        if (!a || !b) return null;
-        const m = mid(a, b);
-        return <Lab key={k} x={m.x} y={m.y - 5} text={text} size={9} />;
-      })}
-      {Object.entries(params.angleLabels ?? {}).map(([k, text]) => {
-        const v = P.get(k);
-        if (!v || !text) return null;
-        // pull label toward the centroid (100, 104)
-        const x = v.x + (100 - v.x) * 0.22;
-        const y = v.y + (104 - v.y) * 0.22;
-        return <Lab key={k} x={x} y={y} text={text} size={9} />;
-      })}
-      {(params.rightAngles ?? []).map((v) => {
-        const idx = V.findIndex((p) => p.label === v);
-        if (idx < 0) return null;
-        const prev = V[(idx + V.length - 1) % V.length];
-        const next = V[(idx + 1) % V.length];
-        return <g key={v}>{rightAngleAt(V[idx], prev, next)}</g>;
-      })}
-      {params.center ? (
-        <g>
-          <circle cx={params.center.x} cy={params.center.y} r={2.2} fill={INK} />
-          {params.center.label ? <Lab x={params.center.x + 6} y={params.center.y - 4} text={params.center.label} size={9} anchor="start" /> : null}
-        </g>
-      ) : null}
-      {V.map((p) => (
-        <g key={p.label}>
-          <circle cx={p.x} cy={p.y} r={2.2} fill={INK} />
-          <Lab x={p.x + (p.x >= 100 ? 6 : -6)} y={p.y - 4} text={p.label} size={10} anchor={p.x >= 100 ? "start" : "end"} />
-        </g>
+      {marks.strokes.map((m, i) => (
+        <path key={`m${i}`} d={m.d} fill="none" stroke={INK} strokeWidth={m.width} />
+      ))}
+      {marks.dots.map((d, i) => (
+        <circle key={`d${i}`} cx={d.x} cy={d.y} r={2.2} fill={INK} />
+      ))}
+      {marks.labels.map((l, i) => (
+        <Lab key={`l${i}`} x={l.x} y={l.y} text={l.text} size={l.size} anchor={l.anchor} />
       ))}
     </svg>
   );

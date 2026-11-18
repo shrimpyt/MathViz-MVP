@@ -13,7 +13,7 @@
 
 import type { RNG } from "../math-utils";
 import { randInt, pick } from "../math-utils";
-import type { GeometryProblem, GeoPt } from "./GeometryTypes";
+import type { GeometryProblem, GeoPt, PolygonFigureParams } from "./GeometryTypes";
 import {
   M, step, sampleFromPool, pickTriple,
   type Difficulty, type MakerEntry,
@@ -303,6 +303,7 @@ function makeParallelogramDiagonals(rng: RNG): GeometryProblem {
       vertices: PARA_VERTS,
       diagonals: [[0, 2], [1, 3]],
       center: { x: 105, y: 102, label: "E" },
+      ticks: { AE: 1, EC: 1, BE: 2, ED: 2 },
     },
     verify: { kind: "paraDiag", half, askWholeDiag },
   };
@@ -364,19 +365,63 @@ function makeRhombusDiagonals(rng: RNG): GeometryProblem {
         { label: "C", x: 100, y: 178 }, { label: "D", x: 35, y: 104 },
       ],
       diagonals: [[0, 2], [1, 3]],
-      rightAngles: [],
       center: { x: 100, y: 104, label: "E" },
+      ticks: { AE: 1, EC: 1, BE: 2, ED: 2 },
+      rightAngleMarks: [{ at: "E", from: "A", to: "B" }],
       sideLabels: { AB: "?" },
     },
     verify: { kind: "rhombusSide", d1, d2 },
   };
 }
 
+
+/** Trapezoid ABCD (AB the longer base, at the bottom) with midsegment MN.
+ *  Marks: M and N are midpoints of the legs; AB ∥ MN ∥ DC. Labels go on the
+ *  base whose length they name, so the longer number sits on the longer base. */
+export function trapezoidMidsegmentFigure(
+  b1: number,
+  b2: number,
+  text: { b1: string; b2: string; mid: string }
+): PolygonFigureParams {
+  const longIsB1 = b1 >= b2;
+  const A = { label: "A", x: 25, y: 150 };
+  const B = { label: "B", x: 175, y: 150 };
+  const C = { label: "C", x: 140, y: 60 };
+  const D = { label: "D", x: 62, y: 60 };
+  const M = { label: "M", x: (A.x + D.x) / 2, y: (A.y + D.y) / 2 };
+  const N = { label: "N", x: (B.x + C.x) / 2, y: (B.y + C.y) / 2 };
+  return {
+    kind: "PolygonFigure",
+    vertices: [A, B, C, D],
+    extraPoints: [M, N],
+    segments: [["M", "N"]],
+    ticks: { AM: 1, MD: 1, BN: 2, NC: 2 },
+    parallelMarks: { AB: 1, DC: 1 },
+    sideLabels: { AB: longIsB1 ? text.b1 : text.b2, DC: longIsB1 ? text.b2 : text.b1, MN: text.mid },
+  };
+}
+
+/** Kite ABCD: AB ≅ AD, CB ≅ CD, so ∠B ≅ ∠D (arcs). Angles are labeled, not to scale. */
+export function kiteFigure(angleLabels: Record<string, string>): PolygonFigureParams {
+  return {
+    kind: "PolygonFigure",
+    vertices: [
+      { label: "A", x: 100, y: 38 }, { label: "B", x: 152, y: 88 },
+      { label: "C", x: 100, y: 172 }, { label: "D", x: 48, y: 88 },
+    ],
+    ticks: { AB: 1, DA: 1, BC: 2, CD: 2 },
+    angleArcs: { B: 1, D: 1 },
+    angleLabels,
+  };
+}
+
 function makeTrapezoidMidsegment(rng: RNG): GeometryProblem {
   const b1 = randInt(rng, 4, 14);
-  const b2 = randInt(rng, 4, 14);
+  let b2 = randInt(rng, 4, 13);
+  if (b2 >= b1) b2++; // a trapezoid's bases are never equal
   const mid = (b1 + b2) / 2;
   const inverse = rng() < 0.4;
+  const fig = trapezoidMidsegmentFigure(b1, b2, inverse ? { b1: String(b1), b2: "?", mid: String(mid) } : { b1: String(b1), b2: String(b2), mid: "?" });
   if (inverse) {
     return {
       type: "GEO.6",
@@ -390,6 +435,7 @@ function makeTrapezoidMidsegment(rng: RNG): GeometryProblem {
         step(`${mid} = ½(${b1} + x), so ${b1} + x = ${2 * mid}.`, "Substitution.", [{ label: "equation", answer: `${b1} + x = ${2 * mid}` }]),
         step(`x = ${2 * mid} − ${b1} = ${b2}.`, "Subtraction Property of Equality.", [{ label: "x", answer: String(b2) }]),
       ],
+      svgParams: fig,
       verify: { kind: "trapMidInv", mid, b1 },
     };
   }
@@ -407,6 +453,7 @@ function makeTrapezoidMidsegment(rng: RNG): GeometryProblem {
         { label: "midsegment", answer: String(mid) },
       ]),
     ],
+    svgParams: fig,
     verify: { kind: "trapMid", b1, b2 },
   };
 }
@@ -430,6 +477,7 @@ function makeKiteAngles(rng: RNG): GeometryProblem {
         { label: "m∠C", answer: `${other2}°` },
       ]),
     ],
+    svgParams: kiteFigure({ B: `${pair}°`, A: `${other1}°`, C: "?" }),
     verify: { kind: "kiteAngles", pair, other1 },
   };
 }

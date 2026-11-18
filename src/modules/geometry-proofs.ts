@@ -35,6 +35,10 @@ import {
   type QuadrilateralFamily,
 } from "@/lib/factories/ProofQuadrilateralFactory";
 import {
+  generateSpecialParallelogramProofs,
+  type SpecialParallelogramFamily,
+} from "@/lib/factories/ProofSpecialParallelogramFactory";
+import {
   generateAngleProofs,
   type AngleProofVariant,
 } from "@/lib/factories/ProofAngleProofsFactory";
@@ -200,6 +204,23 @@ export function proofQuadrilateralProblems(
 ): ProofProblem[] {
   const rng = mulberry32(seed);
   return generateQuadrilateralProofs(
+    rng,
+    proofCountOf(mode, options, 2),
+    proofDifficultyOf(options),
+    proofStudentModeOf(mode),
+    families
+  );
+}
+
+/** Rectangle, rhombus and square proofs, by family. */
+export function proofSpecialParallelogramProblems(
+  families: readonly SpecialParallelogramFamily[],
+  mode: OutputMode,
+  seed: number,
+  options?: ProofGenerateOptions
+): ProofProblem[] {
+  const rng = mulberry32(seed);
+  return generateSpecialParallelogramProofs(
     rng,
     proofCountOf(mode, options, 2),
     proofDifficultyOf(options),

@@ -23,6 +23,7 @@ import type {
   GeoPt,
 } from "@/lib/factories/GeometryTypes";
 import { worksheetGrid } from "@/lib/factories/GeometryTypes";
+import { polygonMarks, anchoredLeft } from "@/lib/polygonMarks";
 
 const INK = "#111111";
 const FAINT = "#94a3b8";
@@ -183,7 +184,7 @@ export function PdfTriangleFigureSVG({ params }: { params: TriangleFigureParams 
 
 export function PdfPolygonFigureSVG({ params }: { params: PolygonFigureParams }) {
   const V = params.vertices;
-  const P = byLabel(V);
+  const marks = polygonMarks(params, { sideSize: 8, vertexSize: 9 });
   return (
     <Svg viewBox="0 0 200 200" width={150} height={150}>
       <Polygon points={V.map((p) => `${p.x},${p.y}`).join(" ")} stroke={INK} strokeWidth={1.2} fill="none" />
@@ -196,39 +197,16 @@ export function PdfPolygonFigureSVG({ params }: { params: PolygonFigureParams })
           {s.label ? <Lab x={(s.x1 + s.x2) / 2 + 5} y={(s.y1 + s.y2) / 2} text={s.label} /> : null}
         </React.Fragment>
       ))}
-      {Object.entries(params.sideLabels ?? {}).map(([k, text]) => {
-        if (!text) return null;
-        const a = P.get(k[0]);
-        const b = P.get(k[1]);
-        if (!a || !b) return null;
-        const m = mid(a, b);
-        return <Lab key={k} x={m.x} y={m.y - 5} text={text} />;
-      })}
-      {Object.entries(params.angleLabels ?? {}).map(([k, text]) => {
-        const v = P.get(k);
-        if (!v || !text) return null;
-        const x = v.x + (100 - v.x) * 0.22;
-        const y = v.y + (104 - v.y) * 0.22;
-        return <Lab key={k} x={x} y={y} text={text} />;
-      })}
-      {(params.rightAngles ?? []).map((v) => {
-        const idx = V.findIndex((p) => p.label === v);
-        if (idx < 0) return null;
-        const prev = V[(idx + V.length - 1) % V.length];
-        const next = V[(idx + 1) % V.length];
-        return <React.Fragment key={v}>{rightAngleAt(V[idx], prev, next)}</React.Fragment>;
-      })}
-      {params.center ? (
-        <React.Fragment>
-          <Circle cx={params.center.x} cy={params.center.y} r={2} fill={INK} />
-          {params.center.label ? <Lab x={params.center.x + 6} y={params.center.y - 4} text={params.center.label} /> : null}
-        </React.Fragment>
-      ) : null}
-      {V.map((p) => (
-        <React.Fragment key={p.label}>
-          <Circle cx={p.x} cy={p.y} r={2} fill={INK} />
-          <Lab x={p.x + 5} y={p.y - 4} text={p.label} size={9} />
-        </React.Fragment>
+      {marks.strokes.map((m, i) => (
+        <Path key={`m${i}`} d={m.d} fill="none" stroke={INK} strokeWidth={m.width} />
+      ))}
+      {marks.dots.map((d, i) => (
+        <Circle key={`d${i}`} cx={d.x} cy={d.y} r={2} fill={INK} />
+      ))}
+      {marks.labels.map((l, i) => (
+        <Text key={`l${i}`} x={anchoredLeft(l)} y={l.y} style={{ fontSize: l.size, ...DIAGRAM_FONT, color: INK }}>
+          {l.text}
+        </Text>
       ))}
     </Svg>
   );

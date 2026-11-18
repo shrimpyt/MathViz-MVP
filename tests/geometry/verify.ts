@@ -15,6 +15,7 @@
 
 import { WIRED_GEOMETRY } from "../../src/modules/geometry-lessons";
 import type { GeometryProblem } from "../../src/lib/factories/GeometryTypes";
+import { verifyQuadMarks, verifyQuadNeed, classifyCoords, markAccuracyIssues } from "./quad-checks";
 
 let passed = 0;
 let failed = 0;
@@ -731,6 +732,90 @@ function verifyAnswer(p: GeometryProblem): boolean {
       }
       return false;
     }
+    case "paraOppAlg": {
+      const x = (n("s") - n("r")) / (n("p") - n("q"));
+      const a = n("p") * x + n("r");
+      return Number.isInteger(x) && a > 0 && a < 180 && A === `x = ${x}, m∠A = ${a}°, m∠B = ${180 - a}°`;
+    }
+    case "paraConsecAlg": {
+      const x = (180 - n("r") - n("s")) / (n("p") + n("q"));
+      const a = n("p") * x + n("r");
+      const b = n("q") * x + n("s");
+      return Number.isInteger(x) && a > 0 && b > 0 && a + b === 180 && A === `x = ${x}, m∠A = ${a}°, m∠B = ${b}°`;
+    }
+    case "paraDiagAlg": case "squareDiagAlg": {
+      const x = (n("s") - n("r")) / (n("p") - n("q"));
+      const half = n("p") * x + n("r");
+      return Number.isInteger(x) && half > 0 && A === `x = ${x}, AC = ${2 * half}`;
+    }
+    case "rectHalvesAlg": {
+      // 2(px + r) = qx + s
+      const x = (n("s") - 2 * n("r")) / (2 * n("p") - n("q"));
+      const bd = n("q") * x + n("s");
+      return Number.isInteger(x) && bd > 0 && bd === 2 * (n("p") * x + n("r")) && A === `x = ${x}, BD = ${bd}`;
+    }
+    case "rhombusAngles": {
+      const t = n("theta");
+      return t !== 90 && A === `m∠ABD = ${t / 2}°, m∠BAC = ${180 - 90 - t / 2}°`;
+    }
+    case "rhombusPerpAlg": return A === `x = ${(90 - n("r")) / n("p")}`;
+    case "trapMidAlg": {
+      // 2(px + r) = (qx + s) + t
+      const x = (n("s") + n("t") - 2 * n("r")) / (2 * n("p") - n("q"));
+      const mn = n("p") * x + n("r");
+      const ab = n("q") * x + n("s");
+      return Number.isInteger(x) && ab > n("t") && mn === (ab + n("t")) / 2 && A === `x = ${x}, MN = ${mn}`;
+    }
+    case "isoTrapAngles": {
+      const t = n("theta");
+      return A === `m∠B = ${t}°, m∠C = ${180 - t}°, m∠D = ${180 - t}°`;
+    }
+    case "isoTrapDiagAlg": {
+      const x = (n("s") - n("r")) / (n("p") - n("q"));
+      const d = n("p") * x + n("r");
+      return Number.isInteger(x) && d > 0 && A === `x = ${x}, AC = ${d}`;
+    }
+    case "kiteSides": {
+      const ab = Math.sqrt(n("a") ** 2 + n("b") ** 2);
+      const bc = Math.sqrt(n("a") ** 2 + n("c") ** 2);
+      return Number.isInteger(ab) && Number.isInteger(bc) && ab !== bc && A === `AB = ${ab}, BC = ${bc}, perimeter = ${2 * ab + 2 * bc}`;
+    }
+    case "quadMarks": return verifyQuadMarks(p, v.form as string);
+    case "quadNeed": return verifyQuadNeed(p, v.start as string, v.target as string, v.about as string);
+    case "quadCoord": return A.startsWith(`${classifyCoords(v.xs as number[], v.ys as number[])}: `);
+    case "quadMissingD": return A === `D(${n("ax") + n("cx") - n("bx")}, ${n("ay") + n("cy") - n("by")})`;
+    case "letterMid": {
+      // add the endpoint coefficient maps and halve them (checker-side)
+      const P = JSON.parse(v.p as string) as Record<string, number>[];
+      const Q = JSON.parse(v.q as string) as Record<string, number>[];
+      const term = (c: Record<string, number>) => {
+        const parts: string[] = [];
+        for (const name of ["a", "b", "c", "d"]) {
+          const k = c[name] ?? 0;
+          if (!k) continue;
+          const mag = Math.abs(k) === 1 ? name : `${Math.abs(k)}${name}`;
+          parts.push(parts.length === 0 ? (k < 0 ? `−${mag}` : mag) : k < 0 ? `− ${mag}` : `+ ${mag}`);
+        }
+        return parts.length ? parts.join(" ") : "0";
+      };
+      const half = (i: number) => {
+        const out: Record<string, number> = {};
+        for (const src of [P[i], Q[i]]) for (const [k, c] of Object.entries(src)) out[k] = (out[k] ?? 0) + c;
+        for (const k of Object.keys(out)) {
+          if (out[k] % 2 !== 0) return null;
+          out[k] /= 2;
+        }
+        return out;
+      };
+      const hx = half(0), hy = half(1);
+      return !!hx && !!hy && A === `(${term(hx)}, ${term(hy)})`;
+    }
+    case "letterProof":
+      // O(0,0), A(2a,0), B(2a+2b,2c), C(2b,2c): both midpoints (a + b, c).
+      // Rectangle O(0,0), R(2a,0), S(2a,2b), T(0,2b): midpoints (a, b), diagonals √(4a² + 4b²).
+      return v.form === "rectangle"
+        ? A.includes("(a, b)") && A.includes("√(4a² + 4b²)")
+        : A.includes("(a + b, c)");
     default: return false;
   }
 }
@@ -767,6 +852,10 @@ function main() {
           let ok = false;
           try { ok = verifyAnswer(p); } catch { ok = false; }
           check(ok, `${entry.id}/${p.subtype} (${(p.verify as V)?.kind}): answer verifies independently, got "${p.answer}" verify=${JSON.stringify(p.verify)}`);
+          if (p.svgParams?.kind === "PolygonFigure") {
+            const issues = markAccuracyIssues(p.svgParams);
+            check(issues.length === 0, `${entry.id}/${p.subtype}: every diagram mark is true of the figure as drawn (${issues.join("; ")})`);
+          }
         }
         // determinism
         const again = entry.generate("Review", seed, { count: 12, difficulty });

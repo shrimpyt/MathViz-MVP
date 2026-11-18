@@ -144,6 +144,64 @@ export interface ProofQuadrilateralSVGParams {
   parallelMarks: string[];
   /** Tick counts for the diagonal halves: [AC halves AM/MC, BD halves BM/MD]. */
   diagMarks: [number, number];
+  /** Shape drawn (default parallelogram). Drawn as what the proof concludes,
+   *  so every mark stays true of the figure. */
+  shape?: "parallelogram" | "rectangle" | "rhombus" | "square";
+  /** Sides carrying DOUBLE arrows (the second parallel pair). */
+  parallelMarks2?: string[];
+  /** Right-angle squares at vertices, or at "M" (between MA and MB). */
+  rightAngles?: ("A" | "B" | "C" | "D" | "M")[];
+}
+
+type QuadPt = { x: number; y: number };
+const QUAD_SHAPES: Record<NonNullable<ProofQuadrilateralSVGParams["shape"]>, Record<"A" | "B" | "C" | "D", QuadPt>> = {
+  parallelogram: { A: { x: 45, y: 150 }, B: { x: 155, y: 150 }, C: { x: 175, y: 55 }, D: { x: 65, y: 55 } },
+  rectangle: { A: { x: 40, y: 150 }, B: { x: 160, y: 150 }, C: { x: 160, y: 60 }, D: { x: 40, y: 60 } },
+  rhombus: { A: { x: 35, y: 150 }, B: { x: 125, y: 150 }, C: { x: 165, y: 69.4 }, D: { x: 75, y: 69.4 } },
+  square: { A: { x: 50, y: 152 }, B: { x: 150, y: 152 }, C: { x: 150, y: 52 }, D: { x: 50, y: 52 } },
+};
+
+/** Vertices and diagonal intersection M for a proof quadrilateral (shared by
+ *  the web and PDF renderers and the tests). */
+export function proofQuadPoints(p: Pick<ProofQuadrilateralSVGParams, "shape">): Record<"A" | "B" | "C" | "D" | "M", QuadPt> {
+  const V = QUAD_SHAPES[p.shape ?? "parallelogram"];
+  // every shape here is a parallelogram, so the diagonals meet at the midpoint of AC
+  const M = { x: (V.A.x + V.C.x) / 2, y: (V.A.y + V.C.y) / 2 };
+  return { ...V, M };
+}
+
+/** Parallel arrows point the same way along a parallel pair: AB and DC run
+ *  A→B and D→C; BC and AD run B→C and A→D. Returns [from, to]. */
+export function proofQuadArrowDir(side: string): ["A" | "B" | "C" | "D", "A" | "B" | "C" | "D"] {
+  const k = side.split("").sort().join("");
+  switch (k) {
+    case "AB": return ["A", "B"];
+    case "CD": return ["D", "C"];
+    case "BC": return ["B", "C"];
+    default: return ["A", "D"];
+  }
+}
+
+/** The segment to centre a side's congruence ticks on. When the side also
+ *  carries a parallel chevron (at its midpoint), the ticks move 12 units
+ *  toward the side's first end so the two marks don't overlap. */
+export function proofQuadTickSegment(
+  p: Pick<ProofQuadrilateralSVGParams, "parallelMarks" | "parallelMarks2">,
+  s1: string, s2: string, a: QuadPt, b: QuadPt
+): [QuadPt, QuadPt] {
+  const key = [s1, s2].sort().join("");
+  const arrowed = [...(p.parallelMarks ?? []), ...(p.parallelMarks2 ?? [])].some(
+    (side) => side.split("").sort().join("") === key
+  );
+  if (!arrowed) return [a, b];
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const shift = 12;
+  const ux = (b.x - a.x) / len;
+  const uy = (b.y - a.y) / len;
+  return [
+    { x: a.x - ux * shift, y: a.y - uy * shift },
+    { x: b.x - ux * shift, y: b.y - uy * shift },
+  ];
 }
 
 /** Angle-proof figure: vertical angles at an intersection, or a point on

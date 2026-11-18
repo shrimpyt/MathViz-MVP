@@ -84,9 +84,23 @@ export interface PolygonFigureParams {
   angleLabels?: Record<string, string>;
   /** Congruence tick counts keyed by label pair. */
   ticks?: Record<string, number>;
-  /** Center point (regular polygons), drawn when present. */
+  /** Center point (regular polygons, diagonal intersection), drawn when
+   *  present. Its label can be used in `ticks`/`sideLabels` keys ("AE"). */
   center?: { x: number; y: number; label: string };
+  /** Vertex labels that get a right-angle square (between the two sides). */
   rightAngles?: string[];
+  /** Parallel arrow marks keyed by label pair, value = arrowheads (1 or 2). */
+  parallelMarks?: Record<string, number>;
+  /** Congruent-angle arcs at vertices, value = number of arcs. */
+  angleArcs?: Record<string, number>;
+  /** Right-angle squares anywhere (e.g. at the diagonal intersection). */
+  rightAngleMarks?: { at: string; from: string; to: string }[];
+  /** Extra labeled points (midpoints of legs, …) usable in segment keys. */
+  /** Extra labeled points (midpoints...). `hidden` points are only anchors for
+   *  marks: no dot, no label. */
+  extraPoints?: (GeoPt & { hidden?: boolean })[];
+  /** Solid extra segments between labeled points (a midsegment). */
+  segments?: [string, string][];
 }
 
 /** Coordinate-plane figure: transformations, dilations, coordinate area. */

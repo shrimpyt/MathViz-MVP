@@ -47,8 +47,10 @@ function makeParallelogramArea(rng: RNG): GeometryProblem {
       kind: "PolygonFigure",
       vertices: paraVerts(),
       dashedSegments: [{ x1: 135, y1: 150, x2: 135, y2: 60, label: String(h) }],
-      sideLabels: { CD: String(b), BC: String(slant) },
-      rightAngles: ["D"],
+      // base DA (bottom), slanted side CD; the height meets the base at D
+      sideLabels: { DA: String(b), CD: String(slant) },
+      extraPoints: [{ label: "H", x: 135, y: 60, hidden: true }],
+      rightAngleMarks: [{ at: "D", from: "A", to: "H" }],
     },
     verify: { kind: "paraArea", b, h },
   };
