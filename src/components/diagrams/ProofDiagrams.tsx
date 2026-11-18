@@ -20,6 +20,7 @@ import type {
   ProofOverlappingSVGParams,
   ElementsProposition,
 } from "@/lib/proofDiagrams";
+import { proofQuadPoints, proofQuadArrowDir, proofQuadTickSegment } from "@/lib/proofDiagrams";
 
 type Pt = { x: number; y: number };
 
@@ -767,13 +768,6 @@ export function ProofElementsSVG(p: ProofElementsSVGParams) {
 
 // ── Quadrilateral (parallelogram) proof figure ──────────────────────────────
 
-const QUAD: Record<string, Pt> = {
-  A: { x: 45, y: 150 },
-  B: { x: 155, y: 150 },
-  C: { x: 175, y: 55 },
-  D: { x: 65, y: 55 },
-};
-const QUAD_M: Pt = { x: 110, y: 102.5 };
 const QUAD_SIDES: [string, string][] = [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"]];
 
 function SideChevron({ p1, p2 }: { p1: Pt; p2: Pt }) {
@@ -793,7 +787,34 @@ function SideChevron({ p1, p2 }: { p1: Pt; p2: Pt }) {
 }
 
 export function ProofQuadrilateralSVG(p: ProofQuadrilateralSVGParams) {
-  const { A, B, C, D } = QUAD;
+  const Q = proofQuadPoints(p);
+  const { A, B, C, D, M: QM } = Q;
+  const chevrons = (sides: string[] | undefined, count: number) =>
+    (sides ?? []).flatMap((side) => {
+      const [f, t] = proofQuadArrowDir(side);
+      const p1 = Q[f];
+      const p2 = Q[t];
+      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1;
+      const ux = (p2.x - p1.x) / len;
+      const uy = (p2.y - p1.y) / len;
+      return Array.from({ length: count }, (_, k) => {
+        const off = (k - (count - 1) / 2) * 6;
+        return (
+          <SideChevron
+            key={`${side}-${count}-${k}`}
+            p1={{ x: p1.x + ux * off, y: p1.y + uy * off }}
+            p2={{ x: p2.x + ux * off, y: p2.y + uy * off }}
+          />
+        );
+      });
+    });
+  const rightAt = (v: string) => {
+    if (v === "M") return <RightAngleMark key="rM" v={QM} p1={A} p2={B} />;
+    const i = QUAD_SIDES.findIndex(([a]) => a === v);
+    const prev = Q[QUAD_SIDES[(i + 3) % 4][0] as "A"];
+    const next = Q[QUAD_SIDES[i][1] as "A"];
+    return <RightAngleMark key={`r${v}`} v={Q[v as "A"]} p1={prev} p2={next} />;
+  };
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full" aria-label="Quadrilateral diagram">
       <polygon points={`${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y} ${D.x},${D.y}`} fill="none" stroke="#111111" strokeWidth={1.5} />
@@ -805,29 +826,31 @@ export function ProofQuadrilateralSVG(p: ProofQuadrilateralSVGParams) {
       )}
       {p.diagonal === "both" && (
         <>
-          <circle cx={QUAD_M.x} cy={QUAD_M.y} r={2.2} fill="#111111" />
-          <VertexLabel pt={QUAD_M} text="M" dx={9} dy={-4} />
+          <circle cx={QM.x} cy={QM.y} r={2.2} fill="#111111" />
+          <VertexLabel pt={QM} text="M" dx={(p.rightAngles ?? []).includes("M") ? 3 : 9} dy={(p.rightAngles ?? []).includes("M") ? -7 : -4} />
         </>
       )}
       {QUAD_SIDES.map(([s1, s2], i) =>
         p.sideMarks[i] > 0 ? (
-          <TickMarks key={i} p1={QUAD[s1]} p2={QUAD[s2]} count={p.sideMarks[i]} />
+          (() => {
+            const [t1, t2] = proofQuadTickSegment(p, s1, s2, Q[s1 as "A"], Q[s2 as "A"]);
+            return <TickMarks key={i} p1={t1} p2={t2} count={p.sideMarks[i]} />;
+          })()
         ) : null
       )}
-      {p.parallelMarks.map((side) => {
-        const [s1, s2] = QUAD_SIDES.find(([a, b]) => a + b === side) ?? QUAD_SIDES[0];
-        return <SideChevron key={side} p1={QUAD[s1]} p2={QUAD[s2]} />;
-      })}
+      {chevrons(p.parallelMarks, 1)}
+      {chevrons(p.parallelMarks2, 2)}
+      {(p.rightAngles ?? []).map(rightAt)}
       {p.diagMarks[0] > 0 && (
         <>
-          <TickMarks p1={A} p2={QUAD_M} count={p.diagMarks[0]} />
-          <TickMarks p1={QUAD_M} p2={C} count={p.diagMarks[0]} />
+          <TickMarks p1={A} p2={QM} count={p.diagMarks[0]} />
+          <TickMarks p1={QM} p2={C} count={p.diagMarks[0]} />
         </>
       )}
       {p.diagMarks[1] > 0 && (
         <>
-          <TickMarks p1={B} p2={QUAD_M} count={p.diagMarks[1]} />
-          <TickMarks p1={QUAD_M} p2={D} count={p.diagMarks[1]} />
+          <TickMarks p1={B} p2={QM} count={p.diagMarks[1]} />
+          <TickMarks p1={QM} p2={D} count={p.diagMarks[1]} />
         </>
       )}
       <VertexLabel pt={A} text="A" dx={-8} dy={8} />

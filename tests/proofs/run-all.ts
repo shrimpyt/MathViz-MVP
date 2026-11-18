@@ -36,6 +36,12 @@ import {
   type QuadrilateralFamily,
 } from "@/lib/factories/ProofQuadrilateralFactory";
 import {
+  generateSpecialParallelogramProofs,
+  SPECIAL_PARALLELOGRAM_FAMILIES,
+  type SpecialParallelogramFamily,
+} from "@/lib/factories/ProofSpecialParallelogramFactory";
+import { checkSpecialParallelogramProof } from "./checkers-special-quads";
+import {
   generateAngleProofs,
   ANGLE_PROOF_VARIANTS,
   type AngleProofVariant,
@@ -114,6 +120,11 @@ const UNITS: Unit[] = [
     name: `quadrilateral-${f}`,
     generate: (rng, n, d, m) => generateQuadrilateralProofs(rng, n, d, m, [f as QuadrilateralFamily]),
     check: (ctx, p, tag) => checkQuadrilateralProof(ctx, p, f as QuadrilateralFamily, tag),
+  })),
+  ...SPECIAL_PARALLELOGRAM_FAMILIES.map((f): Unit => ({
+    name: `special-parallelogram-${f}`,
+    generate: (rng, n, d, m) => generateSpecialParallelogramProofs(rng, n, d, m, [f as SpecialParallelogramFamily]),
+    check: (ctx, p, tag) => checkSpecialParallelogramProof(ctx, p, f as SpecialParallelogramFamily, tag),
   })),
   {
     name: "angle-proofs",
@@ -212,6 +223,9 @@ async function main(): Promise<void> {
     { name: "circle-inscribed", params: { kind: "ProofCircle", figure: "inscribed", arc: 100, angle: 50 } },
     { name: "circle-tangent", params: { kind: "ProofCircle", figure: "tangent", arc: 120, angle: 60 } },
     { name: "quadrilateral", params: { kind: "ProofQuadrilateral", diagonal: "both", sideMarks: [0, 0, 0, 0], parallelMarks: [], diagMarks: [1, 2] } },
+    { name: "quad-rhombus-perp", params: { kind: "ProofQuadrilateral", shape: "rhombus", diagonal: "both", sideMarks: [0, 0, 0, 0], parallelMarks: ["AB", "CD"], parallelMarks2: ["BC", "AD"], diagMarks: [0, 0], rightAngles: ["M"] } },
+    { name: "quad-square", params: { kind: "ProofQuadrilateral", shape: "square", diagonal: "none", sideMarks: [1, 1, 0, 0], parallelMarks: [], diagMarks: [0, 0], rightAngles: ["A", "B", "C", "D"] } },
+    { name: "quad-rectangle", params: { kind: "ProofQuadrilateral", shape: "rectangle", diagonal: "both", sideMarks: [0, 0, 0, 0], parallelMarks: ["AB", "CD"], parallelMarks2: ["BC", "AD"], diagMarks: [0, 0], rightAngles: ["A"] } },
     { name: "angle-vertical", params: { kind: "ProofAngleFigure", figure: "vertical", markPair: 0 } },
     { name: "angle-perp-bisector", params: { kind: "ProofAngleFigure", figure: "perpBisector", markMidpoint: true, markSlants: true } },
     ...ELEMENTS_PROPOSITIONS.map((pr) => ({
@@ -311,6 +325,11 @@ async function main(): Promise<void> {
     "wiring quadrilateral family filter");
   check(ctx, wQuad.every((p) => p.studentMode === "supply-reasons"),
     "wiring quadrilateral studentMode");
+  const wSpec = wiring.proofSpecialParallelogramProblems(["RhombusFromPerpDiagonals"], "Test", 11, { count: 2, difficulty: 3 });
+  check(ctx, wSpec.length === 2 && wSpec.every((p) => p.family === "SpecialParallelogram:RhombusFromPerpDiagonals"),
+    "wiring special-parallelogram family filter");
+  check(ctx, wSpec.every((p) => p.studentMode === "supply-reasons"),
+    "wiring special-parallelogram studentMode");
   const wAng = wiring.proofAngleProofProblems(["VerticalAngles"], "Classical", 13, { count: 2 });
   check(ctx, wAng.length === 2 && wAng.every((p) => p.family === "AngleProofs:VerticalAngles"),
     "wiring angle-proofs variant filter");

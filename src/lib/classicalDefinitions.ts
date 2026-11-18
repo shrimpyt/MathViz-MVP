@@ -335,6 +335,50 @@ const GEO_RIGID_MOTIONS: string[] = [
   "Corresponding Parts: The sides and angles of congruent figures that occupy matching positions; under a rigid motion, each part of the preimage corresponds to the part it lands on in the image.",
 ];
 
+const GEO_PARALLELOGRAM_PROPERTIES: string[] = [
+  "Parallelogram: A quadrilateral with both pairs of opposite sides parallel.",
+  "Opposite Sides and Angles: In a parallelogram, opposite sides are congruent and opposite angles are congruent.",
+  "Consecutive Angles: In a parallelogram, any two consecutive angles are supplementary (their measures add to 180°).",
+  "Diagonals of a Parallelogram: The diagonals of a parallelogram bisect each other, so their intersection is the midpoint of each diagonal.",
+];
+
+const GEO_SPECIAL_PARALLELOGRAMS: string[] = [
+  "Rectangle: A parallelogram with four right angles; its diagonals are congruent.",
+  "Rhombus: A parallelogram with four congruent sides; its diagonals are perpendicular, and each diagonal bisects a pair of opposite angles.",
+  "Square: A parallelogram that is both a rectangle and a rhombus: four right angles and four congruent sides.",
+  "Conditions for a Rectangle: A parallelogram is a rectangle if it has one right angle, or if its diagonals are congruent.",
+  "Conditions for a Rhombus: A parallelogram is a rhombus if two consecutive sides are congruent, or if its diagonals are perpendicular.",
+];
+
+const GEO_CLASSIFY_QUADRILATERALS: string[] = [
+  "Reading the Marks: Tick marks show congruent segments, arrowheads show parallel segments, arcs show congruent angles, and a small square shows a right angle; a figure proves only what its marks state.",
+  "Proving a Parallelogram: A quadrilateral is a parallelogram if both pairs of opposite sides are parallel, both pairs of opposite sides are congruent, both pairs of opposite angles are congruent, its diagonals bisect each other, or one pair of opposite sides is both congruent and parallel.",
+  "Quadrilateral Family: Every square is a rectangle and a rhombus; every rectangle and every rhombus is a parallelogram; every parallelogram is a quadrilateral.",
+  "Most Specific Name: The name lowest in the family that the given facts prove, for example a square rather than a rectangle.",
+];
+
+const GEO_KITES_TRAPEZOIDS: string[] = [
+  "Trapezoid: A quadrilateral with exactly one pair of parallel sides, called the bases; the other two sides are the legs.",
+  "Trapezoid Midsegment Theorem: The segment joining the midpoints of the legs is parallel to the bases, and its length is half the sum of the bases.",
+  "Isosceles Trapezoid: A trapezoid with congruent legs; each pair of base angles is congruent and the diagonals are congruent.",
+  "Kite: A quadrilateral with two pairs of consecutive congruent sides and no opposite sides congruent; its diagonals are perpendicular, and one pair of opposite angles is congruent.",
+];
+
+const GEO_COORDINATE_QUADRILATERALS: string[] = [
+  "Slope: m = (y₂ − y₁)/(x₂ − x₁); equal slopes mean parallel sides, and slopes whose product is −1 (or a horizontal and a vertical side) mean perpendicular sides.",
+  "Distance Formula: d = √((x₂ − x₁)² + (y₂ − y₁)²), used to compare side and diagonal lengths.",
+  "Midpoint Formula: M = ((x₁ + x₂)/2, (y₁ + y₂)/2); diagonals that share a midpoint bisect each other.",
+  "Coordinate Proof: A proof that places a figure on the coordinate plane with variable coordinates, so the result holds for every figure of that kind.",
+];
+
+const GEO_SPECIAL_PARALLELOGRAM_PROOFS: string[] = [
+  "Definition of Rectangle: A parallelogram with four right angles.",
+  "Definition of Rhombus: A parallelogram with four congruent sides.",
+  "Definition of Square: A parallelogram that is both a rectangle and a rhombus.",
+  "Transitive Property of Congruence: If AB ≅ BC and BC ≅ CD, then AB ≅ CD.",
+  "Right Angles Congruence Theorem: All right angles are congruent.",
+];
+
 const GEO_QUADRILATERAL_PROOFS: string[] = [
   "Parallelogram: A quadrilateral with both pairs of opposite sides parallel.",
   "Opposite Sides Parallelogram Theorems: A quadrilateral is a parallelogram if both pairs of opposite sides are congruent, or if one pair of opposite sides is both congruent and parallel.",
@@ -2251,6 +2295,11 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ch2-1-inductive-reasoning": GEO_INDUCTIVE_REASONING,
   "ch5-1-midsegments": GEO_MIDSEGMENTS,
   "ch6-1-polygons": GEO_POLYGON_ANGLES,
+  "ch6-parallelogram-properties": GEO_PARALLELOGRAM_PROPERTIES,
+  "ch6-special-parallelogram-properties": GEO_SPECIAL_PARALLELOGRAMS,
+  "ch6-classify-quadrilaterals": GEO_CLASSIFY_QUADRILATERALS,
+  "ch6-kites-trapezoids": GEO_KITES_TRAPEZOIDS,
+  "ch6-coordinate-quadrilaterals": GEO_COORDINATE_QUADRILATERALS,
   "ch8-1-translations": GEO_TRANSLATIONS,
   "ch12-1-tangent-lines": GEO_TANGENT_LINES,
   "ch12-2-equation-of-a-circle": GEO_CIRCLE_EQUATION,
@@ -2276,6 +2325,7 @@ export const CLASSICAL_DEFINITIONS: Record<string, string[]> = {
   "ch2-2-counterexamples": GEO_COUNTEREXAMPLES,
   "ch8-3-rigid-motions": GEO_RIGID_MOTIONS,
   "proofs-6-2-parallelograms": GEO_QUADRILATERAL_PROOFS,
+  "proofs-6-special-parallelograms": GEO_SPECIAL_PARALLELOGRAM_PROOFS,
   "proofs-3-4-angle-proofs": GEO_ANGLE_PROOFS,
   // Algebra 1 Topic 1, equations & inequalities (middle-school core)
   "a1-1-1-multi-step-equations": MULTI_STEP_EQUATIONS,

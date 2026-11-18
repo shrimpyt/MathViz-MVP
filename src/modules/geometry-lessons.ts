@@ -49,6 +49,20 @@ import {
   POLYGON_LESSON_POOL,
   QUADRILATERAL_TEST_POOL,
 } from "@/lib/factories/PolygonsQuadrilateralsFactory";
+import {
+  generateClassifyQuadProblems,
+  generateCoordQuadProblems,
+  CLASSIFY_QUADS_POOL,
+  COORD_QUADS_POOL,
+} from "@/lib/factories/SpecialQuadrilateralsFactory";
+import {
+  generateParallelogramPropsProblems,
+  generateSpecialPropsProblems,
+  generateKiteTrapProblems,
+  PARALLELOGRAM_PROPS_POOL,
+  SPECIAL_PROPS_POOL,
+  KITE_TRAP_POOL,
+} from "@/lib/factories/QuadrilateralPropertiesFactory";
 import { PARALLEL_LINES_TEST_POOL } from "@/lib/factories/ParallelLinesFactory";
 import {
   generateTranslationProblems,
@@ -170,6 +184,11 @@ export const geo_5_4_centers = lesson(generateConcurrencyProblems);
 export const geo_5_5_mediansAltitudes = lesson(generateMediansAltitudesProblems);
 export const geo_5_6_inequalitiesOneTriangle = lesson(generateInequalitiesOneTriangleProblems);
 export const geo_6_1_polygons = lesson(generatePolygonProblems);
+export const geo_6_parallelogramProps = lesson(generateParallelogramPropsProblems);
+export const geo_6_specialProps = lesson(generateSpecialPropsProblems);
+export const geo_6_kitesTrapezoids = lesson(generateKiteTrapProblems);
+export const geo_6_classifyQuads = lesson(generateClassifyQuadProblems);
+export const geo_6_coordQuads = lesson(generateCoordQuadProblems);
 export const geo_8_1_translations = lesson(generateTranslationProblems);
 export const geo_12_1_tangentLines = lesson(generateTangentProblems);
 export const geo_13_1_area = lesson(generateAreaProblems);
@@ -266,6 +285,10 @@ const TEST_MIXES: Record<number, { entry: MakerEntry; weight: number }[]> = {
     W(from(QUADRILATERAL_TEST_POOL, "TrapezoidMidsegment"), 1),
     W(from(QUADRILATERAL_TEST_POOL, "KiteAngles"), 1),
     W(from(QUADRILATERAL_TEST_POOL, "ClassifyQuadrilateral"), 1),
+    W(from(CLASSIFY_QUADS_POOL, "ClassifyMostSpecific"), 1),
+    W(from(CLASSIFY_QUADS_POOL, "ParallelogramTest"), 1),
+    W(from(PARALLELOGRAM_PROPS_POOL, "ParaDiagAlg"), 1),
+    W(from(KITE_TRAP_POOL, "IsoTrapAngles"), 1),
   ],
   // Topic 8: translations underneath, all rigid motions + symmetry on top
   8: [
@@ -349,6 +372,11 @@ export const WIRED_GEOMETRY: WiredGeometryEntry[] = [
   { id: "ch5-5-medians-altitudes", generate: geo_5_5_mediansAltitudes, subtypes: MEDIANS_ALTITUDES_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch5-6-inequalities-one-triangle", generate: geo_5_6_inequalitiesOneTriangle, subtypes: INEQUALITIES_ONE_TRIANGLE_POOL.map((e) => e.subtype) },
   { id: "ch6-1-polygons", generate: geo_6_1_polygons, subtypes: POLYGON_LESSON_POOL.map((e) => e.subtype) },
+  { id: "ch6-parallelogram-properties", generate: geo_6_parallelogramProps, subtypes: PARALLELOGRAM_PROPS_POOL.map((e) => e.subtype) },
+  { id: "ch6-special-parallelogram-properties", generate: geo_6_specialProps, subtypes: SPECIAL_PROPS_POOL.map((e) => e.subtype) },
+  { id: "ch6-kites-trapezoids", generate: geo_6_kitesTrapezoids, subtypes: KITE_TRAP_POOL.map((e) => e.subtype) },
+  { id: "ch6-classify-quadrilaterals", generate: geo_6_classifyQuads, subtypes: CLASSIFY_QUADS_POOL.map((e) => e.subtype) },
+  { id: "ch6-coordinate-quadrilaterals", generate: geo_6_coordQuads, subtypes: COORD_QUADS_POOL.map((e) => e.subtype) },
   { id: "ch8-1-translations", generate: geo_8_1_translations, subtypes: TRANSLATION_LESSON_POOL.map((e) => e.subtype) },
   { id: "ch12-1-tangent-lines", generate: geo_12_1_tangentLines, subtypes: ["TangentLength", "TwoTangentSegments", "TangentCentralAngle", "IsTangent", "CircumscribedPerimeter"] },
   { id: "ch13-1-area-polygons", generate: geo_13_1_area, subtypes: AREA_LESSON_POOL.map((e) => e.subtype) },
