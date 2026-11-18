@@ -49,6 +49,7 @@ import {
 import ToastStack, { type Toast } from './ToastStack';
 import { color, icon, motion, radius, shadow, sx as ui } from '../core/tokens';
 import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/renderer';
+import { useFittedDocument } from './pdfFit';
 import type { DocumentProps } from '@react-pdf/renderer';
 import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
 import PdfPagePreview from './PdfPagePreview';
@@ -3386,6 +3387,8 @@ function StepReview({
   usageNote: string | null;
 }) {
   void fileRef;
+  // The accommodated export renders on its own, so it gets best-fit spacing here.
+  const fittedAccommodated = useFittedDocument(accommodatedDocument);
   // Anonymous timing for this visit to Review (see lib/previewVisit.ts).
   const previewVisit = usePreviewVisit({
     docType,
@@ -3536,7 +3539,17 @@ function StepReview({
           >
             Export PDF
           </Button>
-        ) : mounted && selectedModules.length > 0 && hasAccommodations && accommodatedDocument ? (
+        ) : mounted && selectedModules.length > 0 && hasAccommodations && accommodatedDocument && !fittedAccommodated ? (
+          // Accommodated, still laying out the pages.
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<FileDown size={icon.size} strokeWidth={icon.strokeWidth} />}
+            disabled
+          >
+            Preparing PDF…
+          </Button>
+        ) : mounted && selectedModules.length > 0 && hasAccommodations && fittedAccommodated ? (
           // Accommodated: one combined file with every version, built on its own.
           <Box
             onClick={() => {
@@ -3545,7 +3558,7 @@ function StepReview({
             }}
           >
           <PDFDownloadLink
-            document={accommodatedDocument as React.ReactElement<DocumentProps>}
+            document={fittedAccommodated as React.ReactElement<DocumentProps>}
             fileName={exportFileName}
             style={{ textDecoration: 'none' }}
           >

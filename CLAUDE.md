@@ -30,6 +30,8 @@ Hand long runs to the `test-runner` agent so only failures come back.
 - Precalculus, calculus, SAT: `npx tsx tests/<area>/run-all.ts`
 - Classical notes: `npx tsx tests/classical-notes/run-classical-tests.tsx`
 - Answer and PDF text: `tests/latex-to-text.ts`, `tests/printed-keys.ts`
+- PDF page fitting and work space: `npx tsx tests/page-fit.tsx`
+  (samples to look at: `npx tsx tests/spacing-samples.tsx <outdir>`)
 - Worker (sign-in, plans, Stripe): `npx tsx tests/paygate/run-worker-tests.ts`
   and the other `tests/paygate/run-worker-*.ts`
 - Saved worksheets: `npx tsx tests/saved-worksheets.ts`
