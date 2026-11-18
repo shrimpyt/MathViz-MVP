@@ -56,6 +56,7 @@ import type { Presentation } from "../lib/accommodations";
 import { DEFAULT_PRESENTATION } from "../lib/accommodations";
 import { pdfFamily } from "./pdfFonts";
 import { PdfMathText } from "./PdfMathText";
+import { studentTimeLine, teacherTimeLine } from "@/lib/estimatedTime";
 
 // ── Fonts ────────────────────────────────────────────────────────────────────
 // Registered once in pdfFonts.ts (Euclid Sans, DejaVu Serif, DejaVu Sans
@@ -409,6 +410,13 @@ function createStyles(presentation: Presentation) {
     marginTop: sp(4),
     textTransform: 'uppercase',
     letterSpacing: 2,
+  },
+  keyTime: {
+    ...fam('WorksheetSerif'),
+    fontSize: fs(9.5),
+    textAlign: 'center',
+    color: '#333333',
+    marginTop: sp(4),
   },
   keyRow: {
     flexDirection: 'row',
@@ -764,6 +772,11 @@ export interface PdfDocumentProps {
   /** Mixed-topic worksheet: print advancedProblems in the order given, as
       one list with no section headings (see orderProblemSets). */
   mixedOrder?: boolean;
+  /** Estimated time for this version, in minutes (rounded to 5). Printed on
+      the answer key; 0 or missing prints nothing. See lib/estimatedTime. */
+  estimatedMinutes?: number;
+  /** Also print the estimated time on the student sheet. Off by default. */
+  timeOnStudentSheet?: boolean;
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
@@ -791,6 +804,8 @@ export function PdfVersionPages({
   wordBank,
   watermark = false,
   mixedOrder = false,
+  estimatedMinutes = 0,
+  timeOnStudentSheet = false,
 }: PdfDocumentProps) {
   const styles = getStyles(presentation);
   const modeLabel =
@@ -1521,6 +1536,9 @@ export function PdfVersionPages({
       <View style={styles.headerTopRule}>
         <Text style={styles.title}>{pdfSafeText(heading)}</Text>
         <Text style={styles.modeLabel}>{sub}</Text>
+        {timeOnStudentSheet && estimatedMinutes > 0 ? (
+          <Text style={styles.modeLabel}>{studentTimeLine(estimatedMinutes)}</Text>
+        ) : null}
       </View>
 
       {/* Name / Date / Period */}
@@ -1635,6 +1653,9 @@ export function PdfVersionPages({
               <Text style={styles.keyTitle}>{keyHeading}</Text>
               <Text style={styles.keyWarning}>Do not distribute, teacher use only</Text>
               <Text style={styles.modeLabel}>{title}</Text>
+              {estimatedMinutes > 0 ? (
+                <Text style={styles.keyTime}>{teacherTimeLine(estimatedMinutes)}</Text>
+              ) : null}
             </View>
           </View>
 

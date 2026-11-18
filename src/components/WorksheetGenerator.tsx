@@ -116,6 +116,14 @@ import {
   trayTotal,
 } from '../lib/pickerPrefs';
 import {
+  aboutMinutesShort,
+  estimateWorksheet,
+  estimatedTimeLine,
+  overPeriodNote,
+  readTimeOnSheet,
+  rememberTimeOnSheet,
+} from '../lib/estimatedTime';
+import {
   againLessons,
   markOnShelf,
   removeFromShelf,
@@ -360,6 +368,16 @@ export default function WorksheetGenerator() {
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [wordProblems, setWordProblems] = useState(false);
   const [includeDiagrams, setIncludeDiagrams] = useState(true);
+  // Print the estimated time on the student sheet too. A teacher's habit,
+  // remembered in this browser (not in saved worksheets). Off by default.
+  const [timeOnSheet, setTimeOnSheetState] = useState(false);
+  useEffect(() => {
+    setTimeOnSheetState(readTimeOnSheet(localStore()));
+  }, []);
+  const setTimeOnSheet = (on: boolean) => {
+    setTimeOnSheetState(on);
+    rememberTimeOnSheet(localStore(), on);
+  };
   const [draftError, setDraftError] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -786,6 +804,17 @@ export default function WorksheetGenerator() {
   );
   const hasAccommodations = versionPlan.groups.length > 0;
 
+  // ── Estimated time (lib/estimatedTime.ts) ──
+  // Typical minutes for an on-level student, from the problems themselves.
+  // Each accommodated version gets its own, since a version can hold fewer.
+  const estimateFor = (problems: readonly MathProblem[]) =>
+    estimateWorksheet(problems, { docType, difficulty, sections: selectedModules.length });
+  const timeEstimate = useMemo(
+    () => estimateFor(advancedProblems),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [advancedProblems, docType, difficulty, selectedModules.length]
+  );
+
   // ── Pay-gate verdict for the export button ──
   const hasProTopics = splitTopicsForPlan(selectedTopicIds, isPro).proOnly.length > 0;
   const gateReason: ExportGateReason | null = isPro
@@ -866,6 +895,8 @@ export default function WorksheetGenerator() {
       keyHeading={v.answerKeyLabel}
       wordBank={v.wordBank}
       mixedOrder={mixedOrder}
+      estimatedMinutes={estimateFor(v.problems).minutes}
+      timeOnStudentSheet={timeOnSheet}
     />
   );
 
@@ -891,7 +922,7 @@ export default function WorksheetGenerator() {
       </PdfRendererDocument>
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder]);
+  }, [hasAccommodations, versionPlan, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder, difficulty, timeOnSheet]);
 
   // The plain (no accommodations) export. The Review step previews this exact
   // element and Export downloads the file the preview built.
@@ -908,9 +939,11 @@ export default function WorksheetGenerator() {
         seed={seed}
         watermark={!isPro}
         mixedOrder={mixedOrder}
+        estimatedMinutes={timeEstimate.minutes}
+        timeOnStudentSheet={timeOnSheet}
       />
     ),
-    [title, questions, advancedProblems, docType, standards, exportIncludesKey, classicalGroups, seed, isPro, mixedOrder]
+    [title, questions, advancedProblems, docType, standards, exportIncludesKey, classicalGroups, seed, isPro, mixedOrder, timeEstimate.minutes, timeOnSheet]
   );
 
   // What the Review step shows: the plain export, or (with accommodations)
@@ -919,7 +952,7 @@ export default function WorksheetGenerator() {
     if (!hasAccommodations) return baseDocument;
     return <PdfRendererDocument>{versionPages(activeVersion)}</PdfRendererDocument>;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAccommodations, baseDocument, activeVersion, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder]);
+  }, [hasAccommodations, baseDocument, activeVersion, versionQuestions, title, docType, standards, exportIncludesKey, classicalGroups, seed, mixedOrder, difficulty, timeOnSheet]);
 
   // ── Draft save / load ──
   const saveDraft = () => {
@@ -1223,18 +1256,23 @@ export default function WorksheetGenerator() {
       const m = DOC_MODES.find((d) => d.value === docType);
       return `Format: ${m ? m.label : docType}`;
     }
+    // "· about 25 min", or "· about 50 min, over one class period".
+    const time =
+      timeEstimate.minutes > 0
+        ? ` · ${aboutMinutesShort(timeEstimate.minutes)}${timeEstimate.overPeriod ? ', over one class period' : ''}`
+        : '';
     if (step === 1) {
-      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${frameworkMeta(framework).short} ${teksSelected}/${teksTotal}`;
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems${time} · ${frameworkMeta(framework).short} ${teksSelected}/${teksTotal}`;
     }
     if (step === 3) {
       const versions = hasAccommodations ? versionPlan.all().length : 1;
-      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${versions === 1 ? 'one version for everyone' : `${versions} versions`}`;
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems${time} · ${versions === 1 ? 'one version for everyone' : `${versions} versions`}`;
     }
     if (hasAccommodations) {
       return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready`;
     }
     return 'No accommodations, everyone gets the base version';
-  }, [step, docType, selectedTopicIds.length, advancedProblems.length, teksSelected, teksTotal, hasAccommodations, versionPlan]);
+  }, [step, docType, selectedTopicIds.length, advancedProblems.length, teksSelected, teksTotal, hasAccommodations, versionPlan, timeEstimate]);
 
   // Topbar step jumps follow the footer's Continue rule: steps past Topics
   // require a topic selection. With nothing selected, a forward jump lands
@@ -1360,6 +1398,9 @@ export default function WorksheetGenerator() {
             standards={standards}
             includeAnswerKey={includeAnswerKey}
             setIncludeAnswerKey={setIncludeAnswerKey}
+            estimatedMinutes={timeEstimate.minutes}
+            timeOnSheet={timeOnSheet}
+            setTimeOnSheet={setTimeOnSheet}
             classicalGroups={classicalGroups}
             seed={seed}
             setSeed={setSeed}
@@ -3318,6 +3359,9 @@ function StepReview({
   standards,
   includeAnswerKey,
   setIncludeAnswerKey,
+  estimatedMinutes,
+  timeOnSheet,
+  setTimeOnSheet,
   classicalGroups,
   seed,
   setSeed,
@@ -3356,6 +3400,10 @@ function StepReview({
   standards: string;
   includeAnswerKey: boolean;
   setIncludeAnswerKey: (b: boolean) => void;
+  /** Estimated time for the base version, rounded to 5 (0 = none). */
+  estimatedMinutes: number;
+  timeOnSheet: boolean;
+  setTimeOnSheet: (b: boolean) => void;
   classicalGroups: ClassicalGroup[] | undefined;
   seed: number;
   setSeed: (n: number) => void;
@@ -3434,6 +3482,7 @@ function StepReview({
     mixParts.length > 1
       ? `${mixParts.slice(0, -1).join(', ')} and ${mixParts[mixParts.length - 1]}`
       : (mixParts[0] ?? '');
+  const periodNote = overPeriodNote(estimatedMinutes);
   const scopeList = (
     <Box sx={{ mt: 0.5 }}>
       {scopeRows.map((row, i) => (
@@ -3442,6 +3491,14 @@ function StepReview({
           {mixesCourses ? ` · ${row.course}` : ''}
         </Typography>
       ))}
+      {estimatedMinutes > 0 && (
+        <Typography data-testid="estimated-time" sx={{ fontSize: '0.8125rem', fontWeight: 600, lineHeight: 1.6, mt: 0.5 }}>
+          {estimatedTimeLine(estimatedMinutes)}.
+          {periodNote ? (
+            <Box component="span" sx={{ fontWeight: 400, color: color.textMuted }}> {periodNote}</Box>
+          ) : null}
+        </Typography>
+      )}
     </Box>
   );
   return (
@@ -3524,6 +3581,19 @@ function StepReview({
           label={<Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: color.text }}>Answer key{isPro ? '' : ' (Pro)'}</Typography>}
           sx={{ ml: 0, mr: 1 }}
         />
+        <Tooltip title="Print the estimated time under the title on the student sheet. The answer key always shows it." arrow>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={timeOnSheet}
+                onChange={(e) => setTimeOnSheet(e.target.checked)}
+              />
+            }
+            label={<Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: color.text }}>Time on student sheet</Typography>}
+            sx={{ ml: 0, mr: 1 }}
+          />
+        </Tooltip>
         {mounted && selectedModules.length > 0 && gateReason ? (
           <Button
             variant="contained"
