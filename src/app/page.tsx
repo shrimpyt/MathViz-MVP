@@ -42,8 +42,15 @@ export default function Home() {
         sx={{ 
           display: "flex", 
           flexDirection: "column", 
-          height: "100vh",
-          "@supports (height: 100dvh)": { height: "100dvh" },
+          // Phones: the page grows and scrolls as one, so the intro and the
+          // links scroll away and the steps get the whole screen. Desktop:
+          // one screen tall, each step scrolls inside it.
+          minHeight: "100vh",
+          "@supports (height: 100dvh)": { minHeight: "100dvh" },
+          "@media (min-width: 900px)": {
+            height: "100vh",
+            "@supports (height: 100dvh)": { height: "100dvh" },
+          },
           bgcolor: color.bg,
         }}
       >

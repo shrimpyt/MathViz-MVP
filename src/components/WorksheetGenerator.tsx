@@ -1249,7 +1249,7 @@ export default function WorksheetGenerator() {
         // bottom bar with Continue and Export stays on screen.
         display: 'flex',
         flexDirection: 'column',
-        flex: 1,
+        flex: { xs: '1 0 auto', md: 1 },
         minHeight: 0,
         bgcolor: color.bg,
       }}
@@ -1282,7 +1282,7 @@ export default function WorksheetGenerator() {
         }
       />
 
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flex: { xs: '1 0 auto', md: 1 }, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {step === 0 && (
           <StepFormat
             docType={docType}
@@ -1627,14 +1627,16 @@ function AccountControl({
 
   if (account.status === 'signed-in') {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, width: { xs: '100%', md: 'auto' } }}>
         <Typography
           title={account.email ?? undefined}
           sx={{
             fontSize: '0.8125rem',
             fontWeight: 500,
             color: color.textMuted,
-            maxWidth: { xs: 150, md: 280 },
+            flex: { xs: 1, md: 'none' },
+            minWidth: 0,
+            maxWidth: { xs: 'none', md: 280 },
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -1722,7 +1724,7 @@ function AccountControl({
             top: 'calc(100% + 8px)',
             right: 0,
             zIndex: 30,
-            width: 320,
+            width: { xs: 'min(320px, calc(100vw - 32px))', sm: 320 },
             bgcolor: color.bgRaised,
             border: `1px solid ${color.borderStrong}`,
             borderRadius: `${radius.xl}px`,
@@ -1866,8 +1868,12 @@ function WizardTopbar({
     <Box
       sx={{
         display: 'flex',
+        // Phones and tablets: the wordmark and steps on one row, the account
+        // controls on a second, so nothing runs off the right edge.
+        flexWrap: { xs: 'wrap', md: 'nowrap' },
         alignItems: 'center',
-        gap: 2,
+        columnGap: 2,
+        rowGap: 1,
         px: { xs: 2, md: 4 },
         py: 1,
         minHeight: 64,
@@ -1882,7 +1888,7 @@ function WizardTopbar({
       <Box
         component="nav"
         aria-label="Steps"
-        sx={{ display: 'flex', alignItems: 'center', gap: 1, mx: 'auto' }}
+        sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, md: 1 }, ml: 'auto', mr: { xs: 0, md: 'auto' } }}
       >
         {WIZARD_STEPS.map((label, i) => {
           const current = i === step;
@@ -1900,7 +1906,7 @@ function WizardTopbar({
                 p: 0,
                 border: 0,
                 cursor: 'pointer',
-                width: current ? 40 : 24,
+                width: current ? { xs: 28, md: 40 } : { xs: 16, md: 24 },
                 height: 8,
                 borderRadius: `${radius.pill}px`,
                 bgcolor: current ? color.accent : color.inkMuted,
@@ -1921,7 +1927,17 @@ function WizardTopbar({
         </Typography>
       </Box>
 
-      <Box sx={{ flexShrink: 0 }}>{accountControl}</Box>
+      <Box
+        sx={{
+          flexShrink: 0,
+          flexBasis: { xs: '100%', md: 'auto' },
+          display: 'flex',
+          justifyContent: 'flex-end',
+          minWidth: 0,
+        }}
+      >
+        {accountControl}
+      </Box>
     </Box>
   );
 }
@@ -1940,18 +1956,31 @@ function WizardFooter({
   // Notebook look: one dark bar floating over the page, centered on the
   // column, holding Back, the running summary and the one primary action.
   return (
-    <Box sx={{ px: { xs: 2, md: 3 }, pb: { xs: 2, md: 3 }, pt: 1, bgcolor: color.bg, flexShrink: 0 }}>
+    <Box
+      sx={{
+        px: { xs: 2, md: 3 },
+        pb: { xs: 2, md: 3 },
+        pt: 1,
+        bgcolor: color.bg,
+        flexShrink: 0,
+        // Phones scroll the whole page, so the bar sticks to the screen's
+        // bottom edge instead of sitting under a fixed-height shell.
+        position: { xs: 'sticky', md: 'static' },
+        bottom: 0,
+        zIndex: 20,
+      }}
+    >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 2,
+          gap: { xs: 1, md: 2 },
           maxWidth: 760,
           mx: 'auto',
           minHeight: 64,
           py: 1,
           pr: 1,
-          pl: step > 0 ? 1 : 3,
+          pl: step > 0 ? 1 : { xs: 2, md: 3 },
           bgcolor: color.ink,
           color: color.accentContrast,
           borderRadius: '24px',
@@ -1980,11 +2009,16 @@ function WizardFooter({
             flex: 1,
             minWidth: 0,
             fontWeight: 700,
-            fontSize: '0.9375rem',
+            fontSize: { xs: '0.8125rem', md: '0.9375rem' },
+            lineHeight: { xs: 1.35, md: 1.5 },
             color: color.accentContrast,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            // Phones: up to two lines, so the summary reads whole.
+            whiteSpace: { xs: 'normal', md: 'nowrap' },
+            display: { xs: '-webkit-box', md: 'block' },
+            WebkitLineClamp: { xs: 2, md: 'none' },
+            WebkitBoxOrient: 'vertical',
           }}
         >
           {summary}
@@ -1999,7 +2033,8 @@ function WizardFooter({
                 onClick={() => setStep(step + 1)}
                 endIcon={<ArrowRight size={icon.size} strokeWidth={icon.strokeWidth} />}
                 sx={{
-                  minWidth: 128,
+                  minWidth: { xs: 0, md: 128 },
+                  px: { xs: 2, md: 3 },
                   height: 48,
                   borderRadius: '16px',
                   fontWeight: 700,
@@ -2018,8 +2053,8 @@ function WizardFooter({
 
 // Shared scrollable step container
 const stepScrollSx = {
-  flex: 1,
-  overflowY: 'auto',
+  flex: { xs: '1 0 auto', md: 1 },
+  overflowY: { xs: 'visible', md: 'auto' },
   px: { xs: 2, md: 4 },
   py: { xs: 4, md: 6 },
   display: 'flex',
@@ -2231,8 +2266,8 @@ function CountStepper({
 }) {
   const btnSx = {
     minWidth: 0,
-    width: 24,
-    height: 24,
+    width: { xs: 40, md: 24 },
+    height: { xs: 40, md: 24 },
     p: 0,
     borderRadius: `${radius.sm}px`,
     fontWeight: 500,
@@ -3410,7 +3445,7 @@ function StepReview({
     </Box>
   );
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <Box sx={{ flex: { xs: '1 0 auto', md: 1 }, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Action bar */}
       <Box
         sx={{
@@ -3658,8 +3693,8 @@ function StepReview({
       {/* Preview */}
       <Box
         sx={{
-          flex: 1,
-          overflowY: 'auto',
+          flex: { xs: '1 0 auto', md: 1 },
+          overflowY: { xs: 'visible', md: 'auto' },
           display: 'flex',
           justifyContent: 'center',
           py: 2,
