@@ -13,6 +13,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { pdf } from '@react-pdf/renderer';
+import { fitDocument } from './pdfFit';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { color, shadow } from '../core/tokens';
 
@@ -121,7 +122,10 @@ export default function PdfPagePreview({
     const timer = setTimeout(async () => {
       let blob: Blob;
       try {
-        blob = await pdf(pdfDocument as Parameters<typeof pdf>[0]).toBlob();
+        // Best-fit spacing: measure, plan the pages, then print (pdfFit.tsx).
+        const fitted = await fitDocument(pdfDocument as React.ReactElement);
+        if (!isCurrent()) return;
+        blob = await pdf(fitted as Parameters<typeof pdf>[0]).toBlob();
       } catch (e) {
         if (!isCurrent()) return;
         console.error('PDF build failed:', e);

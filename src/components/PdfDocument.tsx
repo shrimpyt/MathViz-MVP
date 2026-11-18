@@ -13,6 +13,11 @@
 //     versions (large print, fewer per page) keep one problem per row.
 //   • Each row uses `wrap={false}` so a diagram and its answer line never
 //     split across page breaks.
+//   • Best-fit spacing: work room is sized by the kind of problem
+//     (workSpace.ts), and when the document goes through fitDocument()
+//     (pdfFit.tsx) the rows, order and page breaks come from a plan built
+//     on measured heights (pageFit.ts). Rendered directly, it falls back to
+//     the plain flow layout.
 
 import React from 'react';
 import {
@@ -56,6 +61,9 @@ import type { Presentation } from "../lib/accommodations";
 import { DEFAULT_PRESENTATION } from "../lib/accommodations";
 import { pdfFamily } from "./pdfFonts";
 import { PdfMathText } from "./PdfMathText";
+import { FitContext, fitTag } from "./pdfFit";
+import { workSpaceFor } from "@/lib/workSpace";
+import { legacyRows, type FitPlan } from "@/lib/pageFit";
 
 // ── Fonts ────────────────────────────────────────────────────────────────────
 // Registered once in pdfFonts.ts (Euclid Sans, DejaVu Serif, DejaVu Sans
@@ -777,6 +785,16 @@ interface PdfItem {
   question: Question;
 }
 
+/** Usable page height: US Letter less the 0.6in top and 0.75in bottom margins. */
+const PAGE_CONTENT_HEIGHT = 792 - 0.6 * 72 - 0.75 * 72;
+
+/** A plan is used only if it prints every problem exactly once. */
+function validPlan(plan: FitPlan | undefined, count: number): FitPlan | null {
+  if (!plan) return null;
+  const all = plan.rows.flatMap((r) => r.items).sort((a, b) => a - b);
+  return all.length === count && all.every((x, i) => x === i) ? plan : null;
+}
+
 export function PdfVersionPages({
   title,
   questions,
@@ -793,6 +811,8 @@ export function PdfVersionPages({
   mixedOrder = false,
 }: PdfDocumentProps) {
   const styles = getStyles(presentation);
+  // Best-fit plan (or the measuring pass) from fitDocument(), if any.
+  const fit = React.useContext(FitContext);
   const modeLabel =
     docType === 'guided-notes'
       ? 'Guided Notes'
@@ -864,35 +884,6 @@ export function PdfVersionPages({
       items: questions.map((q) => ({ question: q })),
     });
   }
-
-  // Flat numbered list for the answer key, in worksheet order. Classical
-  // Notes mode keys off the per-entry groups (same numbering as the
-  // ClassicalNotesPdfSection blocks above).
-  const keyedItems: { n: number; problem: MathProblem }[] = [];
-  if (isClassicalDoc) {
-    for (const g of classicalGroups!) {
-      g.problems.forEach((problem, i) =>
-        keyedItems.push({ n: g.startIndex + i + 1, problem })
-      );
-    }
-  } else {
-    let n = 1;
-    for (const sec of sections) {
-      for (const item of sec.items) {
-        if (item.problem) keyedItems.push({ n: n++, problem: item.problem });
-      }
-    }
-  }
-  const showKey = includeAnswerKey && keyedItems.length > 0;
-
-  // Numbered sections, computed once per render.
-  const numberedSections = (() => {
-    let n = 0;
-    return sections.map((sec) => ({
-      label: sec.label,
-      items: sec.items.map((item) => ({ item, n: ++n })),
-    }));
-  })();
 
   // ── Diagram dispatch ──────────────────────────────────────────────────────
   // Routes each worker's diagram params to its own PDF renderer.
@@ -1099,7 +1090,6 @@ export function PdfVersionPages({
             <View style={{ flex: 1, paddingRight: 8 }}>
               <PdfMathText text={item.question.text} style={styles.questionText} />
               {scaffold}
-              {showAnswerLine && answerLine}
             </View>
             {renderScaledDiagram(item)}
           </View>
@@ -1403,63 +1393,166 @@ export function PdfVersionPages({
     return renderStandardProblem(item, n);
   };
 
-  /** Pair half-width problems into two-column rows; proofs and FRQs span the page. */
-  const renderGridRows = (
-    items: { item: PdfItem; n: number }[],
-    label: string | null,
-  ) => {
-    const rows: { item: PdfItem; n: number }[][] = [];
-    let pending: { item: PdfItem; n: number } | null = null;
-    for (const it of items) {
-      if (isFullWidth(it.item)) {
-        if (pending) rows.push([pending]);
-        pending = null;
-        rows.push([it]);
-      } else if (pending) {
-        rows.push([pending, it]);
-        pending = null;
-      } else {
-        pending = it;
+  // ── Rows: from the best-fit plan, or the plain flow layout ────────────────
+  // Every problem in its original order, with its section and work room.
+  const flat = sections.flatMap((sec, si) => sec.items.map((item) => ({ item, sec: si })));
+  const isStandard = (item: PdfItem) => {
+    const t = item.problem?.type;
+    return !(t === 'SAT' || t === 'Proof' || t === 'AP_FRQ' || t === 'PRECALC_MCQ' || t === 'CALC_MCQ');
+  };
+  // Increased spacing and large print both mean more room to write.
+  const roomScale = presentation.spacingScale * presentation.fontScale;
+  const fitItems = flat.map(({ item, sec }) => {
+    const room = workSpaceFor({
+      problem: item.problem,
+      text: item.question.text,
+      hasDiagram:
+        renderPdfDiagram(item) !== null || !!(item.problem as { diagram?: unknown } | undefined)?.diagram,
+      docType,
+      hasScaffold: showScaffold && !!item.question.scaffolding?.length,
+      // One problem per row: a standard problem's diagram sits beside its text.
+      diagramBeside: !grid && isStandard(item),
+    });
+    return {
+      h: 0,
+      ws: Math.round(room.room * roomScale),
+      grow: Math.round(room.grow * roomScale),
+      full: grid ? isFullWidth(item) : true,
+      sec,
+    };
+  });
+  const perPage = capActive && !grid ? presentation.maxProblemsPerPage : null;
+  // Names this version inside a combined (accommodated) document.
+  const fitKey = [
+    title,
+    keyHeading,
+    docType,
+    presentation.fontScale,
+    presentation.fontFamily,
+    presentation.spacingScale,
+    presentation.maxProblemsPerPage,
+    flat.length,
+    mixedOrder ? 'mixed' : 'grouped',
+  ].join('|');
+  const plan = fit?.mode === 'final' && !isClassicalDoc ? validPlan(fit.plans.get(fitKey), flat.length) : null;
+
+  interface PrintedRow {
+    cells: { item: PdfItem; n: number }[];
+    sec: number;
+    firstInSection: boolean;
+    breakBefore: boolean;
+    full: boolean;
+    /** Grid rows: least height of the row (problem + work room). */
+    minHeight?: number;
+    /** Single column: blank room between the problem and its answer line. */
+    spacer: number;
+  }
+  const printedRows: PrintedRow[] = [];
+  if (plan) {
+    let n = 0;
+    for (const row of plan.rows) {
+      printedRows.push({
+        cells: row.items.map((i) => ({ item: flat[i].item, n: ++n })),
+        sec: row.sec,
+        firstInSection: row.firstInSection,
+        breakBefore: row.breakBefore,
+        full: row.items.length === 1 && fitItems[row.items[0]].full,
+        minHeight: row.body + row.extra,
+        spacer: Math.round(fitItems[row.items[0]].ws * plan.roomScale) + row.extra,
+      });
+    }
+  } else {
+    legacyRows(fitItems, grid).forEach((row, r, all) => {
+      const full = row.items.length === 1 && fitItems[row.items[0]].full;
+      const first = row.items[0];
+      printedRows.push({
+        cells: row.items.map((i) => ({ item: flat[i].item, n: i + 1 })),
+        sec: row.sec,
+        firstInSection: r === 0 || all[r - 1].sec !== row.sec,
+        // Fewer-per-page accommodation: a new page every K problems.
+        breakBefore: !!perPage && first > 0 && first % perPage === 0,
+        full,
+        minHeight: grid && !full ? workRoom : undefined,
+        spacer: fitItems[first].ws,
+      });
+    });
+  }
+
+  // Answer key in printed order. Classical Notes keys off its per-entry
+  // groups (same numbering as the ClassicalNotesPdfSection blocks).
+  const keyedItems: { n: number; problem: MathProblem }[] = [];
+  if (isClassicalDoc) {
+    for (const g of classicalGroups!) {
+      g.problems.forEach((problem, i) =>
+        keyedItems.push({ n: g.startIndex + i + 1, problem })
+      );
+    }
+  } else {
+    for (const row of printedRows) {
+      for (const c of row.cells) {
+        if (c.item.problem) keyedItems.push({ n: c.n, problem: c.item.problem });
       }
     }
-    if (pending) rows.push([pending]);
+  }
+  const showKey = includeAnswerKey && keyedItems.length > 0;
 
-    const cell = (it: { item: PdfItem; n: number } | undefined, side: 'left' | 'right') => (
-      <View style={side === 'left' ? styles.gridCellLeft : styles.gridCellRight}>
-        {it ? renderProblem(it.item, it.n) : null}
-        {it && showAnswerLine && !isChoiceProblem(it.item) ? answerLine : null}
-      </View>
-    );
-
-    // A section heading travels with its first row so it never sits alone
-    // at the foot of a page. The heading's own rule stands in for that
-    // row's top hairline.
-    const heading = label ? (
+  const sectionHeading = (sec: number) =>
+    sections[sec]?.label ? (
       <View style={styles.sectionDivider}>
-        <Text style={styles.sectionLabel}>{label}</Text>
+        <Text style={styles.sectionLabel}>{sections[sec].label}</Text>
       </View>
     ) : null;
 
-    return rows.map((row, ri) => {
-      const ruled = ri > 0;
-      const body =
-        row.length === 1 && isFullWidth(row[0].item) ? (
-          <View style={ruled ? [styles.gridRow, styles.gridRowRule] : styles.gridRow}>
-            <View style={styles.gridCellFull}>{renderProblem(row[0].item, row[0].n)}</View>
-          </View>
-        ) : (
-          <View style={[styles.gridRow, ruled ? styles.gridRowRule : {}, { minHeight: workRoom }]}>
-            {cell(row[0], 'left')}
-            {cell(row[1], 'right')}
-          </View>
-        );
+  const gridCell = (c: { item: PdfItem; n: number } | undefined, side: 'left' | 'right') => (
+    <View style={side === 'left' ? styles.gridCellLeft : styles.gridCellRight}>
+      {c ? renderProblem(c.item, c.n) : null}
+      {c && showAnswerLine && !isChoiceProblem(c.item) ? answerLine : null}
+    </View>
+  );
+
+  /** One unbreakable row. A section heading travels with its section's first
+   *  row so it never sits alone at the foot of a page; in the grid the
+   *  heading's rule stands in for that row's top hairline. */
+  const renderRow = (row: PrintedRow, key: number, withHeading = true) => {
+    const heading = withHeading && row.firstInSection ? sectionHeading(row.sec) : null;
+    if (grid) {
+      const ruled = !row.firstInSection;
+      const style = [
+        styles.gridRow,
+        ruled ? styles.gridRowRule : {},
+        row.minHeight ? { minHeight: row.minHeight } : {},
+      ];
       return (
-        <View key={row[0].n} wrap={false}>
-          {ri === 0 ? heading : null}
-          {body}
+        <View key={key} wrap={false} break={row.breakBefore}>
+          {heading}
+          {row.full ? (
+            <View style={style}>
+              <View style={styles.gridCellFull}>{renderProblem(row.cells[0].item, row.cells[0].n)}</View>
+            </View>
+          ) : (
+            <View style={style}>
+              {gridCell(row.cells[0], 'left')}
+              {gridCell(row.cells[1], 'right')}
+            </View>
+          )}
         </View>
       );
-    });
+    }
+    const c = row.cells[0];
+    const answer = showAnswerLine && isStandard(c.item);
+    return (
+      <View
+        key={key}
+        wrap={false}
+        break={row.breakBefore}
+        style={answer ? { marginBottom: styles.problemRow.marginBottom } : undefined}
+      >
+        {heading}
+        {renderProblem(c.item, c.n)}
+        {row.spacer > 0 ? <View style={{ height: row.spacer }} /> : null}
+        {answer ? answerLine : null}
+      </View>
+    );
   };
 
   /** Answer-key row: classical mode reveals reasons; FRQ/SAT add justifications. */
@@ -1563,6 +1656,69 @@ export function PdfVersionPages({
     </View>
   );
 
+  const wordBankBox =
+    wordBank && wordBank.length > 0 ? (
+      <View style={styles.wordBankBox}>
+        <Text style={styles.wordBankLabel}>Word Bank</Text>
+        <Text style={styles.wordBankTerms}>
+          {wordBank.map((t) => pdfSafeText(t)).join('  ·  ')}
+        </Text>
+      </View>
+    ) : null;
+
+  // ── Measuring pass (pdfFit.tsx) ───────────────────────────────────────────
+  // One tall scratch page: the header, each section heading, and every
+  // problem as it prints with no work room, each tagged for the planner.
+  if (fit?.mode === 'measure' && !isClassicalDoc) {
+    return (
+      <Page size={[612, 14400]} style={styles.page}>
+        <View
+          {...fitTag({
+            v: fitKey,
+            k: 'meta',
+            capacity: PAGE_CONTENT_HEIGHT,
+            rule: 0.6,
+            grid,
+            perPage,
+            sections: sections.length,
+            count: flat.length,
+          })}
+        />
+        <View {...fitTag({ v: fitKey, k: 'header' })}>
+          {renderHeader(title, modeLabel)}
+          {wordBankBox}
+        </View>
+        {sections.map((sec, si) =>
+          sec.label ? (
+            <View key={`h${si}`} {...fitTag({ v: fitKey, k: 'heading', sec: si })}>
+              {sectionHeading(si)}
+            </View>
+          ) : null,
+        )}
+        {flat.map(({ item, sec }, i) => (
+          <View
+            key={i}
+            wrap={false}
+            {...fitTag({ v: fitKey, k: 'item', i, ws: fitItems[i].ws, grow: fitItems[i].grow, full: fitItems[i].full, sec })}
+          >
+            {renderRow(
+              {
+                cells: [{ item, n: i + 1 }],
+                sec,
+                firstInSection: true,
+                breakBefore: false,
+                full: fitItems[i].full,
+                spacer: 0,
+              },
+              i,
+              false,
+            )}
+          </View>
+        ))}
+      </Page>
+    );
+  }
+
   return (
     <>
       <Page size="LETTER" style={styles.page}>
@@ -1570,14 +1726,7 @@ export function PdfVersionPages({
         {renderHeader(title, modeLabel)}
 
         {/* ── Word bank (IEP option, accommodated versions only) ── */}
-        {wordBank && wordBank.length > 0 ? (
-          <View style={styles.wordBankBox}>
-            <Text style={styles.wordBankLabel}>Word Bank</Text>
-            <Text style={styles.wordBankTerms}>
-              {wordBank.map((t) => pdfSafeText(t)).join('  ·  ')}
-            </Text>
-          </View>
-        ) : null}
+        {wordBankBox}
 
         {/* ── Problems: classical-notes gets per-entry sections; otherwise
             the standard grouped rendering ── */}
@@ -1597,31 +1746,7 @@ export function PdfVersionPages({
             ))}
           </View>
         ) : (
-          <View>
-            {numberedSections.map((sec, si) => (
-              <View key={si}>
-                {sec.label && !grid && (
-                  <View style={styles.sectionDivider}>
-                    <Text style={styles.sectionLabel}>{sec.label}</Text>
-                  </View>
-                )}
-                {grid
-                  ? renderGridRows(sec.items, sec.label)
-                  : sec.items.map(({ item, n }) => {
-                      const el = renderProblem(item, n);
-                      // Fewer-per-page accommodation: force a page break every
-                      // K problems. The standard worksheet flows naturally and
-                      // fills each page. (Classical-notes entry sections keep
-                      // natural flow.)
-                      const needsBreak =
-                        capActive &&
-                        n > 1 &&
-                        (n - 1) % presentation.maxProblemsPerPage === 0;
-                      return needsBreak ? React.cloneElement(el, { break: true }) : el;
-                    })}
-              </View>
-            ))}
-          </View>
+          <View>{printedRows.map((row, ri) => renderRow(row, ri))}</View>
         )}
 
         {renderFooter()}
