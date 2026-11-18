@@ -14,6 +14,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { color, shadow } from '../core/tokens';
 
 /** Page image width in CSS pixels at 1x (US Letter is 612pt wide). */
 const RENDER_SCALE = 2;
@@ -171,7 +172,7 @@ export default function PdfPagePreview({
       <Box sx={{ width: '100%' }}>
         <Typography
           role="status"
-          sx={{ textAlign: 'center', fontSize: '0.8rem', color: '#fca5a5', fontWeight: 700, mb: 1.5 }}
+          sx={{ textAlign: 'center', fontSize: '0.8rem', color: color.danger, fontWeight: 600, mb: 1.5 }}
         >
           The page preview couldn&apos;t be drawn in this browser, so this is a close approximation. Export still
           downloads the real PDF.
@@ -208,14 +209,14 @@ export default function PdfPagePreview({
               px: 1.75,
               py: 0.75,
               borderRadius: '999px',
-              bgcolor: '#1e2233',
-              border: '1.5px solid #2c3247',
-              color: '#f2f3fa',
-              boxShadow: '0 4px 16px rgba(0,0,0,.35)',
+              bgcolor: color.surface,
+              border: `1px solid ${color.border}`,
+              color: color.text,
+              boxShadow: shadow.md,
             }}
           >
-            <CircularProgress size={14} thickness={6} sx={{ color: '#818cf8' }} />
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700 }}>
+            <CircularProgress size={14} thickness={6} sx={{ color: color.accent }} />
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 600 }}>
               {pages.length ? 'Updating preview…' : 'Building the PDF preview…'}
             </Typography>
           </Box>
@@ -235,12 +236,12 @@ export default function PdfPagePreview({
               height: 'auto',
               bgcolor: '#fff',
               borderRadius: '4px',
-              boxShadow: '0 8px 28px rgba(0,0,0,.45)',
+              boxShadow: shadow.md,
               opacity: busy ? 0.6 : 1,
               transition: 'opacity .15s',
             }}
           />
-          <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, mt: 0.75 }}>
+          <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: color.textMuted, fontWeight: 500, mt: 0.75 }}>
             Page {i + 1} of {pages.length}
           </Typography>
         </Box>

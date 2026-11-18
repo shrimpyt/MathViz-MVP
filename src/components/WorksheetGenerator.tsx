@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   TextField,
+  MenuItem,
   Tooltip,
   FormControlLabel,
   Switch,
@@ -19,16 +20,34 @@ import {
   DialogContent,
   DialogActions,
   ClickAwayListener,
+  Grow,
 } from '@mui/material';
 import {
+  ArrowLeft,
+  ArrowRight,
+  BookmarkPlus,
+  Check,
+  ChevronDown,
+  ClipboardCheck,
+  Dices,
+  FileDown,
+  FileText,
+  History,
+  Landmark,
+  ListChecks,
+  NotebookPen,
+  PenLine,
+  RotateCcw,
   Save,
-  UploadFile,
-  BookmarkAdd,
-  PictureAsPdf,
-  Casino,
-  ExpandMore,
-  Clear as ClearIcon,
-} from '@mui/icons-material';
+  Search,
+  SquareDashed,
+  Timer,
+  Upload,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
+import ToastStack, { type Toast } from './ToastStack';
+import { color, icon, motion, radius, shadow, sx as ui } from '../core/tokens';
 import { PDFDownloadLink, Document as PdfRendererDocument } from '@react-pdf/renderer';
 import type { DocumentProps } from '@react-pdf/renderer';
 import PdfDocument, { PdfVersionPages, AccommodationDividerPage } from './PdfDocument';
@@ -167,17 +186,17 @@ function entryInView(entry: RegisteredEntry, view: string): boolean {
 const DOC_MODES: {
   value: DocumentType;
   label: string;
-  emoji: string;
+  Icon: LucideIcon;
   blurb: string;
 }[] = [
-  { value: 'guided-notes', label: 'Guided Notes', emoji: '📝', blurb: 'Fill-in-the-blank scaffolding' },
-  { value: 'review', label: 'Review', emoji: '📊', blurb: 'High-density practice, answers shown' },
-  { value: 'test', label: 'Test', emoji: '✅', blurb: 'Formal assessment, no hints' },
-  { value: 'worksheet', label: 'Worksheet', emoji: '📄', blurb: 'Everyday practice set' },
-  { value: 'classical-notes', label: 'Classical Notes', emoji: '🏛️', blurb: 'Definitions printed, reasoning yours' },
-  { value: 'proof-fill-reasons', label: 'Proofs: Fill in the Blanks', emoji: '✏️', blurb: 'Proof table printed, blanks left for students to complete' },
-  { value: 'proof-blank', label: 'Proofs: Blank Workspace', emoji: '⬜', blurb: 'Just Given and Prove, one big open space to write the whole proof' },
-  { value: 'sat-practice', label: 'SAT Practice', emoji: '⏱️', blurb: 'Timed SAT-style module' },
+  { value: 'guided-notes', label: 'Guided Notes', Icon: NotebookPen, blurb: 'Fill-in-the-blank scaffolding' },
+  { value: 'review', label: 'Review', Icon: ListChecks, blurb: 'High-density practice, answers shown' },
+  { value: 'test', label: 'Test', Icon: ClipboardCheck, blurb: 'Formal assessment, no hints' },
+  { value: 'worksheet', label: 'Worksheet', Icon: FileText, blurb: 'Everyday practice set' },
+  { value: 'classical-notes', label: 'Classical Notes', Icon: Landmark, blurb: 'Definitions printed, reasoning yours' },
+  { value: 'proof-fill-reasons', label: 'Proofs: Fill in the Blanks', Icon: PenLine, blurb: 'Proof table printed, blanks left for students to complete' },
+  { value: 'proof-blank', label: 'Proofs: Blank Workspace', Icon: SquareDashed, blurb: 'Just Given and Prove, one big open space to write the whole proof' },
+  { value: 'sat-practice', label: 'SAT Practice', Icon: Timer, blurb: 'Timed SAT-style module' },
 ];
 
 // ── Sidebar section wrapper: consistent label row ─────────────────────────────
@@ -207,7 +226,7 @@ function PanelSection({
           sx={{
             textTransform: 'uppercase',
             letterSpacing: 2,
-            color: 'rgba(148,163,184,0.85)',
+            color: color.textMuted,
             fontWeight: 700,
             fontSize: '0.66rem',
           }}
@@ -1202,15 +1221,19 @@ export default function WorksheetGenerator() {
   const footerSummary = useMemo(() => {
     if (step === 0) {
       const m = DOC_MODES.find((d) => d.value === docType);
-      return `Format: ${m ? m.label : docType} ${m ? m.emoji : ''}`;
+      return `Format: ${m ? m.label : docType}`;
     }
     if (step === 1) {
       return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${frameworkMeta(framework).short} ${teksSelected}/${teksTotal}`;
     }
-    if (hasAccommodations) {
-      return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready 🎉`;
+    if (step === 3) {
+      const versions = hasAccommodations ? versionPlan.all().length : 1;
+      return `${selectedTopicIds.length} topic${selectedTopicIds.length === 1 ? '' : 's'} · ${advancedProblems.length} problems · ${versions === 1 ? 'one version for everyone' : `${versions} versions`}`;
     }
-    return 'No accommodations, everyone gets the base version 👍';
+    if (hasAccommodations) {
+      return `${versionPlan.groups.length} group${versionPlan.groups.length === 1 ? '' : 's'} → ${versionPlan.all().length} versions ready`;
+    }
+    return 'No accommodations, everyone gets the base version';
   }, [step, docType, selectedTopicIds.length, advancedProblems.length, teksSelected, teksTotal, hasAccommodations, versionPlan]);
 
   // Topbar step jumps follow the footer's Continue rule: steps past Topics
@@ -1222,36 +1245,42 @@ export default function WorksheetGenerator() {
   return (
     <Box
       sx={{
+        // Fill what the page shell leaves under its intro strip, so the
+        // bottom bar with Continue and Export stays on screen.
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        '@supports (height: 100dvh)': { height: '100dvh' },
-        bgcolor: '#14161f',
+        flex: 1,
+        minHeight: 0,
+        bgcolor: color.bg,
       }}
     >
       <WizardTopbar
         step={step}
         goTo={goToStep}
-        problemCount={advancedProblems.length}
         accountControl={
           <AccountControl account={account} onAccountChange={setAccount} open={signInOpen} setOpen={setSignInOpen} />
         }
       />
 
-      {gateMsg && (
-        <Alert
-          severity="info"
-          onClose={() => setGateMsg(null)}
-          action={
-            <Button color="inherit" size="small" href="/pricing" sx={{ fontWeight: 800 }}>
-              See Pro
-            </Button>
-          }
-          sx={{ mx: 2, mt: 1.5, flexShrink: 0 }}
-        >
-          {gateMsg}
-        </Alert>
-      )}
+      <ToastStack
+        toasts={
+          gateMsg
+            ? [
+                {
+                  key: 'gate',
+                  severity: 'info',
+                  text: gateMsg,
+                  onClose: () => setGateMsg(null),
+                  action: (
+                    <Button color="inherit" size="small" href="/pricing">
+                      See Pro
+                    </Button>
+                  ),
+                },
+              ]
+            : []
+        }
+      />
 
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {step === 0 && (
@@ -1373,9 +1402,9 @@ export default function WorksheetGenerator() {
       />
 
       <Dialog open={saveDialogOpen} onClose={() => !saving && setSaveDialogOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800 }}>Save to your library</DialogTitle>
+        <DialogTitle>Save to your library</DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.82rem', color: '#9aa0be', mb: 1.5 }}>
+          <Typography sx={{ ...ui.help, fontSize: '0.875rem', mb: 2 }}>
             Saves this worksheet&apos;s settings and seed, so you can rebuild the exact same problems and answer key later.
           </Typography>
           <TextField
@@ -1392,7 +1421,7 @@ export default function WorksheetGenerator() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSaveDialogOpen(false)} disabled={saving} sx={{ color: '#9aa0be' }}>
+          <Button onClick={() => setSaveDialogOpen(false)} disabled={saving}>
             Cancel
           </Button>
           <Button variant="contained" onClick={() => void confirmSave()} disabled={saving || !saveName.trim()}>
@@ -1410,20 +1439,21 @@ export default function WorksheetGenerator() {
           });
           return (
             <>
-              <DialogTitle sx={{ fontWeight: 800 }}>{copy.title}</DialogTitle>
+              <DialogTitle>{copy.title}</DialogTitle>
               <DialogContent>
                 {copy.body.map((line) => (
-                  <Typography key={line} sx={{ fontSize: '0.9rem', mb: 1 }}>
+                  <Typography key={line} sx={{ fontSize: '0.875rem', color: color.textMuted, mb: 1 }}>
                     {line}
                   </Typography>
                 ))}
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => setExportGateOpen(false)} sx={{ color: '#9aa0be' }}>
+                <Button onClick={() => setExportGateOpen(false)}>
                   Not now
                 </Button>
                 {account.status !== 'signed-in' && (
                   <Button
+                    variant="outlined"
                     onClick={() => {
                       setExportGateOpen(false);
                       setSignInOpen(true);
@@ -1598,24 +1628,32 @@ function AccountControl({
   if (account.status === 'signed-in') {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Chip
-          label={`${account.email} · ${account.plan === 'pro' ? 'Pro' : 'Free'}`}
+        <Typography
+          title={account.email ?? undefined}
           sx={{
-            fontWeight: 800,
-            fontSize: '0.72rem',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            color: color.textMuted,
             maxWidth: { xs: 150, md: 280 },
-            backgroundColor: 'rgba(129,140,248,0.13)',
-            color: '#818cf8',
-            border: '1px solid rgba(129,140,248,0.30)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            mr: 1,
           }}
-        />
-        <Button size="small" href="/saved" sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}>
+        >
+          {account.email}
+          <Box component="span" sx={{ color: color.text, fontWeight: 600 }}>
+            {' · '}
+            {account.plan === 'pro' ? 'Pro' : 'Free'}
+          </Box>
+        </Typography>
+        <Button size="small" href="/saved" sx={{ whiteSpace: 'nowrap', px: 1 }}>
           Saved
         </Button>
         {account.plan === 'pro' ? (
           <Button
             size="small"
-            sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}
+            sx={{ whiteSpace: 'nowrap', px: 1 }}
             onClick={async () => {
               const url = await createPortalUrl();
               if (url) window.location.href = url;
@@ -1624,13 +1662,13 @@ function AccountControl({
             Billing
           </Button>
         ) : (
-          <Button size="small" href="/pricing" sx={{ color: '#fb923c', fontWeight: 800, whiteSpace: 'nowrap' }}>
+          <Button size="small" href="/pricing" sx={{ color: color.accent, whiteSpace: 'nowrap', px: 1, '&:hover': { color: color.accentHover } }}>
             Upgrade
           </Button>
         )}
         <Button
           size="small"
-          sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}
+          sx={{ whiteSpace: 'nowrap', px: 1 }}
           onClick={async () => {
             await apiSignOut();
             onAccountChange({ ...ANON_ACCOUNT, used: readLocalUsage() });
@@ -1650,7 +1688,7 @@ function AccountControl({
         if (e.key === 'Escape' && open) setOpen(false);
       }}
     >
-      <Button size="small" href="/pricing" sx={{ color: '#9aa0be', fontWeight: 800, whiteSpace: 'nowrap' }}>
+      <Button size="small" href="/pricing" sx={{ whiteSpace: 'nowrap', px: 1 }}>
         Pricing
       </Button>
       {/* A real link to /login, so a click before the page has finished
@@ -1666,31 +1704,40 @@ function AccountControl({
           e.preventDefault();
           setOpen((o) => !o);
         }}
-        sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '10px', fontWeight: 800, whiteSpace: 'nowrap', '&:hover': { borderColor: '#818cf8' } }}
+        sx={{ whiteSpace: 'nowrap', px: 2 }}
       >
         Sign in
       </Button>
-      {open && (
+      {/* The menu grows out of the Sign in button (top right corner). */}
+      <Grow
+        in={open}
+        unmountOnExit
+        style={{ transformOrigin: 'top right' }}
+        timeout={{ enter: motion.enter, exit: motion.exit }}
+        easing={{ enter: motion.easeOut, exit: motion.easeIn }}
+      >
         <Box
           sx={{
             position: 'absolute',
-            top: 'calc(100% + 10px)',
+            top: 'calc(100% + 8px)',
             right: 0,
             zIndex: 30,
-            width: 300,
-            bgcolor: '#1e2233',
-            border: '1.5px solid #2c3247',
-            borderRadius: '14px',
+            width: 320,
+            bgcolor: color.bgRaised,
+            border: `1px solid ${color.borderStrong}`,
+            borderRadius: `${radius.xl}px`,
             p: 2,
-            boxShadow: '0 16px 40px rgba(0,0,0,.5)',
+            boxShadow: shadow.lg,
+            // Controls inside sit 16px in, so their corners are 24 - 16 = 8.
+            '& .MuiOutlinedInput-root, & .MuiButton-root': { borderRadius: `${radius.sm}px` },
           }}
         >
           {sent ? (
             <>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#f2f3fa', mb: 0.5 }}>
+              <Typography sx={{ ...ui.label, mb: 0.5 }}>
                 Enter the 6-digit code
               </Typography>
-              <Typography sx={{ fontSize: '0.75rem', color: '#9aa0be', fontWeight: 600, mb: 1, overflowWrap: 'anywhere' }}>
+              <Typography sx={{ ...ui.help, mb: 2, overflowWrap: 'anywhere' }}>
                 We emailed it to {email.trim()}. It expires in 10 minutes.
               </Typography>
               <TextField
@@ -1708,13 +1755,13 @@ function AccountControl({
                     inputMode: 'numeric',
                     autoComplete: 'one-time-code',
                     'aria-label': 'Sign-in code',
-                    style: { letterSpacing: '0.3em', fontWeight: 800, textAlign: 'center' },
+                    style: { letterSpacing: '0.3em', fontWeight: 600, textAlign: 'center' },
                   },
                 }}
                 sx={{ mb: 1 }}
               />
               {error && (
-                <Typography sx={{ fontSize: '0.75rem', color: '#f87171', fontWeight: 700, mb: 1 }}>
+                <Typography sx={{ fontSize: '0.75rem', color: color.danger, fontWeight: 500, mb: 1 }}>
                   {error}
                 </Typography>
               )}
@@ -1723,12 +1770,11 @@ function AccountControl({
                 variant="contained"
                 disabled={busy || !codeReady}
                 onClick={checkCode}
-                sx={{ borderRadius: '10px', fontWeight: 800 }}
               >
                 {busy ? 'Checking…' : 'Sign in'}
               </Button>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                <Button size="small" disabled={busy} onClick={sendCode} sx={{ color: '#9aa0be', fontWeight: 700, px: 0.5 }}>
+                <Button size="small" disabled={busy} onClick={sendCode} sx={{ px: 1 }}>
                   Send a new code
                 </Button>
                 <Button
@@ -1739,7 +1785,7 @@ function AccountControl({
                     setCode('');
                     setError(null);
                   }}
-                  sx={{ color: '#9aa0be', fontWeight: 700, px: 0.5 }}
+                  sx={{ px: 1 }}
                 >
                   Change email
                 </Button>
@@ -1754,23 +1800,15 @@ function AccountControl({
                     variant="outlined"
                     href={GOOGLE_SIGNIN_URL}
                     startIcon={<GoogleMark />}
-                    sx={{
-                      borderRadius: '10px',
-                      fontWeight: 800,
-                      textTransform: 'none',
-                      color: '#f2f3fa',
-                      borderColor: '#2c3247',
-                      '&:hover': { borderColor: '#818cf8' },
-                    }}
                   >
                     Continue with Google
                   </Button>
-                  <Typography sx={{ fontSize: '0.7rem', color: '#9aa0be', fontWeight: 700, textAlign: 'center', my: 1 }}>
+                  <Typography sx={{ ...ui.help, textAlign: 'center', my: 1 }}>
                     or
                   </Typography>
                 </>
               )}
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#f2f3fa', mb: 1 }}>
+              <Typography sx={{ ...ui.label, mb: 1 }}>
                 Sign in with your email
               </Typography>
               <TextField
@@ -1787,7 +1825,7 @@ function AccountControl({
                 sx={{ mb: 1 }}
               />
               {error && (
-                <Typography sx={{ fontSize: '0.75rem', color: '#f87171', fontWeight: 700, mb: 1 }}>
+                <Typography sx={{ fontSize: '0.75rem', color: color.danger, fontWeight: 500, mb: 1 }}>
                   {error}
                 </Typography>
               )}
@@ -1796,17 +1834,16 @@ function AccountControl({
                 variant="contained"
                 disabled={busy || !email.includes('@')}
                 onClick={sendCode}
-                sx={{ borderRadius: '10px', fontWeight: 800 }}
               >
                 {busy ? 'Sending…' : 'Email me a sign-in code'}
               </Button>
-              <Typography sx={{ fontSize: '0.7rem', color: '#9aa0be', mt: 1, fontWeight: 600 }}>
+              <Typography sx={{ ...ui.help, mt: 1 }}>
                 Teacher accounts only. We never collect student data.
               </Typography>
             </>
           )}
         </Box>
-      )}
+      </Grow>
     </Box>
     </ClickAwayListener>
   );
@@ -1815,17 +1852,14 @@ function AccountControl({
 // ── Wizard chrome ─────────────────────────────────────────────────────────────
 
 const WIZARD_STEPS = ['Format', 'Topics', 'Accommodations', 'Review'] as const;
-const WIZARD_EMOJI = ['🎨', '📚', '♿', '🎉'] as const;
 
 function WizardTopbar({
   step,
   goTo,
-  problemCount,
   accountControl,
 }: {
   step: number;
   goTo: (n: number) => void;
-  problemCount: number;
   accountControl?: React.ReactNode;
 }) {
   return (
@@ -1833,114 +1867,61 @@ function WizardTopbar({
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 1.5,
-        px: { xs: 2, md: 3 },
-        py: 1.5,
-        bgcolor: '#0f1119',
-        borderBottom: '1px solid #2c3247',
+        gap: 2,
+        px: { xs: 2, md: 4 },
+        py: 1,
+        minHeight: 64,
+        bgcolor: color.bg,
         flexShrink: 0,
       }}
     >
-      <Box
-        sx={{
-          width: 36,
-          height: 36,
-          borderRadius: '12px',
-          background: 'linear-gradient(135deg,#818cf8,#4f46e5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 900,
-          fontSize: 19,
-          color: '#fff',
-          boxShadow: '0 4px 16px rgba(129,140,248,.4)',
-          fontFamily: 'var(--font-nunito), sans-serif',
-        }}
-      >
-        E
-      </Box>
-      <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', whiteSpace: 'nowrap' }}>
-        Euclid <Box component="span" sx={{ color: '#818cf8' }}>Engine</Box>
-      </Typography>
-      <Typography
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          fontSize: '0.72rem',
-          fontWeight: 800,
-          color: '#9aa0be',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {step + 1} / 4 · {WIZARD_STEPS[step]}
+      <Typography sx={{ fontWeight: 800, fontSize: '1.125rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        Euclid Engine
       </Typography>
 
       <Box
-        sx={{
-          display: { xs: 'none', md: 'flex' },
-          alignItems: 'center',
-          gap: 0.75,
-          mx: 'auto',
-        }}
+        component="nav"
+        aria-label="Steps"
+        sx={{ display: 'flex', alignItems: 'center', gap: 1, mx: 'auto' }}
       >
-        {WIZARD_STEPS.map((label, i) => (
-          <React.Fragment key={label}>
-            {i > 0 && (
-              <Box sx={{ width: 32, height: 2, borderRadius: 2, bgcolor: i <= step ? '#818cf8' : '#2c3247' }} />
-            )}
-            <Button
+        {WIZARD_STEPS.map((label, i) => {
+          const current = i === step;
+          return (
+            <Box
+              key={label}
+              component="button"
+              type="button"
               onClick={() => goTo(i)}
+              aria-current={current ? 'step' : undefined}
+              aria-label={`Step ${i + 1}, ${label}`}
+              title={label}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                px: 1.5,
-                py: 0.75,
-                borderRadius: '999px',
-                minWidth: 0,
-                opacity: i === step ? 1 : 0.75,
-                '&:hover': { backgroundColor: 'rgba(129,140,248,0.10)', opacity: 1 },
+                display: 'block',
+                p: 0,
+                border: 0,
+                cursor: 'pointer',
+                width: current ? 40 : 24,
+                height: 8,
+                borderRadius: `${radius.pill}px`,
+                bgcolor: current ? color.accent : color.inkMuted,
+                transition: ui.transition('width, background-color'),
+                '&:hover': { bgcolor: current ? color.accentHover : color.borderStrong },
+                '&:focus-visible': { outline: `2px solid ${color.accent}`, outlineOffset: 2 },
               }}
-            >
-              <Box
-                sx={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.72rem',
-                  fontWeight: 900,
-                  flexShrink: 0,
-                  backgroundColor:
-                    i < step ? '#818cf8' : i === step ? '#fb923c' : '#252b40',
-                  color: i <= step ? '#14161f' : '#9aa0be',
-                  border: i === step ? 'none' : '1.5px solid #2c3247',
-                }}
-              >
-                {i < step ? '✓' : i + 1}
-              </Box>
-              <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: i === step ? '#f2f3fa' : '#9aa0be' }}>
-                {WIZARD_EMOJI[i]} {label}
-              </Typography>
-            </Button>
-          </React.Fragment>
-        ))}
+            />
+          );
+        })}
+        <Typography
+          component="span"
+          sx={{ ml: 1, fontSize: '0.875rem', color: color.textMuted, whiteSpace: 'nowrap' }}
+        >
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Step </Box>
+          {step + 1} of 4
+          <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}> · {WIZARD_STEPS[step]}</Box>
+        </Typography>
       </Box>
 
-      {accountControl}
-
-      <Chip
-        label={`${problemCount} problem${problemCount === 1 ? '' : 's'}`}
-        sx={{
-          ml: { xs: 'auto', md: 0 },
-          fontWeight: 800,
-          fontSize: '0.72rem',
-          backgroundColor: 'rgba(129,140,248,0.13)',
-          color: '#818cf8',
-          border: '1px solid rgba(129,140,248,0.30)',
-        }}
-      />
+      <Box sx={{ flexShrink: 0 }}>{accountControl}</Box>
     </Box>
   );
 }
@@ -1956,75 +1937,81 @@ function WizardFooter({
   canContinue: boolean;
   summary: string;
 }) {
+  // Notebook look: one dark bar floating over the page, centered on the
+  // column, holding Back, the running summary and the one primary action.
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        px: { xs: 2.5, md: 5 },
-        py: 2,
-        bgcolor: '#0f1119',
-        borderTop: '1px solid #2c3247',
-        flexShrink: 0,
-      }}
-    >
-      {step > 0 ? (
-        <Button
-          variant="outlined"
-          onClick={() => setStep(step - 1)}
-          sx={{
-            borderColor: '#2c3247',
-            color: '#f2f3fa',
-            borderRadius: '12px',
-            px: 2.5,
-            '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
-          }}
-        >
-          ← Back
-        </Button>
-      ) : (
-        <Box sx={{ width: 110 }} />
-      )}
-      <Typography
+    <Box sx={{ px: { xs: 2, md: 3 }, pb: { xs: 2, md: 3 }, pt: 1, bgcolor: color.bg, flexShrink: 0 }}>
+      <Box
         sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          maxWidth: 760,
           mx: 'auto',
-          color: '#818cf8',
-          fontWeight: 800,
-          fontSize: '0.88rem',
-          textAlign: 'center',
+          minHeight: 64,
+          py: 1,
+          pr: 1,
+          pl: step > 0 ? 1 : 3,
+          bgcolor: color.ink,
+          color: color.accentContrast,
+          borderRadius: '24px',
+          boxShadow: shadow.lg,
         }}
       >
-        {summary}
-      </Typography>
-      {step < 3 ? (
-      <Tooltip title={canContinue ? '' : 'Pick at least one topic to continue'} arrow>
-        <span>
-          <Button
-            variant="contained"
-            color="secondary"
-            disabled={!canContinue}
-            onClick={() => setStep(step + 1)}
-            sx={{
-              borderRadius: '12px',
-              px: 3.5,
-              py: 1.25,
-              fontSize: '0.92rem',
-              boxShadow: '0 4px 16px rgba(251,146,60,.35)',
-              '&.Mui-disabled': {
-                backgroundColor: '#252b40',
-                color: '#5a6080',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            Continue →
-          </Button>
-        </span>
-      </Tooltip>
-      ) : (
-        <Box sx={{ width: 132 }} />
-      )}
+        {step > 0 && (
+          <Tooltip title="Back" arrow>
+            <IconButton
+              onClick={() => setStep(step - 1)}
+              aria-label={`Back to ${WIZARD_STEPS[step - 1].toLowerCase()}`}
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '16px',
+                color: color.inkMuted,
+                '&:hover': { color: color.accentContrast, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+              }}
+            >
+              <ArrowLeft size={icon.size} strokeWidth={icon.strokeWidth} />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Typography
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            fontWeight: 700,
+            fontSize: '0.9375rem',
+            color: color.accentContrast,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {summary}
+        </Typography>
+        {step < 3 && (
+          <Tooltip title={canContinue ? '' : 'Pick at least one topic to continue'} arrow>
+            <span>
+              <Button
+                variant="contained"
+                size="large"
+                disabled={!canContinue}
+                onClick={() => setStep(step + 1)}
+                endIcon={<ArrowRight size={icon.size} strokeWidth={icon.strokeWidth} />}
+                sx={{
+                  minWidth: 128,
+                  height: 48,
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                  '&.Mui-disabled': { color: 'rgba(255, 255, 255, 0.45)', backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+                }}
+              >
+                Continue
+              </Button>
+            </span>
+          </Tooltip>
+        )}
+      </Box>
     </Box>
   );
 }
@@ -2033,21 +2020,25 @@ function WizardFooter({
 const stepScrollSx = {
   flex: 1,
   overflowY: 'auto',
-  px: { xs: 2.5, md: 5 },
-  py: 4,
+  px: { xs: 2, md: 4 },
+  py: { xs: 4, md: 6 },
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  background: 'radial-gradient(ellipse at 50% -10%, #1c2033 0%, #14161f 60%)',
+  bgcolor: color.bg,
 } as const;
 
-function StepHeading({ emoji, title, sub }: { emoji: string; title: string; sub: string }) {
+function StepHeading({ title, sub }: { title: string; sub: string }) {
   return (
-    <Box sx={{ textAlign: 'center', mb: 3 }}>
-      <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.75 }}>
-        {emoji} {title}
+    <Box sx={{ textAlign: 'center', mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Typography
+        variant="h4"
+        component="h2"
+        sx={{ mb: 1, fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.125rem' }, lineHeight: 1.15, letterSpacing: '-0.03em' }}
+      >
+        {title}
       </Typography>
-      <Typography sx={{ color: '#9aa0be', fontWeight: 600, fontSize: '0.92rem', maxWidth: 560 }}>
+      <Typography sx={{ color: color.textMuted, fontWeight: 400, fontSize: '1rem', maxWidth: '52ch' }}>
         {sub}
       </Typography>
     </Box>
@@ -2074,7 +2065,6 @@ function StepFormat({
   return (
     <Box sx={stepScrollSx}>
       <StepHeading
-        emoji="🎨"
         title="What are you making?"
         sub="Pick a format, you can always change it later."
       />
@@ -2085,17 +2075,17 @@ function StepFormat({
         value={customTitle}
         onChange={(e) => setCustomTitle(e.target.value)}
         helperText="Leave blank to use the automatic title"
-        sx={{ width: '100%', maxWidth: 560, mb: 3.5 }}
-        FormHelperTextProps={{ sx: { color: '#9aa0be' } }}
-        InputLabelProps={{ sx: { color: '#9aa0be' } }}
+        sx={{ width: '100%', maxWidth: 560, mb: 4 }}
       />
       <Box
+        role="radiogroup"
+        aria-label="Format"
         sx={{
           display: 'grid',
           gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
-          gap: 1.75,
+          gap: 2,
           width: '100%',
-          maxWidth: 780,
+          maxWidth: 784,
         }}
       >
         {DOC_MODES.map((m) => {
@@ -2103,31 +2093,39 @@ function StepFormat({
           return (
             <Button
               key={m.value}
+              role="radio"
+              aria-checked={selected}
               onClick={() => setDocType(m.value)}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
+                justifyContent: 'flex-start',
                 textAlign: 'left',
-                gap: 0.75,
-                p: 2.25,
-                borderRadius: '18px',
-                border: '2.5px solid',
-                borderColor: selected ? '#818cf8' : '#2c3247',
-                backgroundColor: selected ? 'rgba(129,140,248,0.13)' : '#1e2233',
-                transition: 'border-color .15s, background-color .15s, transform .15s',
+                gap: 1,
+                p: 2,
+                borderRadius: '20px',
+                border: '1.5px solid',
+                borderColor: selected ? color.accent : color.border,
+                backgroundColor: color.surface,
+                boxShadow: selected ? 'none' : shadow.sm,
+                transition: ui.transition('border-color, background-color, box-shadow'),
                 '&:hover': {
-                  borderColor: '#818cf8',
-                  backgroundColor: selected ? 'rgba(129,140,248,0.18)' : '#252b40',
-                  transform: 'translateY(-2px)',
+                  borderColor: selected ? color.accent : color.borderStrong,
+                  backgroundColor: color.surface,
                 },
               }}
             >
-              <Typography sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{m.emoji}</Typography>
-              <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#f2f3fa' }}>
+              <m.Icon
+                size={icon.size}
+                strokeWidth={icon.strokeWidth}
+                color={selected ? color.accent : color.textMuted}
+                aria-hidden
+              />
+              <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem', color: color.text }}>
                 {m.label}
               </Typography>
-              <Typography sx={{ fontSize: '0.76rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.45 }}>
+              <Typography sx={{ fontSize: '0.8125rem', color: color.textMuted, fontWeight: 400, lineHeight: 1.5 }}>
                 {m.blurb}
               </Typography>
             </Button>
@@ -2145,22 +2143,72 @@ const topicCardSx = (checked: boolean) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
+  justifyContent: 'flex-start',
   textAlign: 'left',
-  gap: 0.6,
-  p: 1.75,
-  borderRadius: '14px',
-  border: '2px solid',
-  borderColor: checked ? '#818cf8' : '#2c3247',
-  backgroundColor: checked ? 'rgba(129,140,248,0.13)' : '#1e2233',
-  transition: 'border-color .12s, background-color .12s, transform .12s',
+  gap: 1,
+  p: 2,
+  borderRadius: '20px',
+  border: '1.5px solid',
+  borderColor: checked ? color.accent : color.border,
+  backgroundColor: color.surface,
+  boxShadow: checked ? 'none' : shadow.sm,
+  transition: ui.transition('border-color, background-color, box-shadow'),
   '&:hover': {
-    borderColor: '#818cf8',
-    transform: 'translateY(-1px)',
+    borderColor: checked ? color.accent : color.borderStrong,
+    backgroundColor: color.surface,
   },
   '&.Mui-disabled': {
     opacity: 0.45,
-    borderColor: '#2c3247',
-    backgroundColor: '#1e2233',
+    borderColor: color.border,
+    backgroundColor: color.surface,
+  },
+});
+
+// Small neutral tag ("Pro", standard codes). Not the accent: it isn't an action.
+const tagSx = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  fontSize: '0.6875rem',
+  fontWeight: 600,
+  letterSpacing: '0.02em',
+  lineHeight: 1.6,
+  color: color.textMuted,
+  border: `1px solid ${color.borderStrong}`,
+  borderRadius: `${radius.sm}px`,
+  px: 1,
+} as const;
+
+// Course filters and the Available only toggle.
+const filterChipSx = (active: boolean) => ({
+  height: 36,
+  px: 0.5,
+  fontWeight: active ? 700 : 600,
+  border: 0,
+  backgroundColor: active ? color.ink : 'transparent',
+  color: active ? color.accentContrast : color.textMuted,
+  '&:hover': {
+    backgroundColor: active ? color.ink : color.hover,
+    color: active ? color.accentContrast : color.text,
+  },
+});
+
+// A choice in a segmented row (standards, difficulty, versions). Selected
+// takes the accent; idle is a quiet outline.
+const segmentSx = (active: boolean) => ({
+  minWidth: 0,
+  fontSize: '0.8125rem',
+  fontWeight: active ? 600 : 500,
+  py: 1,
+  borderRadius: `${radius.sm}px`,
+  border: '1px solid',
+  borderColor: active ? color.accent : color.border,
+  backgroundColor: active ? color.surface : 'transparent',
+  color: active ? color.accent : color.textMuted,
+  transition: ui.transition('border-color, background-color, color'),
+  '&:hover': {
+    borderColor: active ? color.accent : color.borderStrong,
+    backgroundColor: active ? color.surface : color.hover,
+    color: active ? color.accent : color.text,
   },
 });
 
@@ -2183,24 +2231,25 @@ function CountStepper({
 }) {
   const btnSx = {
     minWidth: 0,
-    width: 26,
-    height: 26,
+    width: 24,
+    height: 24,
     p: 0,
-    borderRadius: '8px',
-    fontWeight: 900,
-    fontSize: '0.95rem',
-    color: '#c7cbe3',
-    border: '1.5px solid #2c3247',
-    '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
-    '&.Mui-disabled': { color: '#3a4058', borderColor: '#262b3d' },
+    borderRadius: `${radius.sm}px`,
+    fontWeight: 500,
+    fontSize: '0.9375rem',
+    lineHeight: 1,
+    color: color.textMuted,
+    border: `1px solid ${color.border}`,
+    '&:hover': { borderColor: color.borderStrong, color: color.text, backgroundColor: color.hover },
+    '&.Mui-disabled': { color: color.textSubtle, borderColor: color.border, opacity: 0.5 },
   } as const;
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
       <Button sx={btnSx} disabled={value <= min} onClick={() => onChange(value - 1)} aria-label={`Fewer problems: ${label}`}>
         −
       </Button>
       <Typography
-        sx={{ minWidth: 22, textAlign: 'center', fontWeight: 800, fontSize: '0.85rem', color: '#f2f3fa' }}
+        sx={{ minWidth: 24, textAlign: 'center', fontWeight: 600, fontSize: '0.875rem', color: color.text, fontVariantNumeric: 'tabular-nums' }}
         aria-label={`${value} problems: ${label}`}
       >
         {value}
@@ -2238,13 +2287,13 @@ const titlesLabel = (ids: string[]) => {
 };
 
 function QuickStartButton({
-  emoji,
+  Icon,
   label,
   sub,
   disabled,
   onClick,
 }: {
-  emoji: string;
+  Icon: LucideIcon;
   label: string;
   sub: string;
   disabled: boolean;
@@ -2262,24 +2311,26 @@ function QuickStartButton({
         alignItems: 'flex-start',
         textAlign: 'left',
         gap: 0.25,
-        px: 1.75,
-        py: 1.25,
-        borderRadius: '12px',
-        border: '1.5px solid #2c3247',
-        backgroundColor: 'rgba(129,140,248,0.06)',
+        px: 2,
+        py: 1.5,
+        borderRadius: `${radius.lg}px`,
+        border: `1px solid ${color.border}`,
+        backgroundColor: color.surface,
+        boxShadow: shadow.sm,
         textTransform: 'none',
-        '&:hover': { borderColor: '#818cf8', backgroundColor: 'rgba(129,140,248,0.12)' },
-        '&.Mui-disabled': { opacity: 0.5 },
+        '&:hover': { borderColor: color.borderStrong, backgroundColor: color.surface },
+        '&.Mui-disabled': { opacity: 0.5, boxShadow: 'none' },
       }}
     >
-      <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: '#f2f3fa' }}>
-        {emoji} {label}
+      <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700, fontSize: '0.875rem', color: color.text }}>
+        <Icon size={icon.size} strokeWidth={icon.strokeWidth} color={color.accent} aria-hidden />
+        {label}
       </Typography>
       <Typography
         sx={{
-          fontSize: '0.7rem',
-          fontWeight: 600,
-          color: '#9aa0be',
+          fontSize: '0.75rem',
+          fontWeight: 400,
+          color: color.textMuted,
           lineHeight: 1.35,
           width: '100%',
           overflow: 'hidden',
@@ -2315,20 +2366,16 @@ function TaughtPanel({
   const cardSx = {
     width: '100%',
     maxWidth: compact ? 780 : 920,
-    mb: compact ? 3 : 2.5,
-    bgcolor: '#1e2233',
-    border: '1.5px solid #2c3247',
-    borderRadius: '16px',
-    p: 2,
+    mb: compact ? 3 : 3,
   } as const;
 
   if (view.status === 'signed-out') {
     return (
       <Box sx={{ ...cardSx, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }} role="region" aria-label="Taught lessons">
-        <Typography sx={{ flex: '1 1 260px', fontSize: '0.8rem', fontWeight: 600, color: '#9aa0be', lineHeight: 1.5 }}>
-          📌 Sign in and every lesson you export is kept here, so you can run it again or mix a review in one tap.
+        <Typography sx={{ flex: '1 1 260px', fontSize: '0.875rem', color: color.textMuted, lineHeight: 1.5 }}>
+          Sign in and every lesson you export is kept here, so you can run it again or mix a review in one tap.
         </Typography>
-        <Button size="small" variant="outlined" onClick={view.onSignIn} sx={{ borderRadius: '10px', fontWeight: 800 }}>
+        <Button size="small" variant="outlined" onClick={view.onSignIn}>
           Sign in
         </Button>
       </Box>
@@ -2337,8 +2384,8 @@ function TaughtPanel({
   if (view.status === 'unavailable') {
     return (
       <Box sx={cardSx} role="region" aria-label="Taught lessons">
-        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#9aa0be' }}>
-          📌 Your taught lessons can&apos;t be loaded right now. Picking and exporting still work.
+        <Typography sx={{ fontSize: '0.875rem', color: color.textMuted }}>
+          Your taught lessons can&apos;t be loaded right now. Picking and exporting still work.
         </Typography>
       </Box>
     );
@@ -2356,19 +2403,19 @@ function TaughtPanel({
 
   return (
     <Box sx={cardSx} role="region" aria-label="Taught lessons">
-      <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1.25 }}>
-        {compact ? 'Quick start ⚡' : 'Taught 📌'}
+      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: color.textMuted, mb: 2 }}>
+        {compact ? 'Quick start' : 'Taught'}
       </Typography>
-      <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <QuickStartButton
-          emoji="↻"
+          Icon={RotateCcw}
           label="Again"
           sub={view.againIds.length > 0 ? titlesLabel(view.againIds) : 'Nothing taught yet'}
           disabled={view.againIds.length === 0}
           onClick={view.onAgain}
         />
         <QuickStartButton
-          emoji="🌀"
+          Icon={History}
           label="Review what I've taught"
           sub={
             view.reviewIds.length > 0
@@ -2379,7 +2426,7 @@ function TaughtPanel({
           onClick={view.onReview}
         />
         <QuickStartButton
-          emoji="✅"
+          Icon={ClipboardCheck}
           label="Quiz on picks"
           sub={
             view.picks.length > 0
@@ -2391,18 +2438,18 @@ function TaughtPanel({
         />
       </Box>
       {view.msg && (
-        <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#818cf8', mt: 1 }}>{view.msg}</Typography>
+        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: color.accent, mt: 1 }}>{view.msg}</Typography>
       )}
       {!compact && (
         <Box sx={{ mt: 1.75 }}>
           {known.length === 0 ? (
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 600, color: '#9aa0be', lineHeight: 1.5 }}>
+            <Typography sx={{ ...ui.help }}>
               Lessons you export land here, newest first. Taught some without the site? Pick them and tap Mark these taught.
             </Typography>
           ) : (
             <>
               {shown.length === 0 && (
-                <Typography sx={{ fontSize: '0.76rem', fontWeight: 600, color: '#9aa0be', mb: 1 }}>
+                <Typography sx={{ ...ui.help, mb: 1 }}>
                   Nothing taught in {subjectFilter} yet.
                 </Typography>
               )}
@@ -2423,25 +2470,27 @@ function TaughtPanel({
                       label={
                         <span>
                           {e.title}
-                          <Box component="span" sx={{ ml: 0.75, fontWeight: 600, color: picked ? '#c7cbe3' : '#7d84a6' }}>
+                          <Box component="span" sx={{ ml: 0.75, fontWeight: 400, color: picked ? color.inkMuted : color.textMuted }}>
                             {taughtWhen(l.lastAt)}
                           </Box>
                           {locked && (
-                            <Box component="span" sx={{ ml: 0.75, color: '#fb923c', fontWeight: 900, fontSize: '0.62rem' }}>
-                              PRO
+                            <Box component="span" sx={{ ...tagSx, ml: 0.75, color: picked ? color.inkMuted : color.textMuted }}>
+                              Pro
                             </Box>
                           )}
                         </span>
                       }
-                      deleteIcon={<ClearIcon aria-label={`Take ${e.title} off the taught shelf`} />}
+                      deleteIcon={<X size={icon.size} strokeWidth={icon.strokeWidth} aria-label={`Take ${e.title} off the taught shelf`} />}
                       sx={{
-                        fontWeight: 800,
-                        fontSize: '0.74rem',
-                        border: '1.5px solid',
-                        borderColor: picked ? '#818cf8' : '#2c3247',
-                        backgroundColor: picked ? 'rgba(129,140,248,0.15)' : '#171a27',
-                        color: picked ? '#f2f3fa' : '#c7cbe3',
-                        '& .MuiChip-deleteIcon': { color: '#7d84a6', fontSize: 16, '&:hover': { color: '#f87171' } },
+                        height: 36,
+                        fontWeight: 600,
+                        fontSize: '0.8125rem',
+                        border: '1px solid',
+                        borderColor: picked ? color.ink : color.border,
+                        backgroundColor: picked ? color.ink : color.surface,
+                        color: picked ? color.accentContrast : color.text,
+                        '&:hover': { backgroundColor: picked ? color.ink : color.surfaceHover },
+                        '& .MuiChip-deleteIcon': { color: picked ? color.inkMuted : color.textMuted, fontSize: 16, '&:hover': { color: picked ? color.accentContrast : color.danger } },
                       }}
                     />
                   );
@@ -2451,7 +2500,7 @@ function TaughtPanel({
                 <Button
                   size="small"
                   onClick={() => setShowAll((v) => !v)}
-                  sx={{ mt: 0.75, color: '#9aa0be', fontWeight: 800, fontSize: '0.72rem', textTransform: 'none', '&:hover': { color: '#818cf8' } }}
+                  sx={{ mt: 1, px: 1, fontSize: '0.8125rem' }}
                 >
                   {showAll ? 'Show fewer' : `Show all ${known.length}`}
                 </Button>
@@ -2504,15 +2553,20 @@ function PicksTray({
   };
   return (
     <Box sx={cardSx} role="region" aria-label="Your picks">
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>
-          Your picks{picks.length > 0 ? ` (${picks.length})` : ''} 🧺
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, minHeight: 24 }}>
+        <Typography sx={{ ...ui.label, fontSize: '0.875rem' }}>
+          Your picks
+          {picks.length > 0 && (
+            <Box component="span" sx={{ color: color.textMuted, fontWeight: 500 }}>
+              {` · ${picks.length}`}
+            </Box>
+          )}
         </Typography>
         {picks.length > 0 && (
           <Button
             size="small"
             onClick={clearPicks}
-            sx={{ color: '#f0a0a0', fontWeight: 800, fontSize: '0.72rem', minWidth: 0, p: 0.25, '&:hover': { color: '#f87171' } }}
+            sx={{ fontSize: '0.75rem', minWidth: 0, px: 1, py: 0, borderRadius: `${radius.sm}px`, '&:hover': { color: color.danger, backgroundColor: 'transparent' } }}
           >
             Clear all
           </Button>
@@ -2520,39 +2574,39 @@ function PicksTray({
       </Box>
       {picks.length === 0 ? (
         <>
-          <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5 }}>
+          <Typography sx={ui.help}>
             Tap lessons, or search and press Enter, to add them here. You can mix lessons from any course.
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5 }}>
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#c7cbe3' }}>Problems per lesson</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+            <Typography sx={ui.label}>Problems per lesson</Typography>
             <CountStepper value={count} min={1} max={25} onChange={setCount} label="each new lesson" />
           </Box>
         </>
       ) : (
         <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 280, overflowY: 'auto', pr: 0.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 288, overflowY: 'auto', pr: 1, py: 1 }}>
             {picks.map((e) => (
               <Box key={e.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <IconButton
                   size="small"
                   aria-label={`Remove ${e.title}`}
                   onClick={() => removePick(e.id)}
-                  sx={{ color: '#9aa0be', '&:hover': { color: '#f87171' }, p: 0.25 }}
+                  sx={{ p: 0.5, '&:hover': { color: color.danger, backgroundColor: 'transparent' } }}
                 >
-                  <ClearIcon sx={{ fontSize: 14 }} />
+                  <X size={icon.size} strokeWidth={icon.strokeWidth} />
                 </IconButton>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
-                    sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#f2f3fa', lineHeight: 1.3 }}
+                    sx={{ fontSize: '0.8125rem', fontWeight: 600, color: color.text, lineHeight: 1.4 }}
                     title={e.title}
                   >
                     {e.title}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.66rem', fontWeight: 600, color: '#9aa0be', lineHeight: 1.3 }}>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 400, color: color.textMuted, lineHeight: 1.4 }}>
                     {e.course} · {e.group}
                     {!isPro && !isFreeTopic(e.id) && (
-                      <Box component="span" sx={{ ml: 0.75, color: '#fb923c', fontWeight: 900 }}>
-                        PRO
+                      <Box component="span" sx={{ ...tagSx, ml: 1 }}>
+                        Pro
                       </Box>
                     )}
                   </Typography>
@@ -2572,12 +2626,12 @@ function PicksTray({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              mt: 1.5,
-              pt: 1.5,
-              borderTop: '1.5px solid #2c3247',
+              mt: 1,
+              pt: 2,
+              borderTop: `1px solid ${color.border}`,
             }}
           >
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#f2f3fa' }}>Total problems</Typography>
+            <Typography sx={{ ...ui.label, fontSize: '0.875rem' }}>Total problems</Typography>
             <TextField
               type="number"
               size="small"
@@ -2588,10 +2642,10 @@ function PicksTray({
                 if (ev.key === 'Enter') commit();
               }}
               inputProps={{ min: range.min, max: range.max, 'aria-label': 'Total problems' }}
-              sx={{ width: 84 }}
+              sx={{ width: 88, '& .MuiOutlinedInput-root': { borderRadius: `${radius.sm}px` } }}
             />
           </Box>
-          <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.75 }}>
+          <Typography sx={{ ...ui.help, mt: 1 }}>
             {picks.length > 1
               ? 'A new total is shared evenly. Use − and + to give one lesson more or fewer.'
               : 'Use − and + or type a total.'}
@@ -2601,9 +2655,9 @@ function PicksTray({
               size="small"
               onClick={onMarkTaught}
               title="For lessons you taught without the site: puts them on your taught shelf"
-              sx={{ mt: 1, color: '#9aa0be', fontWeight: 800, fontSize: '0.74rem', textTransform: 'none', p: 0.25, '&:hover': { color: '#818cf8' } }}
+              sx={{ mt: 1, px: 1, fontSize: '0.8125rem' }}
             >
-              📌 Mark these taught
+              Mark these taught
             </Button>
           )}
         </>
@@ -2702,17 +2756,23 @@ function StepTopics({
   const lastTaught = new Map(
     taught.status === 'ok' ? taught.shelf.map((l) => [l.topicId, l.lastAt] as const) : []
   );
-  const railCardSx = {
-    bgcolor: '#1e2233',
-    border: '1.5px solid #2c3247',
-    borderRadius: '16px',
-    p: 2.25,
+  // The picks tray is the one card in the rail: 24px corners, 16px in, so
+  // its nested controls get 8px corners. The settings under it are grouped
+  // by space alone.
+  const trayCardSx = {
+    bgcolor: color.surface,
+    border: `1px solid ${color.border}`,
+    borderRadius: `${radius.xl}px`,
+    boxShadow: shadow.sm,
+    p: 2,
     width: '100%',
   } as const;
+  const railCardSx = { width: '100%', px: 2 } as const;
+  const railTitleSx = { ...ui.label, mb: 1 } as const;
+  const switchRowSx = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 32 } as const;
   return (
     <Box sx={stepScrollSx}>
       <StepHeading
-        emoji="📚"
         title="Which topics should it cover?"
         sub={`Tap to add, mix and match across subjects. We'll keep your ${frameworkMeta(framework).coverName} covered.`}
       />
@@ -2730,17 +2790,17 @@ function StepTopics({
         <Box
           sx={{
             order: { xs: 1, md: 2 },
-            width: { xs: '100%', md: 300 },
+            width: { xs: '100%', md: 304 },
             flexShrink: 0,
             position: { md: 'sticky' },
             top: { md: 0 },
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
+            gap: 4,
           }}
         >
           <PicksTray
-            cardSx={railCardSx}
+            cardSx={trayCardSx}
             picks={selectedEntries}
             isPro={isPro}
             count={count}
@@ -2754,60 +2814,42 @@ function StepTopics({
             onMarkTaught={taught.status === 'ok' ? onMarkTaught : undefined}
           />
           <Box sx={railCardSx}>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Standards 🏷️</Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {FRAMEWORKS.map((f) => {
-                const active = framework === f.id;
-                return (
-                  <Box
-                    key={f.id}
-                    onClick={() => setFramework(f.id)}
-                    sx={{
-                      flex: '1 1 45%',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      fontSize: '0.78rem',
-                      fontWeight: 800,
-                      py: 0.9,
-                      borderRadius: '10px',
-                      color: active ? '#14161f' : '#9aa0be',
-                      backgroundColor: active ? '#818cf8' : 'rgba(129,140,248,0.08)',
-                      border: '1.5px solid',
-                      borderColor: active ? '#818cf8' : '#2c3247',
-                    }}
-                  >
-                    {f.label}
-                  </Box>
-                );
-              })}
-            </Box>
-            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 1 }}>
+            <Typography sx={railTitleSx}>Standards</Typography>
+            {/* One quiet select instead of a grid of 13 boxed buttons. */}
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={framework}
+              onChange={(e) => setFramework(e.target.value as StandardsFramework)}
+              slotProps={{ htmlInput: { 'aria-label': 'Standards framework' } }}
+              sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.875rem' } }}
+            >
+              {FRAMEWORKS.map((f) => (
+                <MenuItem key={f.id} value={f.id} sx={{ fontSize: '0.875rem' }}>
+                  {f.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Typography sx={{ ...ui.help, mt: 1 }}>
               {frameworkMeta(framework).note}
             </Typography>
           </Box>
           <Box sx={railCardSx}>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', mb: 1 }}>Difficulty 💪</Typography>
+            <Typography sx={railTitleSx}>Difficulty</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
               {[
-                { value: 1, label: 'Easy 😌' },
-                { value: 2, label: 'Medium 🙂' },
-                { value: 3, label: 'Hard 🥵' },
+                { value: 1, label: 'Easy' },
+                { value: 2, label: 'Medium' },
+                { value: 3, label: 'Hard' },
               ].map((d) => {
                 const selected = difficulty === d.value;
                 return (
                   <Button
                     key={d.value}
+                    aria-pressed={selected}
                     onClick={() => setDifficulty(d.value as DifficultyLevel)}
-                    sx={{
-                      py: 1,
-                      borderRadius: '10px',
-                      fontSize: '0.78rem',
-                      border: '2px solid',
-                      borderColor: selected ? '#818cf8' : '#2c3247',
-                      backgroundColor: selected ? 'rgba(129,140,248,0.15)' : 'transparent',
-                      color: selected ? '#818cf8' : '#9aa0be',
-                      '&:hover': { borderColor: '#818cf8' },
-                    }}
+                    sx={segmentSx(selected)}
                   >
                     {d.label}
                   </Button>
@@ -2816,19 +2858,15 @@ function StepTopics({
             </Box>
           </Box>
           <Box sx={railCardSx}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Word problems 📖</Typography>
+            <Box sx={switchRowSx}>
+              <Typography sx={ui.label}>Word problems</Typography>
               <Switch
                 checked={wordProblems}
                 onChange={(e) => setWordProblems(e.target.checked)}
                 inputProps={{ 'aria-label': 'Include word problems' }}
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
-                }}
               />
             </Box>
-            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+            <Typography sx={ui.help}>
               {wordProblems
                 ? wordCapableSelected.length > 0
                   ? `Story versions on for: ${wordCapableSelected.join(' · ')}`
@@ -2837,37 +2875,29 @@ function StepTopics({
             </Typography>
           </Box>
           <Box sx={railCardSx}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Diagrams 🖼️</Typography>
+            <Box sx={switchRowSx}>
+              <Typography sx={ui.label}>Diagrams</Typography>
               <Switch
                 checked={includeDiagrams}
                 onChange={(e) => setIncludeDiagrams(e.target.checked)}
                 inputProps={{ 'aria-label': 'Include diagrams' }}
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
-                }}
               />
             </Box>
-            <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+            <Typography sx={ui.help}>
               {includeDiagrams ? 'Problems show their drawings.' : 'Words only: every drawing is left off the worksheet.'}
             </Typography>
           </Box>
           {showTopicOrder && (
             <Box sx={railCardSx}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>Keep topics grouped 🗂️</Typography>
+              <Box sx={switchRowSx}>
+                <Typography sx={ui.label}>Keep topics grouped</Typography>
                 <Switch
                   checked={keepTopicsGrouped}
                   onChange={(e) => setKeepTopicsGrouped(e.target.checked)}
                   inputProps={{ 'aria-label': 'Keep topics grouped' }}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#818cf8' },
-                  }}
                 />
               </Box>
-              <Typography sx={{ fontSize: '0.74rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.5, mt: 0.5 }}>
+              <Typography sx={ui.help}>
                 {keepTopicsGrouped
                   ? 'Each topic gets its own section, in the order you picked them.'
                   : 'Topics are mixed together, numbered straight through. The answer key follows the same order.'}
@@ -2905,22 +2935,31 @@ function StepTopics({
           }}
           placeholder={
             subjectFilter === 'All'
-              ? '🔍 Search a skill or standard, like midsegment or G.5(D)'
-              : `🔍 Search ${subjectFilter}: a skill or standard`
+              ? 'Search a skill or standard, like midsegment or G.5(D)'
+              : `Search ${subjectFilter}: a skill or standard`
           }
           aria-label="Search topics"
-          sx={{ width: '100%', maxWidth: 520, mb: 1.5 }}
+          sx={{
+            width: '100%',
+            maxWidth: 712,
+            mb: 2,
+            '& .MuiOutlinedInput-root': { borderRadius: `${radius.pill}px`, height: 52, px: 1, boxShadow: shadow.sm },
+          }}
           slotProps={{
             input: {
+              startAdornment: (
+                <InputAdornment position="start" sx={{ color: color.textMuted }}>
+                  <Search size={icon.size} strokeWidth={icon.strokeWidth} aria-hidden />
+                </InputAdornment>
+              ),
               endAdornment: topicSearch ? (
                 <InputAdornment position="end">
                   <IconButton
                     size="small"
                     aria-label="Clear search"
                     onClick={() => handleSearchChange('')}
-                    sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' } }}
                   >
-                    <ClearIcon sx={{ fontSize: 16 }} />
+                    <X size={icon.size} strokeWidth={icon.strokeWidth} />
                   </IconButton>
                 </InputAdornment>
               ) : undefined,
@@ -2933,7 +2972,7 @@ function StepTopics({
             gap: 1,
             flexWrap: 'wrap',
             justifyContent: 'center',
-            mb: 2.5,
+            mb: 4,
             maxWidth: 920,
           }}
         >
@@ -2942,14 +2981,7 @@ function StepTopics({
             label="Available only"
             aria-pressed={availableOnly}
             onClick={() => setAvailableOnly((v) => !v)}
-            sx={{
-              fontWeight: 800,
-              border: '1.5px solid',
-              borderColor: availableOnly ? '#818cf8' : '#2c3247',
-              backgroundColor: availableOnly ? 'rgba(129,140,248,0.15)' : '#1e2233',
-              color: availableOnly ? '#818cf8' : '#9aa0be',
-              '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
-            }}
+            sx={filterChipSx(availableOnly)}
           />
           {subjectOptions.map((s) => {
             const active = subjectFilter === s;
@@ -2960,23 +2992,12 @@ function StepTopics({
                 label={s === 'All' ? 'All subjects' : s}
                 onClick={() => pickCourse(s)}
                 aria-pressed={active}
-                sx={{
-                  fontWeight: 800,
-                  border: '1.5px solid',
-                  borderColor: active ? '#818cf8' : '#2c3247',
-                  backgroundColor: active ? 'rgba(129,140,248,0.15)' : '#1e2233',
-                  color: active ? '#818cf8' : '#9aa0be',
-                  '&:hover': { borderColor: '#818cf8', color: '#818cf8' },
-                }}
+                sx={filterChipSx(active)}
               />
             );
           })}
           {(topicSearch.trim() !== '' || availableOnly) && (
-            <Button
-              size="small"
-              onClick={clearTopicFilters}
-              sx={{ color: '#9aa0be', fontWeight: 800, '&:hover': { color: '#818cf8' } }}
-            >
+            <Button size="small" onClick={clearTopicFilters} sx={{ px: 1 }}>
               Clear
             </Button>
           )}
@@ -2988,7 +3009,7 @@ function StepTopics({
               <Button
                 size="small"
                 onClick={searchAllCourses}
-                sx={{ color: '#9aa0be', fontWeight: 800, fontSize: '0.75rem', textTransform: 'none', '&:hover': { color: '#818cf8' } }}
+                sx={{ fontSize: '0.75rem', px: 1 }}
               >
                 {otherCourseMatches} more in other courses · Search all courses
               </Button>
@@ -2998,7 +3019,7 @@ function StepTopics({
             <Button
               size="small"
               onClick={allEffectiveExpanded ? collapseAllFiltered : expandAllFiltered}
-              sx={{ color: '#9aa0be', fontWeight: 800, fontSize: '0.75rem', '&:hover': { color: '#818cf8' } }}
+              sx={{ fontSize: '0.75rem', px: 1 }}
             >
               {allEffectiveExpanded ? 'Collapse all' : 'Expand all'}
             </Button>
@@ -3013,13 +3034,7 @@ function StepTopics({
             return (
               <Box
                 key={groupKey}
-                sx={{
-                  mb: 1.25,
-                  borderRadius: '16px',
-                  border: '1.5px solid #2c3247',
-                  backgroundColor: '#1e2233',
-                  overflow: 'hidden',
-                }}
+                sx={{ borderBottom: `1px solid ${color.border}` }}
               >
                 <Button
                   fullWidth
@@ -3029,26 +3044,34 @@ function StepTopics({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    px: 2,
-                    py: 1.25,
+                    px: 1,
+                    py: 2,
                     borderRadius: 0,
-                    '&:hover': { backgroundColor: 'rgba(129,140,248,0.06)' },
+                    color: color.text,
+                    '&:hover': { backgroundColor: 'transparent', color: color.text },
+                    '&:hover .group-chevron': { color: color.text },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                    <ExpandMore
+                    <Box
+                      component={ChevronDown}
+                      className="group-chevron"
+                      size={icon.size}
+                      strokeWidth={icon.strokeWidth}
+                      aria-hidden
                       sx={{
-                        color: open ? '#818cf8' : '#9aa0be',
+                        flexShrink: 0,
+                        color: color.textMuted,
                         transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
-                        transition: 'transform .2s',
+                        transition: ui.transition('transform, color'),
                       }}
                     />
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#f2f3fa', textAlign: 'left' }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem', color: 'inherit', textAlign: 'left' }}>
                       {groupTitle}
                       {showCourse && (
                         <Box
                           component="span"
-                          sx={{ ml: 1, fontWeight: 600, fontSize: '0.78rem', color: '#9aa0be' }}
+                          sx={{ ml: 1, fontWeight: 400, fontSize: '0.8125rem', color: color.textMuted }}
                         >
                           {groupCourse}
                         </Box>
@@ -3056,21 +3079,24 @@ function StepTopics({
                     </Typography>
                   </Box>
                   {selectedCount > 0 && (
-                    <Chip
-                      size="small"
-                      label={`${selectedCount} selected`}
-                      sx={{ backgroundColor: 'rgba(129,140,248,0.15)', color: '#818cf8', fontWeight: 800 }}
-                    />
+                    <Typography component="span" sx={{ fontSize: '0.8125rem', fontWeight: 600, color: color.accent, flexShrink: 0 }}>
+                      {selectedCount} selected
+                    </Typography>
                   )}
                 </Button>
-                <Collapse in={open} timeout={220} unmountOnExit>
+                <Collapse
+                  in={open}
+                  timeout={{ enter: motion.enter, exit: motion.exit }}
+                  easing={{ enter: motion.easeOut, exit: motion.easeIn }}
+                  unmountOnExit
+                >
                   <Box
                     sx={{
                       display: 'grid',
                       gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-                      gap: 1.25,
-                      p: 2,
-                      pt: 0.5,
+                      gap: 2,
+                      pt: 0,
+                      pb: 3,
                     }}
                   >
                     {entries.map((entry) => {
@@ -3084,61 +3110,51 @@ function StepTopics({
                           sx={topicCardSx(checked)}
                         >
                           <Box
+                            aria-hidden
                             sx={{
                               position: 'absolute',
-                              top: 10,
-                              right: 10,
+                              top: 16,
+                              right: 16,
                               width: 24,
                               height: 24,
                               borderRadius: '50%',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: '0.75rem',
-                              fontWeight: 900,
-                              backgroundColor: checked ? '#818cf8' : 'transparent',
-                              border: '2px solid',
-                              borderColor: checked ? '#818cf8' : '#2c3247',
-                              color: checked ? '#14161f' : 'transparent',
+                              backgroundColor: checked ? color.accent : 'transparent',
+                              border: '1px solid',
+                              borderColor: checked ? color.accent : color.borderStrong,
+                              color: color.accentContrast,
+                              transition: ui.transition('background-color, border-color'),
                             }}
                           >
-                            ✓
+                            {checked && <Check size={icon.size} strokeWidth={icon.strokeWidth} />}
                           </Box>
-                          <Typography
-                            sx={{
-                              fontSize: '0.64rem',
-                              fontWeight: 800,
-                              letterSpacing: 0.6,
-                              color: '#818cf8',
-                              backgroundColor: 'rgba(129,140,248,0.12)',
-                              px: 1,
-                              py: 0.35,
-                              borderRadius: '6px',
-                              pr: 4,
-                            }}
-                          >
-                            {entry.underConstruction ? 'COMING SOON' : standardsFor(entry.id, entry.teks, framework)}
-                          </Typography>
-                          <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#f2f3fa', lineHeight: 1.35 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', pr: 4 }}>
+                            <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 500, color: color.textMuted, fontVariantNumeric: 'tabular-nums' }}>
+                              {entry.underConstruction ? 'Coming soon' : standardsFor(entry.id, entry.teks, framework)}
+                            </Typography>
+                            {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
+                              <Box component="span" sx={tagSx}>
+                                Pro
+                              </Box>
+                            )}
+                          </Box>
+                          <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: color.text, lineHeight: 1.4 }}>
                             {entry.title}
                           </Typography>
                           {checked && (
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#818cf8' }}>
+                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: color.accent }}>
                               ×{countFor(entry.id)} problems
                             </Typography>
                           )}
                           {lastTaught.has(entry.id) && (
-                            <Typography sx={{ fontSize: '0.66rem', fontWeight: 700, color: '#7d84a6' }}>
-                              📌 Taught {taughtWhen(lastTaught.get(entry.id)!)}
-                            </Typography>
-                          )}
-                          {!isPro && !isFreeTopic(entry.id) && !entry.underConstruction && (
-                            <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, letterSpacing: 0.8, color: '#fb923c' }}>
-                              PRO
+                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, color: color.textMuted }}>
+                              Taught {taughtWhen(lastTaught.get(entry.id)!)}
                             </Typography>
                           )}
                           {!entry.underConstruction && entry.story && (
-                            <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, lineHeight: 1.4 }}>
+                            <Typography sx={{ ...ui.help, fontSize: '0.75rem' }}>
                               {entry.story}
                             </Typography>
                           )}
@@ -3151,18 +3167,18 @@ function StepTopics({
             );
           })}
           {effectiveGroups.length === 0 && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography sx={{ color: '#9aa0be', fontWeight: 700, mb: 2 }}>
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+              <Typography sx={{ color: color.textMuted, fontWeight: 500, mb: 2 }}>
                 {subjectFilter === 'All'
-                  ? 'No topics match your search. 🔍'
-                  : `Nothing in ${subjectFilter} matches. 🔍`}
+                  ? 'No topics match your search.'
+                  : `Nothing in ${subjectFilter} matches.`}
               </Typography>
               {otherCourseMatches > 0 && (
-                <Button onClick={searchAllCourses} sx={{ color: '#818cf8', fontWeight: 800, mr: 1 }}>
+                <Button variant="outlined" onClick={searchAllCourses} sx={{ mr: 1 }}>
                   Search all courses ({otherCourseMatches})
                 </Button>
               )}
-              <Button onClick={clearTopicFilters} sx={{ color: '#818cf8', fontWeight: 800 }}>
+              <Button onClick={clearTopicFilters}>
                 Clear search
               </Button>
             </Box>
@@ -3195,7 +3211,6 @@ function StepAccommodations({
   return (
     <Box sx={stepScrollSx}>
       <StepHeading
-        emoji="♿"
         title="Who needs a different version?"
         sub="Set up anonymous groups once, every version shares the same math. Skip this step if everyone gets the same worksheet."
       />
@@ -3203,10 +3218,11 @@ function StepAccommodations({
         sx={{
           width: '100%',
           maxWidth: 680,
-          bgcolor: '#1e2233',
-          border: '1.5px solid #2c3247',
-          borderRadius: '20px',
-          p: { xs: 2, md: 3 },
+          bgcolor: color.surface,
+          border: `1px solid ${color.border}`,
+          borderRadius: `${radius.xl}px`,
+          boxShadow: shadow.sm,
+          p: 2,
         }}
       >
         <AccommodationsPanel
@@ -3240,17 +3256,13 @@ function StepAccommodations({
         />
       </Box>
       {hasAccommodations && (
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center', mt: 2.5, maxWidth: 680 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center', mt: 3, maxWidth: 680 }}>
           {versionPlan.all().map((v) => (
             <Chip
               key={v.versionId}
               label={v.kind === 'base' ? `Base · ${v.problems.length}` : `${v.label} · ${v.problems.length}`}
-              sx={{
-                fontWeight: 800,
-                backgroundColor: 'rgba(129,140,248,0.13)',
-                color: '#818cf8',
-                border: '1px solid rgba(129,140,248,0.30)',
-              }}
+              variant="outlined"
+              sx={{ fontWeight: 500, color: color.textMuted, borderColor: color.border }}
             />
           ))}
         </Box>
@@ -3390,7 +3402,7 @@ function StepReview({
   const scopeList = (
     <Box sx={{ mt: 0.5 }}>
       {scopeRows.map((row, i) => (
-        <Typography key={i} sx={{ fontSize: '0.78rem', fontWeight: 600, lineHeight: 1.55 }}>
+        <Typography key={i} sx={{ fontSize: '0.8125rem', fontWeight: 400, lineHeight: 1.6 }}>
           {row.title} · {problemsWord(row.count)}
           {mixesCourses ? ` · ${row.course}` : ''}
         </Typography>
@@ -3404,54 +3416,64 @@ function StepReview({
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: 1.25,
+          columnGap: 2,
+          rowGap: 1,
           alignItems: 'center',
           justifyContent: 'center',
           px: { xs: 2, md: 4 },
-          pt: 2.5,
-          pb: 1.5,
+          pt: 3,
+          pb: 2,
           flexShrink: 0,
         }}
       >
-        <Button
-          variant="outlined"
-          startIcon={<Save />}
-          onClick={saveDraft}
-          sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '12px', '&:hover': { borderColor: '#818cf8', color: '#818cf8' } }}
-        >
-          Save draft
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<UploadFile />}
-          onClick={() => fileRef.current?.click()}
-          sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '12px', '&:hover': { borderColor: '#818cf8', color: '#818cf8' } }}
-        >
-          Load draft
-        </Button>
-        <Tooltip title={isPro ? 'Keep it in your library and rebuild it exactly, any time' : 'Saved worksheets are part of Pro'} arrow>
+        {/* Secondary actions stay quiet; Export PDF is the one filled button. */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
           <Button
-            variant="outlined"
-            startIcon={<BookmarkAdd />}
-            onClick={onSaveToLibrary}
-            disabled={selectedModules.length === 0}
-            sx={{ borderColor: '#2c3247', color: '#f2f3fa', borderRadius: '12px', '&:hover': { borderColor: '#818cf8', color: '#818cf8' } }}
+            size="small"
+            startIcon={<Save size={icon.size} strokeWidth={icon.strokeWidth} />}
+            onClick={saveDraft}
+            sx={{ px: 1 }}
           >
-            Save to library{isPro ? '' : ' (Pro)'}
+            Save draft
           </Button>
-        </Tooltip>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#1e2233', border: '1.5px solid #2c3247', borderRadius: '12px', px: 1.5, py: 0.5 }}>
-          <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#9aa0be' }}>Seed</Typography>
+          <Button
+            size="small"
+            startIcon={<Upload size={icon.size} strokeWidth={icon.strokeWidth} />}
+            onClick={() => fileRef.current?.click()}
+            sx={{ px: 1 }}
+          >
+            Load draft
+          </Button>
+          <Tooltip title={isPro ? 'Keep it in your library and rebuild it exactly, any time' : 'Saved worksheets are part of Pro'} arrow>
+            <span>
+              <Button
+                size="small"
+                startIcon={<BookmarkPlus size={icon.size} strokeWidth={icon.strokeWidth} />}
+                onClick={onSaveToLibrary}
+                disabled={selectedModules.length === 0}
+                sx={{ px: 1 }}
+              >
+                Save to library{isPro ? '' : ' (Pro)'}
+              </Button>
+            </span>
+          </Tooltip>
+        </Box>
+        <Box aria-hidden sx={{ width: '1px', height: 24, bgcolor: color.border, display: { xs: 'none', sm: 'block' } }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography component="label" htmlFor="seed-input" sx={{ fontSize: '0.8125rem', fontWeight: 500, color: color.textMuted }}>
+            Seed
+          </Typography>
           <TextField
+            id="seed-input"
             type="number"
             size="small"
             value={seed}
             onChange={(e) => setSeed(Math.floor(Number(e.target.value)) || 0)}
-            sx={{ width: 92, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+            sx={{ width: 96, '& .MuiOutlinedInput-root': { borderRadius: `${radius.sm}px` }, '& input': { py: 0.75, fontVariantNumeric: 'tabular-nums' } }}
           />
-          <Tooltip title="Fresh problem set 🎲" arrow>
-            <IconButton size="small" onClick={randomizeSeed} sx={{ color: '#9aa0be', '&:hover': { color: '#818cf8' } }}>
-              <Casino fontSize="small" />
+          <Tooltip title="Fresh problem set" arrow>
+            <IconButton size="small" aria-label="Fresh problem set" onClick={randomizeSeed}>
+              <Dices size={icon.size} strokeWidth={icon.strokeWidth} />
             </IconButton>
           </Tooltip>
         </Box>
@@ -3462,27 +3484,22 @@ function StepReview({
               disabled={!isPro}
               checked={isPro ? includeAnswerKey : false}
               onChange={(e) => setIncludeAnswerKey(e.target.checked)}
-              sx={{
-                '& .MuiSwitch-switchBase.Mui-checked': { color: '#818cf8' },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'rgba(129,140,248,0.45)' },
-              }}
             />
           }
-          label={<Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#f2f3fa' }}>Answer key{isPro ? '' : ' (Pro)'}</Typography>}
-          sx={{ ml: 0 }}
+          label={<Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: color.text }}>Answer key{isPro ? '' : ' (Pro)'}</Typography>}
+          sx={{ ml: 0, mr: 1 }}
         />
         {mounted && selectedModules.length > 0 && gateReason ? (
           <Button
             variant="contained"
-            color="secondary"
-            startIcon={<PictureAsPdf />}
+            size="large"
+            startIcon={<FileDown size={icon.size} strokeWidth={icon.strokeWidth} />}
             onClick={() => {
               previewVisit.gateHit();
               onGatedExport();
             }}
-            sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
           >
-            Export PDF 🎉
+            Export PDF
           </Button>
         ) : mounted && selectedModules.length > 0 && hasAccommodations && accommodatedDocument ? (
           // Accommodated: one combined file with every version, built on its own.
@@ -3500,12 +3517,11 @@ function StepReview({
             {({ loading }: { loading: boolean }) => (
               <Button
                 variant="contained"
-                color="secondary"
-                startIcon={<PictureAsPdf />}
+                size="large"
+                startIcon={<FileDown size={icon.size} strokeWidth={icon.strokeWidth} />}
                 disabled={loading}
-                sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
               >
-                {loading ? 'Preparing PDF…' : 'Export PDF 🎉'}
+                {loading ? 'Preparing PDF…' : 'Export PDF'}
               </Button>
             )}
           </PDFDownloadLink>
@@ -3514,13 +3530,12 @@ function StepReview({
           // The preview's own file: what you see is what downloads.
           <Button
             variant="contained"
-            color="secondary"
-            startIcon={<PictureAsPdf />}
+            size="large"
+            startIcon={<FileDown size={icon.size} strokeWidth={icon.strokeWidth} />}
             disabled={!previewFile.blob}
             onClick={downloadPreviewFile}
-            sx={{ borderRadius: '12px', px: 3, py: 1.25, boxShadow: '0 4px 16px rgba(251,146,60,.35)' }}
           >
-            {previewFile.blob ? 'Export PDF 🎉' : previewFile.failed ? 'PDF failed to build' : 'Preparing PDF…'}
+            {previewFile.blob ? 'Export PDF' : previewFile.failed ? 'PDF failed to build' : 'Preparing PDF…'}
           </Button>
         ) : null}
       </Box>
@@ -3528,8 +3543,8 @@ function StepReview({
       {/* Export scope guard: packet contents, with a warning on course mixes */}
       {selectedModules.length > 0 &&
         (mixesCourses ? (
-          <Alert severity="warning" sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800 }}>
+          <Alert severity="warning" sx={{ mx: 'auto', mb: 2, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
               This packet mixes {mixSummary}.
             </Typography>
             {scopeList}
@@ -3538,19 +3553,19 @@ function StepReview({
           <Box
             sx={{
               mx: 'auto',
-              mb: 1.5,
+              mb: 2,
               maxWidth: '8.5in',
               width: 'calc(100% - 32px)',
-              bgcolor: '#1e2233',
-              border: '1.5px solid #2c3247',
-              borderRadius: '12px',
+              bgcolor: color.surface,
+              border: `1px solid ${color.border}`,
+              borderRadius: `${radius.md}px`,
               px: 2,
-              py: 1.25,
-              color: '#f2f3fa',
+              py: 1,
+              color: color.text,
             }}
           >
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#9aa0be', letterSpacing: '0.04em' }}>
-              IN THIS PACKET
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: color.textMuted }}>
+              In this packet
             </Typography>
             {scopeList}
           </Box>
@@ -3560,11 +3575,11 @@ function StepReview({
         <Alert
           severity="warning"
           action={
-            <Button color="inherit" size="small" href="/pricing" sx={{ fontWeight: 800 }}>
+            <Button color="inherit" size="small" href="/pricing">
               See Pro
             </Button>
           }
-          sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
+          sx={{ mx: 'auto', mb: 2, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
         >
           {gateReason === 'pro_topics'
             ? 'Some selected topics are part of Pro. Remove them to export on Free, or get Pro.'
@@ -3574,47 +3589,50 @@ function StepReview({
         </Alert>
       )}
       {usageNote && !gateReason && (
-        <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, mb: 1 }}>
+        <Typography sx={{ textAlign: 'center', fontSize: '0.75rem', color: color.textMuted, fontWeight: 400, mb: 1 }}>
           {usageNote} · Free exports carry a small footer note and no answer key.
         </Typography>
       )}
 
-      {libraryMsg && (
-        <Alert
-          severity={libraryMsg.severity}
-          onClose={clearLibraryMsg}
-          action={
-            libraryMsg.severity === 'success' ? (
-              <Button color="inherit" size="small" href="/saved" sx={{ fontWeight: 800 }}>
-                Saved worksheets
-              </Button>
-            ) : undefined
-          }
-          sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
-        >
-          {libraryMsg.text}
-        </Alert>
-      )}
-
-      {draftError && (
-        <Alert severity="error" sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}>
-          {draftError}
-        </Alert>
-      )}
-      {draftNotice && (
-        <Alert
-          severity="success"
-          onClose={clearDraftNotice}
-          role="status"
-          sx={{ mx: 'auto', mb: 1.5, maxWidth: '8.5in', width: 'calc(100% - 32px)' }}
-        >
-          {draftNotice}
-        </Alert>
-      )}
+      {/* Save and load results slide in from the screen edge and stack. */}
+      <ToastStack
+        toasts={[
+          ...(libraryMsg
+            ? [
+                {
+                  key: `library-${libraryMsg.text}`,
+                  severity: libraryMsg.severity,
+                  text: libraryMsg.text,
+                  onClose: clearLibraryMsg,
+                  action:
+                    libraryMsg.severity === 'success' ? (
+                      <Button color="inherit" size="small" href="/saved">
+                        Saved worksheets
+                      </Button>
+                    ) : undefined,
+                } satisfies Toast,
+              ]
+            : []),
+          ...(draftError
+            ? [{ key: `draft-error-${draftError}`, severity: 'error', text: draftError, role: 'alert' } satisfies Toast]
+            : []),
+          ...(draftNotice
+            ? [
+                {
+                  key: `draft-${draftNotice}`,
+                  severity: 'success',
+                  text: draftNotice,
+                  onClose: clearDraftNotice,
+                  role: 'status',
+                } satisfies Toast,
+              ]
+            : []),
+        ]}
+      />
 
       {/* Version tabs */}
       {hasAccommodations && (
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', px: 2, pb: 1, flexShrink: 0 }} data-testid="version-tab-strip">
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', px: 2, pb: 2, flexShrink: 0 }} data-testid="version-tab-strip">
           {versionPlan.all().map((v) => {
             const selected = v.versionId === activeVersionId;
             return (
@@ -3622,24 +3640,15 @@ function StepReview({
                 key={v.versionId}
                 onClick={() => setActiveVersionId(v.versionId)}
                 data-testid={`version-tab-${v.versionId}`}
-                sx={{
-                  fontSize: '0.78rem',
-                  borderRadius: '999px',
-                  px: 2.25,
-                  py: 0.85,
-                  border: '2px solid',
-                  borderColor: selected ? '#818cf8' : '#2c3247',
-                  backgroundColor: selected ? 'rgba(129,140,248,0.15)' : '#1e2233',
-                  color: selected ? '#818cf8' : '#9aa0be',
-                  '&:hover': { borderColor: '#818cf8' },
-                }}
+                aria-pressed={selected}
+                sx={{ ...segmentSx(selected), borderRadius: `${radius.pill}px`, px: 2 }}
               >
                 {v.label}
                 {v.kind === 'group' && v.studentCount ? ` (${v.studentCount})` : ''}
               </Button>
             );
           })}
-          <Typography sx={{ fontSize: '0.72rem', color: '#9aa0be', fontWeight: 600, ml: 1 }}>
+          <Typography sx={{ fontSize: '0.75rem', color: color.textMuted, fontWeight: 400, ml: 1 }}>
             Previewing: {activeVersion.label}
             {activeVersion.accommodations.length > 0 && `, ${activeVersion.accommodations.join(', ')}`}
           </Typography>
@@ -3655,12 +3664,12 @@ function StepReview({
           justifyContent: 'center',
           py: 2,
           px: 2,
-          background: 'radial-gradient(ellipse at 50% -10%, #1c2033 0%, #14161f 60%)',
+          bgcolor: color.bg,
         }}
       >
         {selectedModules.length === 0 ? (
           <Alert severity="info" sx={{ maxWidth: '8.5in', width: '100%', mt: 2, alignSelf: 'flex-start' }}>
-            Head back to Topics and pick at least one. 📚
+            Head back to Topics and pick at least one.
           </Alert>
         ) : (
           <PreviewErrorBoundary key={errorBoundaryKey}>

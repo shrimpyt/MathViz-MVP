@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { color, font } from "../../core/tokens";
 
 // /login used to be a 404. Sign-in lives in the worksheet tool's header menu,
 // so this page sends people there with the menu open (?signin=open). It works
@@ -20,17 +21,17 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#14161f",
-        color: "#f2f3fa",
-        fontFamily: "var(--font-nunito), sans-serif",
+        background: color.bg,
+        color: color.text,
+        fontFamily: font.ui,
         padding: 16,
         textAlign: "center",
       }}
     >
       <meta httpEquiv="refresh" content={`0; url=${TARGET}`} />
-      <p style={{ fontWeight: 700 }}>
+      <p style={{ fontWeight: 500, color: color.textMuted }}>
         Taking you to sign in…{" "}
-        <a href={TARGET} style={{ color: "#818cf8" }}>
+        <a href={TARGET} style={{ color: color.accent, fontWeight: 600 }}>
           Continue
         </a>
       </p>
